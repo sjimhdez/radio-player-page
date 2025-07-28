@@ -77,16 +77,6 @@ Both modes support hot reload and efficient development. Choose the workflow tha
 
 ---
 
-## Development & Contribution
-
-1. Clone the repository and enter the `player/` directory.
-2. Install dependencies with `npm install`.
-3. Use `npm run dev` for local development.
-4. Make changes in `src/`.
-5. Run `npm run build` to generate the final assets.
-
----
-
 ## Technical Notes
 
 - The build generates JS and CSS files that are injected by the plugin backend into the dedicated page.
