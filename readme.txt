@@ -4,7 +4,7 @@ Tags: audio, streaming, radio, player, icecast, shoutcast
 Requires at least: 5.0  
 Tested up to: 6.8
 Requires PHP: 7.4  
-Stable tag: 1.0.1  
+Stable tag: 1.0.2  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 Text Domain: radio-player-page  
@@ -48,3 +48,9 @@ https://github.com/sjimhdez/radio-player-page
 * Improved compatibility and prefixed all functions.
 * Clarified plugin structure and author identity.
 
+= 1.0.2 =
+* Remove index.html as Vite entry point (WordPress generates HTML)
+* Use src/main.tsx as direct entry for cleaner build process
+* Add dev:build script for continuous WordPress integration
+* Update Vite config and PHP manifest path
+* Add development mode documentation for standalone and integrated workflows

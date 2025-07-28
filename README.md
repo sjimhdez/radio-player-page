@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/tuusuario/radio-player-page)
+[![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/tuusuario/radio-player-page)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
@@ -9,7 +9,7 @@
 **Requires at least:** 5.0  
 **Tested up to:** 6.8  
 **Requires PHP:** 7.4  
-**Stable tag:** 1.0.1
+**Stable tag:** 1.0.2
 **License:** GPLv2 or later  
 **License URI:** [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
 
@@ -63,3 +63,29 @@ The plugin includes a standalone frontend application that is decoupled from the
 3. Go to **Settings > Live Radio** to:
    - Set your stream URL (e.g. Icecast, Shoutcast, MP3 stream).
    - Select the page where the player will be injected.
+
+## Local Development
+
+There are two recommended workflows for developing the React frontend:
+
+- **Standalone React development:**
+
+  Runs only the React app using the `window` variables defined in `player/index.html`. Useful for working on the frontend in isolation, without a local WordPress instance.
+
+  ```bash
+  cd player
+  npm install
+  npm run dev
+  ```
+
+- **Integrated development with WordPress:**
+
+  Continuously builds the frontend into the `dist/` folder, so you can test the plugin directly within your local WordPress installation.
+
+  ```bash
+  cd player
+  npm install
+  npm run dev:build
+  ```
+
+Choose the workflow that best fits your needs.
