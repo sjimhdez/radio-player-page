@@ -63,3 +63,29 @@ The plugin includes a standalone frontend application that is decoupled from the
 3. Go to **Settings > Live Radio** to:
    - Set your stream URL (e.g. Icecast, Shoutcast, MP3 stream).
    - Select the page where the player will be injected.
+
+## Local Development
+
+There are two recommended workflows for developing the React frontend:
+
+- **Standalone React development:**
+
+  Runs only the React app using the `window` variables defined in `player/index.html`. Useful for working on the frontend in isolation, without a local WordPress instance.
+
+  ```bash
+  cd player
+  npm install
+  npm run dev
+  ```
+
+- **Integrated development with WordPress:**
+
+  Continuously builds the frontend into the `dist/` folder, so you can test the plugin directly within your local WordPress installation.
+
+  ```bash
+  cd player
+  npm install
+  npm run dev:build
+  ```
+
+Choose the workflow that best fits your needs.

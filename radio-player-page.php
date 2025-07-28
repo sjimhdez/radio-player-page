@@ -41,7 +41,7 @@ function radplapag_output_clean_page() {
     }
 
     $manifest     = json_decode( file_get_contents( $manifest_path ), true );
-    $main_entry   = $manifest['index.html'] ?? null;
+    $main_entry   = $manifest['src/main.tsx'] ?? null;
     $main_js      = $main_entry['file'] ?? null;
     $main_css     = $main_entry['css'][0] ?? null;
 

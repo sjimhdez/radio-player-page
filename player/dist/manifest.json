@@ -1,11 +1,11 @@
 {
-  "index.html": {
-    "file": "radio-player-page-1.0.1-index.js",
-    "name": "index",
-    "src": "index.html",
+  "src/main.tsx": {
+    "file": "radio-player-page-1.0.2.js",
+    "name": "main",
+    "src": "src/main.tsx",
     "isEntry": true,
     "css": [
-      "radio-player-page-1.0.1-index.css"
+      "radio-player-page-1.0.2.css"
     ]
   }
 }
