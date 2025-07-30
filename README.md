@@ -1,15 +1,15 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)](https://github.com/tuusuario/radio-player-page)
+[![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/tuusuario/radio-player-page)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
 **Contributors:** sjimhdez  
-**Tags:** audio, streaming, radio, player, icecast, shoutcast, visualizer  
+**Tags:** audio, streaming, radio, player, live
 **Requires at least:** 5.0  
 **Tested up to:** 6.8  
 **Requires PHP:** 7.4  
-**Stable tag:** 1.0.1
+**Stable tag:** 1.0.2
 **License:** GPLv2 or later  
 **License URI:** [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
 

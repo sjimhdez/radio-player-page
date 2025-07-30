@@ -63,7 +63,7 @@ function radplapag_render_settings_page() {
     }
 
     $options       = get_option( 'radplapag_settings', [] );
-    $stream_url    = isset( $options['stream_url'] ) ? esc_attr( $options['stream_url'] ) : '';
+    $stream_url    = isset( $options['stream_url'] ) ? $options['stream_url'] : '';
     $selected_page = isset( $options['player_page'] ) ? intval( $options['player_page'] ) : '';
     $pages         = get_pages( [ 'post_status' => 'publish' ] );
     ?>
@@ -82,7 +82,7 @@ function radplapag_render_settings_page() {
                         <label for="radplapag_stream_url"><?php esc_html_e( 'Stream URL', 'radio-player-page' ); ?></label>
                     </th>
                     <td>
-                        <input name="radplapag_settings[stream_url]" type="url" id="radplapag_stream_url" value="<?php echo $stream_url; ?>" class="regular-text" required>
+                        <input name="radplapag_settings[stream_url]" type="url" id="radplapag_stream_url" value="<?php echo esc_url($stream_url); ?>" class="regular-text" required>
                         <p class="description"><?php esc_html_e( 'Example: https://my.station.com:8000/stream', 'radio-player-page' ); ?></p>
                     </td>
                 </tr>
