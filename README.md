@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/tuusuario/radio-player-page)
+[![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)](https://github.com/tuusuario/radio-player-page)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
@@ -9,7 +9,7 @@
 **Requires at least:** 5.0  
 **Tested up to:** 6.8  
 **Requires PHP:** 7.4  
-**Stable tag:** 1.0.2
+**Stable tag:** 1.0.3
 **License:** GPLv2 or later  
 **License URI:** [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
 
@@ -30,8 +30,6 @@ This is the first plugin to abstract the radio player entirely from the rest of 
 This ensures a distraction-free, lightweight, and branded listening experience. Ideal for users who want to keep the player open in a separate tab or as a central page for continuous radio playback.
 
 This plugin was originally developed for a real radio project, where a minimal interface proved to significantly improve user engagement and listening time.
-
-Note: This plugin is production-ready but currently under review by the official WordPress plugins team. You can install and use it safely; any updates or changes required by the review process will be communicated promptly.
 
 ---
 
