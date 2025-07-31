@@ -1,6 +1,6 @@
 === Radio Player Page ===
 Contributors: sjimhdez  
-Tags: audio, streaming, radio, player, icecast, shoutcast  
+Tags: audio, streaming, radio, player, live  
 Requires at least: 5.0  
 Tested up to: 6.8
 Requires PHP: 7.4  
@@ -49,6 +49,10 @@ https://github.com/sjimhdez/radio-player-page
 * Clarified plugin structure and author identity.
 
 = 1.0.2 =
+* Improved escaping for all dynamic output to meet WordPress security standards.
+* Limited plugin tags to a maximum of five, as required by the plugin review team.
+
+= 1.0.3 =
 * Remove index.html as Vite entry point (WordPress generates HTML)
 * Use src/main.tsx as direct entry for cleaner build process
 * Add dev:build script for continuous WordPress integration

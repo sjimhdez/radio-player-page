@@ -4,8 +4,6 @@
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
-    "css": [
-      "radio-player-page-1.0.2.css"
-    ]
+    "css": ["radio-player-page-1.0.2.css"]
   }
 }
