@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: A simple audio player for WordPress, serving a clean external app in a selected page.
- * Version: 1.0.2
+ * Version: 1.0.3
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, streaming, radio, player, live
@@ -41,7 +41,7 @@ function radplapag_output_clean_page() {
     }
 
     $manifest     = json_decode( file_get_contents( $manifest_path ), true );
-    $main_entry   = $manifest['index.html'] ?? null;
+    $main_entry   = $manifest['src/main.tsx'] ?? null;
     $main_js      = $main_entry['file'] ?? null;
     $main_css     = $main_entry['css'][0] ?? null;
 

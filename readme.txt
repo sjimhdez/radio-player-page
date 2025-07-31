@@ -2,9 +2,9 @@
 Contributors: sjimhdez  
 Tags: audio, streaming, radio, player, live  
 Requires at least: 5.0  
-Tested up to: 6.8
+Tested up to: 6.8  
 Requires PHP: 7.4  
-Stable tag: 1.0.2  
+Stable tag: 1.0.3  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 Text Domain: radio-player-page  
@@ -13,9 +13,25 @@ A simple audio player for WordPress, rendering a fully standalone app in a clean
 
 == Description ==
 
-This plugin allows you to configure a specific WordPress page to display a clean, standalone audio player powered by a reactive app.
+Many WordPress-based radio stations either rely on direct streaming links that open in the browser—resulting in an unbranded and clunky experience—or require inserting shortcode-based players, which still render within the clutter of the site layout.
 
-It is intended for minimal radio playback use cases, where a full WordPress layout is unnecessary or undesirable.
+Other existing plugin solutions often overcomplicate the player with excessive features, scripts, and styling dependencies, leading to slow loading times and a poor user experience.
+
+**Radio Player Page** solves this with a focused solution: it creates a dedicated page that strips out all WordPress theme elements and loads only the essentials—a modern audio player and a real-time waveform visualizer.
+
+This is the first plugin to abstract the radio player entirely from the rest of the website, providing a standalone environment focused solely on the listening experience.
+
+This ensures a distraction-free, lightweight, and branded listening experience. Ideal for users who want to keep the player open in a separate tab or as a central page for continuous radio playback.
+
+This plugin was originally developed for a real radio project, where a minimal interface proved to significantly improve user engagement and listening time.
+
+== Features == 
+
+- **Minimal UI:** Clean, distraction-free page for optimal listening.
+- **Visual Feedback:** Real-time waveform visualizer powered by the Web Audio API.
+- **Frontend Decoupling:** Injects the player into a blank HTML shell (`<div id="root">`) with zero dependency on your active WordPress theme.
+- **Built with Modern Tools:** Developed in React + TypeScript and bundled with Vite.
+- **Fully Responsive:** Works seamlessly across devices, including mobile.
 
 == Installation ==
 
@@ -24,30 +40,24 @@ It is intended for minimal radio playback use cases, where a full WordPress layo
 3. Go to **Settings > Radio Player Page Settings**
 4. Set your stream URL and choose the page where the player will render
 
-== Technical Notes ==
-
-This plugin outputs a fully custom HTML document and intentionally exits the WordPress execution flow early via `exit` in the `template_redirect` hook. This is done to provide a minimal and fully decoupled player environment, free from the WordPress theme or layout.
-
-As a result:
-- WordPress actions and filters that normally load scripts and styles (including `wp_enqueue_script()` and `wp_enqueue_style()`) are never reached.
-- Any enqueued assets would be ignored, and using the enqueue system would be misleading and redundant.
-- The plugin directly includes only the specific compiled files needed (based on the Vite manifest) inside the generated HTML document.
-
-This behavior is intentional and documented both in this file and in the source code (`radio-player-page.php`), as it’s critical to the design goal of serving a clean standalone player.
-
-The code respects all other WordPress standards and security practices, but skips the enqueue mechanism by necessity.
-
 == Source Code ==
 
-The React source code for the embedded player is available here:  
+The source code and development documentation are available at:  
 https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
 
-= 1.0.1 =
-* Improved compatibility and prefixed all functions.
-* Clarified plugin structure and author identity.
+= 1.0.3 =
+* Removed index.html as Vite entry point (WordPress handles HTML)
+* Uses `src/main.tsx` as direct entry
+* Added `dev:build` script for WordPress integration
+* Updated Vite config and PHP manifest resolution
+* Added development mode documentation
 
 = 1.0.2 =
-* Improved escaping for all dynamic output to meet WordPress security standards.
-* Limited plugin tags to a maximum of five, as required by the plugin review team.
+* Escaped all dynamic output for security
+* Reduced plugin tags to meet repository guidelines
+
+= 1.0.1 =
+* Improved compatibility and prefixed all functions
+* Clarified plugin structure and author identity

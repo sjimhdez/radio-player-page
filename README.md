@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.0.2-blue.svg)](https://github.com/tuusuario/radio-player-page)
+[![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)](https://github.com/tuusuario/radio-player-page)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
@@ -9,7 +9,7 @@
 **Requires at least:** 5.0  
 **Tested up to:** 6.8  
 **Requires PHP:** 7.4  
-**Stable tag:** 1.0.2
+**Stable tag:** 1.0.3
 **License:** GPLv2 or later  
 **License URI:** [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
 
@@ -30,8 +30,6 @@ This is the first plugin to abstract the radio player entirely from the rest of 
 This ensures a distraction-free, lightweight, and branded listening experience. Ideal for users who want to keep the player open in a separate tab or as a central page for continuous radio playback.
 
 This plugin was originally developed for a real radio project, where a minimal interface proved to significantly improve user engagement and listening time.
-
-Note: This plugin is production-ready but currently under review by the official WordPress plugins team. You can install and use it safely; any updates or changes required by the review process will be communicated promptly.
 
 ---
 
@@ -63,3 +61,29 @@ The plugin includes a standalone frontend application that is decoupled from the
 3. Go to **Settings > Live Radio** to:
    - Set your stream URL (e.g. Icecast, Shoutcast, MP3 stream).
    - Select the page where the player will be injected.
+
+## Local Development
+
+There are two recommended workflows for developing the React frontend:
+
+- **Standalone React development:**
+
+  Runs only the React app using the `window` variables defined in `player/index.html`. Useful for working on the frontend in isolation, without a local WordPress instance.
+
+  ```bash
+  cd player
+  npm install
+  npm run dev
+  ```
+
+- **Integrated development with WordPress:**
+
+  Continuously builds the frontend into the `dist/` folder, so you can test the plugin directly within your local WordPress installation.
+
+  ```bash
+  cd player
+  npm install
+  npm run dev:build
+  ```
+
+Choose the workflow that best fits your needs.

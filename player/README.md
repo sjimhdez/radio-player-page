@@ -53,13 +53,27 @@ In the `player/` directory you can run:
 
 ---
 
-## Development & Contribution
+## Development Modes
 
-1. Clone the repository and enter the `player/` directory.
-2. Install dependencies with `npm install`.
-3. Use `npm run dev` for local development.
-4. Make changes in `src/`.
-5. Run `npm run build` to generate the final assets.
+You can develop the frontend using two approaches:
+
+- **Standalone mode (`npm run dev`):**
+
+  Runs the React app in development mode using the `window` variables defined in `index.html`. This is ideal for working on the frontend in isolation, without needing a local WordPress instance.
+
+  ```bash
+  npm run dev
+  ```
+
+- **Integrated mode with WordPress (`npm run dev:build`):**
+
+  Continuously builds the frontend into the `dist/` folder, so changes are immediately available in your local WordPress environment. Use this mode to test the plugin as it will run in production.
+
+  ```bash
+  npm run dev:build
+  ```
+
+Both modes support hot reload and efficient development. Choose the workflow that best fits your needs.
 
 ---
 
