@@ -4,7 +4,7 @@ Tags: audio, streaming, radio, player, live
 Requires at least: 5.0  
 Tested up to: 6.8  
 Requires PHP: 7.4  
-Stable tag: 1.0.3  
+Stable tag: 1.0.4  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 Text Domain: radio-player-page  
@@ -47,17 +47,9 @@ https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
 
-= 1.0.3 =
-* Removed index.html as Vite entry point (WordPress handles HTML)
-* Uses `src/main.tsx` as direct entry
-* Added `dev:build` script for WordPress integration
-* Updated Vite config and PHP manifest resolution
-* Added development mode documentation
+= 1.0.4 =
+- Added usage instructions to the plugin settings page  
+- Integrated i18n support in the player (en/es)  
+- Refactored player bundle to improve structure and fix minor bugs
 
-= 1.0.2 =
-* Escaped all dynamic output for security
-* Reduced plugin tags to meet repository guidelines
-
-= 1.0.1 =
-* Improved compatibility and prefixed all functions
-* Clarified plugin structure and author identity
+For the full development history, including all source code and bundle changes, please refer to the Git repository.

@@ -1,11 +1,11 @@
 {
   "src/main.tsx": {
-    "file": "radio-player-page-1.0.3.js",
+    "file": "radio-player-page-1.0.4.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
     "css": [
-      "radio-player-page-1.0.3.css"
+      "radio-player-page-1.0.4.css"
     ]
   }
 }
