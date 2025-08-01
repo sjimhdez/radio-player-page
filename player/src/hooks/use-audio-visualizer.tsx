@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { PlayerStatus } from '../types/player'
 import { oscilloscopeVisualizer } from '../components/visualizers/oscilloscope-visualizer'
 
@@ -13,20 +13,6 @@ function useAudioVisualizer(
   const analyserRef = useRef<AnalyserNode | null>(null)
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
   const animationRef = useRef<number>(0)
-  const [canVisualize, setCanVisualize] = useState(false)
-
-  useEffect(() => {
-    const audioEl = audioRef.current
-
-    if (!audioEl) return
-
-    const isWebkit =
-      /AppleWebKit/.test(navigator.userAgent) &&
-      !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent)
-    const sameOrigin = audioEl.src.startsWith(location.origin)
-
-    setCanVisualize(!(isWebkit && !sameOrigin))
-  }, [audioRef])
 
   useEffect(() => {
     if (!canvasRef) return
@@ -36,7 +22,7 @@ function useAudioVisualizer(
       return
     }
 
-    if (!audioRef.current || !canvasRef.current || !canVisualize) return
+    if (!audioRef.current || !canvasRef.current) return
 
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d', { willReadFrequently: true })
@@ -81,9 +67,7 @@ function useAudioVisualizer(
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
-  }, [status, audioRef, canvasRef, canVisualize, width, height])
-
-  return { canVisualize }
+  }, [status, audioRef, canvasRef, width, height])
 }
 
 export default useAudioVisualizer

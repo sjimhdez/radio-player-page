@@ -12,6 +12,7 @@ import theme from '../../config/theme'
 import Collapse from '@mui/material/Collapse'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
+import { useCanVisualize } from '../../hooks/use-can-visualize'
 
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
@@ -26,6 +27,8 @@ const Dashboard = () => {
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
   const { audioRef, status, loading, play, pause } = useAudioPlayer(STREAM_URL)
+  const canVisualize = useCanVisualize(audioRef)
+  useAudioVisualizer(audioRef, canvasRef, status, dimensions.width, dimensions.height)
 
   useEffect(() => {
     const handleResize = () => {
@@ -48,14 +51,6 @@ const Dashboard = () => {
       canvasRef.current.height = dimensions.height
     }
   }, [dimensions])
-
-  const { canVisualize } = useAudioVisualizer(
-    audioRef,
-    canvasRef,
-    status,
-    dimensions.width,
-    dimensions.height,
-  )
 
   useEffect(() => {
     setOpenError(status === 'error')
