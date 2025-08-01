@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import type { PlayerStatus } from '../types/player'
-import { oscilloscopeVisualizer } from '../components/visualizers/oscilloscope-visualizer'
+import type { PlayerStatus } from 'src/types/player'
+import { oscilloscopeVisualizer } from 'src/components/visualizers/oscilloscope-visualizer'
 
 function useAudioVisualizer(
   audioRef: React.RefObject<HTMLAudioElement>,
