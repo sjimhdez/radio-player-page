@@ -14,6 +14,7 @@ import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import { useTranslation } from 'react-i18next'
+import CircleRounded from '@mui/icons-material/CircleRounded'
 
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
@@ -75,9 +76,8 @@ const Dashboard = () => {
         gap={{ xs: 0, sm: 1 }}
         px={2}
         py={1}
-        direction={{ xs: 'column', sm: 'row' }}
-        alignItems={{ xs: 'center', sm: 'flex-start' }}
-        justifyContent={{ xs: 'center', sm: 'flex-start' }}
+        alignItems="center"
+        justifyContent="center"
       >
         <Typography variant="h5" component="h1" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
           {SITE_TITLE}
@@ -89,9 +89,19 @@ const Dashboard = () => {
           collapsedSize={0}
           orientation="horizontal"
         >
-          <Typography variant="h5" whiteSpace={'nowrap'}>
-            {t('is on live!')}
-          </Typography>
+          <Stack direction={'row'} alignItems={'center'} gap={1}>
+            <Typography variant="h5" whiteSpace={'nowrap'}>
+              {t('is on live!')}
+            </Typography>
+            <CircleRounded
+              color="error"
+              fontSize="small"
+              sx={{
+                animation: 'blink 1s infinite',
+                '@keyframes blink': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0 } },
+              }}
+            />
+          </Stack>
         </Collapse>
       </Stack>
 
