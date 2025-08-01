@@ -6,23 +6,54 @@ import PauseIcon from '@mui/icons-material/Pause'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import useAudioPlayer from '../../hooks/use-audio-player'
-import useAudioVisualizer from '../../hooks/use-audio-visualizer'
-import theme from '../../config/theme'
+import useAudioPlayer from 'src/hooks/use-audio-player'
+import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
+import theme from 'src/config/theme'
 import Collapse from '@mui/material/Collapse'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
+import { useCanVisualize } from 'src/hooks/use-can-visualize'
+import { useTranslation } from 'react-i18next'
+import CircleRounded from '@mui/icons-material/CircleRounded'
 
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
   const SITE_TITLE = window.SITE_TITLE || ''
 
-  const { audioRef, status, loading, play, pause } = useAudioPlayer(STREAM_URL)
-  const canvasRef = useRef<HTMLCanvasElement>(null!)
-
-  const { canVisualize } = useAudioVisualizer(audioRef, canvasRef, status)
-
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  })
   const [openError, setOpenError] = useState(false)
+
+  const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
+
+  const { t } = useTranslation()
+  const { audioRef, status, loading, play, pause } = useAudioPlayer(STREAM_URL)
+  const canVisualize = useCanVisualize(audioRef)
+  useAudioVisualizer(audioRef, canvasRef, status, dimensions.width, dimensions.height)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      canvasRef.current.width = dimensions.width
+      canvasRef.current.height = dimensions.height
+    }
+  }, [dimensions])
 
   useEffect(() => {
     setOpenError(status === 'error')
@@ -38,14 +69,17 @@ const Dashboard = () => {
     >
       <Stack
         position={'absolute'}
-        top={canVisualize ? 16 : 'calc(50% - 2rem)'}
+        top={canVisualize && status === 'playing' ? 16 : 'calc(50% - 2rem)'}
         textAlign={'center'}
         sx={{ transition: 'all 0.8s ease' }}
         zIndex={theme.zIndex.tooltip}
         gap={1}
-        direction={'row'}
+        px={2}
+        py={1}
+        alignItems="center"
+        justifyContent="center"
       >
-        <Typography variant="h5" component="h1">
+        <Typography variant="h5" component="h1" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
           {SITE_TITLE}
         </Typography>
 
@@ -55,29 +89,42 @@ const Dashboard = () => {
           collapsedSize={0}
           orientation="horizontal"
         >
-          <Typography variant="h5" whiteSpace={'nowrap'}>
-            is on live!
-          </Typography>
+          <Stack direction={'row'} alignItems={'center'} gap={1}>
+            <Typography variant="h5" whiteSpace={'nowrap'}>
+              {t('is on live!')}
+            </Typography>
+            <CircleRounded
+              color="error"
+              fontSize="small"
+              sx={{
+                animation: 'blink 1s infinite',
+                '@keyframes blink': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0 } },
+              }}
+            />
+          </Stack>
         </Collapse>
       </Stack>
 
       <Box
         component="canvas"
         ref={canvasRef}
-        width={1500}
-        height={300}
-        sx={{ opacity: canVisualize ? 1 : 0 }}
+        sx={{
+          opacity: canVisualize ? 1 : 0,
+          width: '100%',
+          height: '100%',
+          display: 'block',
+        }}
       />
 
       <Stack alignItems="center" gap={2} position="absolute" bottom={18}>
         {loading && !openError ? (
-          <CircularProgress size={40} />
+          <CircularProgress size={48} />
         ) : status !== 'playing' ? (
-          <IconButton onClick={play}>
+          <IconButton onClick={play} size="large">
             <PlayArrowIcon />
           </IconButton>
         ) : (
-          <IconButton onClick={pause}>
+          <IconButton onClick={pause} size="large">
             <PauseIcon />
           </IconButton>
         )}
@@ -87,7 +134,7 @@ const Dashboard = () => {
 
       <Snackbar open={openError} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert severity="error" sx={{ width: '100%' }}>
-          Unable to play the stream. Please check the URL or try again later.
+          {t('Unable to play the stream. Please check the URL or try again later.')}
         </Alert>
       </Snackbar>
     </Stack>

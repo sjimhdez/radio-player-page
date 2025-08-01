@@ -1,17 +1,15 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)](https://github.com/tuusuario/radio-player-page)
-[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/)
+[![Version](https://img.shields.io/badge/version-1.0.4-blue.svg)](https://github.com/sjimhdez/radio-player-page)
+[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
+[![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-**Contributors:** sjimhdez  
-**Tags:** audio, streaming, radio, player, live
-**Requires at least:** 5.0  
-**Tested up to:** 6.8  
-**Requires PHP:** 7.4  
-**Stable tag:** 1.0.3
-**License:** GPLv2 or later  
-**License URI:** [https://www.gnu.org/licenses/gpl-2.0.html](https://www.gnu.org/licenses/gpl-2.0.html)
+[![Node](https://img.shields.io/badge/node-20.x-blue.svg)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.8.3-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/react-19.1.0-blue.svg)](https://reactjs.org/)
+[![Vite](https://img.shields.io/badge/vite-6.3.5-blue.svg)](https://vitejs.dev/)
+[![MUI](https://img.shields.io/badge/MUI-7.1.1-blue.svg)](https://mui.com/)
 
 A clean, standalone audio player with waveform visualizer. Designed specifically for WordPress-based radio stations.
 
@@ -58,9 +56,17 @@ The plugin includes a standalone frontend application that is decoupled from the
 
 1. Upload the `radio-player-page` folder to `/wp-content/plugins/`.
 2. Activate the plugin in **Plugins > Installed Plugins**.
-3. Go to **Settings > Live Radio** to:
+3. Go to **Settings > Radio Player Page Settings** to:
    - Set your stream URL (e.g. Icecast, Shoutcast, MP3 stream).
    - Select the page where the player will be injected.
+
+---
+
+## WordPress Plugin
+
+Available at: [wordpress.org/plugins/radio-player-page](https://wordpress.org/plugins/radio-player-page)
+
+---
 
 ## Local Development
 
@@ -87,3 +93,9 @@ There are two recommended workflows for developing the React frontend:
   ```
 
 Choose the workflow that best fits your needs.
+
+---
+
+## Updates
+
+Stay informed about the latest news and releases through the developer's Bluesky account, linked in the GitHub profile.

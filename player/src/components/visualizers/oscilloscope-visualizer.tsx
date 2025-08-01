@@ -2,9 +2,9 @@ export const oscilloscopeVisualizer = (
   ctx: CanvasRenderingContext2D,
   dataArray: Uint8Array,
   canvas: HTMLCanvasElement,
+  width: number,
+  height: number,
 ) => {
-  const width = 1500
-  const height = 300
   canvas.width = width
   canvas.height = height
 

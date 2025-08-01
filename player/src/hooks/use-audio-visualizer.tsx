@@ -1,19 +1,22 @@
-import { useEffect, useRef, useState } from 'react'
-import type { PlayerStatus } from '../types/player'
-import { oscilloscopeVisualizer } from '../components/visualizers/oscilloscope-visualizer'
+import { useEffect, useRef } from 'react'
+import type { PlayerStatus } from 'src/types/player'
+import { oscilloscopeVisualizer } from 'src/components/visualizers/oscilloscope-visualizer'
 
 function useAudioVisualizer(
   audioRef: React.RefObject<HTMLAudioElement>,
-  canvasRef: React.RefObject<HTMLCanvasElement>,
+  canvasRef: React.RefObject<HTMLCanvasElement> | null,
   status: PlayerStatus,
+  width: number,
+  height: number,
 ) {
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null)
   const animationRef = useRef<number>(0)
-  const [canVisualize, setCanVisualize] = useState(false)
 
   useEffect(() => {
+    if (!canvasRef) return
+
     if (status !== 'playing') {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
       return
@@ -39,61 +42,32 @@ function useAudioVisualizer(
       }
 
       if (!sourceNodeRef.current) {
-        try {
-          sourceNodeRef.current = audioCtx.createMediaElementSource(audioRef.current)
-          sourceNodeRef.current.connect(analyserRef.current)
-          analyserRef.current.connect(audioCtx.destination)
-        } catch (err) {
-          console.warn('Unable to create MediaElementSource:', err)
-          setCanVisualize(false)
-          return
-        }
+        sourceNodeRef.current = audioCtx.createMediaElementSource(audioRef.current)
+        sourceNodeRef.current.connect(analyserRef.current)
+        analyserRef.current.connect(audioCtx.destination)
       }
 
       const analyser = analyserRef.current
       const bufferLength = analyser.frequencyBinCount
       const dataArray = new Uint8Array(bufferLength)
 
-      let detectionFrames = 0
-      let signalDetected = false
-
       const draw = () => {
         animationRef.current = requestAnimationFrame(draw)
         analyser.getByteTimeDomainData(dataArray)
 
-        // Detect valid signal (≠ 128 nor 0)
-        const allZero = dataArray.every((v) => v === 0)
-        const all128 = dataArray.every((v) => v === 128)
-
-        if (!signalDetected) {
-          detectionFrames++
-          if (!allZero && !all128) {
-            signalDetected = true
-            setCanVisualize(true)
-          } else if (detectionFrames > 20) {
-            setCanVisualize(false)
-            return
-          }
-        }
-
-        if (signalDetected) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height)
-          oscilloscopeVisualizer(ctx, dataArray, canvas)
-        }
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        oscilloscopeVisualizer(ctx, dataArray, canvas, width, height)
       }
 
       draw()
     } catch (err) {
       console.warn('Visualization not supported:', err)
-      setCanVisualize(false)
     }
 
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
-  }, [status, audioRef, canvasRef])
-
-  return { canVisualize }
+  }, [status, audioRef, canvasRef, width, height])
 }
 
 export default useAudioVisualizer

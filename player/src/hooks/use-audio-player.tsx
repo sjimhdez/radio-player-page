@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
-import type { PlayerStatus } from '../types/player'
+import type { PlayerStatus } from 'src/types/player'
 
 function useAudioPlayer(streamUrl: string) {
   const audioRef = useRef<HTMLAudioElement>(null!)
