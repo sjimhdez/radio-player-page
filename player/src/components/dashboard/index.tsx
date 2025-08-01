@@ -13,6 +13,7 @@ import Collapse from '@mui/material/Collapse'
 import Snackbar from '@mui/material/Snackbar'
 import Alert from '@mui/material/Alert'
 import { useCanVisualize } from '../../hooks/use-can-visualize'
+import { useTranslation } from 'react-i18next'
 
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
@@ -26,6 +27,7 @@ const Dashboard = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
+  const { t } = useTranslation()
   const { audioRef, status, loading, play, pause } = useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
   useAudioVisualizer(audioRef, canvasRef, status, dimensions.width, dimensions.height)
@@ -84,7 +86,7 @@ const Dashboard = () => {
           orientation="horizontal"
         >
           <Typography variant="h5" whiteSpace={'nowrap'}>
-            is on live!
+            {t('is on live!')}
           </Typography>
         </Collapse>
       </Stack>
@@ -118,7 +120,7 @@ const Dashboard = () => {
 
       <Snackbar open={openError} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert severity="error" sx={{ width: '100%' }}>
-          Unable to play the stream. Please check the URL or try again later.
+          {t('Unable to play the stream. Please check the URL or try again later.')}
         </Alert>
       </Snackbar>
     </Stack>
