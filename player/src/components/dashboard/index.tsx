@@ -73,7 +73,7 @@ const Dashboard = () => {
         textAlign={'center'}
         sx={{ transition: 'all 0.8s ease' }}
         zIndex={theme.zIndex.tooltip}
-        gap={{ xs: 0, sm: 1 }}
+        gap={1}
         px={2}
         py={1}
         alignItems="center"
