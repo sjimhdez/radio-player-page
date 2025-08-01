@@ -72,6 +72,12 @@ function radplapag_render_settings_page() {
 
         <?php settings_errors( 'radplapag_settings' ); ?>
 
+        <div>
+            <h2><?php esc_html_e( 'How to use', 'radio-player-page' ); ?></h2>
+            <p><?php esc_html_e( 'To get started, create a new page in your WordPress site. Then, enter your streaming URL (Icecast, Shoutcast, etc.) below, select the page where the player should appear, and click "Save Changes".', 'radio-player-page' ); ?></p>
+            <p><?php esc_html_e( 'Once configured, that page will display a clean, standalone audio player designed for uninterrupted listening.', 'radio-player-page' ); ?></p>
+        </div>
+
         <form method="post" action="options.php">
             <?php
             settings_fields( 'radplapag_settings_group' );
