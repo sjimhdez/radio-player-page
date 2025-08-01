@@ -38,7 +38,7 @@ const Dashboard = () => {
     >
       <Stack
         position={'absolute'}
-        top={canVisualize ? 16 : 'calc(50% - 2rem)'}
+        top={canVisualize && status === 'playing' ? 16 : 'calc(50% - 2rem)'}
         textAlign={'center'}
         sx={{ transition: 'all 0.8s ease' }}
         zIndex={theme.zIndex.tooltip}
