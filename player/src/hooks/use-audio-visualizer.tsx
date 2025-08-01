@@ -4,8 +4,10 @@ import { oscilloscopeVisualizer } from '../components/visualizers/oscilloscope-v
 
 function useAudioVisualizer(
   audioRef: React.RefObject<HTMLAudioElement>,
-  canvasRef: React.RefObject<HTMLCanvasElement>,
+  canvasRef: React.RefObject<HTMLCanvasElement> | null,
   status: PlayerStatus,
+  width: number,
+  height: number,
 ) {
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -27,6 +29,8 @@ function useAudioVisualizer(
   }, [audioRef])
 
   useEffect(() => {
+    if (!canvasRef) return
+
     if (status !== 'playing') {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
       return
@@ -66,7 +70,7 @@ function useAudioVisualizer(
         analyser.getByteTimeDomainData(dataArray)
 
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        oscilloscopeVisualizer(ctx, dataArray, canvas)
+        oscilloscopeVisualizer(ctx, dataArray, canvas, width, height)
       }
 
       draw()
@@ -77,7 +81,7 @@ function useAudioVisualizer(
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
-  }, [status, audioRef, canvasRef, canVisualize])
+  }, [status, audioRef, canvasRef, canVisualize, width, height])
 
   return { canVisualize }
 }

@@ -17,12 +17,45 @@ const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
   const SITE_TITLE = window.SITE_TITLE || ''
 
-  const { audioRef, status, loading, play, pause } = useAudioPlayer(STREAM_URL)
-  const canvasRef = useRef<HTMLCanvasElement>(null!)
-
-  const { canVisualize } = useAudioVisualizer(audioRef, canvasRef, status)
-
+  const [dimensions, setDimensions] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  })
   const [openError, setOpenError] = useState(false)
+
+  const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
+
+  const { audioRef, status, loading, play, pause } = useAudioPlayer(STREAM_URL)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      canvasRef.current.width = dimensions.width
+      canvasRef.current.height = dimensions.height
+    }
+  }, [dimensions])
+
+  const { canVisualize } = useAudioVisualizer(
+    audioRef,
+    canvasRef,
+    status,
+    dimensions.width,
+    dimensions.height,
+  )
 
   useEffect(() => {
     setOpenError(status === 'error')
@@ -64,20 +97,23 @@ const Dashboard = () => {
       <Box
         component="canvas"
         ref={canvasRef}
-        width={1500}
-        height={300}
-        sx={{ opacity: canVisualize ? 1 : 0 }}
+        sx={{
+          opacity: canVisualize ? 1 : 0,
+          width: '100%',
+          height: '100%',
+          display: 'block',
+        }}
       />
 
       <Stack alignItems="center" gap={2} position="absolute" bottom={18}>
         {loading && !openError ? (
-          <CircularProgress size={40} />
+          <CircularProgress size={48} />
         ) : status !== 'playing' ? (
-          <IconButton onClick={play}>
+          <IconButton onClick={play} size="large">
             <PlayArrowIcon />
           </IconButton>
         ) : (
-          <IconButton onClick={pause}>
+          <IconButton onClick={pause} size="large">
             <PauseIcon />
           </IconButton>
         )}
