@@ -72,10 +72,14 @@ const Dashboard = () => {
         textAlign={'center'}
         sx={{ transition: 'all 0.8s ease' }}
         zIndex={theme.zIndex.tooltip}
-        gap={1}
-        direction={'row'}
+        gap={{ xs: 0, sm: 1 }}
+        px={2}
+        py={1}
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'center', sm: 'flex-start' }}
+        justifyContent={{ xs: 'center', sm: 'flex-start' }}
       >
-        <Typography variant="h5" component="h1">
+        <Typography variant="h5" component="h1" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
           {SITE_TITLE}
         </Typography>
 
