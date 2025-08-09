@@ -50,15 +50,14 @@ function radplapag_output_clean_page() {
     }
 
     $dist_url   = plugin_dir_url( __FILE__ ) . 'player/dist/';
-    $stream_url = esc_url( $options['stream_url'] );
 
     echo '<!DOCTYPE html>';
     echo '<html lang="es">';
     echo '<head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    echo '<title>' . esc_html__( 'Radio Player Page', 'radio-player-page' ) . '</title>';
-    echo '<script>window.STREAM_URL = "' . esc_js( $stream_url ) . '";</script>';
+    echo '<title>' . esc_html( get_bloginfo( 'name' ) ) . '</title>';
+    echo '<script>window.STREAM_URL = "' . esc_js( $options['stream_url'] ) . '";</script>';
     echo '<script>window.SITE_TITLE = "' . esc_js( get_bloginfo( 'name' ) ) . '";</script>';
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
