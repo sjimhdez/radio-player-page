@@ -4,7 +4,7 @@ Tags: audio, streaming, radio, player, live
 Requires at least: 5.0  
 Tested up to: 6.8  
 Requires PHP: 7.4  
-Stable tag: 1.0.4  
+Stable tag: 1.0.5  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 Text Domain: radio-player-page  
@@ -47,7 +47,7 @@ https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
 
-= 1.0.4 =
+= 1.0.5 =
 - Added usage instructions to the plugin settings page  
 - Integrated i18n support in the player (en/es)  
 - Refactored player bundle to improve structure and fix minor bugs
