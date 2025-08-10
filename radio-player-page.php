@@ -52,7 +52,7 @@ function radplapag_output_clean_page() {
     $dist_url   = plugin_dir_url( __FILE__ ) . 'player/dist/';
 
     echo '<!DOCTYPE html>';
-    echo '<html lang="es">';
+    echo '<html lang="en">';
     echo '<head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
