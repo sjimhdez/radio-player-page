@@ -15,6 +15,10 @@ import Alert from '@mui/material/Alert'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import { useTranslation } from 'react-i18next'
 import CircleRounded from '@mui/icons-material/CircleRounded'
+import { VolumeDown, VolumeUp } from '@mui/icons-material'
+import Slider from '@mui/material/Slider'
+
+import ClickAwayListener from '@mui/material/ClickAwayListener'
 
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
@@ -25,11 +29,13 @@ const Dashboard = () => {
     height: window.innerHeight,
   })
   const [openError, setOpenError] = useState(false)
+  const [openVolume, setOpenVolume] = useState(false)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
   const { t } = useTranslation()
-  const { audioRef, status, loading, play, pause } = useAudioPlayer(STREAM_URL)
+  const { audioRef, status, loading, play, pause, volume, handleVolumeChange } =
+    useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
   useAudioVisualizer(audioRef, canvasRef, status, dimensions.width, dimensions.height)
 
@@ -116,7 +122,7 @@ const Dashboard = () => {
         }}
       />
 
-      <Stack alignItems="center" gap={2} position="absolute" bottom={18}>
+      <Stack alignItems="center" gap={2} position="absolute" bottom={18} direction={'row'}>
         {loading && !openError ? (
           <CircularProgress size={48} />
         ) : status !== 'playing' ? (
@@ -128,6 +134,40 @@ const Dashboard = () => {
             <PauseIcon />
           </IconButton>
         )}
+
+        <ClickAwayListener onClickAway={() => setOpenVolume(false)}>
+          <Box>
+            {openVolume && (
+              <Stack
+                spacing={2}
+                direction="row"
+                position={'fixed'}
+                justifyContent={'center'}
+                width={'100%'}
+                bottom={63}
+                right={10}
+                left={10}
+                sx={{ alignItems: 'center', mb: 1 }}
+              >
+                <VolumeDown fontSize="small" />
+                <Slider
+                  aria-label={t('Volume')}
+                  value={volume}
+                  onChange={(_, newValue) => handleVolumeChange(newValue as number)}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  sx={{ width: 200 }}
+                  size="small"
+                />
+                <VolumeUp fontSize="small" />
+              </Stack>
+            )}
+            <IconButton onClick={() => setOpenVolume(!openVolume)} size="small">
+              <VolumeUp fontSize="small" />
+            </IconButton>
+          </Box>
+        </ClickAwayListener>
       </Stack>
 
       <audio ref={audioRef} hidden preload="none" />

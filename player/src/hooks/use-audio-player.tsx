@@ -5,6 +5,7 @@ function useAudioPlayer(streamUrl: string) {
   const audioRef = useRef<HTMLAudioElement>(null!)
   const [status, setStatus] = useState<PlayerStatus>('idle')
   const [loading, setLoading] = useState(false)
+  const [volume, setVolume] = useState(1)
 
   const play = useCallback(async () => {
     if (!audioRef.current) return
@@ -34,9 +35,18 @@ function useAudioPlayer(streamUrl: string) {
     setStatus('paused')
   }, [])
 
+  const handleVolumeChange = useCallback((newVolume: number) => {
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume
+      setVolume(newVolume)
+    }
+  }, [])
+
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
+
+    audio.volume = volume
 
     const onPlaying = () => setStatus('playing')
     const onPause = () => setStatus('paused')
@@ -57,9 +67,9 @@ function useAudioPlayer(streamUrl: string) {
       audio.removeEventListener('error', onError)
       audio.removeEventListener('canplay', onCanPlay)
     }
-  }, [])
+  }, [volume])
 
-  return { audioRef, status, loading, play, pause }
+  return { audioRef, status, loading, play, pause, volume, handleVolumeChange }
 }
 
 export default useAudioPlayer
