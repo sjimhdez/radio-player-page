@@ -4,12 +4,12 @@ Tags: audio, streaming, radio, player, live
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: radio-player-page
 
-Lightweight, responsive radio player for WordPress. Creates a clean, standalone page with a decoupled audio app for uninterrupted streaming and maximum audience retention.
+Lightweight and responsive radio player. Creates a standalone page app for uninterrupted streaming and maximum audience retention.
 
 == Description ==
 
@@ -60,6 +60,11 @@ The source code and development documentation are available at:
 https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
+
+= 1.1.1 =
+* Updated readme with short description 
+* Added accessibility features to the player page
+* Refactor use of locales in the player page
 
 = 1.1.0 =
 * Added volume control to the player

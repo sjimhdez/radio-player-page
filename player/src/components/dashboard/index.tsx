@@ -94,7 +94,7 @@ const Dashboard = () => {
         >
           <Stack direction={'row'} alignItems={'center'} gap={1}>
             <Typography variant="h5" whiteSpace={'nowrap'}>
-              {t('is on live!')}
+              {t('dashboard.isOnLive')}
             </Typography>
             <CircleRounded
               color="error"
@@ -111,6 +111,8 @@ const Dashboard = () => {
       <Box
         component="canvas"
         ref={canvasRef}
+        role="img"
+        aria-label={t('dashboard.audioVisualizer')}
         sx={{
           opacity: canVisualize ? 1 : 0,
           width: '100%',
@@ -123,11 +125,11 @@ const Dashboard = () => {
         {loading && !openError ? (
           <CircularProgress size={64} />
         ) : status !== 'playing' ? (
-          <IconButton onClick={play} size="large">
+          <IconButton onClick={play} size="large" aria-label={t('dashboard.play')}>
             <PlayCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
           </IconButton>
         ) : (
-          <IconButton onClick={pause} size="large">
+          <IconButton onClick={pause} size="large" aria-label={t('dashboard.stop')}>
             <StopCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
           </IconButton>
         )}
@@ -140,7 +142,7 @@ const Dashboard = () => {
         >
           <VolumeMute fontSize="small" />
           <Slider
-            aria-label={t('Volume')}
+            aria-label={t('dashboard.volume')}
             valueLabelDisplay="auto"
             valueLabelFormat={(label: number | null) => `${(Number(label ?? 0) * 100).toFixed(0)}%`}
             value={volume}
@@ -159,7 +161,7 @@ const Dashboard = () => {
 
       <Snackbar open={openError} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert severity="error" sx={{ width: '100%' }}>
-          {t('Unable to play the stream. Please check the URL or try again later.')}
+          {t('dashboard.playStreamError')}
         </Alert>
       </Snackbar>
     </Stack>
