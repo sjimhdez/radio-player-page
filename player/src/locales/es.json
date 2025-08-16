@@ -1,4 +1,10 @@
 {
-  "Unable to play the stream. Please check the URL or try again later.": "No es posible conectar con la emisión en directo. Por favor, comprueba la URL o inténtalo de nuevo más tarde.",
-  "is on live!": "está en directo"
+  "dashboard": {
+    "volume": "Volumen",
+    "isOnLive": "está en directo",
+    "playStreamError": "No es posible conectar con la emisión en directo. Por favor, comprueba la URL o inténtalo de nuevo más tarde.",
+    "audioVisualizer": "Visualizador de audio",
+    "play": "Reproducir",
+    "stop": "Detener"
+  }
 }

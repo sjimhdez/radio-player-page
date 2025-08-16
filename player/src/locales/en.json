@@ -1,4 +1,10 @@
 {
-  "Unable to play the stream. Please check the URL or try again later.": "Unable to play the stream. Please check the URL or try again later.",
-  "is on live!": "is on live!"
+  "dashboard": {
+    "volume": "Volume",
+    "isOnLive": "is on live!",
+    "playStreamError": "Unable to play the stream. Please check the URL or try again later.",
+    "audioVisualizer": "Audio Visualizer",
+    "play": "Play",
+    "stop": "Stop"
+  }
 }
