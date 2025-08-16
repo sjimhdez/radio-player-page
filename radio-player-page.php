@@ -49,7 +49,14 @@ function radplapag_output_clean_page() {
         wp_die( __( 'The main JS file was not found in the Vite manifest.', 'radio-player-page' ) );
     }
 
+    $favicon_url = function_exists('get_site_icon_url') ? get_site_icon_url() : '';
+    if (!$favicon_url && get_option('site_icon')) {
+        $favicon_url = wp_get_attachment_image_url(get_option('site_icon'), 'full');
+    }
+
     $dist_url   = plugin_dir_url( __FILE__ ) . 'player/dist/';
+    
+
 
     echo '<!DOCTYPE html>';
     echo '<html lang="en">';
@@ -57,6 +64,9 @@ function radplapag_output_clean_page() {
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
     echo '<title>' . esc_html( get_bloginfo( 'name' ) ) . '</title>';
+    if ($favicon_url) {
+        echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
+    }
     echo '<script>window.STREAM_URL = "' . esc_js( $options['stream_url'] ) . '";</script>';
     echo '<script>window.SITE_TITLE = "' . esc_js( get_bloginfo( 'name' ) ) . '";</script>';
     if ( $main_css ) {
