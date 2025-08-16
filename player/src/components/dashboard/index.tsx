@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect } from 'react'
 import Stack from '@mui/material/Stack'
 import IconButton from '@mui/material/IconButton'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import PauseIcon from '@mui/icons-material/Pause'
+import PlayCircleIcon from '@mui/icons-material/PlayCircle'
+import StopCircleIcon from '@mui/icons-material/StopCircle'
 import CircularProgress from '@mui/material/CircularProgress'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
@@ -15,6 +15,8 @@ import Alert from '@mui/material/Alert'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import { useTranslation } from 'react-i18next'
 import CircleRounded from '@mui/icons-material/CircleRounded'
+import { VolumeMute, VolumeUp } from '@mui/icons-material'
+import Slider from '@mui/material/Slider'
 
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
@@ -29,7 +31,8 @@ const Dashboard = () => {
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
   const { t } = useTranslation()
-  const { audioRef, status, loading, play, pause } = useAudioPlayer(STREAM_URL)
+  const { audioRef, status, loading, play, pause, volume, handleVolumeChange } =
+    useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
   useAudioVisualizer(audioRef, canvasRef, status, dimensions.width, dimensions.height)
 
@@ -118,16 +121,38 @@ const Dashboard = () => {
 
       <Stack alignItems="center" gap={2} position="absolute" bottom={18}>
         {loading && !openError ? (
-          <CircularProgress size={48} />
+          <CircularProgress size={64} />
         ) : status !== 'playing' ? (
           <IconButton onClick={play} size="large">
-            <PlayArrowIcon />
+            <PlayCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
           </IconButton>
         ) : (
           <IconButton onClick={pause} size="large">
-            <PauseIcon />
+            <StopCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
           </IconButton>
         )}
+        <Stack
+          spacing={2}
+          direction="row"
+          justifyContent={'center'}
+          width={'100%'}
+          sx={{ alignItems: 'center', mb: 1 }}
+        >
+          <VolumeMute fontSize="small" />
+          <Slider
+            aria-label={t('Volume')}
+            valueLabelDisplay="auto"
+            valueLabelFormat={(label: number | null) => `${(Number(label ?? 0) * 100).toFixed(0)}%`}
+            value={volume}
+            onChange={(_, newValue) => handleVolumeChange(newValue as number)}
+            min={0}
+            max={1}
+            step={0.01}
+            sx={{ width: 200 }}
+            size="small"
+          />
+          <VolumeUp fontSize="small" />
+        </Stack>
       </Stack>
 
       <audio ref={audioRef} hidden preload="none" />

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: A simple audio player for WordPress, serving a clean external app in a selected page.
- * Version: 1.0.4
+ * Version: 1.1.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, streaming, radio, player, live
@@ -49,16 +49,25 @@ function radplapag_output_clean_page() {
         wp_die( __( 'The main JS file was not found in the Vite manifest.', 'radio-player-page' ) );
     }
 
+    $favicon_url = function_exists('get_site_icon_url') ? get_site_icon_url() : '';
+    if (!$favicon_url && get_option('site_icon')) {
+        $favicon_url = wp_get_attachment_image_url(get_option('site_icon'), 'full');
+    }
+
     $dist_url   = plugin_dir_url( __FILE__ ) . 'player/dist/';
-    $stream_url = esc_url( $options['stream_url'] );
+    
+
 
     echo '<!DOCTYPE html>';
-    echo '<html lang="es">';
+    echo '<html lang="en">';
     echo '<head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    echo '<title>' . esc_html__( 'Radio Player Page', 'radio-player-page' ) . '</title>';
-    echo '<script>window.STREAM_URL = "' . esc_js( $stream_url ) . '";</script>';
+    echo '<title>' . esc_html( get_bloginfo( 'name' ) ) . '</title>';
+    if ($favicon_url) {
+        echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
+    }
+    echo '<script>window.STREAM_URL = "' . esc_js( $options['stream_url'] ) . '";</script>';
     echo '<script>window.SITE_TITLE = "' . esc_js( get_bloginfo( 'name' ) ) . '";</script>';
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
