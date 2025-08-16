@@ -9,7 +9,7 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: radio-player-page
 
-Lightweight, responsive radio player for WordPress. Creates a clean, standalone page with a decoupled audio app for uninterrupted streaming and maximum audience retention.
+Lightweight and responsive radio player. Creates a standalone page app for uninterrupted streaming and maximum audience retention.
 
 == Description ==
 
