@@ -2,10 +2,10 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: A simple audio player for WordPress, serving a clean external app in a selected page.
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
- * Tags: audio, streaming, radio, player, live
+ * Tags: audio, icecast, radio player, shoutcast, stream
  * Requires at least: 5.0
  * Requires PHP: 7.4
  * License: GPLv2 or later
