@@ -1,45 +1,62 @@
 === Radio Player Page ===
 Contributors: sjimhdez
-Tags: audio, streaming, radio, player, live
+Tags: audio, icecast, radio player, shoutcast, stream
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: radio-player-page
 
-Lightweight and responsive radio player. Creates a standalone page app for uninterrupted streaming and maximum audience retention.
+Lightweight dedicated radio player page for Shoutcast, Icecast and MP3 streams. Continuous live streaming with enhanced listener retention.
 
 == Description ==
 
-Set up a dedicated page in seconds, fully adaptable to any device and easy to use. Compatible with any WordPress installation, designed so your listeners never lose the stream while navigating. Minimal configuration, maximum retention.
+Radio Player Page is a dedicated and efficient solution for streaming **Shoutcast**, **Icecast**, and **any MP3 stream** in WordPress. Unlike standard audio players, it creates a standalone page for your station, fully optimized for continuous playback and listener retention.
+
+This plugin is designed specifically for online radios that rely on Shoutcast or Icecast. By decoupling the player from WordPress, it avoids conflicts with themes or plugins, reduces loading time, and ensures your stream never drops when users navigate your site.
+
+With Radio Player Page you get a fast, lightweight, and mobile-friendly player that focuses entirely on the listener experience. No ads, no premium versions, just reliable streaming built for professional stations.
+
+Install Radio Player Page today and have your Shoutcast/Icecast station online in seconds.
 
 == Main Features ==
 
-* **Continuous playback** - Audio keeps playing even when users browse other pages
-* **Waveform visualizer** - Displays real-time audio signal
-* **Responsive** - Works on mobile, tablet, and desktop
-* **Minimal setup** - Just select your page and streaming URL
-* **Minimalist UX/UI design** - Focused on the listener experience
-* **Compatible with any WordPress** - Works with any theme and version
-* **No ads, no PRO versions, no complications** - No hidden monetization, no paid features, fully free for all users.
+* **Native Shoutcast & Icecast support** – Connect directly with your existing stream URL.
+* **Any MP3 stream support** – Works with standard MP3 streams alongside Shoutcast and Icecast.
+* **Continuous playback** – Stream never stops, even while browsing other pages.
+* **Waveform visualizer** – Real-time audio visualization from your live stream.
+* **Responsive design** – Perfect on mobile, tablet, and desktop.
+* **Minimal setup** – Enter your Shoutcast/Icecast/MP3 URL and select the page.
+* **Standalone player page** – Independent from WordPress load, stable and lightweight.
+* **Clean UX/UI** – Designed to maximize listener retention.
+* **Free and open** – No ads, no hidden monetization, no PRO version traps.
 
 == Key Benefits ==
 
-* **Decoupled from WordPress** - The player opens in a lightweight, standalone page without loading the full WordPress system. Faster, more stable, avoids conflicts with other plugins.
-* **Improved retention** - Keeps the stream uninterrupted while browsing.
-* **Optimized** - Uses minimal server and browser resources, ensuring smooth playback even on mobile devices or slow connections.
-* **Instant setup** - Your radio goes online in seconds.
+* **Optimized for radio stations** – Built for Shoutcast, Icecast, and MP3 streams.
+* **Decoupled from WordPress** – Runs in a dedicated page without loading the entire WP stack.
+* **Better listener retention** – Stream continues seamlessly across your site.
+* **Performance first** – Smooth playback even on mobile networks or low-bandwidth connections.
+* **Professional solution** – Reliable streaming without limitations or extra costs.
 
-== For Stations That ==
+== Perfect For Stations That ==
 
-* Broadcast 24/7 and value every listener
-* Want a robust but simple technical solution
-* Aim to maximize listening experience on mobile and desktop
-* Avoid plugins with limitations, ads, or PRO versions
+* Stream 24/7 using Shoutcast, Icecast, or MP3.
+* Want a robust, mobile-friendly radio player.
+* Prefer a simple solution without bloat or conflicts.
+* Aim to maximize uptime and audience retention.
 
-Radio Player Page is the direct and professional solution for stations that need reliability and simplicity.
+== Use Cases ==
+
+Radio Player Page is built for **live streaming scenarios** where uninterrupted playback is critical:
+
+* **FM/AM stations with online simulcast** – Deliver your broadcast stream to a global audience.  
+* **Community and local radios** – Stream live events and programs without technical barriers.  
+* **University and campus radios** – Engage students and listeners on mobile and desktop.  
+* **Churches and religious broadcasters** – Stream live services with a stable and simple player.  
+* **Event broadcasters** – Perfect for concerts, conferences, and sports matches needing continuous audio.  
 
 == Screenshots ==
 
@@ -60,6 +77,9 @@ The source code and development documentation are available at:
 https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
+
+= 1.1.2 =
+* Updated documentation and use cases
 
 = 1.1.1 =
 * Updated readme with short description 
