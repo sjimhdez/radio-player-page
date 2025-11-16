@@ -4,12 +4,12 @@ Tags: audio, icecast, radio player, shoutcast, stream
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: radio-player-page
 
-Lightweight dedicated radio player page for Shoutcast, Icecast and MP3 streams. Continuous live streaming with enhanced listener retention.
+Lightweight dedicated radio player page for Icecast, Shoutcast and MP3 streams. Continuous live streaming with enhanced listener retention.
 
 == Description ==
 
@@ -31,11 +31,12 @@ Install Radio Player Page today and have your Shoutcast/Icecast station online i
 * **Minimal setup** – Enter your Shoutcast/Icecast/MP3 URL and select the page.
 * **Standalone player page** – Independent from WordPress load, stable and lightweight.
 * **Clean UX/UI** – Designed to maximize listener retention.
+* **Multilingual support** – Fully translated interface in English and Spanish.
 * **Free and open** – No ads, no hidden monetization, no PRO version traps.
 
 == Key Benefits ==
 
-* **Optimized for radio stations** – Built for Shoutcast, Icecast, and MP3 streams.
+* **Optimized for radio stations** – Built for Icecast, Shoutcast, and MP3 streams.
 * **Decoupled from WordPress** – Runs in a dedicated page without loading the entire WP stack.
 * **Better listener retention** – Stream continues seamlessly across your site.
 * **Performance first** – Smooth playback even on mobile networks or low-bandwidth connections.
@@ -43,7 +44,7 @@ Install Radio Player Page today and have your Shoutcast/Icecast station online i
 
 == Perfect For Stations That ==
 
-* Stream 24/7 using Shoutcast, Icecast, or MP3.
+* Stream 24/7 using Icecast, Shoutcast, or MP3.
 * Want a robust, mobile-friendly radio player.
 * Prefer a simple solution without bloat or conflicts.
 * Aim to maximize uptime and audience retention.
@@ -77,6 +78,11 @@ The source code and development documentation are available at:
 https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
+
+= 1.1.3 =
+* Added complete internationalization (i18n) support for plugin admin panel and player interface
+* Integrated translations for English (en_US) and Spanish (es_ES)
+* Player interface now automatically detects and matches WordPress locale
 
 = 1.1.2 =
 * Updated documentation and use cases

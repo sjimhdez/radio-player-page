@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.1.2-blue.svg)](https://github.com/sjimhdez/radio-player-page)
+[![Version](https://img.shields.io/badge/version-1.1.3-blue.svg)](https://github.com/sjimhdez/radio-player-page)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -16,7 +16,7 @@ Designed specifically for WordPress-based radio stations.
 
 ## Description
 
-**Radio Player Page** is a dedicated solution for streaming **Shoutcast, Icecast, and MP3** streams in WordPress. Unlike standard audio players, it creates a **separate, optimized page** for your station, ensuring continuous playback and improved listener retention.
+**Radio Player Page** is a dedicated solution for streaming **Icecast, Shoutcast, and MP3** streams in WordPress. Unlike standard audio players, it creates a **separate, optimized page** for your station, ensuring continuous playback and improved listener retention.
 
 By decoupling the player from WordPress, it:
 
@@ -35,6 +35,7 @@ It is the **first plugin in the official WordPress repository** to fully abstrac
 - **Frontend Decoupling**: Injects the player into a standalone container (`<div id="root">`), independent of the WordPress theme.
 - **Modern Stack**: Built with React, TypeScript, and Vite.
 - **Responsive Design**: Seamless performance across desktop and mobile.
+- **Multilingual Support**: Full i18n for admin panel and player interface (English, Spanish) with automatic WordPress locale detection.
 
 ## Technical Details
 
@@ -50,7 +51,7 @@ The plugin ships with a **standalone frontend app** decoupled from WordPress:
 1. Upload the `radio-player-page` folder to `/wp-content/plugins/`.
 2. Activate the plugin from **Plugins > Installed Plugins**.
 3. Configure it via **Settings > Radio Player Page Settings**:
-   - Enter your stream URL (Shoutcast, Icecast, MP3).
+   - Enter your stream URL (Icecast, Shoutcast, MP3).
    - Select the page where the player will be injected.
 
 ## WordPress Plugin
