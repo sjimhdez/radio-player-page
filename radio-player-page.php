@@ -50,7 +50,7 @@ function radplapag_output_clean_page() {
 
     $manifest_path = plugin_dir_path( __FILE__ ) . 'player/dist/manifest.json';
     if ( ! file_exists( $manifest_path ) ) {
-        wp_die( __( 'The player compilation file (manifest.json) could not be found.', 'radio-player-page' ) );
+        wp_die( esc_html__( 'The player compilation file (manifest.json) could not be found.', 'radio-player-page' ) );
     }
 
     $manifest     = json_decode( file_get_contents( $manifest_path ), true );
@@ -59,7 +59,7 @@ function radplapag_output_clean_page() {
     $main_css     = $main_entry['css'][0] ?? null;
 
     if ( ! $main_js ) {
-        wp_die( __( 'The main JS file was not found in the Vite manifest.', 'radio-player-page' ) );
+        wp_die( esc_html__( 'The main JS file was not found in the Vite manifest.', 'radio-player-page' ) );
     }
 
     $favicon_url = function_exists('get_site_icon_url') ? get_site_icon_url() : '';
@@ -72,7 +72,7 @@ function radplapag_output_clean_page() {
 
 
     echo '<!DOCTYPE html>';
-    echo '<html ' . get_language_attributes() . '>';
+    echo '<html ' . esc_attr( get_language_attributes() ) . '>';
     echo '<head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
