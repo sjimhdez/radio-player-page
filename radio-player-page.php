@@ -11,7 +11,6 @@
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: radio-player-page
- * Domain Path: /languages
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -24,8 +23,6 @@ require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 function radplapag_load_textdomain() {
     load_plugin_textdomain(
         'radio-player-page',
-        false,
-        dirname( plugin_basename( __FILE__ ) ) . '/languages'
     );
 }
 add_action( 'plugins_loaded', 'radplapag_load_textdomain' );
