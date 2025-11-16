@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Radio Player Page
- * Description: A simple audio player for WordPress, serving a clean external app in a selected page.
- * Version: 1.1.2
+ * Description: Lightweight dedicated radio player page for Icecast, Shoutcast and MP3 streams. Continuous live streaming with enhanced listener retention.
+ * Version: 1.1.3
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, shoutcast, stream
@@ -11,11 +11,24 @@
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: radio-player-page
+ * Domain Path: /languages
  */
 
 defined( 'ABSPATH' ) || exit;
 
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
+
+/**
+ * Load plugin textdomain for translations
+ */
+function radplapag_load_textdomain() {
+    load_plugin_textdomain(
+        'radio-player-page',
+        false,
+        dirname( plugin_basename( __FILE__ ) ) . '/languages'
+    );
+}
+add_action( 'plugins_loaded', 'radplapag_load_textdomain' );
 
 /**
  * Serves the player app from a specific page, without visually loading WordPress.
@@ -59,7 +72,7 @@ function radplapag_output_clean_page() {
 
 
     echo '<!DOCTYPE html>';
-    echo '<html lang="en">';
+    echo '<html ' . get_language_attributes() . '>';
     echo '<head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
