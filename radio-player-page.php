@@ -18,16 +18,6 @@ defined( 'ABSPATH' ) || exit;
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 
 /**
- * Load plugin textdomain for translations
- */
-function radplapag_load_textdomain() {
-    load_plugin_textdomain(
-        'radio-player-page',
-    );
-}
-add_action( 'plugins_loaded', 'radplapag_load_textdomain' );
-
-/**
  * Serves the player app from a specific page, without visually loading WordPress.
  *
  * Enqueue functions are intentionally not used.
