@@ -13,22 +13,22 @@ Lightweight dedicated radio player page for Icecast, Shoutcast and MP3 streams. 
 
 == Description ==
 
-Radio Player Page is a dedicated and efficient solution for streaming **Shoutcast**, **Icecast**, and **any MP3 stream** in WordPress. Unlike standard audio players, it creates a standalone page for your station, fully optimized for continuous playback and listener retention.
+Radio Player Page is a dedicated and efficient solution for streaming **Icecast**, **Shoutcast** and **any MP3 stream** in WordPress. Unlike standard audio players, it creates a standalone page for your station, fully optimized for continuous playback and listener retention.
 
-This plugin is designed specifically for online radios that rely on Shoutcast or Icecast. By decoupling the player from WordPress, it avoids conflicts with themes or plugins, reduces loading time, and ensures your stream never drops when users navigate your site.
+This plugin is designed specifically for online radios that rely on Icecast or Shoutcast. By decoupling the player from WordPress, it avoids conflicts with themes or plugins, reduces loading time, and ensures your stream never drops when users navigate your site.
 
 With Radio Player Page you get a fast, lightweight, and mobile-friendly player that focuses entirely on the listener experience. No ads, no premium versions, just reliable streaming built for professional stations.
 
-Install Radio Player Page today and have your Shoutcast/Icecast station online in seconds.
+Install Radio Player Page today and have your Icecast/Shoutcast station online in seconds.
 
 == Main Features ==
 
-* **Native Shoutcast & Icecast support** – Connect directly with your existing stream URL.
-* **Any MP3 stream support** – Works with standard MP3 streams alongside Shoutcast and Icecast.
+* **Native Icecast & Shoutcast** – Connect directly with your existing stream URL.
+* **Any MP3 stream support** – Works with standard MP3 streams alongside Icecast and Shoutcast.
 * **Continuous playback** – Stream never stops, even while browsing other pages.
 * **Waveform visualizer** – Real-time audio visualization from your live stream.
 * **Responsive design** – Perfect on mobile, tablet, and desktop.
-* **Minimal setup** – Enter your Shoutcast/Icecast/MP3 URL and select the page.
+* **Minimal setup** – Enter your Icecast/Shoutcast/MP3 URL and select the page.
 * **Standalone player page** – Independent from WordPress load, stable and lightweight.
 * **Clean UX/UI** – Designed to maximize listener retention.
 * **Multilingual support** – Fully translated interface in English and Spanish.
