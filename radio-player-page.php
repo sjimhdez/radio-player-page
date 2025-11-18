@@ -18,20 +18,57 @@ defined( 'ABSPATH' ) || exit;
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 
 /**
+ * Gets the stream URL for the current page
+ *
+ * Supports both old and new settings format for backward compatibility.
+ *
+ * @return string|false Stream URL if found, false otherwise
+ */
+function radplapag_get_stream_url_for_current_page() {
+    $options = radplapag_get_settings();
+    $current_page_id = get_queried_object_id();
+
+    // New format: multiple stations
+    if ( isset( $options['stations'] ) && is_array( $options['stations'] ) ) {
+        foreach ( $options['stations'] as $station ) {
+            if (
+                isset( $station['player_page'] ) &&
+                isset( $station['stream_url'] ) &&
+                intval( $station['player_page'] ) === $current_page_id &&
+                ! empty( $station['stream_url'] )
+            ) {
+                return $station['stream_url'];
+            }
+        }
+    }
+
+    // Old format: backward compatibility
+    if (
+        isset( $options['player_page'] ) &&
+        isset( $options['stream_url'] ) &&
+        intval( $options['player_page'] ) === $current_page_id &&
+        ! empty( $options['stream_url'] )
+    ) {
+        return $options['stream_url'];
+    }
+
+    return false;
+}
+
+/**
  * Serves the player app from a specific page, without visually loading WordPress.
  *
  * Enqueue functions are intentionally not used.
  * This plugin outputs a standalone HTML page and exits before WordPress can run enqueued assets.
  */
 function radplapag_output_clean_page() {
-    $options = get_option( 'radplapag_settings' );
+    if ( ! is_page() ) {
+        return;
+    }
 
-    if (
-        ! is_array( $options ) ||
-        empty( $options['player_page'] ) ||
-        empty( $options['stream_url'] ) ||
-        ! is_page( intval( $options['player_page'] ) )
-    ) {
+    $stream_url = radplapag_get_stream_url_for_current_page();
+
+    if ( ! $stream_url ) {
         return;
     }
 
@@ -67,7 +104,7 @@ function radplapag_output_clean_page() {
     if ($favicon_url) {
         echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
     }
-    echo '<script>window.STREAM_URL = "' . esc_js( $options['stream_url'] ) . '";</script>';
+    echo '<script>window.STREAM_URL = "' . esc_js( $stream_url ) . '";</script>';
     echo '<script>window.SITE_TITLE = "' . esc_js( get_bloginfo( 'name' ) ) . '";</script>';
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
