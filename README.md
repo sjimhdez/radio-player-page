@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.1.3-blue.svg)](https://github.com/sjimhdez/radio-player-page)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/sjimhdez/radio-player-page)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -30,6 +30,7 @@ It is the **first plugin in the official WordPress repository** to fully abstrac
 
 ## Features
 
+- **Multiple Stations Support**: Manage up to 6 different radio stations with ease.
 - **Minimal UI**: Clean, distraction-free design for optimal listening.
 - **Waveform Visualizer**: Real-time audio visualization powered by the Web Audio API.
 - **Frontend Decoupling**: Injects the player into a standalone container (`<div id="root">`), independent of the WordPress theme.
@@ -51,8 +52,8 @@ The plugin ships with a **standalone frontend app** decoupled from WordPress:
 1. Upload the `radio-player-page` folder to `/wp-content/plugins/`.
 2. Activate the plugin from **Plugins > Installed Plugins**.
 3. Configure it via **Settings > Radio Player Page Settings**:
-   - Enter your stream URL (Icecast, Shoutcast, MP3).
-   - Select the page where the player will be injected.
+   - Add up to 6 stations.
+   - For each station, enter the stream URL and select the target page.
 
 ## WordPress Plugin
 
