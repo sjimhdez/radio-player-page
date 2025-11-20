@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: Lightweight dedicated radio player page for Icecast, Shoutcast and MP3 streams. Continuous live streaming with enhanced listener retention.
- * Version: 1.1.3
+ * Version: 1.2.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, shoutcast, stream
@@ -15,12 +15,12 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'RADPLAPAG_DB_VERSION', '1.2' );
+define( 'RADPLAPAG_DB_VERSION', '1.2.0' );
 
 /**
  * Activation hook to set the initial DB version for new installs
  *
- * @since 1.2
+ * @since 1.2.0
  */
 function radplapag_activate() {
     add_option( 'radplapag_db_version', RADPLAPAG_DB_VERSION );

@@ -110,7 +110,7 @@ function radplapag_render_settings_page() {
 
         <div>
             <h2><?php esc_html_e( 'How to use', 'radio-player-page' ); ?></h2>
-            <p><?php esc_html_e( 'You can add up to 6 radio stations. For each station, enter the streaming URL (Icecast, Shoutcast, etc.) and select a different page where the player should appear.', 'radio-player-page' ); ?></p>
+            <p><?php esc_html_e( 'You can add up to 6 radio stations. For each station, enter the stream URL (Icecast, Shoutcast, etc.) and select a different page where the player should appear.', 'radio-player-page' ); ?></p>
             <p><?php esc_html_e( 'Once configured, each selected page will display a clean, standalone audio player designed for uninterrupted listening.', 'radio-player-page' ); ?></p>
         </div>
 
@@ -188,7 +188,6 @@ function radplapag_render_settings_page() {
                                 </button>
                             </p>
                         <?php endif; ?>
-                        <hr>
                     </div>
                 <?php endforeach; ?>
             </div>

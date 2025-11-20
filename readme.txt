@@ -4,7 +4,7 @@ Tags: audio, icecast, radio player, shoutcast, stream
 Requires at least: 5.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.1.3
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: radio-player-page
@@ -78,6 +78,11 @@ The source code and development documentation are available at:
 https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
+
+= 1.2.0 =
+* Added support for multiple radio stations (up to 6)
+* Improved settings page with dynamic station management
+* Added backward compatibility migration for existing users
 
 = 1.1.3 =
 * Added complete internationalization (i18n) support for plugin admin panel and player interface
