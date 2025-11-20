@@ -2,10 +2,21 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Migrates old settings format to new format for backward compatibility
+ * Compatibility functions for backward compatibility.
+ *
+ * @package radio-player-page
+ * @since 1.2
+ */
+
+/**
+ * Migrates old settings format (v1.1) to new format (v1.2) for backward compatibility.
+ *
+ * Handles the transition from single station support (v1.1) to multiple stations support (v1.2).
  *
  * Old format: ['stream_url' => 'url', 'player_page' => 123]
  * New format: ['stations' => [['stream_url' => 'url', 'player_page' => 123], ...]]
+ *
+ * @since 1.2
  *
  * @return array Migrated settings in new format
  */
@@ -37,4 +48,18 @@ function radplapag_migrate_old_settings() {
     // Return empty new format
     return [ 'stations' => [] ];
 }
-add_action( 'admin_init', 'radplapag_migrate_old_settings' );
+
+/**
+ * Checks if a database migration is needed based on version
+ *
+ * @since 1.2
+ */
+function radplapag_check_version() {
+    $installed_ver = get_option( 'radplapag_db_version' );
+
+    if ( version_compare( $installed_ver, RADPLAPAG_DB_VERSION, '<' ) ) {
+        radplapag_migrate_old_settings();
+        update_option( 'radplapag_db_version', RADPLAPAG_DB_VERSION );
+    }
+}
+add_action( 'admin_init', 'radplapag_check_version' );

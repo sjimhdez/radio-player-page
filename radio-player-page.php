@@ -15,11 +15,25 @@
 
 defined( 'ABSPATH' ) || exit;
 
+define( 'RADPLAPAG_DB_VERSION', '1.2' );
+
+/**
+ * Activation hook to set the initial DB version for new installs
+ *
+ * @since 1.2
+ */
+function radplapag_activate() {
+    add_option( 'radplapag_db_version', RADPLAPAG_DB_VERSION );
+}
+register_activation_hook( __FILE__, 'radplapag_activate' );
+
 require_once plugin_dir_path( __FILE__ ) . 'compatibility.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 
 /**
  * Gets the stream URL for the current page
+ *
+ * @since 1.0.0
  *
  * @return string|false Stream URL if found, false otherwise
  */
@@ -49,6 +63,8 @@ function radplapag_get_stream_url_for_current_page() {
  *
  * Enqueue functions are intentionally not used.
  * This plugin outputs a standalone HTML page and exits before WordPress can run enqueued assets.
+ *
+ * @since 1.0.0
  */
 function radplapag_output_clean_page() {
     if ( ! is_page() ) {

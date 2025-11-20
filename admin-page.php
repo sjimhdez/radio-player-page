@@ -2,7 +2,16 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
+ * Admin page functions.
+ *
+ * @package radio-player-page
+ * @since 1.0.0
+ */
+
+/**
  * Gets settings
+ *
+ * @since 1.0.0
  *
  * @return array Settings in new format
  */
@@ -12,6 +21,8 @@ function radplapag_get_settings() {
 
 /**
  * Register settings
+ *
+ * @since 1.0.0
  */
 function radplapag_register_settings() {
     register_setting(
@@ -26,6 +37,11 @@ add_action( 'admin_init', 'radplapag_register_settings' );
 
 /**
  * Validates and sanitizes the input data
+ *
+ * @since 1.0.0
+ *
+ * @param array $input The settings input.
+ * @return array Sanitized settings.
  */
 function radplapag_sanitize_settings( $input ) {
     $output = [ 'stations' => [] ];
@@ -53,6 +69,8 @@ function radplapag_sanitize_settings( $input ) {
 
 /**
  * Adds the page to the settings menu
+ *
+ * @since 1.0.0
  */
 function radplapag_settings_menu() {
     add_options_page(
@@ -67,6 +85,8 @@ add_action( 'admin_menu', 'radplapag_settings_menu' );
 
 /**
  * Renders the options form
+ *
+ * @since 1.0.0
  */
 function radplapag_render_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
