@@ -15,12 +15,11 @@
 
 defined( 'ABSPATH' ) || exit;
 
+require_once plugin_dir_path( __FILE__ ) . 'compatibility.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 
 /**
  * Gets the stream URL for the current page
- *
- * Supports both old and new settings format for backward compatibility.
  *
  * @return string|false Stream URL if found, false otherwise
  */
@@ -40,16 +39,6 @@ function radplapag_get_stream_url_for_current_page() {
                 return $station['stream_url'];
             }
         }
-    }
-
-    // Old format: backward compatibility
-    if (
-        isset( $options['player_page'] ) &&
-        isset( $options['stream_url'] ) &&
-        intval( $options['player_page'] ) === $current_page_id &&
-        ! empty( $options['stream_url'] )
-    ) {
-        return $options['stream_url'];
     }
 
     return false;

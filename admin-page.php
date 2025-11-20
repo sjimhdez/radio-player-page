@@ -2,49 +2,12 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Migrates old settings format to new format for backward compatibility
- *
- * Old format: ['stream_url' => 'url', 'player_page' => 123]
- * New format: ['stations' => [['stream_url' => 'url', 'player_page' => 123], ...]]
- *
- * @return array Migrated settings in new format
- */
-function radplapag_migrate_old_settings() {
-    $old_settings = get_option( 'radplapag_settings', [] );
-    
-    // If already in new format, return as is
-    if ( isset( $old_settings['stations'] ) && is_array( $old_settings['stations'] ) ) {
-        return $old_settings;
-    }
-    
-    // If old format exists, migrate it
-    if ( ! empty( $old_settings['stream_url'] ) && ! empty( $old_settings['player_page'] ) ) {
-        $new_settings = [
-            'stations' => [
-                [
-                    'stream_url'  => $old_settings['stream_url'],
-                    'player_page' => intval( $old_settings['player_page'] ),
-                ],
-            ],
-        ];
-        
-        // Save migrated settings
-        update_option( 'radplapag_settings', $new_settings );
-        
-        return $new_settings;
-    }
-    
-    // Return empty new format
-    return [ 'stations' => [] ];
-}
-
-/**
- * Gets settings with automatic migration
+ * Gets settings
  *
  * @return array Settings in new format
  */
 function radplapag_get_settings() {
-    return radplapag_migrate_old_settings();
+    return get_option( 'radplapag_settings', [ 'stations' => [] ] );
 }
 
 /**
@@ -66,21 +29,16 @@ add_action( 'admin_init', 'radplapag_register_settings' );
  */
 function radplapag_sanitize_settings( $input ) {
     $output = [ 'stations' => [] ];
+    $stations = isset( $input['stations'] ) && is_array( $input['stations'] ) ? $input['stations'] : [];
+    $used_pages = [];
     
-    // Support both old and new format for backward compatibility
-    if ( isset( $input['stream_url'] ) && isset( $input['player_page'] ) ) {
-        // Old format - migrate to new format
-        $url  = trim( $input['stream_url'] );
-        $page = intval( $input['player_page'] );
+    foreach ( $stations as $index => $station ) {
+        $url  = isset( $station['stream_url'] ) ? trim( $station['stream_url'] ) : '';
+        $page = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : 0;
         
+        // Filter: Must have both URL and Page to be saved
         if ( empty( $url ) || empty( $page ) ) {
-            add_settings_error(
-                'radplapag_settings',
-                'radplapag_settings_error',
-                esc_html__( 'You must enter the stream URL and select a page.', 'radio-player-page' ),
-                'error'
-            );
-            return radplapag_get_settings();
+            continue;
         }
         
         $output['stations'][] = [
@@ -88,83 +46,9 @@ function radplapag_sanitize_settings( $input ) {
             'player_page' => $page,
         ];
         
-        return $output;
-    }
-    
-    // New format - multiple stations
-    if ( isset( $input['stations'] ) && is_array( $input['stations'] ) ) {
-        $used_pages = [];
-        $max_stations = 6;
-        
-        foreach ( $input['stations'] as $index => $station ) {
-            // Skip empty stations
-            if ( empty( $station['stream_url'] ) && empty( $station['player_page'] ) ) {
-                continue;
-            }
-            
-            $url  = isset( $station['stream_url'] ) ? trim( $station['stream_url'] ) : '';
-            $page = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : 0;
-            
-            // Validate required fields
-            if ( empty( $url ) || empty( $page ) ) {
-                add_settings_error(
-                    'radplapag_settings',
-                    'radplapag_settings_error',
-                    sprintf(
-                        esc_html__( 'Station %d: You must enter the stream URL and select a page.', 'radio-player-page' ),
-                        $index + 1
-                    ),
-                    'error'
-                );
-                continue;
-            }
-            
-            // Validate page is not already used
-            if ( in_array( $page, $used_pages, true ) ) {
-                add_settings_error(
-                    'radplapag_settings',
-                    'radplapag_settings_error',
-                    sprintf(
-                        esc_html__( 'Station %d: This page is already assigned to another station. Each page can only be used once.', 'radio-player-page' ),
-                        $index + 1
-                    ),
-                    'error'
-                );
-                continue;
-            }
-            
-            // Validate max stations
-            if ( count( $output['stations'] ) >= $max_stations ) {
-                add_settings_error(
-                    'radplapag_settings',
-                    'radplapag_settings_error',
-                    sprintf(
-                        esc_html__( 'You can add a maximum of %d stations.', 'radio-player-page' ),
-                        $max_stations
-                    ),
-                    'error'
-                );
-                break;
-            }
-            
-            $output['stations'][] = [
-                'stream_url'  => esc_url_raw( $url ),
-                'player_page' => $page,
-            ];
-            
-            $used_pages[] = $page;
-        }
-        
-        // If there are errors, return current settings
-        if ( ! empty( get_settings_errors( 'radplapag_settings' ) ) ) {
-            return radplapag_get_settings();
-        }
-        
-        return $output;
-    }
-    
-    // No valid input, return current settings
-    return radplapag_get_settings();
+        $used_pages[] = $page;
+    }  
+    return $output;
 }
 
 /**
@@ -246,6 +130,7 @@ function radplapag_render_settings_page() {
                                         value="<?php echo esc_url( $stream_url ); ?>" 
                                         class="regular-text radplapag-stream-url"
                                         placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>"
+                                        <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
                                     >
                                     <p class="description"><?php esc_html_e( 'Example: https://my.station.com:8000/stream', 'radio-player-page' ); ?></p>
                                 </td>
@@ -261,6 +146,7 @@ function radplapag_render_settings_page() {
                                         name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][player_page]" 
                                         id="radplapag_page_<?php echo esc_attr( $index ); ?>" 
                                         class="radplapag-player-page"
+                                        <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
                                     >
                                         <option value=""><?php esc_html_e( 'Select a page', 'radio-player-page' ); ?></option>
                                         <?php foreach ( $pages as $page ) : 
@@ -360,8 +246,15 @@ function radplapag_render_settings_page() {
         function removeStation(index) {
             var row = container.querySelector('.radplapag-station-row[data-index="' + index + '"]');
             if (row) {
-                row.querySelector('.radplapag-stream-url').value = '';
-                row.querySelector('.radplapag-player-page').value = '';
+                var urlInput = row.querySelector('.radplapag-stream-url');
+                var pageSelect = row.querySelector('.radplapag-player-page');
+                
+                urlInput.value = '';
+                urlInput.required = false;
+                
+                pageSelect.value = '';
+                pageSelect.required = false;
+                
                 row.style.display = 'none';
                 updateAddButton();
                 updatePageOptions();
@@ -376,6 +269,8 @@ function radplapag_render_settings_page() {
             if (hiddenRows.length > 0) {
                 var row = hiddenRows[0];
                 row.style.display = '';
+                row.querySelector('.radplapag-stream-url').required = true;
+                row.querySelector('.radplapag-player-page').required = true;
                 var title = row.querySelector('.radplapag-station-title');
                 if (title) {
                     var visibleCount = 0;
