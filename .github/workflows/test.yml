@@ -1,0 +1,49 @@
+name: Plugin Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  # Syntax and Coding Standards Check
+  phpcs:
+    name: PHP Coding Standards
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, intl
+          coverage: none
+          tools: phpcs, cs2pr
+
+      - name: Install WordPress Coding Standards
+        run: |
+          composer global require "wp-coding-standards/wpcs"
+          phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
+
+      - name: Run PHPCS
+        run: phpcs -q -n --standard=WordPress .
+
+  # WordPress Plugin Check
+  plugin-check:
+    name: Plugin Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Plugin Check
+        uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: './'
