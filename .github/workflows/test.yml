@@ -29,3 +29,44 @@ jobs:
             WordPress.WP.EnqueuedResources.NonEnqueuedScript
           exclude-files: |
             .gitignore
+  build-player:
+    name: Build React Player
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./player
+        run: npm ci
+
+      - name: Build
+        working-directory: ./player
+        run: npm run build
+
+  test-player:
+    name: Test React Player
+    runs-on: ubuntu-latest
+    needs: build-player
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        working-directory: ./player
+        run: npm ci
+
+      - name: Run tests
+        working-directory: ./player
+        run: npx eslint .
+
