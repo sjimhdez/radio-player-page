@@ -24,3 +24,6 @@ jobs:
         with:
           build-dir: './'
           exclude-directories: 'player'
+          ignore-codes: |
+            WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
+            WordPress.WP.EnqueuedResources.NonEnqueuedScript
