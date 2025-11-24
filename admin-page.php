@@ -323,7 +323,7 @@ function radplapag_render_settings_page() {
                             visibleCount++;
                         }
                     });
-                    title.textContent = '<?php esc_html_e( 'Station', 'radio-player-page' ); ?> ' + visibleCount;
+                    title.textContent = '<?php echo esc_js( __( 'Station', 'radio-player-page' ) ); ?> ' + visibleCount;
                 }
                 updateAddButton();
                 updatePageOptions();
