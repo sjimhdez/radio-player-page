@@ -29,6 +29,7 @@ jobs:
 
       - name: Install WordPress Coding Standards
         run: |
+          composer global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
           composer global require "wp-coding-standards/wpcs"
           phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs
 
@@ -47,3 +48,4 @@ jobs:
         uses: wordpress/plugin-check-action@v1
         with:
           build-dir: './'
+          exclude-directories: 'player'
