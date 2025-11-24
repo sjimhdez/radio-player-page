@@ -31,13 +31,13 @@ require_once plugin_dir_path( __FILE__ ) . 'compatibility.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 
 /**
- * Gets the stream URL for the current page
+ * Gets the station data for the current page
  *
  * @since 1.0.0
  *
- * @return string|false Stream URL if found, false otherwise
+ * @return array|false Station data if found, false otherwise
  */
-function radplapag_get_stream_url_for_current_page() {
+function radplapag_get_station_for_current_page() {
     $options = radplapag_get_settings();
     $current_page_id = get_queried_object_id();
 
@@ -50,7 +50,7 @@ function radplapag_get_stream_url_for_current_page() {
                 intval( $station['player_page'] ) === $current_page_id &&
                 ! empty( $station['stream_url'] )
             ) {
-                return $station['stream_url'];
+                return $station;
             }
         }
     }
@@ -71,11 +71,14 @@ function radplapag_output_clean_page() {
         return;
     }
 
-    $stream_url = radplapag_get_stream_url_for_current_page();
+    $station = radplapag_get_station_for_current_page();
 
-    if ( ! $stream_url ) {
+    if ( ! $station ) {
         return;
     }
+
+    $stream_url = $station['stream_url'];
+    $station_title = isset( $station['station_title'] ) ? $station['station_title'] : '';
 
     $manifest_path = plugin_dir_path( __FILE__ ) . 'player/dist/manifest.json';
     if ( ! file_exists( $manifest_path ) ) {
@@ -98,19 +101,20 @@ function radplapag_output_clean_page() {
 
     $dist_url   = plugin_dir_url( __FILE__ ) . 'player/dist/';
     
-
+    // Determine the title to display
+    $display_title = ! empty( $station_title ) ? $station_title : get_bloginfo( 'name' );
 
     echo '<!DOCTYPE html>';
     echo '<html ' . esc_attr( get_language_attributes() ) . '>';
     echo '<head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    echo '<title>' . esc_html( get_bloginfo( 'name' ) ) . '</title>';
+    echo '<title>' . esc_html( $display_title ) . '</title>';
     if ($favicon_url) {
         echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
     }
     echo '<script>window.STREAM_URL = "' . esc_js( $stream_url ) . '";</script>';
-    echo '<script>window.SITE_TITLE = "' . esc_js( get_bloginfo( 'name' ) ) . '";</script>';
+    echo '<script>window.SITE_TITLE = "' . esc_js( $display_title ) . '";</script>';
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
     }

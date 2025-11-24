@@ -24,7 +24,7 @@ Install Radio Player Page today and have your Icecast/Shoutcast station online i
 == Main Features ==
 
 * **Native Icecast & Shoutcast** – Connect directly with your existing stream URL.
-* **Multiple Stations Support** – Manage up to 6 different radio stations from a single plugin.
+* **Multiple Stations Support** – Manage up to 6 different radio stations with optional custom titles.
 * **Any MP3 stream support** – Works with standard MP3 streams alongside Icecast and Shoutcast.
 * **Continuous playback** – Stream never stops, even while browsing other pages.
 * **Waveform visualizer** – Real-time audio visualization from your live stream.
@@ -82,6 +82,7 @@ https://github.com/sjimhdez/radio-player-page
 
 = 1.2.0 =
 * Added support for multiple radio stations (up to 6)
+* Added optional station title field
 * Improved settings page with dynamic station management
 * Added backward compatibility migration for existing users
 

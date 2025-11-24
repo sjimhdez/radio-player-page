@@ -33,8 +33,9 @@ function radplapag_migrate_old_settings() {
         $new_settings = [
             'stations' => [
                 [
-                    'stream_url'  => $old_settings['stream_url'],
-                    'player_page' => intval( $old_settings['player_page'] ),
+                    'stream_url'    => $old_settings['stream_url'],
+                    'player_page'   => intval( $old_settings['player_page'] ),
+                    'station_title' => '',
                 ],
             ],
         ];

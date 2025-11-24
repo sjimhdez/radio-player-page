@@ -30,7 +30,7 @@ It is the **first plugin in the official WordPress repository** to fully abstrac
 
 ## Features
 
-- **Multiple Stations Support**: Manage up to 6 different radio stations with ease.
+- **Multiple Stations Support**: Manage up to 6 different radio stations with optional custom titles.
 - **Minimal UI**: Clean, distraction-free design for optimal listening.
 - **Waveform Visualizer**: Real-time audio visualization powered by the Web Audio API.
 - **Frontend Decoupling**: Injects the player into a standalone container (`<div id="root">`), independent of the WordPress theme.

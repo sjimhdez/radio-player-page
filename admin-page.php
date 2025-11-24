@@ -49,8 +49,9 @@ function radplapag_sanitize_settings( $input ) {
     $used_pages = [];
     
     foreach ( $stations as $index => $station ) {
-        $url  = isset( $station['stream_url'] ) ? trim( $station['stream_url'] ) : '';
-        $page = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : 0;
+        $url   = isset( $station['stream_url'] ) ? trim( $station['stream_url'] ) : '';
+        $page  = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : 0;
+        $title = isset( $station['station_title'] ) ? sanitize_text_field( $station['station_title'] ) : '';
         
         // Filter: Must have both URL and Page to be saved
         if ( empty( $url ) || empty( $page ) ) {
@@ -58,8 +59,9 @@ function radplapag_sanitize_settings( $input ) {
         }
         
         $output['stations'][] = [
-            'stream_url'  => esc_url_raw( $url ),
-            'player_page' => $page,
+            'stream_url'    => esc_url_raw( $url ),
+            'player_page'   => $page,
+            'station_title' => $title,
         ];
         
         $used_pages[] = $page;
@@ -100,7 +102,7 @@ function radplapag_render_settings_page() {
     
     // Ensure we have at least one empty station slot
     while ( count( $stations ) < $max_stations ) {
-        $stations[] = [ 'stream_url' => '', 'player_page' => '' ];
+        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '' ];
     }
     ?>
     <div class="wrap">
@@ -123,19 +125,44 @@ function radplapag_render_settings_page() {
                 <?php foreach ( $stations as $index => $station ) : 
                     $stream_url = isset( $station['stream_url'] ) ? esc_attr( $station['stream_url'] ) : '';
                     $player_page = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : '';
+                    $station_title = isset( $station['station_title'] ) ? esc_attr( $station['station_title'] ) : '';
                     $is_empty = empty( $stream_url ) && empty( $player_page );
                 ?>
                     <div class="radplapag-station-row" data-index="<?php echo esc_attr( $index ); ?>" <?php echo $is_empty && $index > 0 ? 'style="display:none;"' : ''; ?>>
                         <h3 class="radplapag-station-title">
                             <?php 
                             if ( ! $is_empty ) {
-                                printf( esc_html__( 'Station %d', 'radio-player-page' ), $index + 1 );
+                                /* translators: %d: Station number */
+                                echo esc_html( sprintf( __( 'Station %d', 'radio-player-page' ), $index + 1 ) );
                             } else {
                                 esc_html_e( 'New Station', 'radio-player-page' );
                             }
                             ?>
                         </h3>
                         <table class="form-table" role="presentation">
+                            <tr>
+                                <th scope="row">
+                                    <label for="radplapag_page_<?php echo esc_attr( $index ); ?>">
+                                        <?php esc_html_e( 'Player page', 'radio-player-page' ); ?>
+                                    </label>
+                                </th>
+                                <td>
+                                    <select 
+                                        name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][player_page]" 
+                                        id="radplapag_page_<?php echo esc_attr( $index ); ?>" 
+                                        class="radplapag-player-page"
+                                        <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
+                                    >
+                                        <option value=""><?php esc_html_e( 'Select a page', 'radio-player-page' ); ?></option>
+                                        <?php foreach ( $pages as $page ) : ?>
+                                            <option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $player_page, $page->ID ); ?>>
+                                                <?php echo esc_html( $page->post_title ); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <p class="description"><?php esc_html_e( 'The page where the player will be displayed. Each page can only be used once.', 'radio-player-page' ); ?></p>
+                                </td>
+                            </tr>
                             <tr>
                                 <th scope="row">
                                     <label for="radplapag_stream_url_<?php echo esc_attr( $index ); ?>">
@@ -157,27 +184,20 @@ function radplapag_render_settings_page() {
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <label for="radplapag_page_<?php echo esc_attr( $index ); ?>">
-                                        <?php esc_html_e( 'Player page', 'radio-player-page' ); ?>
+                                    <label for="radplapag_station_title_<?php echo esc_attr( $index ); ?>">
+                                        <?php esc_html_e( 'Station Title (Optional)', 'radio-player-page' ); ?>
                                     </label>
                                 </th>
                                 <td>
-                                    <select 
-                                        name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][player_page]" 
-                                        id="radplapag_page_<?php echo esc_attr( $index ); ?>" 
-                                        class="radplapag-player-page"
-                                        <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
+                                    <input 
+                                        name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][station_title]" 
+                                        type="text" 
+                                        id="radplapag_station_title_<?php echo esc_attr( $index ); ?>" 
+                                        value="<?php echo esc_attr( $station_title ); ?>" 
+                                        class="regular-text radplapag-station-title-input"
+                                        placeholder="<?php esc_attr_e( 'My Radio Station', 'radio-player-page' ); ?>"
                                     >
-                                        <option value=""><?php esc_html_e( 'Select a page', 'radio-player-page' ); ?></option>
-                                        <?php foreach ( $pages as $page ) : 
-                                            $is_selected = selected( $player_page, $page->ID, false );
-                                        ?>
-                                            <option value="<?php echo esc_attr( $page->ID ); ?>" <?php echo $is_selected; ?>>
-                                                <?php echo esc_html( $page->post_title ); ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                    <p class="description"><?php esc_html_e( 'The page where the player will be displayed. Each page can only be used once.', 'radio-player-page' ); ?></p>
+                                    <p class="description"><?php esc_html_e( 'A custom title for this station. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
                                 </td>
                             </tr>
                         </table>
@@ -267,12 +287,17 @@ function radplapag_render_settings_page() {
             if (row) {
                 var urlInput = row.querySelector('.radplapag-stream-url');
                 var pageSelect = row.querySelector('.radplapag-player-page');
+                var titleInput = row.querySelector('.radplapag-station-title-input');
                 
                 urlInput.value = '';
                 urlInput.required = false;
                 
                 pageSelect.value = '';
                 pageSelect.required = false;
+
+                if (titleInput) {
+                    titleInput.value = '';
+                }
                 
                 row.style.display = 'none';
                 updateAddButton();
