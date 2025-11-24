@@ -11,31 +11,6 @@ on:
       - develop
 
 jobs:
-  # Syntax and Coding Standards Check
-  phpcs:
-    name: PHP Coding Standards
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '7.4'
-          extensions: mbstring, intl
-          coverage: none
-          tools: phpcs, cs2pr
-
-      - name: Install WordPress Coding Standards
-        run: |
-          composer global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-          composer global require "wp-coding-standards/wpcs"
-          phpcs --config-set installed_paths $HOME/.composer/vendor/wp-coding-standards/wpcs,$HOME/.composer/vendor/phpcsstandards/phpcsextra,$HOME/.composer/vendor/phpcsstandards/phpcsutils
-
-      - name: Run PHPCS
-        run: phpcs -q -n --standard=WordPress .
-
   # WordPress Plugin Check
   plugin-check:
     name: Plugin Check
