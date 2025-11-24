@@ -27,3 +27,5 @@ jobs:
           ignore-codes: |
             WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
             WordPress.WP.EnqueuedResources.NonEnqueuedScript
+          exclude-files: |
+            .gitignore
