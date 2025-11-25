@@ -203,9 +203,7 @@ function radplapag_render_settings_page() {
                         </table>
                         <?php if ( $index > 0 ) : ?>
                             <p>
-                                <button type="button" class="button radplapag-remove-station" data-index="<?php echo esc_attr( $index ); ?>">
-                                    <?php esc_html_e( 'Remove Station', 'radio-player-page' ); ?>
-                                </button>
+                                <a href="#" class="submitdelete radplapag-remove-station" data-index="<?php echo esc_attr( $index ); ?>"><?php esc_html_e( 'Remove Station', 'radio-player-page' ); ?></a>
                             </p>
                         <?php endif; ?>
                     </div>
