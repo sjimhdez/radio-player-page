@@ -51,12 +51,25 @@ function radplapag_migrate_old_settings() {
 }
 
 /**
- * Checks if a database migration is needed based on version
+ * Ensure the DB version option exists.
+ *
+ * @since 1.2.0
+ */
+function radplapag_ensure_db_version_option() {
+    $current = get_option( 'radplapag_db_version', false );
+    if ( false === $current ) {
+        add_option( 'radplapag_db_version', '0.0.0' );
+    }
+}
+
+/**
+ * Checks if a database migration is needed based on version.
  *
  * @since 1.2.0
  */
 function radplapag_check_version() {
-    $installed_ver = get_option( 'radplapag_db_version', '0.0.0' );
+    radplapag_ensure_db_version_option();
+    $installed_ver = get_option( 'radplapag_db_version' );
 
     if ( version_compare( $installed_ver, RADPLAPAG_DB_VERSION, '<' ) ) {
         radplapag_migrate_old_settings();
@@ -64,3 +77,4 @@ function radplapag_check_version() {
     }
 }
 add_action( 'admin_init', 'radplapag_check_version' );
+add_action( 'plugins_loaded', 'radplapag_check_version' );
