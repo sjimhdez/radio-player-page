@@ -79,6 +79,10 @@ https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
 
+= 1.1.4 =
+* Changed WordPress compatibility to 6.9
+* Changed to WordPress.org community translations
+
 = 1.1.3 =
 * Added complete internationalization (i18n) support for plugin admin panel and player interface
 * Integrated translations for English (en_US) and Spanish (es_ES)
