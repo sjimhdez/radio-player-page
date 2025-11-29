@@ -9,7 +9,7 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: radio-player-page
 
-Lightweight dedicated radio player page for Icecast, Shoutcast and MP3 streams. Continuous live streaming with enhanced listener retention.
+Create a dedicated page for your Icecast, Shoutcast, or MP3 radio. Continuous playback without interruptions.
 
 == Description ==
 
@@ -24,7 +24,7 @@ Install Radio Player Page today and have your Icecast/Shoutcast station online i
 == Main Features ==
 
 * **Native Icecast & Shoutcast** – Connect directly with your existing stream URL.
-* **Multiple Stations Support** – Manage up to 6 different radio stations with optional custom titles.
+* **Multiple Stations** – Manage up to 6 different radio stations with optional custom titles.
 * **Any MP3 stream support** – Works with standard MP3 streams alongside Icecast and Shoutcast.
 * **Continuous playback** – Stream never stops, even while browsing other pages.
 * **Waveform visualizer** – Real-time audio visualization from your live stream.
@@ -81,7 +81,7 @@ https://github.com/sjimhdez/radio-player-page
 == Changelog ==
 
 = 1.2.0 =
-* Added support for multiple radio stations (up to 6)
+* Added compatibility for multiple radio stations (up to 6)
 * Added optional station title field
 * Improved settings page with dynamic station management
 * Added backward compatibility migration for existing users
