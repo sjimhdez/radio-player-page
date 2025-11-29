@@ -2,9 +2,9 @@
 Contributors: sjimhdez
 Tags: audio, icecast, radio player, shoutcast, stream
 Requires at least: 5.0
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.3
+Stable tag: 1.1.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: radio-player-page
@@ -78,6 +78,10 @@ The source code and development documentation are available at:
 https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
+
+= 1.1.4 =
+* Changed WordPress compatibility to 6.9
+* Changed to WordPress.org community translations
 
 = 1.1.3 =
 * Added complete internationalization (i18n) support for plugin admin panel and player interface
