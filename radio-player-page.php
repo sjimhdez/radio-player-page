@@ -31,17 +31,17 @@ require_once plugin_dir_path( __FILE__ ) . 'compatibility.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 
 /**
- * Gets the station data for the current page
+ * Gets the streaming data for the current page
  *
  * @since 1.0.0
  *
- * @return array|false Station data if found, false otherwise
+ * @return array|false Streaming data if found, false otherwise
  */
 function radplapag_get_station_for_current_page() {
     $options = radplapag_get_settings();
     $current_page_id = get_queried_object_id();
 
-    // New format: multiple stations
+    // New format: multiple streamings
     if ( isset( $options['stations'] ) && is_array( $options['stations'] ) ) {
         foreach ( $options['stations'] as $station ) {
             if (

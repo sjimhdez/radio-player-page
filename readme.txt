@@ -25,7 +25,7 @@ Install Radio Player Page today and have your Icecast/Shoutcast station online i
 
 * **Native Shoutcast & Icecast support** – Connect directly with your existing stream URL.
 * **Any MP3 stream support** – Works with standard MP3 streams alongside Shoutcast and Icecast.
-* **Multiple Stations** – Manage up to 6 different radio stations with optional custom titles.
+* **Multiple Streamings** – Manage up to 6 different streamings with optional custom titles.
 * **Continuous playback** – Stream never stops, even while browsing other pages.
 * **Waveform visualizer** – Real-time audio visualization from your live stream.
 * **Responsive design** – Perfect on mobile, tablet, and desktop.

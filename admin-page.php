@@ -100,7 +100,7 @@ function radplapag_render_settings_page() {
     $pages = get_pages( [ 'post_status' => 'publish' ] );
     $max_stations = 6;
     
-    // Ensure we have at least one empty station slot
+    // Ensure we have at least one empty streaming slot
     while ( count( $stations ) < $max_stations ) {
         $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '' ];
     }
@@ -112,7 +112,7 @@ function radplapag_render_settings_page() {
 
         <div>
             <h2><?php esc_html_e( 'How to use', 'radio-player-page' ); ?></h2>
-            <p><?php esc_html_e( 'You can add up to 6 radio stations. For each station, enter the stream URL (Icecast, Shoutcast, etc.) and select a different page where the player should appear.', 'radio-player-page' ); ?></p>
+            <p><?php esc_html_e( 'Your Radio Station can have up to 6 streamings. For each streaming, enter the stream URL (Icecast, Shoutcast, etc.) and select a different page where the player should appear.', 'radio-player-page' ); ?></p>
             <p><?php esc_html_e( 'Once configured, each selected page will display a clean, standalone audio player designed for uninterrupted listening.', 'radio-player-page' ); ?></p>
         </div>
 
@@ -132,10 +132,10 @@ function radplapag_render_settings_page() {
                         <h3 class="radplapag-station-title">
                             <?php 
                             if ( ! $is_empty ) {
-                                /* translators: %d: Station number */
-                                echo esc_html( sprintf( __( 'Station %d', 'radio-player-page' ), $index + 1 ) );
+                                /* translators: %d: Streaming number */
+                                echo esc_html( sprintf( __( 'Streaming %d', 'radio-player-page' ), $index + 1 ) );
                             } else {
-                                esc_html_e( 'New Station', 'radio-player-page' );
+                                esc_html_e( 'New Streaming', 'radio-player-page' );
                             }
                             ?>
                         </h3>
@@ -185,7 +185,7 @@ function radplapag_render_settings_page() {
                             <tr>
                                 <th scope="row">
                                     <label for="radplapag_station_title_<?php echo esc_attr( $index ); ?>">
-                                        <?php esc_html_e( 'Station Title (Optional)', 'radio-player-page' ); ?>
+                                        <?php esc_html_e( 'Streaming Title (Optional)', 'radio-player-page' ); ?>
                                     </label>
                                 </th>
                                 <td>
@@ -197,13 +197,13 @@ function radplapag_render_settings_page() {
                                         class="regular-text radplapag-station-title-input"
                                         placeholder="<?php esc_attr_e( 'My Radio Station', 'radio-player-page' ); ?>"
                                     >
-                                    <p class="description"><?php esc_html_e( 'A custom title for this station. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
+                                    <p class="description"><?php esc_html_e( 'A custom title for this streaming. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
                                 </td>
                             </tr>
                         </table>
                         <?php if ( $index > 0 ) : ?>
                             <p>
-                                <a href="#" class="submitdelete radplapag-remove-station" data-index="<?php echo esc_attr( $index ); ?>"><?php esc_html_e( 'Remove Station', 'radio-player-page' ); ?></a>
+                                <a href="#" class="submitdelete radplapag-remove-station" data-index="<?php echo esc_attr( $index ); ?>"><?php esc_html_e( 'Remove Streaming', 'radio-player-page' ); ?></a>
                             </p>
                         <?php endif; ?>
                     </div>
@@ -212,7 +212,7 @@ function radplapag_render_settings_page() {
             
             <p>
                 <button type="button" class="button radplapag-add-station" id="radplapag-add-station-btn" style="display:none;">
-                    <?php esc_html_e( 'Add Another Station', 'radio-player-page' ); ?>
+                    <?php esc_html_e( 'Add Another Streaming', 'radio-player-page' ); ?>
                 </button>
             </p>
 
@@ -321,7 +321,7 @@ function radplapag_render_settings_page() {
                             visibleCount++;
                         }
                     });
-                    title.textContent = '<?php echo esc_js( __( 'Station', 'radio-player-page' ) ); ?> ' + visibleCount;
+                    title.textContent = '<?php echo esc_js( __( 'Streaming', 'radio-player-page' ) ); ?> ' + visibleCount;
                 }
                 updateAddButton();
                 updatePageOptions();
