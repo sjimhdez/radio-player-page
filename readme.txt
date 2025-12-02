@@ -4,31 +4,32 @@ Tags: audio, icecast, radio player, shoutcast, stream
 Requires at least: 5.0
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 1.1.4
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: radio-player-page
 
-Lightweight dedicated radio player page for Icecast, Shoutcast and MP3 streams. Continuous live streaming with enhanced listener retention.
+Create a dedicated page for your Icecast, Shoutcast, or MP3 radio. Continuous playback without interruptions.
 
 == Description ==
 
-Radio Player Page is a dedicated and efficient solution for streaming **Shoutcast**, **Icecast**, and **any MP3 stream** in WordPress. Unlike standard audio players, it creates a standalone page for your station, fully optimized for continuous playback and listener retention.
+Radio Player Page is a dedicated and efficient solution for streaming **Icecast**, **Shoutcast** and **any MP3 stream** in WordPress. Unlike standard audio players, it creates a standalone page for your station, fully optimized for continuous playback and listener retention.
 
-This plugin is designed specifically for online radios that rely on Shoutcast or Icecast. By decoupling the player from WordPress, it avoids conflicts with themes or plugins, reduces loading time, and ensures your stream never drops when users navigate your site.
+This plugin is designed specifically for online radios that rely on Icecast or Shoutcast. By decoupling the player from WordPress, it avoids conflicts with themes or plugins, reduces loading time, and ensures your stream never drops when users navigate your site.
 
 With Radio Player Page you get a fast, lightweight, and mobile-friendly player that focuses entirely on the listener experience. No ads, no premium versions, just reliable streaming built for professional stations.
 
-Install Radio Player Page today and have your Shoutcast/Icecast station online in seconds.
+Install Radio Player Page today and have your Icecast/Shoutcast station online in seconds.
 
 == Main Features ==
 
 * **Native Shoutcast & Icecast support** – Connect directly with your existing stream URL.
 * **Any MP3 stream support** – Works with standard MP3 streams alongside Shoutcast and Icecast.
+* **Multiple Stations** – Manage up to 6 different radio stations with optional custom titles.
 * **Continuous playback** – Stream never stops, even while browsing other pages.
 * **Waveform visualizer** – Real-time audio visualization from your live stream.
 * **Responsive design** – Perfect on mobile, tablet, and desktop.
-* **Minimal setup** – Enter your Shoutcast/Icecast/MP3 URL and select the page.
+* **Minimal setup** – Enter your Icecast/Shoutcast/MP3 URL and select the page.
 * **Standalone player page** – Independent from WordPress load, stable and lightweight.
 * **Clean UX/UI** – Designed to maximize listener retention.
 * **Multilingual support** – Fully translated interface in English and Spanish.
@@ -78,6 +79,12 @@ The source code and development documentation are available at:
 https://github.com/sjimhdez/radio-player-page
 
 == Changelog ==
+
+= 1.2.0 =
+* Added compatibility for multiple radio stations (up to 6)
+* Added optional station title field
+* Improved settings page with dynamic station management
+* Added backward compatibility migration for existing users
 
 = 1.1.4 =
 * Changed WordPress compatibility to 6.9
