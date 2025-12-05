@@ -112,7 +112,7 @@ function radplapag_render_settings_page() {
 
         <div>
             <h2><?php esc_html_e( 'How to use', 'radio-player-page' ); ?></h2>
-            <p><?php esc_html_e( 'Your Radio Station can have up to 6 streamings. For each streaming, enter the stream URL (Icecast, Shoutcast, etc.) and select a different page where the player should appear.', 'radio-player-page' ); ?></p>
+            <p><?php esc_html_e( 'Your Radio Station can have up to six streamings. For each streaming, enter the stream URL (Icecast, Shoutcast, etc.) and select a different page where the player should appear.', 'radio-player-page' ); ?></p>
             <p><?php esc_html_e( 'Once configured, each selected page will display a clean, standalone audio player designed for uninterrupted listening.', 'radio-player-page' ); ?></p>
         </div>
 
@@ -197,7 +197,7 @@ function radplapag_render_settings_page() {
                                         class="regular-text radplapag-station-title-input"
                                         placeholder="<?php esc_attr_e( 'My Radio Station', 'radio-player-page' ); ?>"
                                     >
-                                    <p class="description"><?php esc_html_e( 'A custom title for this streaming. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
+                                    <p class="description"><?php esc_html_e( 'Custom title for this streaming. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
                                 </td>
                             </tr>
                         </table>
@@ -212,7 +212,7 @@ function radplapag_render_settings_page() {
             
             <p>
                 <button type="button" class="button radplapag-add-station" id="radplapag-add-station-btn" style="display:none;">
-                    <?php esc_html_e( 'Add Another Streaming', 'radio-player-page' ); ?>
+                    <?php esc_html_e( 'Add Streaming', 'radio-player-page' ); ?>
                 </button>
             </p>
 
