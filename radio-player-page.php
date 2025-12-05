@@ -105,7 +105,7 @@ function radplapag_output_clean_page() {
     $display_title = ! empty( $station_title ) ? $station_title : get_bloginfo( 'name' );
 
     echo '<!DOCTYPE html>';
-    echo '<html ' . esc_attr( get_language_attributes() ) . '>';
+    echo '<html ' . get_language_attributes() . '>';
     echo '<head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
