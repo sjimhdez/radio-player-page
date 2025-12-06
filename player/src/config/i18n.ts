@@ -4,6 +4,7 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 
 import translationsEN_US from 'src/locales/en-US.json'
 import translationsES from 'src/locales/es.json'
+import translationsRU_RU from 'src/locales/ru-RU.json'
 
 i18n
   .use(LanguageDetector)
@@ -12,6 +13,9 @@ i18n
     resources: {
       'en-US': {
         translation: translationsEN_US,
+      },
+      'ru-RU': {
+        translation: translationsRU_RU,
       },
       es: {
         translation: translationsES,
