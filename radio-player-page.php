@@ -5,7 +5,7 @@
  * Version: 1.2.1
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
- * Tags: audio, icecast, radio player, shoutcast, stream
+ * Tags: audio, icecast, radio player, shoutcast, streaming
  * Requires at least: 5.0
  * Requires PHP: 7.4
  * License: GPLv2 or later
