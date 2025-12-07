@@ -1,9 +1,9 @@
 === Radio Player Page ===
 Contributors: sjimhdez
-Tags: audio, icecast, radio player, shoutcast, stream
+Tags: audio, icecast, radio player, shoutcast, streaming
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -64,6 +64,9 @@ The source code is hosted on GitHub. See the repository for contributions and is
 3. Plugin Settings screen, showing the interface for managing multiple streams.
 
 == Changelog ==
+
+= 1.2.1 =
+* Added support for HLS and DASH streaming using hls.js and dash.js
 
 = 1.2.0 =
 * Added support for multiple streams (up to six streams)

@@ -25,6 +25,7 @@ The plugin uniquely decouples the streaming interface from the WordPress theme, 
 - **Professional, Distraction-Free Interface** – Clean, modern design focused exclusively on audio streaming
 - **Multi-Language Support** – Built-in support for English, Spanish, and Russian with automatic locale detection
 - **Multiple Station Management** – Configure up to 6 radio stations with custom titles and dedicated pages
+- **Modern Streaming Protocols** – Full support for HLS (.m3u8) and DASH (.mpd) adaptive streaming, alongside traditional Icecast/Shoutcast
 
 ## 🚀 Features
 
@@ -52,6 +53,7 @@ The plugin uniquely decouples the streaming interface from the WordPress theme, 
 - **Vite 6.3.5** – Lightning-fast builds, optimized bundles, and native ES modules
 - **Material-UI 7.1.1** – Professional, accessible interface components with built-in theming
 - **Web Audio API** – Direct browser audio processing for dynamic waveform visualization
+- **hls.js & dash.js** – Industry-standard libraries for adaptive bitrate streaming
 - **i18next** – Robust internationalization with automatic browser language detection
 
 ### Developer-Friendly
