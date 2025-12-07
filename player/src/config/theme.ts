@@ -1,25 +1,110 @@
-import { createTheme } from '@mui/material/styles'
+import { createTheme, type PaletteOptions } from '@mui/material/styles'
+
+const palette: PaletteOptions = {
+  mode: 'dark',
+  primary: {
+    main: '#FFFFFF',
+    contrastText: '#000000',
+  },
+  secondary: {
+    main: '#000000',
+    contrastText: '#FFFFFF',
+  },
+  background: {
+    default: '#000000',
+    paper: '#121212',
+  },
+  text: {
+    primary: '#FFFFFF',
+    secondary: '#E0E0E0',
+  },
+  divider: '#333333',
+}
 
 const theme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#2e2e2e',
-      contrastText: '#ffffff',
+  palette,
+  typography: {
+    fontFamily: 'system-ui, Avenir, Helvetica, Arial, sans-serif',
+    h1: {
+      fontSize: '2.5rem',
+      fontWeight: 700,
+      lineHeight: 1.2,
+      letterSpacing: '-0.01562em',
     },
-    secondary: {
-      main: '#4a4a4a',
-      contrastText: '#ffffff',
+    h2: {
+      fontSize: '2rem',
+      fontWeight: 600,
+      lineHeight: 1.2,
+      letterSpacing: '-0.00833em',
     },
-    background: {
-      default: '#121212',
-      paper: '#1e1e1e',
+    h3: {
+      fontSize: '1.75rem',
+      fontWeight: 600,
+      lineHeight: 1.2,
+      letterSpacing: '0em',
     },
-    text: {
-      primary: '#f0f0f0',
-      secondary: '#b0b0b0',
+    h4: {
+      fontSize: '1.5rem',
+      fontWeight: 600,
+      lineHeight: 1.2,
+      letterSpacing: '0.00735em',
     },
-    divider: '#3a3a3a',
+    h5: {
+      fontSize: '1.25rem',
+      fontWeight: 500,
+      lineHeight: 1.2,
+      letterSpacing: '0em',
+    },
+    h6: {
+      fontSize: '1rem',
+      fontWeight: 500,
+      lineHeight: 1.2,
+      letterSpacing: '0.0075em',
+    },
+    subtitle1: {
+      fontSize: '1rem',
+      fontWeight: 400,
+      lineHeight: 1.75,
+      letterSpacing: '0.00938em',
+    },
+    subtitle2: {
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      lineHeight: 1.57,
+      letterSpacing: '0.00714em',
+    },
+    body1: {
+      fontSize: '1rem',
+      fontWeight: 400,
+      lineHeight: 1.5,
+      letterSpacing: '0.00938em',
+    },
+    body2: {
+      fontSize: '0.875rem',
+      fontWeight: 400,
+      lineHeight: 1.43,
+      letterSpacing: '0.01071em',
+    },
+    button: {
+      fontSize: '0.875rem',
+      fontWeight: 500,
+      lineHeight: 1.75,
+      letterSpacing: '0.02857em',
+      textTransform: 'none',
+    },
+    caption: {
+      fontSize: '0.75rem',
+      fontWeight: 400,
+      lineHeight: 1.66,
+      letterSpacing: '0.03333em',
+    },
+    overline: {
+      fontSize: '0.75rem',
+      fontWeight: 400,
+      lineHeight: 2.66,
+      letterSpacing: '0.08333em',
+      textTransform: 'uppercase',
+    },
   },
   shape: {
     borderRadius: 0,
@@ -35,9 +120,6 @@ const theme = createTheme({
           '&:hover': {
             backgroundColor: '#333333',
             boxShadow: 'none',
-          },
-          '&:focus': {
-            outline: 'none',
           },
         },
       },

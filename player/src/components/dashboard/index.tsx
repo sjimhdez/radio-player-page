@@ -82,7 +82,7 @@ const Dashboard = () => {
         alignItems="center"
         justifyContent="center"
       >
-        <Typography variant="h5" component="h1" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+        <Typography variant="h1" component="h1" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
           {SITE_TITLE}
         </Typography>
 

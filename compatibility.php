@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Migrates old settings format (v1.1) to new format (v1.2.0) for backward compatibility.
  *
- * Handles the transition from single station support (v1.1) to multiple stations support (v1.2.0).
+ * Handles the transition from single streaming support (v1.1) to multiple streamings support (v1.2.0).
  *
  * Old format: ['stream_url' => 'url', 'player_page' => 123]
  * New format: ['stations' => [['stream_url' => 'url', 'player_page' => 123], ...]]
