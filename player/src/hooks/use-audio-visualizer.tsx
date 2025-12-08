@@ -1,6 +1,13 @@
 import { useEffect, useRef } from 'react'
 import type { PlayerStatus } from 'src/types/player'
-import { oscilloscopeVisualizer } from 'src/components/visualizers/oscilloscope-visualizer'
+
+export type VisualizerFn = (
+  ctx: CanvasRenderingContext2D,
+  dataArray: Uint8Array,
+  canvas: HTMLCanvasElement,
+  width: number,
+  height: number,
+) => void
 
 function useAudioVisualizer(
   audioRef: React.RefObject<HTMLAudioElement>,
@@ -8,6 +15,7 @@ function useAudioVisualizer(
   status: PlayerStatus,
   width: number,
   height: number,
+  visualizerFn: VisualizerFn,
 ) {
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -56,7 +64,7 @@ function useAudioVisualizer(
         analyser.getByteTimeDomainData(dataArray)
 
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        oscilloscopeVisualizer(ctx, dataArray, canvas, width, height)
+        visualizerFn(ctx, dataArray, canvas, width, height)
       }
 
       draw()
@@ -67,7 +75,7 @@ function useAudioVisualizer(
     return () => {
       if (animationRef.current) cancelAnimationFrame(animationRef.current)
     }
-  }, [status, audioRef, canvasRef, width, height])
+  }, [status, audioRef, canvasRef, width, height, visualizerFn])
 }
 
 export default useAudioVisualizer

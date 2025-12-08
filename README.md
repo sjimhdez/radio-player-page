@@ -121,6 +121,10 @@ player/                 # React frontend application
 ├── src/
 │   ├── components/
 │   │   ├── dashboard/           # Main player interface
+│   │   │   ├── index.tsx                # Dashboard container
+│   │   │   ├── PlayerControls.tsx       # Play/Pause/Loading logic
+│   │   │   ├── StreamInfo.tsx           # Title and Status display
+│   │   │   └── VolumeControl.tsx        # Volume slider
 │   │   └── visualizers/
 │   │       └── oscilloscope-visualizer.tsx   # Web Audio API visualizer
 │   ├── hooks/
