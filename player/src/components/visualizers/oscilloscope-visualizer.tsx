@@ -13,7 +13,7 @@ export const oscilloscopeVisualizer = (
 
   ctx.clearRect(0, 0, width, height)
 
-  // Dibuja eje central
+  // Draw center axis
   ctx.strokeStyle = '#555'
   ctx.lineWidth = 1
   ctx.beginPath()
@@ -21,7 +21,7 @@ export const oscilloscopeVisualizer = (
   ctx.lineTo(width, centerY)
   ctx.stroke()
 
-  // Dibujo onda
+  // Draw wave
   ctx.strokeStyle = color
   ctx.lineWidth = 2
   ctx.beginPath()

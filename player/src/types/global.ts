@@ -5,5 +5,6 @@ declare global {
     THEME_COLOR?: string
     BACKGROUND_IMAGE?: string
     LOGO_IMAGE?: string
+    VISUALIZER?: string
   }
 }

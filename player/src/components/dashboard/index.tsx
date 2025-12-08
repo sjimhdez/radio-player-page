@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
-import { oscilloscopeVisualizer } from 'src/components/visualizers/oscilloscope-visualizer'
+import { getVisualizer, getDefaultVisualizer } from 'src/config/visualizers'
 import StreamInfo from './StreamInfo'
 import PlayerControls from './PlayerControls'
 import VolumeControl from './VolumeControl'
@@ -15,6 +15,7 @@ import VolumeControl from './VolumeControl'
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
   const SITE_TITLE = window.SITE_TITLE || ''
+  const VISUALIZER_ID = window.VISUALIZER || 'oscilloscope'
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -28,13 +29,18 @@ const Dashboard = () => {
   const { audioRef, status, loading, play, pause, volume, handleVolumeChange } =
     useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
+
+  // Get the visualizer configured from admin, or use the default
+  const visualizerConfig = getVisualizer(VISUALIZER_ID) || getDefaultVisualizer()
+
   useAudioVisualizer(
     audioRef,
     canvasRef,
     status,
     dimensions.width,
     dimensions.height,
-    oscilloscopeVisualizer,
+    visualizerConfig.fn,
+    visualizerConfig.dataType,
   )
 
   useEffect(() => {

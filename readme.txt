@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: audio, icecast, radio player, shoutcast, streaming
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.2.1
+Stable tag: 1.3
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -64,6 +64,12 @@ The source code is hosted on GitHub. See the repository for contributions and is
 3. Plugin Settings screen, showing the interface for managing multiple streams.
 
 == Changelog ==
+
+= 1.3 =
+* Added visualizer selection feature - admins can now choose between different audio visualizers (Oscilloscope/Waves and Bars) for each stream
+* Improved visualizer system with support for time-domain and frequency-domain data
+* Enhanced admin interface with visualizer selection dropdown
+* Added extensible visualizer registry system for future visualizer additions
 
 = 1.2.1 =
 * Added support for HLS and DASH streaming using hls.js and dash.js

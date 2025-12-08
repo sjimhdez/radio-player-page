@@ -67,6 +67,13 @@ function radplapag_sanitize_settings( $input ) {
         $bg_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
         $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
         $theme = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
+        $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
+        
+        // Validate that the visualizer is valid
+        $valid_visualizers = [ 'oscilloscope', 'bars' ];
+        if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
+            $visualizer = 'oscilloscope';
+        }
         
         // Filter: Must have both URL and Page to be saved
         if ( empty( $url ) || empty( $page ) ) {
@@ -80,6 +87,7 @@ function radplapag_sanitize_settings( $input ) {
             'background_id' => $bg_id,
             'logo_id'       => $logo_id,
             'theme_color'   => $theme,
+            'visualizer'    => $visualizer,
         ];
     }  
     return $output;
@@ -118,7 +126,7 @@ function radplapag_render_settings_page() {
     
     // Ensure we have at least one empty streaming slot
     while ( count( $stations ) < $max_stations ) {
-        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '', 'background_id' => '', 'logo_id' => '', 'theme_color' => 'neutral' ];
+        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '', 'background_id' => '', 'logo_id' => '', 'theme_color' => 'neutral', 'visualizer' => 'oscilloscope' ];
     }
     
     $colors = [
@@ -155,6 +163,7 @@ function radplapag_render_settings_page() {
                     $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : '';
                     $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : '';
                     $theme_color = isset( $station['theme_color'] ) ? esc_attr( $station['theme_color'] ) : 'neutral';
+                    $visualizer = isset( $station['visualizer'] ) ? esc_attr( $station['visualizer'] ) : 'oscilloscope';
 
                     // Get image preview URLs
                     $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
@@ -253,6 +262,28 @@ function radplapag_render_settings_page() {
                                         <?php endforeach; ?>
                                     </select>
                                     <p class="description"><?php esc_html_e( 'Select a color theme for the player.', 'radio-player-page' ); ?></p>
+                                </td>
+                            </tr>
+                            <!-- Visualizer -->
+                            <tr>
+                                <th scope="row">
+                                    <label for="radplapag_visualizer_<?php echo esc_attr( $index ); ?>">
+                                        <?php esc_html_e( 'Visualizer', 'radio-player-page' ); ?>
+                                    </label>
+                                </th>
+                                <td>
+                                    <select 
+                                        name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][visualizer]" 
+                                        id="radplapag_visualizer_<?php echo esc_attr( $index ); ?>"
+                                    >
+                                        <option value="oscilloscope" <?php selected( $visualizer, 'oscilloscope' ); ?>>
+                                            <?php esc_html_e( 'Oscilloscope (Waves)', 'radio-player-page' ); ?>
+                                        </option>
+                                        <option value="bars" <?php selected( $visualizer, 'bars' ); ?>>
+                                            <?php esc_html_e( 'Bars', 'radio-player-page' ); ?>
+                                        </option>
+                                    </select>
+                                    <p class="description"><?php esc_html_e( 'Select the audio visualizer type for this stream.', 'radio-player-page' ); ?></p>
                                 </td>
                             </tr>
                             <!-- Background Image -->

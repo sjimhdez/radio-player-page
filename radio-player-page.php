@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: Create a dedicated page for your Icecast, Shoutcast, or MP3 radio. Continuous playback without interruptions.
- * Version: 1.2.1
+ * Version: 1.3
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, shoutcast, streaming
@@ -81,7 +81,14 @@ function radplapag_output_clean_page() {
     $station_title = isset( $station['station_title'] ) ? $station['station_title'] : '';
     $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
     $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
-    $theme_color = isset( $station['theme_color'] ) ? $station['theme_color'] : 'neutral';
+    $theme_color = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
+    $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
+    
+    // Validate visualizer against whitelist for security
+    $valid_visualizers = [ 'oscilloscope', 'bars' ];
+    if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
+        $visualizer = 'oscilloscope';
+    }
 
     $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'full' ) : '';
     $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
@@ -124,6 +131,7 @@ function radplapag_output_clean_page() {
     echo '<script>window.BACKGROUND_IMAGE = "' . esc_js( $background_url ) . '";</script>';
     echo '<script>window.LOGO_IMAGE = "' . esc_js( $logo_url ) . '";</script>';
     echo '<script>window.THEME_COLOR = "' . esc_js( $theme_color ) . '";</script>';
+    echo '<script>window.VISUALIZER = "' . esc_js( $visualizer ) . '";</script>';
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
     }
