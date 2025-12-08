@@ -66,6 +66,7 @@ function radplapag_sanitize_settings( $input ) {
         $title = isset( $station['station_title'] ) ? sanitize_text_field( $station['station_title'] ) : '';
         $bg_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
         $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
+        $theme = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
         
         // Filter: Must have both URL and Page to be saved
         if ( empty( $url ) || empty( $page ) ) {
@@ -78,6 +79,7 @@ function radplapag_sanitize_settings( $input ) {
             'station_title' => $title,
             'background_id' => $bg_id,
             'logo_id'       => $logo_id,
+            'theme_color'   => $theme,
         ];
     }  
     return $output;
@@ -116,8 +118,18 @@ function radplapag_render_settings_page() {
     
     // Ensure we have at least one empty streaming slot
     while ( count( $stations ) < $max_stations ) {
-        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '', 'background_id' => '', 'logo_id' => '' ];
+        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '', 'background_id' => '', 'logo_id' => '', 'theme_color' => 'neutral' ];
     }
+    
+    $colors = [
+        'neutral' => __( 'Neutral', 'radio-player-page' ),
+        'red'     => __( 'Red', 'radio-player-page' ),
+        'green'   => __( 'Green', 'radio-player-page' ),
+        'blue'    => __( 'Blue', 'radio-player-page' ),
+        'yellow'  => __( 'Yellow', 'radio-player-page' ),
+        'purple'  => __( 'Purple', 'radio-player-page' ),
+        'orange'  => __( 'Orange', 'radio-player-page' ),
+    ];
     ?>
     <div class="wrap">
         <h1><?php esc_html_e( 'Radio Player Page Settings', 'radio-player-page' ); ?></h1>
@@ -142,6 +154,7 @@ function radplapag_render_settings_page() {
                     $station_title = isset( $station['station_title'] ) ? esc_attr( $station['station_title'] ) : '';
                     $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : '';
                     $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : '';
+                    $theme_color = isset( $station['theme_color'] ) ? esc_attr( $station['theme_color'] ) : 'neutral';
 
                     // Get image preview URLs
                     $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
@@ -219,6 +232,27 @@ function radplapag_render_settings_page() {
                                         placeholder="<?php esc_attr_e( 'My Radio Station', 'radio-player-page' ); ?>"
                                     >
                                     <p class="description"><?php esc_html_e( 'Custom title for this stream. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
+                                </td>
+                            </tr>
+                            <!-- Theme Color -->
+                            <tr>
+                                <th scope="row">
+                                    <label for="radplapag_theme_color_<?php echo esc_attr( $index ); ?>">
+                                        <?php esc_html_e( 'Theme Color', 'radio-player-page' ); ?>
+                                    </label>
+                                </th>
+                                <td>
+                                    <select 
+                                        name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][theme_color]" 
+                                        id="radplapag_theme_color_<?php echo esc_attr( $index ); ?>"
+                                    >
+                                        <?php foreach ( $colors as $value => $label ) : ?>
+                                            <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $theme_color, $value ); ?>>
+                                                <?php echo esc_html( $label ); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <p class="description"><?php esc_html_e( 'Select a color theme for the player.', 'radio-player-page' ); ?></p>
                                 </td>
                             </tr>
                             <!-- Background Image -->

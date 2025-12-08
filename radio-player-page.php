@@ -81,6 +81,7 @@ function radplapag_output_clean_page() {
     $station_title = isset( $station['station_title'] ) ? $station['station_title'] : '';
     $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
     $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
+    $theme_color = isset( $station['theme_color'] ) ? $station['theme_color'] : 'neutral';
 
     $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'full' ) : '';
     $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
@@ -122,6 +123,7 @@ function radplapag_output_clean_page() {
     echo '<script>window.SITE_TITLE = "' . esc_js( $display_title ) . '";</script>';
     echo '<script>window.BACKGROUND_IMAGE = "' . esc_js( $background_url ) . '";</script>';
     echo '<script>window.LOGO_IMAGE = "' . esc_js( $logo_url ) . '";</script>';
+    echo '<script>window.THEME_COLOR = "' . esc_js( $theme_color ) . '";</script>';
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
     }
