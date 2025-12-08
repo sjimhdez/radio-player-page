@@ -125,11 +125,11 @@ const Dashboard = () => {
         {loading && !openError ? (
           <CircularProgress size={64} />
         ) : status !== 'playing' ? (
-          <IconButton onClick={play} size="large" aria-label={t('dashboard.play')}>
+          <IconButton onClick={play} size="large" aria-label={t('dashboard.play')} color="primary">
             <PlayCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
           </IconButton>
         ) : (
-          <IconButton onClick={pause} size="large" aria-label={t('dashboard.stop')}>
+          <IconButton onClick={pause} size="large" aria-label={t('dashboard.stop')} color="primary">
             <StopCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
           </IconButton>
         )}
