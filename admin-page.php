@@ -36,6 +36,19 @@ function radplapag_register_settings() {
 add_action( 'admin_init', 'radplapag_register_settings' );
 
 /**
+ * Enqueue scripts and styles
+ *
+ * @since 1.3
+ */
+function radplapag_admin_scripts() {
+    // Only on our plugin page
+    if ( isset( $_GET['page'] ) && 'radplapag' === $_GET['page'] ) {
+        wp_enqueue_media();
+    }
+}
+add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts' );
+
+/**
  * Validates and sanitizes the input data
  *
  * @since 1.0.0
@@ -46,12 +59,13 @@ add_action( 'admin_init', 'radplapag_register_settings' );
 function radplapag_sanitize_settings( $input ) {
     $output = [ 'stations' => [] ];
     $stations = isset( $input['stations'] ) && is_array( $input['stations'] ) ? $input['stations'] : [];
-    $used_pages = [];
     
     foreach ( $stations as $index => $station ) {
         $url   = isset( $station['stream_url'] ) ? trim( $station['stream_url'] ) : '';
         $page  = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : 0;
         $title = isset( $station['station_title'] ) ? sanitize_text_field( $station['station_title'] ) : '';
+        $bg_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
+        $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
         
         // Filter: Must have both URL and Page to be saved
         if ( empty( $url ) || empty( $page ) ) {
@@ -62,9 +76,9 @@ function radplapag_sanitize_settings( $input ) {
             'stream_url'    => esc_url_raw( $url ),
             'player_page'   => $page,
             'station_title' => $title,
+            'background_id' => $bg_id,
+            'logo_id'       => $logo_id,
         ];
-        
-        $used_pages[] = $page;
     }  
     return $output;
 }
@@ -102,7 +116,7 @@ function radplapag_render_settings_page() {
     
     // Ensure we have at least one empty streaming slot
     while ( count( $stations ) < $max_stations ) {
-        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '' ];
+        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '', 'background_id' => '', 'logo_id' => '' ];
     }
     ?>
     <div class="wrap">
@@ -126,6 +140,13 @@ function radplapag_render_settings_page() {
                     $stream_url = isset( $station['stream_url'] ) ? esc_attr( $station['stream_url'] ) : '';
                     $player_page = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : '';
                     $station_title = isset( $station['station_title'] ) ? esc_attr( $station['station_title'] ) : '';
+                    $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : '';
+                    $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : '';
+
+                    // Get image preview URLs
+                    $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
+                    $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+
                     $is_empty = empty( $stream_url ) && empty( $player_page );
                 ?>
                     <div class="radplapag-station-row" data-index="<?php echo esc_attr( $index ); ?>" <?php echo $is_empty && $index > 0 ? 'style="display:none;"' : ''; ?>>
@@ -200,6 +221,44 @@ function radplapag_render_settings_page() {
                                     <p class="description"><?php esc_html_e( 'Custom title for this stream. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
                                 </td>
                             </tr>
+                            <!-- Background Image -->
+                            <tr>
+                                <th scope="row">
+                                    <label><?php esc_html_e( 'Background Image', 'radio-player-page' ); ?></label>
+                                </th>
+                                <td>
+                                    <div class="radplapag-image-upload-wrapper">
+                                        <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][background_id]" value="<?php echo esc_attr( $background_id ); ?>" class="radplapag-image-id">
+                                        <div class="radplapag-image-preview">
+                                            <?php if ( $background_url ) : ?>
+                                                <img src="<?php echo esc_url( $background_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
+                                            <?php endif; ?>
+                                        </div>
+                                        <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+                                        <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $background_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                    </div>
+                                    <p class="description"><?php esc_html_e( 'Select an image for the background wallpaper.', 'radio-player-page' ); ?></p>
+                                </td>
+                            </tr>
+                            <!-- Logo Image -->
+                            <tr>
+                                <th scope="row">
+                                    <label><?php esc_html_e( 'Logo Image', 'radio-player-page' ); ?></label>
+                                </th>
+                                <td>
+                                    <div class="radplapag-image-upload-wrapper">
+                                        <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][logo_id]" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-image-id">
+                                        <div class="radplapag-image-preview">
+                                            <?php if ( $logo_url ) : ?>
+                                                <img src="<?php echo esc_url( $logo_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
+                                            <?php endif; ?>
+                                        </div>
+                                        <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+                                        <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                    </div>
+                                    <p class="description"><?php esc_html_e( 'Select an image for the logo.', 'radio-player-page' ); ?></p>
+                                </td>
+                            </tr>
                         </table>
                         <?php if ( $index > 0 ) : ?>
                             <p>
@@ -235,6 +294,14 @@ function radplapag_render_settings_page() {
         }
         .radplapag-station-row hr {
             margin: 20px 0 0;
+        }
+        .radplapag-image-preview {
+            margin-bottom: 10px;
+        }
+        .radplapag-image-preview img {
+            border: 1px solid #ddd;
+            padding: 4px;
+            background: #fff;
         }
     </style>
     
@@ -296,6 +363,13 @@ function radplapag_render_settings_page() {
                 if (titleInput) {
                     titleInput.value = '';
                 }
+
+                // Clear images
+                row.querySelectorAll('.radplapag-image-upload-wrapper').forEach(function(wrapper) {
+                    wrapper.querySelector('.radplapag-image-id').value = '';
+                    wrapper.querySelector('.radplapag-image-preview').innerHTML = '';
+                    wrapper.querySelector('.radplapag-remove-image-btn').style.display = 'none';
+                });
                 
                 row.style.display = 'none';
                 updateAddButton();
@@ -327,6 +401,63 @@ function radplapag_render_settings_page() {
                 updatePageOptions();
             }
         }
+
+        // Image Upload Logic
+        function initImageUpload() {
+            var file_frame;
+
+            container.addEventListener('click', function(e) {
+                if (e.target.classList.contains('radplapag-upload-btn')) {
+                    e.preventDefault();
+                    var wrapper = e.target.closest('.radplapag-image-upload-wrapper');
+                    var inputId = wrapper.querySelector('.radplapag-image-id');
+                    var preview = wrapper.querySelector('.radplapag-image-preview');
+                    var removeBtn = wrapper.querySelector('.radplapag-remove-image-btn');
+
+                    // Create the media frame.
+                    if ( file_frame ) {
+                        file_frame.open();
+                        return;
+                    }
+
+                    file_frame = wp.media.frames.file_frame = wp.media({
+                        title: '<?php echo esc_js( __( 'Select Image', 'radio-player-page' ) ); ?>',
+                        button: {
+                            text: '<?php echo esc_js( __( 'Select Image', 'radio-player-page' ) ); ?>',
+                        },
+                        multiple: false
+                    });
+
+                    file_frame.on('select', function() {
+                        var attachment = file_frame.state().get('selection').first().toJSON();
+                        inputId.value = attachment.id;
+                        preview.innerHTML = '<img src="' + attachment.url + '" alt="" style="max-width:150px;max-height:150px;display:block;">';
+                        removeBtn.style.display = 'inline-block';
+                        
+                        // We must clear the frame so next time it opens fresh (or we need to update closure vars)
+                        // Actually better to just attach event per click or update vars.
+                        // For simplicity in this structure, we'll just let it rely on the closure vars
+                        // BUT, since file_frame is global-ish here, it will reuse the last wrapper unless we reconstruct it
+                        // or unbind/rebind 'select'.
+                        // Let's destroy frame reference to force recreation for correct closure capture
+                         file_frame = null; 
+                    });
+
+                    file_frame.open();
+                    
+                    // Hack to fix the closure issue if we didn't nulify:
+                    // We nulify file_frame above so it recreates with the correct 'wrapper' in scope.
+                }
+
+                if (e.target.classList.contains('radplapag-remove-image-btn')) {
+                    e.preventDefault();
+                    var wrapper = e.target.closest('.radplapag-image-upload-wrapper');
+                    wrapper.querySelector('.radplapag-image-id').value = '';
+                    wrapper.querySelector('.radplapag-image-preview').innerHTML = '';
+                    e.target.style.display = 'none';
+                }
+            });
+        }
         
         // Event listeners
         if (addBtn) {
@@ -347,6 +478,7 @@ function radplapag_render_settings_page() {
         // Initialize
         updateAddButton();
         updatePageOptions();
+        initImageUpload();
     })();
     </script>
     <?php
