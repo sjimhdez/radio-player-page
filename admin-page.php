@@ -70,7 +70,7 @@ function radplapag_sanitize_settings( $input ) {
         $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
         
         // Validate that the visualizer is valid
-        $valid_visualizers = [ 'oscilloscope', 'bars' ];
+        $valid_visualizers = [ 'oscilloscope', 'bars', 'particles' ];
         if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
             $visualizer = 'oscilloscope';
         }
@@ -281,6 +281,9 @@ function radplapag_render_settings_page() {
                                         </option>
                                         <option value="bars" <?php selected( $visualizer, 'bars' ); ?>>
                                             <?php esc_html_e( 'Bars', 'radio-player-page' ); ?>
+                                        </option>
+                                        <option value="particles" <?php selected( $visualizer, 'particles' ); ?>>
+                                            <?php esc_html_e( 'Partículas Orbitando', 'radio-player-page' ); ?>
                                         </option>
                                     </select>
                                     <p class="description"><?php esc_html_e( 'Select the audio visualizer type for this stream.', 'radio-player-page' ); ?></p>
