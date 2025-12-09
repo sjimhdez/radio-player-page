@@ -77,6 +77,24 @@ const Dashboard = () => {
       height="100vh"
       position="relative"
     >
+      {window.BACKGROUND_IMAGE && (
+        <Box
+          component="img"
+          src={window.BACKGROUND_IMAGE}
+          alt="Background"
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: 0,
+            opacity: 0.3,
+          }}
+        />
+      )}
+
       <StreamInfo
         title={SITE_TITLE}
         isPlaying={status === 'playing'}
