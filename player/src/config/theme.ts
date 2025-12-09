@@ -1,6 +1,10 @@
-import { createTheme, type PaletteOptions, type Theme, type ThemeOptions } from '@mui/material/styles'
+import {
+  createTheme,
+  type PaletteOptions,
+  type Theme,
+  type ThemeOptions,
+} from '@mui/material/styles'
 
-// Base theme configuration shared across all themes
 const baseThemeOptions: Omit<ThemeOptions, 'palette'> = {
   typography: {
     fontFamily: 'system-ui, Avenir, Helvetica, Arial, sans-serif',
@@ -126,15 +130,15 @@ const neutralPalette: PaletteOptions = {
   divider: '#333333',
 }
 
-const redPalette: PaletteOptions = {
+const bluePalette: PaletteOptions = {
   mode: 'dark',
   primary: {
-    main: '#FF073A',
+    main: '#009ACE',
     contrastText: '#000000',
   },
   secondary: {
     main: '#000000',
-    contrastText: '#FF073A',
+    contrastText: '#009ACE',
   },
   background: {
     default: '#000000',
@@ -150,33 +154,12 @@ const redPalette: PaletteOptions = {
 const greenPalette: PaletteOptions = {
   mode: 'dark',
   primary: {
-    main: '#39FF14',
+    main: '#44D62C',
     contrastText: '#000000',
   },
   secondary: {
     main: '#000000',
-    contrastText: '#39FF14',
-  },
-  background: {
-    default: '#000000',
-    paper: '#121212',
-  },
-  text: {
-    primary: '#FFFFFF',
-    secondary: '#E0E0E0',
-  },
-  divider: '#333333',
-}
-
-const bluePalette: PaletteOptions = {
-  mode: 'dark',
-  primary: {
-    main: '#00FFFF',
-    contrastText: '#000000',
-  },
-  secondary: {
-    main: '#000000',
-    contrastText: '#00FFFF',
+    contrastText: '#44D62C',
   },
   background: {
     default: '#000000',
@@ -192,33 +175,12 @@ const bluePalette: PaletteOptions = {
 const yellowPalette: PaletteOptions = {
   mode: 'dark',
   primary: {
-    main: '#FFFF00',
+    main: '#FFE900',
     contrastText: '#000000',
   },
   secondary: {
     main: '#000000',
-    contrastText: '#FFFF00',
-  },
-  background: {
-    default: '#000000',
-    paper: '#121212',
-  },
-  text: {
-    primary: '#FFFFFF',
-    secondary: '#E0E0E0',
-  },
-  divider: '#333333',
-}
-
-const purplePalette: PaletteOptions = {
-  mode: 'dark',
-  primary: {
-    main: '#BC13FE',
-    contrastText: '#000000',
-  },
-  secondary: {
-    main: '#000000',
-    contrastText: '#BC13FE',
+    contrastText: '#FFE900',
   },
   background: {
     default: '#000000',
@@ -234,12 +196,12 @@ const purplePalette: PaletteOptions = {
 const orangePalette: PaletteOptions = {
   mode: 'dark',
   primary: {
-    main: '#FF5F1F',
+    main: '#FFAA4D',
     contrastText: '#000000',
   },
   secondary: {
     main: '#000000',
-    contrastText: '#FF5F1F',
+    contrastText: '#FFAA4D',
   },
   background: {
     default: '#000000',
@@ -252,7 +214,69 @@ const orangePalette: PaletteOptions = {
   divider: '#333333',
 }
 
-// Map theme keys to palette objects
+const redPalette: PaletteOptions = {
+  mode: 'dark',
+  primary: {
+    main: '#FF0033',
+    contrastText: '#000000',
+  },
+  secondary: {
+    main: '#000000',
+    contrastText: '#FF0033',
+  },
+  background: {
+    default: '#000000',
+    paper: '#121212',
+  },
+  text: {
+    primary: '#FFFFFF',
+    secondary: '#E0E0E0',
+  },
+  divider: '#333333',
+}
+
+const pinkPalette: PaletteOptions = {
+  mode: 'dark',
+  primary: {
+    main: '#FF3EB5',
+    contrastText: '#000000',
+  },
+  secondary: {
+    main: '#000000',
+    contrastText: '#FF3EB5',
+  },
+  background: {
+    default: '#000000',
+    paper: '#121212',
+  },
+  text: {
+    primary: '#FFFFFF',
+    secondary: '#E0E0E0',
+  },
+  divider: '#333333',
+}
+
+const purplePalette: PaletteOptions = {
+  mode: 'dark',
+  primary: {
+    main: '#EA27C2',
+    contrastText: '#000000',
+  },
+  secondary: {
+    main: '#000000',
+    contrastText: '#EA27C2',
+  },
+  background: {
+    default: '#000000',
+    paper: '#121212',
+  },
+  text: {
+    primary: '#FFFFFF',
+    secondary: '#E0E0E0',
+  },
+  divider: '#333333',
+}
+
 const palettes: Record<string, PaletteOptions> = {
   neutral: neutralPalette,
   red: redPalette,
@@ -261,6 +285,7 @@ const palettes: Record<string, PaletteOptions> = {
   yellow: yellowPalette,
   purple: purplePalette,
   orange: orangePalette,
+  pink: pinkPalette,
 }
 
 export const getTheme = (colorMode: string = 'neutral'): Theme => {

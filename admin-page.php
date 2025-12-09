@@ -131,12 +131,13 @@ function radplapag_render_settings_page() {
     
     $colors = [
         'neutral' => __( 'Neutral', 'radio-player-page' ),
-        'red'     => __( 'Red', 'radio-player-page' ),
-        'green'   => __( 'Green', 'radio-player-page' ),
         'blue'    => __( 'Blue', 'radio-player-page' ),
+        'green'   => __( 'Green', 'radio-player-page' ),
+        'red'     => __( 'Red', 'radio-player-page' ),
+        'orange'  => __( 'Orange', 'radio-player-page' ),
         'yellow'  => __( 'Yellow', 'radio-player-page' ),
         'purple'  => __( 'Purple', 'radio-player-page' ),
-        'orange'  => __( 'Orange', 'radio-player-page' ),
+        'pink'    => __( 'Pink', 'radio-player-page' ),
     ];
     ?>
     <div class="wrap">
