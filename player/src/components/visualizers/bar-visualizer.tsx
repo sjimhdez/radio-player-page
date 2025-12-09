@@ -5,7 +5,7 @@
 const CONFIG = {
   BAR_COUNT: 13,
   // BAR_COLOR: '#1a82d6',
-  BAR_COLOR: '#333',
+  BAR_COLOR: 'rgba(255, 255, 255, 0.1)',
   SMOOTHING_FACTOR: 0.15, // Factor de suavizado (0-1, menor = más suave)
   BAR_SPACING: 2, // Espacio entre barras en píxeles
   UPDATE_INTERVAL_MS: 50, // Intervalo entre actualizaciones de altura objetivo

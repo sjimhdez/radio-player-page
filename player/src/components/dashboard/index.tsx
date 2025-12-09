@@ -103,6 +103,7 @@ const Dashboard = () => {
         isPlaying={status === 'playing'}
         canVisualize={canVisualize}
         loading={loading}
+        forceVerticalCenter={visualizerConfig.forceVerticalCenter}
       />
 
       <Box

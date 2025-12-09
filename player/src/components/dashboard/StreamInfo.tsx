@@ -8,9 +8,16 @@ interface StreamInfoProps {
   isPlaying: boolean
   canVisualize: boolean
   loading: boolean
+  forceVerticalCenter?: boolean
 }
 
-const StreamInfo = ({ title, isPlaying, canVisualize, loading }: StreamInfoProps) => {
+const StreamInfo = ({
+  title,
+  isPlaying,
+  canVisualize,
+  loading,
+  forceVerticalCenter = false,
+}: StreamInfoProps) => {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState<number>(0)
@@ -39,11 +46,11 @@ const StreamInfo = ({ title, isPlaying, canVisualize, loading }: StreamInfoProps
       ref={containerRef}
       position={'absolute'}
       top={
-        canVisualize && isPlaying
-          ? 16
-          : height > 0
-          ? `calc(50% - ${height / 2}px)`
-          : 'calc(50% - 2rem)'
+        forceVerticalCenter || !(canVisualize && isPlaying)
+          ? height > 0
+            ? `calc(50% - ${height / 2}px)`
+            : 'calc(50% - 2rem)'
+          : 16
       }
       textAlign={'center'}
       sx={{ transition: 'all 0.8s ease' }}

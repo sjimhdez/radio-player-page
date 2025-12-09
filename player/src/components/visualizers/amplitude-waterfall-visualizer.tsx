@@ -5,7 +5,7 @@
 const CONFIG = {
   COLUMN_WIDTH: 2, // Ancho de cada columna en píxeles
   SCROLL_SPEED: 1, // Velocidad de desplazamiento del waterfall (columnas por frame)
-  WAVEFORM_COLOR: '#CCC', // Color fijo para todas las líneas verticales
+  WAVEFORM_COLOR: 'rgba(255, 255, 255, 0.3)', // Color fijo para todas las líneas verticales
   SMOOTHING_FACTOR: 0.3, // Factor de suavizado para cambios de amplitud (0-1)
 } as const
 

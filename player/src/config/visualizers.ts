@@ -11,6 +11,7 @@ export interface VisualizerConfig {
   name: string
   dataType: VisualizerDataType
   fn: VisualizerFn
+  forceVerticalCenter?: boolean
 }
 
 /**
@@ -29,6 +30,7 @@ export const VISUALIZERS: Record<string, VisualizerConfig> = {
     name: 'Bars',
     dataType: 'frequency',
     fn: barVisualizer,
+    forceVerticalCenter: true,
   },
   particles: {
     id: 'particles',
