@@ -10,15 +10,28 @@ const CONFIG = {
   BAR_SPACING: 2, // Espacio entre barras en píxeles
   UPDATE_INTERVAL_MS: 50, // Intervalo entre actualizaciones de altura objetivo
   MAX_AMPLITUDE: 255, // Máxima amplitud posible (rango de datos de frecuencia: 0-255)
+  PEAK_DURATION_MS: 4000, // Duración de la línea de pico en milisegundos
+  PEAK_COLOR: '#666', // Color de la línea de pico
+  PEAK_LINE_WIDTH: 2, // Grosor de la línea de pico
 } as const
 
 // ============================================================================
 // Tipos
 // ============================================================================
 
+interface Peak {
+  barIndex: number // Índice de la barra
+  peakHeight: number // Altura del pico
+  timestamp: number // Tiempo cuando se detectó el pico
+  x: number // Posición X de la barra
+  barWidth: number // Ancho de la barra
+}
+
 interface BarState {
   smoothedHeights: number[] // Alturas suavizadas actuales
   targetHeights: number[] // Alturas objetivo calculadas
+  previousHeights: number[] // Alturas anteriores para detectar picos
+  peaks: Peak[] // Array de picos activos
   canvasWidth: number
   canvasHeight: number
   lastUpdateTime: number
@@ -45,6 +58,8 @@ function initializeState(canvas: HTMLCanvasElement, width: number, height: numbe
   return {
     smoothedHeights: new Array(CONFIG.BAR_COUNT).fill(0),
     targetHeights: new Array(CONFIG.BAR_COUNT).fill(0),
+    previousHeights: new Array(CONFIG.BAR_COUNT).fill(0),
+    peaks: [],
     canvasWidth: width,
     canvasHeight: height,
     lastUpdateTime: Date.now(),
@@ -183,6 +198,71 @@ function drawBar(
   ctx.fillRect(x, canvasHeight - barHeight, barWidth, barHeight)
 }
 
+/**
+ * Dibuja una línea de pico en el canvas
+ */
+function drawPeakLine(ctx: CanvasRenderingContext2D, peak: Peak, canvasHeight: number): void {
+  const y = canvasHeight - peak.peakHeight
+
+  ctx.strokeStyle = CONFIG.PEAK_COLOR
+  ctx.lineWidth = CONFIG.PEAK_LINE_WIDTH
+  ctx.beginPath()
+  ctx.moveTo(peak.x, y)
+  ctx.lineTo(peak.x + peak.barWidth, y)
+  ctx.stroke()
+}
+
+/**
+ * Detecta nuevos picos comparando alturas actuales con anteriores
+ * Un pico se detecta cuando la altura anterior era mayor que la actual,
+ * lo que indica que la barra alcanzó un máximo y ahora está disminuyendo
+ * Solo crea un nuevo pico si supera la altura del pico actualmente marcado para esa barra
+ */
+function detectPeaks(
+  currentHeights: number[],
+  previousHeights: number[],
+  barPositions: number[],
+  barWidth: number,
+  now: number,
+  existingPeaks: Peak[],
+): Peak[] {
+  const newPeaks: Peak[] = []
+
+  for (let i = 0; i < currentHeights.length; i++) {
+    // Detectar pico: la altura anterior era mayor que la actual
+    // Esto indica que la barra alcanzó un máximo local y ahora está disminuyendo
+    if (
+      previousHeights[i] > currentHeights[i] &&
+      previousHeights[i] > 5 // Mínimo umbral para considerar un pico (en píxeles)
+    ) {
+      // Buscar si ya existe un pico activo para esta barra
+      const existingPeak = existingPeaks.find((peak) => peak.barIndex === i)
+
+      // Solo crear un nuevo pico si:
+      // 1. No existe un pico activo para esta barra, O
+      // 2. El nuevo pico es mayor que el pico existente
+      if (!existingPeak || previousHeights[i] > existingPeak.peakHeight) {
+        newPeaks.push({
+          barIndex: i,
+          peakHeight: previousHeights[i],
+          timestamp: now,
+          x: barPositions[i],
+          barWidth: barWidth,
+        })
+      }
+    }
+  }
+
+  return newPeaks
+}
+
+/**
+ * Limpia los picos que han expirado (más de PEAK_DURATION_MS)
+ */
+function cleanExpiredPeaks(peaks: Peak[], now: number): Peak[] {
+  return peaks.filter((peak) => now - peak.timestamp < CONFIG.PEAK_DURATION_MS)
+}
+
 // ============================================================================
 // Función principal del visualizador
 // ============================================================================
@@ -218,6 +298,9 @@ export const barVisualizer = (
   // Calcular dimensiones de las barras
   const { barWidth, barPositions } = calculateBarDimensions(width, visualBarCount)
 
+  // Limpiar picos expirados
+  state.peaks = cleanExpiredPeaks(state.peaks, now)
+
   // En cada frame: aplicar suavizado y dibujar todas las barras
   for (let i = 0; i < visualBarCount; i++) {
     // Aplicar suavizado hacia la altura objetivo
@@ -225,5 +308,39 @@ export const barVisualizer = (
 
     // Dibujar la barra
     drawBar(ctx, barPositions[i], barWidth, state.smoothedHeights[i], height)
+  }
+
+  // Detectar nuevos picos comparando alturas actuales con anteriores
+  // Solo se crean nuevos picos si superan a los picos actualmente marcados
+  const newPeaks = detectPeaks(
+    state.smoothedHeights,
+    state.previousHeights,
+    barPositions,
+    barWidth,
+    now,
+    state.peaks,
+  )
+
+  // Reemplazar picos existentes si los nuevos son mayores
+  for (const newPeak of newPeaks) {
+    const existingIndex = state.peaks.findIndex((peak) => peak.barIndex === newPeak.barIndex)
+    if (existingIndex >= 0) {
+      // Reemplazar el pico existente con el nuevo (que es mayor)
+      state.peaks[existingIndex] = newPeak
+    } else {
+      // Agregar nuevo pico si no existe uno para esta barra
+      state.peaks.push(newPeak)
+    }
+  }
+
+  // Actualizar alturas anteriores para la próxima detección
+  state.previousHeights = [...state.smoothedHeights]
+
+  // Dibujar líneas de picos activos
+  for (const peak of state.peaks) {
+    // Actualizar posición X y ancho por si el canvas cambió de tamaño
+    peak.x = barPositions[peak.barIndex]
+    peak.barWidth = barWidth
+    drawPeakLine(ctx, peak, height)
   }
 }
