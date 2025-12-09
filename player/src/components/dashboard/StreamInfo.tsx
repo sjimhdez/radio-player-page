@@ -1,4 +1,4 @@
-import { Typography, Stack, Collapse } from '@mui/material'
+import { Typography, Stack, Collapse, Box } from '@mui/material'
 import CircleRounded from '@mui/icons-material/CircleRounded'
 import { useTranslation } from 'react-i18next'
 
@@ -25,6 +25,19 @@ const StreamInfo = ({ title, isPlaying, canVisualize, loading }: StreamInfoProps
       alignItems="center"
       justifyContent="center"
     >
+      {window.LOGO_IMAGE && (
+        <Box
+          component="img"
+          src={window.LOGO_IMAGE}
+          alt="Logo"
+          sx={{
+            width: 75,
+            height: 75,
+            objectFit: 'contain',
+            display: 'block',
+          }}
+        />
+      )}
       <Typography variant="h1" component="h1" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
         {title}
       </Typography>
