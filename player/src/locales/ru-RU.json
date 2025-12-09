@@ -5,6 +5,12 @@
     "playStreamError": "Не удалось подключиться к трансляции. Проверьте URL-адрес или повторите попытку позже.",
     "audioVisualizer": "Аудиовизуализатор",
     "play": "Воспроизвести",
-    "stop": "Остановить"
+    "stop": "Остановить",
+    "sleepMode": "Режим сна",
+    "cancelSleepMode": "Отменить режим сна",
+    "sleepOption2": "2 мин",
+    "sleepOption30": "30 мин",
+    "sleepOption60": "1 час",
+    "sleepOption120": "2 часа"
   }
 }

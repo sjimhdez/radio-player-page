@@ -11,6 +11,8 @@ import { getVisualizer, getDefaultVisualizer } from 'src/config/visualizers'
 import StreamInfo from './StreamInfo'
 import PlayerControls from './PlayerControls'
 import VolumeControl from './VolumeControl'
+import SleepMode from './SleepMode'
+import SleepTimer from './SleepTimer'
 
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
@@ -22,6 +24,7 @@ const Dashboard = () => {
     height: window.innerHeight,
   })
   const [openError, setOpenError] = useState(false)
+  const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
@@ -116,13 +119,29 @@ const Dashboard = () => {
       />
 
       <Stack alignItems="center" gap={2} position="absolute" bottom={18}>
-        <PlayerControls
-          status={status}
-          loading={loading}
-          error={openError}
-          onPlay={play}
-          onPause={pause}
-        />
+        {sleepTimerSeconds !== null && (
+          <SleepTimer
+            remainingSeconds={sleepTimerSeconds}
+            onCancel={() => setSleepTimerSeconds(null)}
+          />
+        )}
+        <Box display="grid" gridTemplateColumns="1fr 1fr 1fr" gap={1}>
+          <Box />
+          <PlayerControls
+            status={status}
+            loading={loading}
+            error={openError}
+            onPlay={play}
+            onPause={pause}
+          />
+          <SleepMode
+            isPlaying={status === 'playing'}
+            onSleepTimerEnd={pause}
+            onTimerChange={setSleepTimerSeconds}
+            externalTimerSeconds={sleepTimerSeconds}
+          />
+        </Box>
+
         <VolumeControl volume={volume} onVolumeChange={handleVolumeChange} />
       </Stack>
 

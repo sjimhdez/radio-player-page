@@ -17,7 +17,7 @@ const PlayerControls = ({ status, loading, error, onPlay, onPause }: PlayerContr
   const { t } = useTranslation()
 
   if (loading && !error) {
-    return <CircularProgress size={64} />
+    return <CircularProgress size={88} />
   }
 
   if (status !== 'playing') {
