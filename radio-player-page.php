@@ -85,7 +85,7 @@ function radplapag_output_clean_page() {
     $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
     
     // Validate visualizer against whitelist for security
-    $valid_visualizers = [ 'oscilloscope', 'bars', 'particles' ];
+    $valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'spectrogram' ];
     if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
         $visualizer = 'oscilloscope';
     }

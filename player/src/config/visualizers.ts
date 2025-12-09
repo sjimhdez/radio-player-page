@@ -1,6 +1,7 @@
 import { oscilloscopeVisualizer } from 'src/components/visualizers/oscilloscope-visualizer'
 import { barVisualizer } from 'src/components/visualizers/bar-visualizer'
 import { particlesVisualizer } from 'src/components/visualizers/particles-visualizer'
+import { amplitudeWaterfallVisualizer } from 'src/components/visualizers/amplitude-waterfall-visualizer'
 import type { VisualizerFn } from 'src/hooks/use-audio-visualizer'
 
 export type VisualizerDataType = 'time' | 'frequency' | 'other'
@@ -34,6 +35,12 @@ export const VISUALIZERS: Record<string, VisualizerConfig> = {
     name: 'Partículas Orbitando',
     dataType: 'frequency',
     fn: particlesVisualizer,
+  },
+  spectrogram: {
+    id: 'spectrogram',
+    name: 'Amplitud Waterfall',
+    dataType: 'time',
+    fn: amplitudeWaterfallVisualizer,
   },
 }
 
