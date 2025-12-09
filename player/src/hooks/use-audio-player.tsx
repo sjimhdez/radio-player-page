@@ -59,13 +59,11 @@ function useAudioPlayer(streamUrl: string) {
             setStatus('error')
           }
         })
-
       } else if (isDash) {
         const player = MediaPlayer().create()
         dashRef.current = player
         player.initialize(audio, streamUrl, true)
         player.on('error', () => setStatus('error'))
-
       } else {
         // Native / Standard
         audio.src = streamUrl
@@ -75,7 +73,6 @@ function useAudioPlayer(streamUrl: string) {
       }
 
       setStatus('playing')
-
     } catch {
       setStatus('error')
     } finally {
@@ -113,7 +110,6 @@ function useAudioPlayer(streamUrl: string) {
     const onWaiting = () => setLoading(true)
     const onPlayingFromWaiting = () => setLoading(false)
 
-
     audio.addEventListener('playing', onPlaying)
     audio.addEventListener('pause', onPause)
     audio.addEventListener('error', onError)
@@ -121,7 +117,6 @@ function useAudioPlayer(streamUrl: string) {
     audio.addEventListener('waiting', onWaiting)
     // When playing resumes after buffering
     audio.addEventListener('playing', onPlayingFromWaiting)
-
 
     return () => {
       audio.removeEventListener('playing', onPlaying)

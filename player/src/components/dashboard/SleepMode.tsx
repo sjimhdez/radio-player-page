@@ -137,6 +137,9 @@ const SleepMode = ({
           vertical: 'bottom',
           horizontal: 'center',
         }}
+        sx={{
+          zIndex: (theme) => theme.zIndex.tooltip,
+        }}
       >
         {SLEEP_OPTIONS.map((minutes) => (
           <MenuItem key={minutes} onClick={() => handleSelectTime(minutes)}>
