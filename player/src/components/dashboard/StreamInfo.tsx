@@ -6,9 +6,10 @@ interface StreamInfoProps {
   title: string
   isPlaying: boolean
   canVisualize: boolean
+  loading: boolean
 }
 
-const StreamInfo = ({ title, isPlaying, canVisualize }: StreamInfoProps) => {
+const StreamInfo = ({ title, isPlaying, canVisualize, loading }: StreamInfoProps) => {
   const { t } = useTranslation()
 
   return (
@@ -27,6 +28,21 @@ const StreamInfo = ({ title, isPlaying, canVisualize }: StreamInfoProps) => {
       <Typography variant="h1" component="h1" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
         {title}
       </Typography>
+
+      {loading && (
+        <Typography
+          component="p"
+          variant="h5"
+          sx={{
+            textWrap: 'balance',
+            hyphens: 'auto',
+            animation: 'blink 2s infinite',
+            '@keyframes blink': { '0%, 100%': { opacity: 0 }, '50%': { opacity: 1 } },
+          }}
+        >
+          Conectando
+        </Typography>
+      )}
 
       <Collapse
         in={isPlaying && !canVisualize}

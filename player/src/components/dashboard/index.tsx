@@ -77,7 +77,12 @@ const Dashboard = () => {
       height="100vh"
       position="relative"
     >
-      <StreamInfo title={SITE_TITLE} isPlaying={status === 'playing'} canVisualize={canVisualize} />
+      <StreamInfo
+        title={SITE_TITLE}
+        isPlaying={status === 'playing'}
+        canVisualize={canVisualize}
+        loading={loading}
+      />
 
       <Box
         component="canvas"
