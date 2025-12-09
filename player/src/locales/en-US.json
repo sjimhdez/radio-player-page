@@ -3,6 +3,8 @@
     "volume": "Volume",
     "isOnLive": "is on live!",
     "playStreamError": "Unable to play the stream. Please check the URL or try again later.",
+    "reconnecting": "Reconnecting...",
+    "reconnectionFailed": "Unable to reconnect after several attempts. Please check the URL or try again later.",
     "audioVisualizer": "Audio Visualizer",
     "play": "Play",
     "stop": "Stop",

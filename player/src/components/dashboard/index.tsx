@@ -24,13 +24,24 @@ const Dashboard = () => {
     height: window.innerHeight,
   })
   const [openError, setOpenError] = useState(false)
+  const [openReconnecting, setOpenReconnecting] = useState(false)
+  const [openReconnectionFailed, setOpenReconnectionFailed] = useState(false)
   const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
   const { t } = useTranslation()
-  const { audioRef, status, loading, play, pause, volume, handleVolumeChange } =
-    useAudioPlayer(STREAM_URL)
+  const {
+    audioRef,
+    status,
+    loading,
+    play,
+    pause,
+    volume,
+    handleVolumeChange,
+    isRetrying,
+    maxRetriesReached,
+  } = useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
 
   // Get the visualizer configured from admin, or use the default
@@ -69,8 +80,15 @@ const Dashboard = () => {
   }, [dimensions])
 
   useEffect(() => {
-    setOpenError(status === 'error')
-  }, [status])
+    // Show reconnecting snackbar when retrying
+    setOpenReconnecting(isRetrying)
+
+    // Show reconnection failed snackbar when max retries reached
+    setOpenReconnectionFailed(maxRetriesReached)
+
+    // Show error snackbar only if error but not retrying and not max retries reached
+    setOpenError(status === 'error' && !isRetrying && !maxRetriesReached)
+  }, [status, isRetrying, maxRetriesReached])
 
   return (
     <Stack
@@ -136,7 +154,8 @@ const Dashboard = () => {
           <PlayerControls
             status={status}
             loading={loading}
-            error={openError}
+            error={openError || openReconnectionFailed}
+            isRetrying={isRetrying}
             onPlay={play}
             onPause={pause}
           />
@@ -152,6 +171,21 @@ const Dashboard = () => {
       </Stack>
 
       <audio ref={audioRef} hidden preload="none" />
+
+      <Snackbar open={openReconnecting} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
+        <Alert severity="info" sx={{ width: '100%' }}>
+          {t('dashboard.reconnecting')}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={openReconnectionFailed}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="error" sx={{ width: '100%' }}>
+          {t('dashboard.reconnectionFailed')}
+        </Alert>
+      </Snackbar>
 
       <Snackbar open={openError} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
         <Alert severity="error" sx={{ width: '100%' }}>

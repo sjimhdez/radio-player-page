@@ -7,9 +7,23 @@ function useAudioPlayer(streamUrl: string) {
   const audioRef = useRef<HTMLAudioElement>(null!)
   const hlsRef = useRef<Hls | null>(null)
   const dashRef = useRef<MediaPlayerClass | null>(null)
+  const retryCountRef = useRef(0)
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const statusRef = useRef<PlayerStatus>('idle')
   const [status, setStatus] = useState<PlayerStatus>('idle')
   const [loading, setLoading] = useState(false)
   const [volume, setVolume] = useState(1)
+  const [isRetrying, setIsRetrying] = useState(false)
+  const [retryAttempt, setRetryAttempt] = useState(0)
+  const [maxRetriesReached, setMaxRetriesReached] = useState(false)
+
+  const MAX_RETRIES = 5
+  const RETRY_DELAY_MS = 3000 // 3 segundos
+
+  // Sync statusRef with status state
+  useEffect(() => {
+    statusRef.current = status
+  }, [status])
 
   const destroyPlayers = useCallback(() => {
     if (hlsRef.current) {
@@ -28,6 +42,9 @@ function useAudioPlayer(streamUrl: string) {
 
     try {
       setLoading(true)
+      // Reset retry count on successful play attempt
+      retryCountRef.current = 0
+      setMaxRetriesReached(false)
 
       // If we are already playing the same URL, just play
       if (audio.src === streamUrl && status !== 'error') {
@@ -51,19 +68,26 @@ function useAudioPlayer(streamUrl: string) {
         hls.attachMedia(audio)
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          audio.play().catch(() => setStatus('error'))
+          audio.play().catch(() => {
+            setStatus('error')
+            statusRef.current = 'error'
+          })
         })
 
         hls.on(Hls.Events.ERROR, (_, data) => {
           if (data.fatal) {
             setStatus('error')
+            statusRef.current = 'error'
           }
         })
       } else if (isDash) {
         const player = MediaPlayer().create()
         dashRef.current = player
         player.initialize(audio, streamUrl, true)
-        player.on('error', () => setStatus('error'))
+        player.on('error', () => {
+          setStatus('error')
+          statusRef.current = 'error'
+        })
       } else {
         // Native / Standard
         audio.src = streamUrl
@@ -73,16 +97,84 @@ function useAudioPlayer(streamUrl: string) {
       }
 
       setStatus('playing')
+      statusRef.current = 'playing'
     } catch {
       setStatus('error')
+      statusRef.current = 'error'
     } finally {
       setLoading(false)
     }
   }, [streamUrl, destroyPlayers, status])
 
+  // Auto-retry logic when error occurs
+  useEffect(() => {
+    // Only retry if status is error and not paused
+    if (status === 'error' && streamUrl) {
+      // Clear any existing retry timeout
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
+      }
+
+      // Check if we haven't exceeded max retries
+      if (retryCountRef.current < MAX_RETRIES) {
+        const currentAttempt = retryCountRef.current + 1
+        retryCountRef.current = currentAttempt
+        setRetryAttempt(currentAttempt)
+        setIsRetrying(true)
+
+        // Schedule retry after delay
+        retryTimeoutRef.current = setTimeout(() => {
+          // Only retry if still in error state (not paused by user)
+          if (statusRef.current === 'error') {
+            setIsRetrying(false)
+            play()
+          } else {
+            setIsRetrying(false)
+          }
+        }, RETRY_DELAY_MS)
+      } else {
+        // Max retries reached
+        setIsRetrying(false)
+        setRetryAttempt(0)
+        setMaxRetriesReached(true)
+      }
+    } else if (status !== 'error') {
+      // Cancel retries if status changes away from error
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
+        retryTimeoutRef.current = null
+      }
+      setIsRetrying(false)
+      // Reset retry count on successful recovery
+      if (status === 'playing') {
+        retryCountRef.current = 0
+        setRetryAttempt(0)
+        setMaxRetriesReached(false)
+      }
+    }
+
+    // Cleanup timeout on unmount or when status changes
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
+        retryTimeoutRef.current = null
+      }
+    }
+  }, [status, streamUrl, play])
+
   const pause = useCallback(() => {
     audioRef.current?.pause()
     setStatus('paused')
+    statusRef.current = 'paused'
+    // Cancel any pending retries when user manually pauses
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current)
+      retryTimeoutRef.current = null
+    }
+    retryCountRef.current = 0
+    setIsRetrying(false)
+    setRetryAttempt(0)
+    setMaxRetriesReached(false)
   }, [])
 
   const handleVolumeChange = useCallback((newVolume: number) => {
@@ -98,11 +190,20 @@ function useAudioPlayer(streamUrl: string) {
 
     audio.volume = volume
 
-    const onPlaying = () => setStatus('playing')
-    const onPause = () => setStatus('paused')
-    const onError = () => setStatus('error')
+    const onPlaying = () => {
+      setStatus('playing')
+      statusRef.current = 'playing'
+    }
+    const onPause = () => {
+      setStatus('paused')
+      statusRef.current = 'paused'
+    }
+    const onError = () => {
+      setStatus('error')
+      statusRef.current = 'error'
+    }
     const onCanPlay = () => {
-      if (status === 'idle' || status === 'error') {
+      if (statusRef.current === 'idle' || statusRef.current === 'error') {
         // Only update if we were waiting for it
         setLoading(false)
       }
@@ -132,10 +233,24 @@ function useAudioPlayer(streamUrl: string) {
   useEffect(() => {
     return () => {
       destroyPlayers()
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current)
+      }
     }
   }, [destroyPlayers])
 
-  return { audioRef, status, loading, play, pause, volume, handleVolumeChange }
+  return {
+    audioRef,
+    status,
+    loading,
+    play,
+    pause,
+    volume,
+    handleVolumeChange,
+    isRetrying,
+    retryAttempt,
+    maxRetriesReached,
+  }
 }
 
 export default useAudioPlayer
