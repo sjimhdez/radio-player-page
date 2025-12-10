@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
+import useMediaSession from 'src/hooks/use-media-session'
 import { getVisualizer, getDefaultVisualizer, type VisualizerConfig } from 'src/config/visualizers'
 import StreamInfo from './StreamInfo'
 import PlayerControls from './PlayerControls'
@@ -17,6 +18,7 @@ import SleepTimer from './SleepTimer'
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
   const SITE_TITLE = window.SITE_TITLE || ''
+  const LOGO_IMAGE = window.LOGO_IMAGE || ''
   const VISUALIZER_ID = window.VISUALIZER || 'oscilloscope'
 
   const [dimensions, setDimensions] = useState({
@@ -44,6 +46,9 @@ const Dashboard = () => {
     maxRetriesReached,
   } = useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
+
+  // Configurar Media Session API para pantalla de bloqueo
+  useMediaSession(SITE_TITLE, LOGO_IMAGE, play, pause)
 
   // Load visualizer asynchronously
   useEffect(() => {
