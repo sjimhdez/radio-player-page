@@ -21,20 +21,14 @@ export default defineConfig({
     rollupOptions: {
       input: 'src/main.tsx',
       output: {
-        // Entry point: PHP carga este archivo desde el manifest
         entryFileNames: `${prefix}.js`,
-        // Chunks: React resuelve automáticamente estos archivos cuando hace import()
-        // Formato: radio-player-page-1.3-chunk-[hash].js
         chunkFileNames: () => {
           return `${prefix}-chunk-[hash].js`
         },
         assetFileNames: `${prefix}[extname]`,
-        // Formato ES modules para imports dinámicos
-        format: 'es',
       },
     },
   },
-  // Rutas relativas para que los imports dinámicos funcionen desde cualquier URL de WordPress
   base: './',
   server: {
     port: 5173,
