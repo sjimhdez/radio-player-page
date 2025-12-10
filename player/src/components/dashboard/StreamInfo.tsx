@@ -89,7 +89,7 @@ const StreamInfo = ({
             '@keyframes blink': { '0%, 100%': { opacity: 0 }, '50%': { opacity: 1 } },
           }}
         >
-          Conectando
+          {t('dashboard.connecting')}
         </Typography>
       )}
 

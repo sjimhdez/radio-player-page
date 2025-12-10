@@ -1,32 +1,32 @@
 // ============================================================================
-// Constantes de configuración
+// Configuration Constants
 // ============================================================================
 
 const CONFIG = {
-  PARTICLE_COUNT: 50, // Número de partículas
+  PARTICLE_COUNT: 50, // Number of particles
   PARTICLE_COLOR: '#1a82d6',
-  PARTICLE_SIZE: 2, // Tamaño de cada partícula en píxeles
-  MIN_RADIUS_PERCENT: 0.05, // Radio mínimo como porcentaje del canvas (5%)
-  MAX_RADIUS_PERCENT: 0.45, // Radio máximo como porcentaje del canvas (45%)
-  ORBIT_SPEED: 0.03, // Velocidad de rotación (radianes por frame)
-  SMOOTHING_FACTOR: 0.25, // Factor de suavizado para cambios de radio (0-1, mayor = más rápido)
-  TRAIL_LENGTH: 60, // Longitud de la estela de cada partícula
-  TRAIL_OPACITY: 0.3, // Opacidad de la estela
-  SENSITIVITY_MULTIPLIER: 2.5, // Multiplicador de sensibilidad al audio
+  PARTICLE_SIZE: 2, // Size of each particle in pixels
+  MIN_RADIUS_PERCENT: 0.05, // Minimum radius as percentage of canvas (5%)
+  MAX_RADIUS_PERCENT: 0.45, // Maximum radius as percentage of canvas (45%)
+  ORBIT_SPEED: 0.03, // Rotation speed (radians per frame)
+  SMOOTHING_FACTOR: 0.25, // Smoothing factor for radius changes (0-1, higher = faster)
+  TRAIL_LENGTH: 60, // Trail length of each particle
+  TRAIL_OPACITY: 0.3, // Trail opacity
+  SENSITIVITY_MULTIPLIER: 2.5, // Audio sensitivity multiplier
 } as const
 
 // ============================================================================
-// Tipos
+// Types
 // ============================================================================
 
 interface Particle {
-  angle: number // Ángulo actual en la órbita (en radianes)
-  baseRadius: number // Radio base de esta partícula
-  currentRadius: number // Radio actual (suavizado)
-  targetRadius: number // Radio objetivo basado en el audio
-  speed: number // Velocidad de rotación individual
-  trail: Array<{ x: number; y: number }> // Posiciones anteriores para la estela
-  frequencyIndex: number // Índice de frecuencia asociado a esta partícula
+  angle: number // Current angle in orbit (in radians)
+  baseRadius: number // Base radius of this particle
+  currentRadius: number // Current radius (smoothed)
+  targetRadius: number // Target radius based on audio
+  speed: number // Individual rotation speed
+  trail: Array<{ x: number; y: number }> // Previous positions for trail
+  frequencyIndex: number // Frequency index associated with this particle
 }
 
 interface ParticlesState {
@@ -38,17 +38,17 @@ interface ParticlesState {
 }
 
 // ============================================================================
-// Estado persistente por canvas
+// Persistent State per Canvas
 // ============================================================================
 
 const particlesStateMap = new WeakMap<HTMLCanvasElement, ParticlesState>()
 
 // ============================================================================
-// Funciones auxiliares
+// Helper Functions
 // ============================================================================
 
 /**
- * Inicializa o reinicia el estado del canvas
+ * Initializes or resets the canvas state
  */
 function initializeState(canvas: HTMLCanvasElement, width: number, height: number): ParticlesState {
   canvas.width = width
@@ -57,24 +57,24 @@ function initializeState(canvas: HTMLCanvasElement, width: number, height: numbe
   const centerX = width / 2
   const centerY = height / 2
 
-  // Calcular radios basados en el tamaño del canvas
+  // Calculate radii based on canvas size
   const minDimension = Math.min(width, height)
   const minRadius = minDimension * CONFIG.MIN_RADIUS_PERCENT
   const maxRadius = minDimension * CONFIG.MAX_RADIUS_PERCENT
 
-  // Crear partículas distribuidas uniformemente
+  // Create uniformly distributed particles
   const particles: Particle[] = []
   const angleStep = (Math.PI * 2) / CONFIG.PARTICLE_COUNT
 
   for (let i = 0; i < CONFIG.PARTICLE_COUNT; i++) {
-    // Distribuir el ángulo inicial uniformemente
+    // Distribute initial angle uniformly
     const initialAngle = i * angleStep
 
-    // Asignar cada partícula a una banda de frecuencia diferente
-    const frequencyIndex = Math.floor((i / CONFIG.PARTICLE_COUNT) * 1024) // Asumiendo ~1024 puntos de frecuencia
+    // Assign each particle to a different frequency band
+    const frequencyIndex = Math.floor((i / CONFIG.PARTICLE_COUNT) * 1024) // Assuming ~1024 frequency points
 
-    // Distribuir los radios base de manera uniforme entre min y max
-    // Esto hace que las partículas se distribuyan en diferentes órbitas desde el inicio
+    // Distribute base radii uniformly between min and max
+    // This makes particles distribute in different orbits from the start
     const radiusProgress = i / CONFIG.PARTICLE_COUNT
     const baseRadius = minRadius + (maxRadius - minRadius) * radiusProgress
 
@@ -83,7 +83,7 @@ function initializeState(canvas: HTMLCanvasElement, width: number, height: numbe
       baseRadius: baseRadius,
       currentRadius: baseRadius,
       targetRadius: baseRadius,
-      speed: CONFIG.ORBIT_SPEED * (0.7 + Math.random() * 0.6), // Variar velocidad más (0.7x a 1.3x)
+      speed: CONFIG.ORBIT_SPEED * (0.7 + Math.random() * 0.6), // Vary speed more (0.7x to 1.3x)
       trail: [],
       frequencyIndex,
     })
@@ -99,7 +99,7 @@ function initializeState(canvas: HTMLCanvasElement, width: number, height: numbe
 }
 
 /**
- * Calcula el radio objetivo para cada partícula basado en los datos de frecuencia
+ * Calculates target radius for each particle based on frequency data
  */
 function calculateTargetRadii(
   dataArray: Uint8Array,
@@ -114,32 +114,32 @@ function calculateTargetRadii(
   const radiusRange = maxRadius - minRadius
 
   for (const particle of particles) {
-    // Obtener el valor de frecuencia correspondiente a esta partícula
+    // Get frequency value corresponding to this particle
     const dataIndex = Math.min(particle.frequencyIndex, maxDataIndex)
-    const amplitude = dataArray[dataIndex] // Valor de 0-255
+    const amplitude = dataArray[dataIndex] // Value from 0-255
 
-    // Normalizar amplitud y aplicar multiplicador de sensibilidad
-    // Usar una función cuadrática para hacer la respuesta más sensible
+    // Normalize amplitude and apply sensitivity multiplier
+    // Use a quadratic function to make response more sensitive
     const normalizedAmplitude = amplitude / 255
     const amplifiedAmplitude = Math.min(1.0, normalizedAmplitude * CONFIG.SENSITIVITY_MULTIPLIER)
-    const squaredAmplitude = amplifiedAmplitude * amplifiedAmplitude // Función cuadrática para más sensibilidad
+    const squaredAmplitude = amplifiedAmplitude * amplifiedAmplitude // Quadratic function for more sensitivity
 
-    // Calcular radio objetivo: desde el radio base hasta el máximo según el audio
-    // El radio base ya está distribuido, ahora lo expandimos según el audio
+    // Calculate target radius: from base radius to maximum according to audio
+    // Base radius is already distributed, now we expand it according to audio
     const audioInfluence = squaredAmplitude * radiusRange
     particle.targetRadius = particle.baseRadius + audioInfluence
   }
 }
 
 /**
- * Aplica suavizado al radio actual hacia el radio objetivo
+ * Applies smoothing to current radius towards target radius
  */
 function smoothRadius(currentRadius: number, targetRadius: number): number {
   return currentRadius + (targetRadius - currentRadius) * CONFIG.SMOOTHING_FACTOR
 }
 
 /**
- * Dibuja una partícula con su estela
+ * Draws a particle with its trail
  */
 function drawParticle(
   ctx: CanvasRenderingContext2D,
@@ -147,19 +147,19 @@ function drawParticle(
   centerX: number,
   centerY: number,
 ): void {
-  // Calcular posición actual
+  // Calculate current position
   const x = centerX + Math.cos(particle.angle) * particle.currentRadius
   const y = centerY + Math.sin(particle.angle) * particle.currentRadius
 
-  // Agregar posición actual a la estela
+  // Add current position to trail
   particle.trail.push({ x, y })
 
-  // Limitar la longitud de la estela
+  // Limit trail length
   if (particle.trail.length > CONFIG.TRAIL_LENGTH) {
     particle.trail.shift()
   }
 
-  // Dibujar estela
+  // Draw trail
   if (particle.trail.length > 1) {
     ctx.strokeStyle = CONFIG.PARTICLE_COLOR
     ctx.lineWidth = CONFIG.PARTICLE_SIZE
@@ -175,7 +175,7 @@ function drawParticle(
     ctx.stroke()
   }
 
-  // Dibujar partícula
+  // Draw particle
   ctx.globalAlpha = 1.0
   ctx.fillStyle = CONFIG.PARTICLE_COLOR
   ctx.beginPath()
@@ -184,7 +184,7 @@ function drawParticle(
 }
 
 // ============================================================================
-// Función principal del visualizador
+// Main Visualizer Function
 // ============================================================================
 
 export const particlesVisualizer = (
@@ -194,39 +194,39 @@ export const particlesVisualizer = (
   width: number,
   height: number,
 ) => {
-  // Obtener o inicializar el estado del canvas
+  // Get or initialize canvas state
   let state = particlesStateMap.get(canvas)
 
-  // Si el canvas cambió de tamaño o no existe estado, reinicializar
+  // If canvas changed size or state doesn't exist, reinitialize
   if (!state || state.canvasWidth !== width || state.canvasHeight !== height) {
     state = initializeState(canvas, width, height)
     particlesStateMap.set(canvas, state)
   }
 
-  // Actualizar centro por si cambió el tamaño
+  // Update center in case size changed
   state.centerX = width / 2
   state.centerY = height / 2
 
-  // Calcular radios objetivo basados en los datos de frecuencia
+  // Calculate target radii based on frequency data
   calculateTargetRadii(dataArray, state.particles, width, height)
 
-  // Limpiar el canvas
+  // Clear canvas
   ctx.clearRect(0, 0, width, height)
 
-  // Actualizar y dibujar cada partícula
+  // Update and draw each particle
   for (const particle of state.particles) {
-    // Aplicar suavizado al radio
+    // Apply smoothing to radius
     particle.currentRadius = smoothRadius(particle.currentRadius, particle.targetRadius)
 
-    // Actualizar ángulo (rotación)
+    // Update angle (rotation)
     particle.angle += particle.speed
 
-    // Normalizar ángulo para evitar overflow
+    // Normalize angle to avoid overflow
     if (particle.angle > Math.PI * 2) {
       particle.angle -= Math.PI * 2
     }
 
-    // Dibujar partícula con su estela
+    // Draw particle with its trail
     drawParticle(ctx, particle, state.centerX, state.centerY)
   }
 }

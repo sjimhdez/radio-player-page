@@ -2,6 +2,7 @@
   "dashboard": {
     "volume": "Volume",
     "isOnLive": "is on live!",
+    "connecting": "Connecting",
     "playStreamError": "Unable to play the stream. Please check the URL or try again later.",
     "reconnecting": "Reconnecting...",
     "reconnectionFailed": "Unable to reconnect after several attempts. Please check the URL or try again later.",

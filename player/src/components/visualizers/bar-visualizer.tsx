@@ -1,60 +1,60 @@
 // ============================================================================
-// Constantes de configuración
+// Configuration Constants
 // ============================================================================
 
 const CONFIG = {
   BAR_COUNT: 13,
   // BAR_COLOR: '#1a82d6',
   BAR_COLOR: 'rgba(255, 255, 255, 0.1)',
-  SMOOTHING_FACTOR: 0.15, // Factor de suavizado (0-1, menor = más suave)
-  BAR_SPACING: 2, // Espacio entre barras en píxeles
-  UPDATE_INTERVAL_MS: 50, // Intervalo entre actualizaciones de altura objetivo
-  MAX_AMPLITUDE: 255, // Máxima amplitud posible (rango de datos de frecuencia: 0-255)
-  PEAK_DURATION_MS: 4000, // Duración de la línea de pico en milisegundos
-  PEAK_COLOR: '#666', // Color de la línea de pico
-  PEAK_LINE_WIDTH: 2, // Grosor de la línea de pico
+  SMOOTHING_FACTOR: 0.15, // Smoothing factor (0-1, lower = smoother)
+  BAR_SPACING: 2, // Space between bars in pixels
+  UPDATE_INTERVAL_MS: 50, // Interval between target height updates
+  MAX_AMPLITUDE: 255, // Maximum possible amplitude (frequency data range: 0-255)
+  PEAK_DURATION_MS: 4000, // Peak line duration in milliseconds
+  PEAK_COLOR: '#666', // Peak line color
+  PEAK_LINE_WIDTH: 2, // Peak line thickness
 } as const
 
 // ============================================================================
-// Tipos
+// Types
 // ============================================================================
 
 interface Peak {
-  barIndex: number // Índice de la barra
-  peakHeight: number // Altura del pico
-  timestamp: number // Tiempo cuando se detectó el pico
-  x: number // Posición X de la barra
-  barWidth: number // Ancho de la barra
+  barIndex: number // Bar index
+  peakHeight: number // Peak height
+  timestamp: number // Time when peak was detected
+  x: number // Bar X position
+  barWidth: number // Bar width
 }
 
 interface BarState {
-  smoothedHeights: number[] // Alturas suavizadas actuales
-  targetHeights: number[] // Alturas objetivo calculadas
-  previousHeights: number[] // Alturas anteriores para detectar picos
-  peaks: Peak[] // Array de picos activos
+  smoothedHeights: number[] // Current smoothed heights
+  targetHeights: number[] // Calculated target heights
+  previousHeights: number[] // Previous heights for peak detection
+  peaks: Peak[] // Array of active peaks
   canvasWidth: number
   canvasHeight: number
   lastUpdateTime: number
 }
 
 // ============================================================================
-// Estado persistente por canvas
+// Persistent State per Canvas
 // ============================================================================
 
 const barStateMap = new WeakMap<HTMLCanvasElement, BarState>()
 
 // ============================================================================
-// Funciones auxiliares
+// Helper Functions
 // ============================================================================
 
 /**
- * Inicializa o reinicia el estado del canvas
+ * Initializes or resets the canvas state
  */
 function initializeState(canvas: HTMLCanvasElement, width: number, height: number): BarState {
   canvas.width = width
   canvas.height = height
 
-  // Con efecto espejo: se muestran exactamente N barras (no 2N-1)
+  // With mirror effect: exactly N bars are shown (not 2N-1)
   return {
     smoothedHeights: new Array(CONFIG.BAR_COUNT).fill(0),
     targetHeights: new Array(CONFIG.BAR_COUNT).fill(0),
@@ -67,10 +67,10 @@ function initializeState(canvas: HTMLCanvasElement, width: number, height: numbe
 }
 
 /**
- * Calcula la amplitud promedio para un rango de datos de frecuencia
- * Los datos de frecuencia ya vienen en rango 0-255, donde cada valor
- * representa la amplitud de una banda de frecuencia específica
- * Retorna un valor de 0 a 255 representando la amplitud promedio
+ * Calculates the average amplitude for a range of frequency data
+ * Frequency data already comes in range 0-255, where each value
+ * represents the amplitude of a specific frequency band
+ * Returns a value from 0 to 255 representing the average amplitude
  */
 function calculateAverageAmplitude(
   dataArray: Uint8Array,
@@ -81,7 +81,7 @@ function calculateAverageAmplitude(
   const count = endIdx - startIdx
 
   for (let i = startIdx; i < endIdx; i++) {
-    // Los datos de frecuencia ya vienen como amplitud (0-255)
+    // Frequency data already comes as amplitude (0-255)
     sumAmplitude += dataArray[i]
   }
 
@@ -89,15 +89,15 @@ function calculateAverageAmplitude(
 }
 
 /**
- * Convierte una amplitud (0-255) a altura de barra en píxeles (0-100% del canvas)
- * Escala lineal: amplitud 0 = 0% altura, amplitud 255 = 100% altura
- * Fórmula simplificada: altura = (amplitud / 255) * canvasHeight
+ * Converts an amplitude (0-255) to bar height in pixels (0-100% of canvas)
+ * Linear scale: amplitude 0 = 0% height, amplitude 255 = 100% height
+ * Simplified formula: height = (amplitude / 255) * canvasHeight
  */
 function amplitudeToHeight(amplitude: number, canvasHeight: number): number {
-  // Asegurar que la amplitud esté en el rango válido (0-255)
+  // Ensure amplitude is in valid range (0-255)
   const clampedAmplitude = Math.max(0, Math.min(amplitude, CONFIG.MAX_AMPLITUDE))
 
-  // Convertir directamente de escala 0-255 a altura del canvas (0-100%)
+  // Convert directly from 0-255 scale to canvas height (0-100%)
   return (clampedAmplitude / CONFIG.MAX_AMPLITUDE) * canvasHeight
 }
 
@@ -111,45 +111,45 @@ function calculateTargetHeights(dataArray: Uint8Array, canvasHeight: number): nu
   const dataPointsPerBar = Math.floor(dataArray.length / CONFIG.BAR_COUNT)
   const sourceHeights: number[] = []
 
-  // Primero calcular las alturas de las barras de datos originales
+  // First calculate heights of original data bars
   for (let i = 0; i < CONFIG.BAR_COUNT; i++) {
     const startIdx = i * dataPointsPerBar
     const endIdx = Math.min(startIdx + dataPointsPerBar, dataArray.length)
 
-    // Calcular amplitud promedio para esta banda de frecuencia (rango: 0-255)
+    // Calculate average amplitude for this frequency band (range: 0-255)
     const averageAmplitude = calculateAverageAmplitude(dataArray, startIdx, endIdx)
 
-    // Convertir amplitud (0-255) a altura del canvas (0-100% de canvasHeight)
+    // Convert amplitude (0-255) to canvas height (0-100% of canvasHeight)
     sourceHeights[i] = amplitudeToHeight(averageAmplitude, canvasHeight)
   }
 
-  // Aplicar efecto espejo: crear patrón completo y recortar proporcionalmente desde los extremos
-  // Patrón completo: [último, penúltimo, ..., segundo, primero, segundo, ..., penúltimo, último]
+  // Apply mirror effect: create full pattern and trim proportionally from edges
+  // Full pattern: [last, second-to-last, ..., second, first, second, ..., second-to-last, last]
   const N = sourceHeights.length
   const mirroredHeights: number[] = []
 
-  // Crear el patrón espejo completo (2N-1 barras)
-  // Mitad izquierda (reflejo invertido): desde el último hasta el segundo
+  // Create full mirror pattern (2N-1 bars)
+  // Left half (inverted reflection): from last to second
   for (let i = N - 1; i >= 1; i--) {
     mirroredHeights.push(sourceHeights[i])
   }
 
-  // Centro: primer dato (graves)
+  // Center: first data point (bass)
   mirroredHeights.push(sourceHeights[0])
 
-  // Mitad derecha (reflejo): desde el segundo hasta el último
+  // Right half (reflection): from second to last
   for (let i = 1; i < N; i++) {
     mirroredHeights.push(sourceHeights[i])
   }
 
-  // Ahora tenemos 2N-1 barras, pero queremos exactamente N barras
-  // Recortamos proporcionalmente desde los extremos para mantener centrado
+  // Now we have 2N-1 bars, but we want exactly N bars
+  // Trim proportionally from edges to keep centered
   const totalBars = mirroredHeights.length // 2N-1
-  const barsToRemove = totalBars - N // N-1 barras a eliminar
+  const barsToRemove = totalBars - N // N-1 bars to remove
   const removeFromLeft = Math.floor(barsToRemove / 2)
-  const removeFromRight = barsToRemove - removeFromLeft // Si es impar, una más de un lado
+  const removeFromRight = barsToRemove - removeFromLeft // If odd, one more from one side
 
-  // Recortar desde los extremos
+  // Trim from edges
   return mirroredHeights.slice(removeFromLeft, totalBars - removeFromRight)
 }
 
@@ -229,18 +229,18 @@ function detectPeaks(
   const newPeaks: Peak[] = []
 
   for (let i = 0; i < currentHeights.length; i++) {
-    // Detectar pico: la altura anterior era mayor que la actual
-    // Esto indica que la barra alcanzó un máximo local y ahora está disminuyendo
+    // Detect peak: previous height was greater than current
+    // This indicates the bar reached a local maximum and is now decreasing
     if (
       previousHeights[i] > currentHeights[i] &&
-      previousHeights[i] > 5 // Mínimo umbral para considerar un pico (en píxeles)
+      previousHeights[i] > 5 // Minimum threshold to consider a peak (in pixels)
     ) {
-      // Buscar si ya existe un pico activo para esta barra
+      // Check if an active peak already exists for this bar
       const existingPeak = existingPeaks.find((peak) => peak.barIndex === i)
 
-      // Solo crear un nuevo pico si:
-      // 1. No existe un pico activo para esta barra, O
-      // 2. El nuevo pico es mayor que el pico existente
+      // Only create a new peak if:
+      // 1. No active peak exists for this bar, OR
+      // 2. The new peak is greater than the existing peak
       if (!existingPeak || previousHeights[i] > existingPeak.peakHeight) {
         newPeaks.push({
           barIndex: i,
@@ -257,14 +257,14 @@ function detectPeaks(
 }
 
 /**
- * Limpia los picos que han expirado (más de PEAK_DURATION_MS)
+ * Cleans expired peaks (older than PEAK_DURATION_MS)
  */
 function cleanExpiredPeaks(peaks: Peak[], now: number): Peak[] {
   return peaks.filter((peak) => now - peak.timestamp < CONFIG.PEAK_DURATION_MS)
 }
 
 // ============================================================================
-// Función principal del visualizador
+// Main Visualizer Function
 // ============================================================================
 
 export const barVisualizer = (
@@ -274,16 +274,16 @@ export const barVisualizer = (
   width: number,
   height: number,
 ) => {
-  // Obtener o inicializar el estado del canvas
+  // Get or initialize canvas state
   let state = barStateMap.get(canvas)
 
-  // Si el canvas cambió de tamaño o no existe estado, reinicializar
+  // If canvas changed size or state doesn't exist, reinitialize
   if (!state || state.canvasWidth !== width || state.canvasHeight !== height) {
     state = initializeState(canvas, width, height)
     barStateMap.set(canvas, state)
   }
 
-  // Calcular alturas objetivo solo si ha pasado el intervalo de tiempo
+  // Calculate target heights only if time interval has passed
   const now = Date.now()
   const shouldUpdateTargets = now - state.lastUpdateTime >= CONFIG.UPDATE_INTERVAL_MS
 
@@ -292,26 +292,26 @@ export const barVisualizer = (
     state.lastUpdateTime = now
   }
 
-  // Con efecto espejo: se muestran exactamente N barras
+  // With mirror effect: exactly N bars are shown
   const visualBarCount = CONFIG.BAR_COUNT
 
-  // Calcular dimensiones de las barras
+  // Calculate bar dimensions
   const { barWidth, barPositions } = calculateBarDimensions(width, visualBarCount)
 
-  // Limpiar picos expirados
+  // Clean expired peaks
   state.peaks = cleanExpiredPeaks(state.peaks, now)
 
-  // En cada frame: aplicar suavizado y dibujar todas las barras
+  // Each frame: apply smoothing and draw all bars
   for (let i = 0; i < visualBarCount; i++) {
-    // Aplicar suavizado hacia la altura objetivo
+    // Apply smoothing towards target height
     state.smoothedHeights[i] = smoothHeight(state.smoothedHeights[i], state.targetHeights[i])
 
-    // Dibujar la barra
+    // Draw the bar
     drawBar(ctx, barPositions[i], barWidth, state.smoothedHeights[i], height)
   }
 
-  // Detectar nuevos picos comparando alturas actuales con anteriores
-  // Solo se crean nuevos picos si superan a los picos actualmente marcados
+  // Detect new peaks by comparing current heights with previous ones
+  // New peaks are only created if they exceed currently marked peaks
   const newPeaks = detectPeaks(
     state.smoothedHeights,
     state.previousHeights,
@@ -321,24 +321,24 @@ export const barVisualizer = (
     state.peaks,
   )
 
-  // Reemplazar picos existentes si los nuevos son mayores
+  // Replace existing peaks if new ones are greater
   for (const newPeak of newPeaks) {
     const existingIndex = state.peaks.findIndex((peak) => peak.barIndex === newPeak.barIndex)
     if (existingIndex >= 0) {
-      // Reemplazar el pico existente con el nuevo (que es mayor)
+      // Replace existing peak with new one (which is greater)
       state.peaks[existingIndex] = newPeak
     } else {
-      // Agregar nuevo pico si no existe uno para esta barra
+      // Add new peak if none exists for this bar
       state.peaks.push(newPeak)
     }
   }
 
-  // Actualizar alturas anteriores para la próxima detección
+  // Update previous heights for next detection
   state.previousHeights = [...state.smoothedHeights]
 
-  // Dibujar líneas de picos activos
+  // Draw active peak lines
   for (const peak of state.peaks) {
-    // Actualizar posición X y ancho por si el canvas cambió de tamaño
+    // Update X position and width in case canvas changed size
     peak.x = barPositions[peak.barIndex]
     peak.barWidth = barWidth
     drawPeakLine(ctx, peak, height)

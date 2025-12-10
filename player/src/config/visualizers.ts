@@ -27,12 +27,12 @@ const VISUALIZER_METADATA: Record<string, Omit<VisualizerConfig, 'fn'>> = {
   },
   particles: {
     id: 'particles',
-    name: 'Partículas Orbitando',
+    name: 'Orbiting Particles',
     dataType: 'frequency',
   },
   spectrogram: {
     id: 'spectrogram',
-    name: 'Amplitud Waterfall',
+    name: 'Amplitude Waterfall',
     dataType: 'time',
   },
 }

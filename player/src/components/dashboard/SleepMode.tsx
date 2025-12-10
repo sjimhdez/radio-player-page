@@ -28,12 +28,12 @@ const SleepMode = ({
 
   const open = Boolean(anchorEl)
 
-  // Mantener la referencia más reciente de onTimerChange
+  // Keep the most recent reference of onTimerChange
   useEffect(() => {
     onTimerChangeRef.current = onTimerChange
   }, [onTimerChange])
 
-  // Limpiar intervalo cuando se pausa la reproducción
+  // Clear interval when playback is paused
   useEffect(() => {
     if (!isPlaying && intervalRef.current) {
       clearInterval(intervalRef.current)
@@ -48,7 +48,7 @@ const SleepMode = ({
       return
     }
 
-    // Limpiar intervalo anterior si existe
+    // Clear previous interval if it exists
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
     }
@@ -60,7 +60,7 @@ const SleepMode = ({
           return null
         }
         if (prev <= 1) {
-          // Cuando llega a 0 o menos, detener la reproducción
+          // When it reaches 0 or less, stop playback
           onSleepTimerEnd()
           onTimerChangeRef.current?.(null)
           return null
@@ -94,7 +94,7 @@ const SleepMode = ({
     handleClose()
   }
 
-  // Sincronizar con el estado externo cuando se cancela desde fuera
+  // Sync with external state when cancelled from outside
   useEffect(() => {
     if (externalTimerSeconds === null && remainingSeconds !== null) {
       setRemainingSeconds(null)
@@ -105,7 +105,7 @@ const SleepMode = ({
     }
   }, [externalTimerSeconds, remainingSeconds])
 
-  // Notificar cambios en el temporizador
+  // Notify timer changes
   useEffect(() => {
     onTimerChange?.(remainingSeconds)
   }, [remainingSeconds, onTimerChange])

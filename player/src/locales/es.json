@@ -2,6 +2,7 @@
   "dashboard": {
     "volume": "Volumen",
     "isOnLive": "está en directo",
+    "connecting": "Conectando",
     "playStreamError": "No es posible conectar con la emisión en directo. Por favor, comprueba la URL o inténtalo de nuevo más tarde.",
     "reconnecting": "Reconectando...",
     "reconnectionFailed": "No se pudo reconectar después de varios intentos. Por favor, comprueba la URL o inténtalo de nuevo más tarde.",

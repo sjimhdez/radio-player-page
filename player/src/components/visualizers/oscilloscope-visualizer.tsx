@@ -1,41 +1,41 @@
 // ============================================================================
-// Constantes de configuración
+// Configuration Constants
 // ============================================================================
 
 const CONFIG = {
-  WAVE_COLOR: '#1a82d6', // Color de la onda del osciloscopio
-  AXIS_COLOR: '#555', // Color del eje central
-  AXIS_LINE_WIDTH: 1, // Grosor de la línea del eje central en píxeles
-  WAVE_LINE_WIDTH: 2, // Grosor de la línea de la onda en píxeles
-  DATA_CENTER_VALUE: 128, // Valor central de los datos de tiempo (0-255, donde 128 es sin señal)
+  WAVE_COLOR: '#1a82d6', // Oscilloscope wave color
+  AXIS_COLOR: '#555', // Central axis color
+  AXIS_LINE_WIDTH: 1, // Central axis line thickness in pixels
+  WAVE_LINE_WIDTH: 2, // Wave line thickness in pixels
+  DATA_CENTER_VALUE: 128, // Center value of time domain data (0-255, where 128 is no signal)
 } as const
 
 // ============================================================================
-// Funciones auxiliares
+// Helper Functions
 // ============================================================================
 
 /**
- * Calcula la posición Y de un punto de la onda basado en el valor de datos
- * Los datos de tiempo están en rango 0-255, donde 128 es el centro (sin señal)
- * La onda se dibuja centrada verticalmente en el canvas
+ * Calculates the Y position of a wave point based on the data value
+ * Time domain data is in range 0-255, where 128 is the center (no signal)
+ * The wave is drawn vertically centered on the canvas
  */
 function calculateWaveY(dataValue: number, centerY: number, canvasHeight: number): number {
-  // Normalizar el valor de datos desde el centro (128)
-  // dataValue - 128 da un rango de -128 a 127
-  // Dividir por 128 normaliza a -1 a ~1
-  // Multiplicar por (height / 2) escala a la mitad de la altura del canvas
+  // Normalize the data value from the center (128)
+  // dataValue - 128 gives a range of -128 to 127
+  // Dividing by 128 normalizes to -1 to ~1
+  // Multiplying by (height / 2) scales to half the canvas height
   let y =
     centerY -
     ((dataValue - CONFIG.DATA_CENTER_VALUE) / CONFIG.DATA_CENTER_VALUE) * (canvasHeight / 2)
 
-  // Asegurar que Y esté dentro de los límites del canvas
+  // Ensure Y is within canvas bounds
   y = Math.min(canvasHeight, Math.max(0, Math.round(y)))
 
   return y
 }
 
 /**
- * Dibuja el eje central horizontal del osciloscopio
+ * Draws the horizontal central axis of the oscilloscope
  */
 function drawCenterAxis(ctx: CanvasRenderingContext2D, width: number, centerY: number): void {
   ctx.strokeStyle = CONFIG.AXIS_COLOR
@@ -47,7 +47,7 @@ function drawCenterAxis(ctx: CanvasRenderingContext2D, width: number, centerY: n
 }
 
 /**
- * Dibuja la onda del osciloscopio basada en los datos de tiempo
+ * Draws the oscilloscope wave based on time domain data
  */
 function drawWaveform(
   ctx: CanvasRenderingContext2D,
@@ -77,7 +77,7 @@ function drawWaveform(
 }
 
 // ============================================================================
-// Función principal del visualizador
+// Main Visualizer Function
 // ============================================================================
 
 export const oscilloscopeVisualizer = (
@@ -94,9 +94,9 @@ export const oscilloscopeVisualizer = (
 
   ctx.clearRect(0, 0, width, height)
 
-  // Dibujar eje central
+  // Draw central axis
   drawCenterAxis(ctx, width, centerY)
 
-  // Dibujar onda
+  // Draw wave
   drawWaveform(ctx, dataArray, width, centerY, height)
 }
