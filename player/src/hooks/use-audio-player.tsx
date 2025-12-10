@@ -1,7 +1,18 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
 import type { PlayerStatus } from 'src/types/player'
-import Hls from 'hls.js'
-import { MediaPlayer, type MediaPlayerClass } from 'dashjs'
+import type Hls from 'hls.js'
+import type { MediaPlayerClass } from 'dashjs'
+
+// Lazy loaders for streaming libraries
+const loadHls = async () => {
+  const hlsModule = await import('hls.js')
+  return hlsModule.default
+}
+
+const loadDashjs = async () => {
+  const dashModule = await import('dashjs')
+  return dashModule.MediaPlayer
+}
 
 function useAudioPlayer(streamUrl: string) {
   const audioRef = useRef<HTMLAudioElement>(null!)
@@ -61,26 +72,38 @@ function useAudioPlayer(streamUrl: string) {
       const isHls = streamUrl.endsWith('.m3u8')
       const isDash = streamUrl.endsWith('.mpd')
 
-      if (isHls && Hls.isSupported()) {
-        const hls = new Hls()
-        hlsRef.current = hls
-        hls.loadSource(streamUrl)
-        hls.attachMedia(audio)
+      if (isHls) {
+        // Lazy load HLS.js only when needed
+        const Hls = await loadHls()
+        if (Hls.isSupported()) {
+          const hls = new Hls()
+          hlsRef.current = hls
+          hls.loadSource(streamUrl)
+          hls.attachMedia(audio)
 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          audio.play().catch(() => {
-            setStatus('error')
-            statusRef.current = 'error'
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            audio.play().catch(() => {
+              setStatus('error')
+              statusRef.current = 'error'
+            })
           })
-        })
 
-        hls.on(Hls.Events.ERROR, (_, data) => {
-          if (data.fatal) {
-            setStatus('error')
-            statusRef.current = 'error'
-          }
-        })
+          hls.on(Hls.Events.ERROR, (_, data) => {
+            if (data.fatal) {
+              setStatus('error')
+              statusRef.current = 'error'
+            }
+          })
+        } else {
+          // HLS not supported, fallback to native
+          audio.src = streamUrl
+          audio.crossOrigin = 'anonymous'
+          audio.load()
+          await audio.play()
+        }
       } else if (isDash) {
+        // Lazy load dash.js only when needed
+        const MediaPlayer = await loadDashjs()
         const player = MediaPlayer().create()
         dashRef.current = player
         player.initialize(audio, streamUrl, true)

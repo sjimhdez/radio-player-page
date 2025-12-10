@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
-import { getVisualizer, getDefaultVisualizer } from 'src/config/visualizers'
+import { getVisualizer, getDefaultVisualizer, type VisualizerConfig } from 'src/config/visualizers'
 import StreamInfo from './StreamInfo'
 import PlayerControls from './PlayerControls'
 import VolumeControl from './VolumeControl'
@@ -27,6 +27,7 @@ const Dashboard = () => {
   const [openReconnecting, setOpenReconnecting] = useState(false)
   const [openReconnectionFailed, setOpenReconnectionFailed] = useState(false)
   const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
+  const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
@@ -44,8 +45,39 @@ const Dashboard = () => {
   } = useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
 
-  // Get the visualizer configured from admin, or use the default
-  const visualizerConfig = getVisualizer(VISUALIZER_ID) || getDefaultVisualizer()
+  // Load visualizer asynchronously
+  useEffect(() => {
+    let cancelled = false
+
+    const loadVisualizer = async () => {
+      const defaultMetadata = getDefaultVisualizer()
+      const loadedConfig = await getVisualizer(VISUALIZER_ID)
+
+      if (!cancelled) {
+        setVisualizerConfig(
+          loadedConfig ||
+            ({
+              ...defaultMetadata,
+              fn: () => {}, // Placeholder until loaded
+            } as VisualizerConfig),
+        )
+      }
+    }
+
+    loadVisualizer()
+
+    return () => {
+      cancelled = true
+    }
+  }, [VISUALIZER_ID])
+
+  // Use visualizer only when loaded
+  const currentVisualizerConfig =
+    visualizerConfig ||
+    ({
+      ...getDefaultVisualizer(),
+      fn: () => {}, // Placeholder function
+    } as VisualizerConfig)
 
   useAudioVisualizer(
     audioRef,
@@ -53,8 +85,8 @@ const Dashboard = () => {
     status,
     dimensions.width,
     dimensions.height,
-    visualizerConfig.fn,
-    visualizerConfig.dataType,
+    currentVisualizerConfig.fn,
+    currentVisualizerConfig.dataType,
   )
 
   useEffect(() => {
@@ -121,7 +153,7 @@ const Dashboard = () => {
         isPlaying={status === 'playing'}
         canVisualize={canVisualize}
         loading={loading}
-        forceVerticalCenter={visualizerConfig.forceVerticalCenter}
+        forceVerticalCenter={currentVisualizerConfig.forceVerticalCenter}
       />
 
       <Box
