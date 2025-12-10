@@ -9,23 +9,15 @@ interface PlayerControlsProps {
   status: PlayerStatus
   loading: boolean
   error: boolean
-  isRetrying?: boolean
   onPlay: () => void
   onPause: () => void
 }
 
-const PlayerControls = ({
-  status,
-  loading,
-  error,
-  isRetrying = false,
-  onPlay,
-  onPause,
-}: PlayerControlsProps) => {
+const PlayerControls = ({ status, loading, error, onPlay, onPause }: PlayerControlsProps) => {
   const { t } = useTranslation()
 
-  // Show CircularProgress when loading or retrying
-  if ((loading && !error) || isRetrying) {
+  // Show CircularProgress when loading
+  if (loading && !error) {
     return <CircularProgress size={88} />
   }
 

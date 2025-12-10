@@ -26,25 +26,14 @@ const Dashboard = () => {
     height: window.innerHeight,
   })
   const [openError, setOpenError] = useState(false)
-  const [openReconnecting, setOpenReconnecting] = useState(false)
-  const [openReconnectionFailed, setOpenReconnectionFailed] = useState(false)
   const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
   const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
   const { t } = useTranslation()
-  const {
-    audioRef,
-    status,
-    loading,
-    play,
-    pause,
-    volume,
-    handleVolumeChange,
-    isRetrying,
-    maxRetriesReached,
-  } = useAudioPlayer(STREAM_URL)
+  const { audioRef, status, loading, play, pause, volume, handleVolumeChange } =
+    useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
 
   // Configurar Media Session API para pantalla de bloqueo
@@ -116,16 +105,21 @@ const Dashboard = () => {
     }
   }, [dimensions])
 
+  // Show error snackbar immediately when audio error event occurs
   useEffect(() => {
-    // Show reconnecting snackbar when retrying
-    setOpenReconnecting(isRetrying)
+    const audio = audioRef.current
+    if (!audio) return
 
-    // Show reconnection failed snackbar when max retries reached
-    setOpenReconnectionFailed(maxRetriesReached)
+    const handleAudioError = () => {
+      setOpenError(true)
+    }
 
-    // Show error snackbar only if error but not retrying and not max retries reached
-    setOpenError(status === 'error' && !isRetrying && !maxRetriesReached)
-  }, [status, isRetrying, maxRetriesReached])
+    audio.addEventListener('error', handleAudioError)
+
+    return () => {
+      audio.removeEventListener('error', handleAudioError)
+    }
+  }, [audioRef])
 
   return (
     <Stack
@@ -191,8 +185,7 @@ const Dashboard = () => {
           <PlayerControls
             status={status}
             loading={loading}
-            error={openError || openReconnectionFailed}
-            isRetrying={isRetrying}
+            error={openError}
             onPlay={play}
             onPause={pause}
           />
@@ -209,23 +202,8 @@ const Dashboard = () => {
 
       <audio ref={audioRef} hidden preload="none" />
 
-      <Snackbar open={openReconnecting} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity="info" sx={{ width: '100%' }}>
-          {t('dashboard.reconnecting')}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar
-        open={openReconnectionFailed}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity="error" sx={{ width: '100%' }}>
-          {t('dashboard.reconnectionFailed')}
-        </Alert>
-      </Snackbar>
-
-      <Snackbar open={openError} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-        <Alert severity="error" sx={{ width: '100%' }}>
+      <Snackbar open={openError} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
           {t('dashboard.playStreamError')}
         </Alert>
       </Snackbar>
