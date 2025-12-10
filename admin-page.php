@@ -38,7 +38,7 @@ add_action( 'admin_init', 'radplapag_register_settings' );
 /**
  * Enqueue scripts and styles
  *
- * @since 1.3
+ * @since 2.1.1
  */
 function radplapag_admin_scripts() {
     // Only on our plugin page

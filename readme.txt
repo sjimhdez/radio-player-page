@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: audio, icecast, radio player, shoutcast, streaming
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.3
+Stable tag: 1.2.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -65,7 +65,7 @@ The source code is hosted on GitHub. See the repository for contributions and is
 
 == Changelog ==
 
-= 1.3 =
+= 2.1.1 =
 * Added visualizer selection feature - admins can now choose between different audio visualizers (Oscilloscope/Waves and Bars) for each stream
 * Improved visualizer system with support for time-domain and frequency-domain data
 * Enhanced admin interface with visualizer selection dropdown

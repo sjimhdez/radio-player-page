@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.3-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-2.1.1-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
@@ -207,8 +207,8 @@ Example manifest.json entry:
 ```json
 {
   "src/main.tsx": {
-    "file": "radio-player-page-1.3.js",
-    "css": ["radio-player-page-1.3.css"],
+    "file": "radio-player-page-2.1.1.js",
+    "css": ["radio-player-page-2.1.1.css"],
     "isEntry": true
   }
 }
