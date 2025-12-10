@@ -2,6 +2,7 @@ import Slider from '@mui/material/Slider'
 import { VolumeMute, VolumeUp } from '@mui/icons-material'
 import Stack from '@mui/material/Stack'
 import { useTranslation } from 'react-i18next'
+import { useIsIOS } from 'src/hooks/use-is-ios'
 
 interface VolumeControlProps {
   volume: number
@@ -10,6 +11,12 @@ interface VolumeControlProps {
 
 const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
   const { t } = useTranslation()
+  const isIOS = useIsIOS()
+
+  // Hide volume control completely on iOS devices
+  if (isIOS) {
+    return null
+  }
 
   return (
     <Stack

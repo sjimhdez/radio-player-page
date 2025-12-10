@@ -2,6 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react'
 import type { PlayerStatus } from 'src/types/player'
 import type Hls from 'hls.js'
 import type { MediaPlayerClass } from 'dashjs'
+import { useIsIOS } from 'src/hooks/use-is-ios'
 
 // Lazy loaders for streaming libraries
 const loadHls = async () => {
@@ -27,6 +28,7 @@ function useAudioPlayer(streamUrl: string) {
   const [isRetrying, setIsRetrying] = useState(false)
   const [retryAttempt, setRetryAttempt] = useState(0)
   const [maxRetriesReached, setMaxRetriesReached] = useState(false)
+  const isIOS = useIsIOS()
 
   const MAX_RETRIES = 5
   const RETRY_DELAY_MS = 3000 // 3 segundos
@@ -73,33 +75,42 @@ function useAudioPlayer(streamUrl: string) {
       const isDash = streamUrl.endsWith('.mpd')
 
       if (isHls) {
-        // Lazy load HLS.js only when needed
-        const Hls = await loadHls()
-        if (Hls.isSupported()) {
-          const hls = new Hls()
-          hlsRef.current = hls
-          hls.loadSource(streamUrl)
-          hls.attachMedia(audio)
-
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            audio.play().catch(() => {
-              setStatus('error')
-              statusRef.current = 'error'
-            })
-          })
-
-          hls.on(Hls.Events.ERROR, (_, data) => {
-            if (data.fatal) {
-              setStatus('error')
-              statusRef.current = 'error'
-            }
-          })
-        } else {
-          // HLS not supported, fallback to native
+        // iOS Safari has native HLS support, don't use HLS.js
+        if (isIOS) {
+          // Use native HLS support on iOS
           audio.src = streamUrl
           audio.crossOrigin = 'anonymous'
           audio.load()
           await audio.play()
+        } else {
+          // Lazy load HLS.js only when needed (non-iOS devices)
+          const Hls = await loadHls()
+          if (Hls.isSupported()) {
+            const hls = new Hls()
+            hlsRef.current = hls
+            hls.loadSource(streamUrl)
+            hls.attachMedia(audio)
+
+            hls.on(Hls.Events.MANIFEST_PARSED, () => {
+              audio.play().catch(() => {
+                setStatus('error')
+                statusRef.current = 'error'
+              })
+            })
+
+            hls.on(Hls.Events.ERROR, (_, data) => {
+              if (data.fatal) {
+                setStatus('error')
+                statusRef.current = 'error'
+              }
+            })
+          } else {
+            // HLS not supported, fallback to native
+            audio.src = streamUrl
+            audio.crossOrigin = 'anonymous'
+            audio.load()
+            await audio.play()
+          }
         }
       } else if (isDash) {
         // Lazy load dash.js only when needed
@@ -127,7 +138,7 @@ function useAudioPlayer(streamUrl: string) {
     } finally {
       setLoading(false)
     }
-  }, [streamUrl, destroyPlayers, status])
+  }, [streamUrl, destroyPlayers, status, isIOS])
 
   // Auto-retry logic when error occurs
   useEffect(() => {
@@ -200,18 +211,25 @@ function useAudioPlayer(streamUrl: string) {
     setMaxRetriesReached(false)
   }, [])
 
-  const handleVolumeChange = useCallback((newVolume: number) => {
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume
-      setVolume(newVolume)
-    }
-  }, [])
+  const handleVolumeChange = useCallback(
+    (newVolume: number) => {
+      // Only change volume if not iOS
+      if (!isIOS && audioRef.current) {
+        audioRef.current.volume = newVolume
+        setVolume(newVolume)
+      }
+    },
+    [isIOS],
+  )
 
   useEffect(() => {
     const audio = audioRef.current
     if (!audio) return
 
-    audio.volume = volume
+    // Only set volume if not iOS
+    if (!isIOS) {
+      audio.volume = volume
+    }
 
     const onPlaying = () => {
       setStatus('playing')
@@ -250,7 +268,7 @@ function useAudioPlayer(streamUrl: string) {
       audio.removeEventListener('waiting', onWaiting)
       audio.removeEventListener('playing', onPlayingFromWaiting)
     }
-  }, [volume]) // removed status dependency to avoid loops, intentionally
+  }, [volume, isIOS]) // removed status dependency to avoid loops, intentionally
 
   // Cleanup on unmount
   useEffect(() => {
