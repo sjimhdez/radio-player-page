@@ -78,7 +78,7 @@ const StreamInfo = ({
         {title}
       </Typography>
 
-      {loading && (
+      {loading && !isPlaying && (
         <Typography
           component="p"
           variant="h5"

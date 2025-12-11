@@ -15,9 +15,12 @@ interface PlayerControlsProps {
 
 const PlayerControls = ({ status, loading, error, onPlay, onPause }: PlayerControlsProps) => {
   const { t } = useTranslation()
-
+  console.log('status', status)
+  console.log('loading', loading)
+  console.log('error', error)
+  console.log('--------------------------------')
   // Show CircularProgress when loading
-  if (loading && !error) {
+  if (loading) {
     return <CircularProgress size={88} />
   }
 

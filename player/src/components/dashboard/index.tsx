@@ -105,21 +105,10 @@ const Dashboard = () => {
     }
   }, [dimensions])
 
-  // Show error snackbar immediately when audio error event occurs
+  // Show error snackbar when status is 'error' and loading is false
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    const handleAudioError = () => {
-      setOpenError(true)
-    }
-
-    audio.addEventListener('error', handleAudioError)
-
-    return () => {
-      audio.removeEventListener('error', handleAudioError)
-    }
-  }, [audioRef])
+    setOpenError(status === 'error' && loading === false)
+  }, [status, loading])
 
   return (
     <Stack
@@ -173,7 +162,7 @@ const Dashboard = () => {
         }}
       />
 
-      <Stack alignItems="center" gap={2} position="absolute" bottom={18}>
+      <Stack alignItems="center" gap={2} position="absolute" bottom={25}>
         {sleepTimerSeconds !== null && (
           <SleepTimer
             remainingSeconds={sleepTimerSeconds}
