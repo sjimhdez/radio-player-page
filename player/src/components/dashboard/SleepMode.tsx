@@ -12,7 +12,7 @@ interface SleepModeProps {
   externalTimerSeconds?: number | null
 }
 
-const SLEEP_OPTIONS = [2, 30, 60, 120]
+const SLEEP_OPTIONS = [30, 60, 120]
 
 const SleepMode = ({
   isPlaying,
