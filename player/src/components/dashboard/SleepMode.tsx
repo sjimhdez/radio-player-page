@@ -4,6 +4,7 @@ import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import BedtimeIcon from '@mui/icons-material/Bedtime'
 import { useTranslation } from 'react-i18next'
+import Stack from '@mui/material/Stack'
 
 interface SleepModeProps {
   isPlaying: boolean
@@ -116,15 +117,11 @@ const SleepMode = ({
 
   return (
     <>
-      <IconButton
-        onClick={handleClick}
-        size="small"
-        aria-label={t('dashboard.sleepMode')}
-        color="primary"
-        sx={{ paddingLeft: 1 }}
-      >
-        <BedtimeIcon />
-      </IconButton>
+      <Stack alignItems="flex-start" justifyContent="center">
+        <IconButton onClick={handleClick} aria-label={t('dashboard.sleepMode')} color="primary">
+          <BedtimeIcon />
+        </IconButton>
+      </Stack>
       <Menu
         anchorEl={anchorEl}
         open={open}
@@ -142,7 +139,11 @@ const SleepMode = ({
         }}
       >
         {SLEEP_OPTIONS.map((minutes) => (
-          <MenuItem key={minutes} onClick={() => handleSelectTime(minutes)}>
+          <MenuItem
+            key={minutes}
+            onClick={() => handleSelectTime(minutes)}
+            aria-label={t(`dashboard.sleepOption${minutes}`)}
+          >
             {t(`dashboard.sleepOption${minutes}`)}
           </MenuItem>
         ))}
