@@ -1,5 +1,7 @@
-import { Typography, Stack, Collapse, Box } from '@mui/material'
-import CircleRounded from '@mui/icons-material/CircleRounded'
+import Typography from '@mui/material/Typography'
+import Stack from '@mui/material/Stack'
+import Collapse from '@mui/material/Collapse'
+import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState, useEffect } from 'react'
 
@@ -100,19 +102,6 @@ const StreamInfo = ({
         orientation="vertical"
       >
         <Stack gap={1} alignItems={'center'}>
-          <Stack direction={'row'} alignItems={'center'} gap={1}>
-            <Typography variant="h5" whiteSpace={'nowrap'}>
-              {t('dashboard.isOnLive')}
-            </Typography>
-            <CircleRounded
-              color="error"
-              fontSize="small"
-              sx={{
-                animation: 'blink 1s infinite',
-                '@keyframes blink': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0 } },
-              }}
-            />
-          </Stack>
           <Box
             component="div"
             className="loader"

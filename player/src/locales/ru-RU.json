@@ -1,12 +1,12 @@
 {
   "dashboard": {
     "volume": "Громкость",
-    "isOnLive": "В прямом эфире",
     "connecting": "Подключение",
     "playStreamError": "Не удалось подключиться к трансляции. Попробуйте позже.",
     "audioVisualizer": "Аудиовизуализатор",
     "play": "Воспроизвести",
     "stop": "Остановить",
+    "pause": "Пауза",
     "sleepMode": "Режим сна",
     "cancelSleepMode": "Отменить режим сна",
     "sleepOption30": "30 мин",

@@ -3,7 +3,7 @@
 // ============================================================================
 
 const CONFIG = {
-  BAR_COUNT: 13,
+  BAR_COUNT: 72,
   // BAR_COLOR: '#1a82d6',
   BAR_COLOR: 'rgba(255, 255, 255, 0.1)',
   SMOOTHING_FACTOR: 0.15, // Smoothing factor (0-1, lower = smoother)
@@ -54,7 +54,6 @@ function initializeState(canvas: HTMLCanvasElement, width: number, height: numbe
   canvas.width = width
   canvas.height = height
 
-  // With mirror effect: exactly N bars are shown (not 2N-1)
   return {
     smoothedHeights: new Array(CONFIG.BAR_COUNT).fill(0),
     targetHeights: new Array(CONFIG.BAR_COUNT).fill(0),
@@ -105,13 +104,13 @@ function amplitudeToHeight(amplitude: number, canvasHeight: number): number {
  * Calcula las alturas objetivo para todas las barras basadas en los datos de frecuencia
  * Cada barra representa una banda de frecuencia del audio (de graves a agudos)
  * Convierte datos de amplitud (0-255) a altura del canvas (0-100%)
- * Aplica efecto espejo: se muestran exactamente N barras con patrón simétrico
+ * Muestra las barras en orden natural sin efecto espejo
  */
 function calculateTargetHeights(dataArray: Uint8Array, canvasHeight: number): number[] {
   const dataPointsPerBar = Math.floor(dataArray.length / CONFIG.BAR_COUNT)
-  const sourceHeights: number[] = []
+  const heights: number[] = []
 
-  // First calculate heights of original data bars
+  // Calculate heights of bars in natural order (from bass to treble)
   for (let i = 0; i < CONFIG.BAR_COUNT; i++) {
     const startIdx = i * dataPointsPerBar
     const endIdx = Math.min(startIdx + dataPointsPerBar, dataArray.length)
@@ -120,37 +119,10 @@ function calculateTargetHeights(dataArray: Uint8Array, canvasHeight: number): nu
     const averageAmplitude = calculateAverageAmplitude(dataArray, startIdx, endIdx)
 
     // Convert amplitude (0-255) to canvas height (0-100% of canvasHeight)
-    sourceHeights[i] = amplitudeToHeight(averageAmplitude, canvasHeight)
+    heights[i] = amplitudeToHeight(averageAmplitude, canvasHeight)
   }
 
-  // Apply mirror effect: create full pattern and trim proportionally from edges
-  // Full pattern: [last, second-to-last, ..., second, first, second, ..., second-to-last, last]
-  const N = sourceHeights.length
-  const mirroredHeights: number[] = []
-
-  // Create full mirror pattern (2N-1 bars)
-  // Left half (inverted reflection): from last to second
-  for (let i = N - 1; i >= 1; i--) {
-    mirroredHeights.push(sourceHeights[i])
-  }
-
-  // Center: first data point (bass)
-  mirroredHeights.push(sourceHeights[0])
-
-  // Right half (reflection): from second to last
-  for (let i = 1; i < N; i++) {
-    mirroredHeights.push(sourceHeights[i])
-  }
-
-  // Now we have 2N-1 bars, but we want exactly N bars
-  // Trim proportionally from edges to keep centered
-  const totalBars = mirroredHeights.length // 2N-1
-  const barsToRemove = totalBars - N // N-1 bars to remove
-  const removeFromLeft = Math.floor(barsToRemove / 2)
-  const removeFromRight = barsToRemove - removeFromLeft // If odd, one more from one side
-
-  // Trim from edges
-  return mirroredHeights.slice(removeFromLeft, totalBars - removeFromRight)
+  return heights
 }
 
 /**
@@ -162,7 +134,6 @@ function smoothHeight(currentHeight: number, targetHeight: number): number {
 
 /**
  * Calcula las dimensiones y posiciones de las barras
- * Con efecto espejo: se muestran exactamente N barras
  */
 function calculateBarDimensions(
   canvasWidth: number,
@@ -292,7 +263,6 @@ export const barVisualizer = (
     state.lastUpdateTime = now
   }
 
-  // With mirror effect: exactly N bars are shown
   const visualBarCount = CONFIG.BAR_COUNT
 
   // Calculate bar dimensions

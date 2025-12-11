@@ -1,6 +1,6 @@
 import IconButton from '@mui/material/IconButton'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
-import StopCircleIcon from '@mui/icons-material/StopCircle'
+import PauseCircleIcon from '@mui/icons-material/PauseCircle'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useTranslation } from 'react-i18next'
 import type { PlayerStatus } from 'src/types/player'
@@ -34,7 +34,7 @@ const PlayerControls = ({ status, loading, error, onPlay, onPause }: PlayerContr
 
   return (
     <IconButton onClick={onPause} size="large" aria-label={t('dashboard.stop')} color="primary">
-      <StopCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
+      <PauseCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
     </IconButton>
   )
 }
