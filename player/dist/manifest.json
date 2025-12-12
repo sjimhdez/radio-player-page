@@ -1,42 +1,42 @@
 {
   "node_modules/dashjs/dist/modern/esm/dash.all.min.js": {
-    "file": "radio-player-page-2.1.1-chunk-C0-mAUHk.js",
+    "file": "radio-player-page-1.2.1-chunk-C0-mAUHk.js",
     "name": "dash.all.min",
     "src": "node_modules/dashjs/dist/modern/esm/dash.all.min.js",
     "isDynamicEntry": true
   },
   "node_modules/hls.js/dist/hls.mjs": {
-    "file": "radio-player-page-2.1.1-chunk-B5xTr0nO.js",
+    "file": "radio-player-page-1.2.1-chunk-B5xTr0nO.js",
     "name": "hls",
     "src": "node_modules/hls.js/dist/hls.mjs",
     "isDynamicEntry": true
   },
   "src/components/visualizers/amplitude-waterfall-visualizer.tsx": {
-    "file": "radio-player-page-2.1.1-chunk-DvUCgC_y.js",
+    "file": "radio-player-page-1.2.1-chunk-DvUCgC_y.js",
     "name": "amplitude-waterfall-visualizer",
     "src": "src/components/visualizers/amplitude-waterfall-visualizer.tsx",
     "isDynamicEntry": true
   },
   "src/components/visualizers/bar-visualizer.tsx": {
-    "file": "radio-player-page-2.1.1-chunk-Di1UTItn.js",
+    "file": "radio-player-page-1.2.1-chunk-Di1UTItn.js",
     "name": "bar-visualizer",
     "src": "src/components/visualizers/bar-visualizer.tsx",
     "isDynamicEntry": true
   },
   "src/components/visualizers/oscilloscope-visualizer.tsx": {
-    "file": "radio-player-page-2.1.1-chunk-DRrkY9Cr.js",
+    "file": "radio-player-page-1.2.1-chunk-DRrkY9Cr.js",
     "name": "oscilloscope-visualizer",
     "src": "src/components/visualizers/oscilloscope-visualizer.tsx",
     "isDynamicEntry": true
   },
   "src/components/visualizers/particles-visualizer.tsx": {
-    "file": "radio-player-page-2.1.1-chunk-CXu5CLW7.js",
+    "file": "radio-player-page-1.2.1-chunk-CXu5CLW7.js",
     "name": "particles-visualizer",
     "src": "src/components/visualizers/particles-visualizer.tsx",
     "isDynamicEntry": true
   },
   "src/main.tsx": {
-    "file": "radio-player-page-2.1.1.js",
+    "file": "radio-player-page-1.2.1.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
@@ -49,7 +49,7 @@
       "src/components/visualizers/amplitude-waterfall-visualizer.tsx"
     ],
     "css": [
-      "radio-player-page-2.1.1.css"
+      "radio-player-page-1.2.1.css"
     ]
   }
 }
