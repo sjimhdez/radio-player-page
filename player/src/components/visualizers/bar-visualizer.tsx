@@ -4,14 +4,13 @@
 
 const CONFIG = {
   BAR_COUNT: 72,
-  // BAR_COLOR: '#1a82d6',
   BAR_COLOR: 'rgba(255, 255, 255, 0.1)',
   SMOOTHING_FACTOR: 0.15, // Smoothing factor (0-1, lower = smoother)
   BAR_SPACING: 2, // Space between bars in pixels
   UPDATE_INTERVAL_MS: 50, // Interval between target height updates
   MAX_AMPLITUDE: 255, // Maximum possible amplitude (frequency data range: 0-255)
   PEAK_DURATION_MS: 4000, // Peak line duration in milliseconds
-  PEAK_COLOR: '#666', // Peak line color
+  PEAK_COLOR: 'rgba(19, 181, 210, 0.78)', // Peak line color
   PEAK_LINE_WIDTH: 2, // Peak line thickness
 } as const
 

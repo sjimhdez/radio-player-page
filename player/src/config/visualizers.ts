@@ -30,8 +30,8 @@ const VISUALIZER_METADATA: Record<string, Omit<VisualizerConfig, 'fn'>> = {
     name: 'Orbiting Particles',
     dataType: 'frequency',
   },
-  spectrogram: {
-    id: 'spectrogram',
+  waterfall: {
+    id: 'waterfall',
     name: 'Amplitude Waterfall',
     dataType: 'time',
   },
@@ -60,7 +60,7 @@ const visualizerLoaders: Record<string, () => Promise<VisualizerFn>> = {
     const { particlesVisualizer } = await import('src/components/visualizers/particles-visualizer')
     return particlesVisualizer
   },
-  spectrogram: async () => {
+  waterfall: async () => {
     const { amplitudeWaterfallVisualizer } = await import(
       'src/components/visualizers/amplitude-waterfall-visualizer'
     )

@@ -3,7 +3,7 @@
 // ============================================================================
 
 const CONFIG = {
-  WAVE_COLOR: '#1a82d6', // Oscilloscope wave color
+  WAVE_COLOR: 'rgba(19, 181, 210, 0.78)', // Oscilloscope wave color
   AXIS_COLOR: '#555', // Central axis color
   AXIS_LINE_WIDTH: 1, // Central axis line thickness in pixels
   WAVE_LINE_WIDTH: 2, // Wave line thickness in pixels

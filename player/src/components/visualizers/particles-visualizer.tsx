@@ -4,7 +4,7 @@
 
 const CONFIG = {
   PARTICLE_COUNT: 50, // Number of particles
-  PARTICLE_COLOR: '#1a82d6',
+  PARTICLE_COLOR: 'rgba(19, 181, 210, 0.78)',
   PARTICLE_SIZE: 2, // Size of each particle in pixels
   MIN_RADIUS_PERCENT: 0.05, // Minimum radius as percentage of canvas (5%)
   MAX_RADIUS_PERCENT: 0.45, // Maximum radius as percentage of canvas (45%)

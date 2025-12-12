@@ -70,7 +70,7 @@ function radplapag_sanitize_settings( $input ) {
         $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
         
         // Validate that the visualizer is valid
-        $valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'spectrogram' ];
+        $valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
         if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
             $visualizer = 'oscilloscope';
         }
@@ -122,7 +122,7 @@ function radplapag_render_settings_page() {
     $options = radplapag_get_settings();
     $stations = isset( $options['stations'] ) && is_array( $options['stations'] ) ? $options['stations'] : [];
     $pages = get_pages( [ 'post_status' => 'publish' ] );
-    $max_stations = 6;
+    $max_stations = 10;
     
     // Ensure we have at least one empty streaming slot
     while ( count( $stations ) < $max_stations ) {
@@ -147,8 +147,7 @@ function radplapag_render_settings_page() {
 
         <div>
             <h2><?php esc_html_e( 'How to use', 'radio-player-page' ); ?></h2>
-            <p><?php esc_html_e( 'Your Radio Station can have up to six streams. For each stream, enter the stream URL (Icecast, Shoutcast, etc.) and select a different page where the player should appear.', 'radio-player-page' ); ?></p>
-            <p><?php esc_html_e( 'Once configured, each selected page will display a clean, standalone audio player designed for uninterrupted listening.', 'radio-player-page' ); ?></p>
+            <p><?php esc_html_e( 'Configure up to ten streams. For each stream, enter the stream URL (Icecast, Shoutcast, or MP3) and select the page where the player should appear. You can customize the theme color, visualizer, background image, and logo for each stream.', 'radio-player-page' ); ?></p>
         </div>
 
         <form method="post" action="options.php" id="radplapag-settings-form">
@@ -204,7 +203,7 @@ function radplapag_render_settings_page() {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <p class="description"><?php esc_html_e( 'The page where the player will be displayed. Each page can only be used once.', 'radio-player-page' ); ?></p>
+                                    <!-- <p class="description"><?php esc_html_e( 'The page where the player will be displayed. Each page can only be used once.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <tr>
@@ -223,7 +222,7 @@ function radplapag_render_settings_page() {
                                         placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>"
                                         <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
                                     >
-                                    <p class="description"><?php esc_html_e( 'Example: https://my.station.com:8000/stream', 'radio-player-page' ); ?></p>
+                                    <!-- <p class="description"><?php esc_html_e( 'Example: https://my.station.com:8000/stream', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <tr>
@@ -240,8 +239,9 @@ function radplapag_render_settings_page() {
                                         value="<?php echo esc_attr( $station_title ); ?>" 
                                         class="regular-text radplapag-station-title-input"
                                         placeholder="<?php esc_attr_e( 'My Radio Station', 'radio-player-page' ); ?>"
+                                        maxlength="64"
                                     >
-                                    <p class="description"><?php esc_html_e( 'Custom title for this stream. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
+                                    <!-- <p class="description"><?php esc_html_e( 'Custom title for this stream. If left empty, the site title will be used.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <!-- Theme Color -->
@@ -262,7 +262,7 @@ function radplapag_render_settings_page() {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <p class="description"><?php esc_html_e( 'Select a color theme for the player.', 'radio-player-page' ); ?></p>
+                                    <!-- <p class="description"><?php esc_html_e( 'Select a color theme for the player.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <!-- Visualizer -->
@@ -278,19 +278,19 @@ function radplapag_render_settings_page() {
                                         id="radplapag_visualizer_<?php echo esc_attr( $index ); ?>"
                                     >
                                         <option value="oscilloscope" <?php selected( $visualizer, 'oscilloscope' ); ?>>
-                                            <?php esc_html_e( 'Oscilloscope (Waves)', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Oscilloscope', 'radio-player-page' ); ?>
                                         </option>
                                         <option value="bars" <?php selected( $visualizer, 'bars' ); ?>>
-                                            <?php esc_html_e( 'Bars', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Bars Spectrum', 'radio-player-page' ); ?>
+                                        </option>
+                                        <option value="waterfall" <?php selected( $visualizer, 'waterfall' ); ?>>
+                                            <?php esc_html_e( 'Amplitude Waterfall', 'radio-player-page' ); ?>
                                         </option>
                                         <option value="particles" <?php selected( $visualizer, 'particles' ); ?>>
-                                            <?php esc_html_e( 'Partículas Orbitando', 'radio-player-page' ); ?>
-                                        </option>
-                                        <option value="spectrogram" <?php selected( $visualizer, 'spectrogram' ); ?>>
-                                            <?php esc_html_e( 'Amplitud Waterfall', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Spectral Particles', 'radio-player-page' ); ?>
                                         </option>
                                     </select>
-                                    <p class="description"><?php esc_html_e( 'Select the audio visualizer type for this stream.', 'radio-player-page' ); ?></p>
+                                    <!-- <p class="description"><?php esc_html_e( 'Select the audio visualizer type for this stream.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <!-- Background Image -->
@@ -309,7 +309,7 @@ function radplapag_render_settings_page() {
                                         <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
                                         <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $background_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
                                     </div>
-                                    <p class="description"><?php esc_html_e( 'Select an image for the background wallpaper.', 'radio-player-page' ); ?></p>
+                                    <!-- <p class="description"><?php esc_html_e( 'Select an image for the background wallpaper.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <!-- Logo Image -->
@@ -328,7 +328,7 @@ function radplapag_render_settings_page() {
                                         <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
                                         <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
                                     </div>
-                                    <p class="description"><?php esc_html_e( 'Select an image for the logo.', 'radio-player-page' ); ?></p>
+                                    <!-- <p class="description"><?php esc_html_e( 'Select an image for the logo.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                         </table>

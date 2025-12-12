@@ -76,10 +76,13 @@ const StreamInfo = ({
           }}
         />
       )}
-      <Typography variant="h1" component="h1" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+      <Typography
+        variant="h1"
+        component="h1"
+        sx={{ textWrap: 'balance', hyphens: 'auto', overflowWrap: 'break-word' }}
+      >
         {title}
       </Typography>
-
       {loading && !isPlaying && (
         <Typography
           component="p"
