@@ -18,19 +18,19 @@
     "isDynamicEntry": true
   },
   "src/components/visualizers/bar-visualizer.tsx": {
-    "file": "radio-player-page-2.1.1-chunk-DS9eRM3_.js",
+    "file": "radio-player-page-2.1.1-chunk-Di1UTItn.js",
     "name": "bar-visualizer",
     "src": "src/components/visualizers/bar-visualizer.tsx",
     "isDynamicEntry": true
   },
   "src/components/visualizers/oscilloscope-visualizer.tsx": {
-    "file": "radio-player-page-2.1.1-chunk-CJuDBfZh.js",
+    "file": "radio-player-page-2.1.1-chunk-DRrkY9Cr.js",
     "name": "oscilloscope-visualizer",
     "src": "src/components/visualizers/oscilloscope-visualizer.tsx",
     "isDynamicEntry": true
   },
   "src/components/visualizers/particles-visualizer.tsx": {
-    "file": "radio-player-page-2.1.1-chunk-dTaHWhlP.js",
+    "file": "radio-player-page-2.1.1-chunk-CXu5CLW7.js",
     "name": "particles-visualizer",
     "src": "src/components/visualizers/particles-visualizer.tsx",
     "isDynamicEntry": true
