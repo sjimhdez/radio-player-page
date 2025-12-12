@@ -16,7 +16,7 @@ export interface VisualizerConfig {
 const VISUALIZER_METADATA: Record<string, Omit<VisualizerConfig, 'fn'>> = {
   oscilloscope: {
     id: 'oscilloscope',
-    name: 'Oscilloscope (Waves)',
+    name: 'Oscilloscope',
     dataType: 'time',
   },
   bars: {

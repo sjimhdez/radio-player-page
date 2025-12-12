@@ -24,7 +24,7 @@ The plugin uniquely decouples the streaming interface from the WordPress theme, 
 
 - **Multiple Station Management** – Configure up to 10 independent radio stations, each with its own dedicated WordPress page
 - **Real-Time Audio Visualization** – Four distinct visualizers powered by Web Audio API:
-  - **Oscilloscope (Waves)** – Classic waveform visualization showing time-domain audio data
+  - **Oscilloscope** – Classic waveform visualization showing time-domain audio data
   - **Bars Spectrum** – Frequency-domain visualization with animated bars
   - **Amplitude Waterfall** – Time-based visualization displaying amplitude changes
   - **Spectral Particles** – Dynamic particle system responding to frequency data

@@ -16,9 +16,9 @@ Radio Player Page creates dedicated, independent pages for your radio streams, p
 
 **Key Features**
 
-* **Multiple Station Management** – Configure up to 10 independent radio stations, each with its own dedicated WordPress page
+* **Multiple Stream Management** – Configure up to 10 independent streams, each with its own dedicated WordPress page
 * **Streaming Protocol Support** – Automatic detection and handling for Icecast, Shoutcast, MP3, HLS (.m3u8), and DASH (.mpd) formats. Uses native browser support on iOS Safari for HLS streams
-* **Four Audio Visualizers** – Choose from Oscilloscope (Waves), Bars Spectrum, Amplitude Waterfall, or Spectral Particles for real-time audio visualization powered by Web Audio API
+* **Four Audio Visualizers** – Choose from Oscilloscope, Bars Spectrum, Amplitude Waterfall, or Spectral Particles for real-time audio visualization powered by Web Audio API
 * **Eight Color Themes** – Customize appearance with Neutral, Blue, Green, Red, Orange, Yellow, Purple, or Pink color schemes
 * **Custom Branding** – Upload custom background images and logos for each station (site favicon used if no custom logo provided)
 * **Custom Station Titles** – Set a unique title for each stream, or use your site name as default
@@ -26,7 +26,6 @@ Radio Player Page creates dedicated, independent pages for your radio streams, p
 * **Volume Control** – Adjustable volume slider (not available on iOS devices due to system limitations)
 * **Media Session API** – Displays station information and artwork on device lock screens and media controls
 * **Responsive Design** – Optimized for desktop, tablet, and mobile devices
-* **Internationalization** – Built-in support for English, Spanish, and Russian with automatic locale detection
 * **Performance Optimized** – Lightweight architecture with minimal HTTP requests
 
 **Technical Details**
@@ -44,17 +43,9 @@ The player interface is built with React 19, TypeScript, and Material-UI, provid
    * Optionally customize: title, theme color, visualizer type, background image, and logo
 5. Click **Save Changes** and visit the assigned page
 
-**Requirements**
-
-* WordPress 5.0+
-* PHP 7.4+
-* Valid streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
-
 **Important Notes**
 
 * Each station requires both a valid stream URL and an assigned WordPress page
-* Incomplete entries are automatically filtered during save
-* Settings are automatically migrated from older plugin versions
 
 == Frequently Asked Questions ==
 
@@ -97,7 +88,7 @@ The source code is hosted on GitHub. See the repository for contributions and is
 == Changelog ==
 
 = 2.1.1 =
-* Added visualizer selection feature - choose from four audio visualizers (Oscilloscope/Waves, Bars Spectrum, Amplitude Waterfall, Spectral Particles) for each stream
+* Added visualizer selection feature - choose from four audio visualizers (Oscilloscope, Bars Spectrum, Amplitude Waterfall, Spectral Particles) for each stream
 * Improved visualizer system with support for time-domain and frequency-domain data
 * Enhanced admin interface with visualizer selection dropdown
 * Added extensible visualizer registry system for future additions

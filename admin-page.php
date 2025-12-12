@@ -42,7 +42,8 @@ add_action( 'admin_init', 'radplapag_register_settings' );
  */
 function radplapag_admin_scripts() {
     // Only on our plugin page
-    if ( isset( $_GET['page'] ) && 'radplapag' === $_GET['page'] ) {
+    $screen = get_current_screen();
+    if ( $screen && 'settings_page_radplapag' === $screen->id ) {
         wp_enqueue_media();
     }
 }
@@ -228,7 +229,7 @@ function radplapag_render_settings_page() {
                             <tr>
                                 <th scope="row">
                                     <label for="radplapag_station_title_<?php echo esc_attr( $index ); ?>">
-                                        <?php esc_html_e( 'Stream Title (Optional)', 'radio-player-page' ); ?>
+                                        <?php esc_html_e( 'Stream Title', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?>
                                     </label>
                                 </th>
                                 <td>
@@ -293,29 +294,10 @@ function radplapag_render_settings_page() {
                                     <!-- <p class="description"><?php esc_html_e( 'Select the audio visualizer type for this stream.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
-                            <!-- Background Image -->
-                            <tr>
-                                <th scope="row">
-                                    <label><?php esc_html_e( 'Background Image', 'radio-player-page' ); ?></label>
-                                </th>
-                                <td>
-                                    <div class="radplapag-image-upload-wrapper">
-                                        <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][background_id]" value="<?php echo esc_attr( $background_id ); ?>" class="radplapag-image-id">
-                                        <div class="radplapag-image-preview">
-                                            <?php if ( $background_url ) : ?>
-                                                <img src="<?php echo esc_url( $background_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
-                                            <?php endif; ?>
-                                        </div>
-                                        <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-                                        <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $background_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
-                                    </div>
-                                    <!-- <p class="description"><?php esc_html_e( 'Select an image for the background wallpaper.', 'radio-player-page' ); ?></p> -->
-                                </td>
-                            </tr>
                             <!-- Logo Image -->
                             <tr>
                                 <th scope="row">
-                                    <label><?php esc_html_e( 'Logo Image', 'radio-player-page' ); ?></label>
+                                    <label><?php esc_html_e( 'Logo Image', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?></label>
                                 </th>
                                 <td>
                                     <div class="radplapag-image-upload-wrapper">
@@ -329,6 +311,25 @@ function radplapag_render_settings_page() {
                                         <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
                                     </div>
                                     <!-- <p class="description"><?php esc_html_e( 'Select an image for the logo.', 'radio-player-page' ); ?></p> -->
+                                </td>
+                            </tr>
+                            <!-- Background Image -->
+                            <tr>
+                                <th scope="row">
+                                    <label><?php esc_html_e( 'Background Image', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?></label>
+                                </th>
+                                <td>
+                                    <div class="radplapag-image-upload-wrapper">
+                                        <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][background_id]" value="<?php echo esc_attr( $background_id ); ?>" class="radplapag-image-id">
+                                        <div class="radplapag-image-preview">
+                                            <?php if ( $background_url ) : ?>
+                                                <img src="<?php echo esc_url( $background_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
+                                            <?php endif; ?>
+                                        </div>
+                                        <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+                                        <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $background_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                    </div>
+                                    <!-- <p class="description"><?php esc_html_e( 'Select an image for the background wallpaper.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                         </table>
