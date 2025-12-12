@@ -204,7 +204,6 @@ function radplapag_render_settings_page() {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <!-- <p class="description"><?php esc_html_e( 'The page where the player will be displayed. Each page can only be used once.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <tr>
@@ -223,7 +222,6 @@ function radplapag_render_settings_page() {
                                         placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>"
                                         <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
                                     >
-                                    <!-- <p class="description"><?php esc_html_e( 'Example: https://my.station.com:8000/stream', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <tr>
@@ -242,7 +240,6 @@ function radplapag_render_settings_page() {
                                         placeholder="<?php esc_attr_e( 'My Radio Station', 'radio-player-page' ); ?>"
                                         maxlength="64"
                                     >
-                                    <!-- <p class="description"><?php esc_html_e( 'Custom title for this stream. If left empty, the site title will be used.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <!-- Theme Color -->
@@ -263,7 +260,6 @@ function radplapag_render_settings_page() {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <!-- <p class="description"><?php esc_html_e( 'Select a color theme for the player.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <!-- Visualizer -->
@@ -291,7 +287,6 @@ function radplapag_render_settings_page() {
                                             <?php esc_html_e( 'Spectral Particles', 'radio-player-page' ); ?>
                                         </option>
                                     </select>
-                                    <!-- <p class="description"><?php esc_html_e( 'Select the audio visualizer type for this stream.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <!-- Logo Image -->
@@ -310,7 +305,6 @@ function radplapag_render_settings_page() {
                                         <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
                                         <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
                                     </div>
-                                    <!-- <p class="description"><?php esc_html_e( 'Select an image for the logo.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                             <!-- Background Image -->
@@ -329,7 +323,6 @@ function radplapag_render_settings_page() {
                                         <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
                                         <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $background_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
                                     </div>
-                                    <!-- <p class="description"><?php esc_html_e( 'Select an image for the background wallpaper.', 'radio-player-page' ); ?></p> -->
                                 </td>
                             </tr>
                         </table>
