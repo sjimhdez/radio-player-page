@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 /**
  * Detects MIME type from URL based on file extension
@@ -40,6 +41,8 @@ function generateArtworkArray(logoUrl: string): MediaImage[] {
  * @param onPause - Callback function for pause action
  */
 function useMediaSession(title: string, logoUrl: string, onPlay: () => void, onPause: () => void) {
+  const { t } = useTranslation()
+
   useEffect(() => {
     if (!('mediaSession' in navigator)) {
       return
@@ -49,7 +52,7 @@ function useMediaSession(title: string, logoUrl: string, onPlay: () => void, onP
     const artwork = logoUrl ? generateArtworkArray(logoUrl) : []
 
     const metadata: MediaMetadataInit = {
-      title: title || 'Live Radio',
+      title: title || t('dashboard.liveRadio'),
       artwork,
     }
 
@@ -65,7 +68,7 @@ function useMediaSession(title: string, logoUrl: string, onPlay: () => void, onP
     navigator.mediaSession.setActionHandler('seekto', null)
     navigator.mediaSession.setActionHandler('previoustrack', null)
     navigator.mediaSession.setActionHandler('nexttrack', null)
-  }, [title, logoUrl, onPlay, onPause])
+  }, [title, logoUrl, onPlay, onPause, t])
 }
 
 export default useMediaSession
