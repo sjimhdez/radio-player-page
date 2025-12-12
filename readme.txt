@@ -88,10 +88,10 @@ The source code is hosted on GitHub. See the repository for contributions and is
 == Changelog ==
 
 = 2.1.1 =
-* Added visualizer selection feature - choose from four audio visualizers (Oscilloscope, Bars Spectrum, Amplitude Waterfall, Spectral Particles) for each stream
-* Improved visualizer system with support for time-domain and frequency-domain data
-* Enhanced admin interface with visualizer selection dropdown
-* Added extensible visualizer registry system for future additions
+* Added player customization options - per-station configuration background images and logos
+* Added theme color selection - choose from eight color themes (Neutral, Blue, Green, Red, Orange, Yellow, Purple, Pink) for each stream
+* Added visualizer selection - choose from four audio visualizers (Oscilloscope, Bars Spectrum, Amplitude Waterfall, Spectral Particles) for each stream
+* Added Media Session API integration - displays station information and artwork on device lock screens and media controls
 
 = 1.2.1 =
 * Added support for HLS (.m3u8) and DASH (.mpd) streaming using hls.js and dash.js
