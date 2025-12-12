@@ -18,17 +18,6 @@ Radio Player Page is a professional WordPress plugin that delivers a dedicated, 
 
 The plugin uniquely decouples the streaming interface from the WordPress theme, serving a clean, standalone HTML page with an embedded React application. This architectural approach ensures theme independence, zero style conflicts, and optimal performance.
 
-### Key Highlights
-
-- 🎵 **Up to 10 Stations** – Manage multiple radio streams independently
-- 🎨 **4 Audio Visualizers** – Choose from Oscilloscope, Bars Spectrum, Amplitude Waterfall, or Spectral Particles
-- 🎨 **8 Color Themes** – Customize appearance with Neutral, Blue, Green, Red, Orange, Yellow, Purple, or Pink
-- 🖼️ **Custom Branding** – Upload background images and logos for each station
-- ⏰ **Sleep Timer** – Automatic playback stop after 30 min, 1 hour, or 2 hours
-- 📱 **Media Session API** – Native lock screen controls and artwork display
-- 🌍 **Multi-Language** – Built-in support for English, Spanish, and Russian
-- 🚀 **Modern Stack** – React 19, TypeScript, Vite, Material-UI
-
 ## ✨ Features
 
 ### Core Functionality
@@ -39,16 +28,14 @@ The plugin uniquely decouples the streaming interface from the WordPress theme, 
   - **Bars Spectrum** – Frequency-domain visualization with animated bars
   - **Amplitude Waterfall** – Time-based visualization displaying amplitude changes
   - **Spectral Particles** – Dynamic particle system responding to frequency data
-- **Streaming Protocol Support** – Automatic detection and handling for:
-  - Icecast and Shoutcast streams
-  - MP3 direct streams
-  - HLS (HTTP Live Streaming) with `.m3u8` extension
-  - DASH (Dynamic Adaptive Streaming over HTTP) with `.mpd` extension
-- **Custom Branding** – Upload custom background images and logos for each station
-- **Custom Station Titles** – Set a unique title for each stream, or use your site name as default
-- **Sleep Timer** – Set automatic playback stop after 30 minutes, 1 hour, or 2 hours
+- **Streaming Protocol Support** – Automatic detection and handling for Icecast, Shoutcast, MP3, HLS (`.m3u8`), and DASH (`.mpd`) formats
+- **Customization Options** – Per-station configuration:
+  - Custom titles, background images, and logos
+  - 8 color themes (Neutral, Blue, Green, Red, Orange, Yellow, Purple, Pink)
+  - Visualizer selection (4 options)
+- **Sleep Timer** – Automatic playback stop after 30 minutes, 1 hour, or 2 hours
 - **Volume Control** – Adjustable volume slider (not available on iOS devices due to system limitations)
-- **Media Session API** – Displays station information and artwork on device lock screens and media controls
+- **Media Session API** – Native lock screen controls and artwork display
 - **Responsive Design** – Optimized for desktop, tablet, and mobile devices
 - **Internationalization** – Built-in support for English, Spanish, and Russian with automatic locale detection
 
@@ -59,6 +46,7 @@ The plugin uniquely decouples the streaming interface from the WordPress theme, 
 - **Template Redirect Hook** – Intercepts page requests at the WordPress template level for maximum efficiency
 - **Early Exit Pattern** – Player page exits before WordPress enqueues additional styles or scripts
 - **Backward Compatible** – Automatic migration from v1.1 (single station) to v2.1.1 (multiple stations)
+- **Modern Stack** – Built with React 19, TypeScript, Vite, and Material-UI
 
 ## 🚀 Quick Start
 
@@ -81,22 +69,18 @@ The plugin uniquely decouples the streaming interface from the WordPress theme, 
 ### Configuration
 
 1. Go to **Settings → Radio Player Page Settings**
-2. For each stream you want to configure:
+2. For each stream:
    - Enter your streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
    - Select the WordPress page where the player should appear
-   - Optionally add a custom stream title
-   - Choose a theme color (8 options available)
-   - Select a visualizer type (4 options available)
-   - Optionally upload a background image and logo
-3. Click **Save Changes**
-4. Visit the assigned page to see the player in action
+   - Optionally customize: title, theme color, visualizer type, background image, and logo
+3. Click **Save Changes** and visit the assigned page
 
 ### Requirements
 
-- **WordPress** 5.0 or higher
-- **PHP** 7.4 or higher
-- **Node.js** 20.x (for development and building only)
-- A valid streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
+- **WordPress** 5.0+
+- **PHP** 7.4+
+- **Node.js** 20.x (development only)
+- Valid streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
 
 ## 💻 Development
 
@@ -246,31 +230,17 @@ Example manifest.json entry:
 
 ## 🌐 Internationalization
 
-The plugin includes built-in i18n support with three languages:
+Built-in support for English (en-US), Spanish (es), and Russian (ru-RU) with automatic locale detection. Language detection follows: HTML `lang` attribute → localStorage cache → Navigator preference.
 
-- **English (en-US)** – Default fallback language
-- **Spanish (es)** – Automatic detection for Spanish locales
-- **Russian (ru-RU)** – Automatic detection for Russian locales
-
-Language detection follows this order:
-
-1. HTML `lang` attribute (set by WordPress)
-2. Browser localStorage cache
-3. Navigator language preference
-
-To add additional languages, create a new locale file in `player/src/locales/` and register it in `player/src/config/i18n.ts`.
+To add languages, create a locale file in `player/src/locales/` and register it in `player/src/config/i18n.ts`.
 
 ## 📸 Screenshots
 
-1. **Mobile Interface** – Radio Player Page displayed on a mobile device, showing the clean, minimal interface optimized for mobile listening with responsive design.
-
-2. **Desktop Player** – Radio Player Page on a desktop device, featuring one of the four available audio visualizers and full player controls including play/pause, volume, and sleep timer.
-
-3. **Admin Settings** – Plugin Settings screen, showing the interface for managing up to 10 radio stations with customization options for each stream.
-
-4. **Visualizer Selection** – Visualizer selection in the admin interface, displaying the four available visualization options: Oscilloscope, Bars Spectrum, Amplitude Waterfall, and Spectral Particles.
-
-5. **Theme Customization** – Theme color selection dropdown showing all eight available color schemes for customizing the player appearance.
+1. Mobile interface with responsive design
+2. Desktop player with audio visualizer and controls
+3. Admin settings for managing stations
+4. Visualizer selection options
+5. Theme color customization
 
 ## 🤝 Contributing
 
@@ -298,24 +268,12 @@ Radio Player Page is licensed under the **GNU General Public License v2.0 or lat
 
 See [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html) for details.
 
-## 🐛 Support & Issues
+## 🐛 Support & Documentation
 
 - **Bug Reports** – [GitHub Issues](https://github.com/sjimhdez/radio-player-page/issues)
 - **WordPress Forum** – [Plugin Support](https://wordpress.org/support/plugin/radio-player-page/)
-- **Plugin Directory** – [wordpress.org/plugins/radio-player-page](https://wordpress.org/plugins/radio-player-page)
-
-## 📚 Documentation
-
-For detailed setup instructions, configuration options, and troubleshooting, visit the [official plugin page](https://wordpress.org/plugins/radio-player-page/).
+- **Documentation** – [Official Plugin Page](https://wordpress.org/plugins/radio-player-page/)
 
 ## 🙏 Acknowledgments
 
-- Built with [React](https://react.dev/)
-- UI components powered by [Material-UI](https://mui.com/)
-- Streaming support via [hls.js](https://github.com/video-dev/hls.js/) and [dashjs](https://github.com/Dash-Industry-Forum/dash.js)
-- Internationalization with [i18next](https://www.i18next.com/)
-- Build tooling by [Vite](https://vitejs.dev/)
-
-## 📢 Stay Updated
-
-Follow the developer for announcements, updates, and community news about Radio Player Page and related projects.
+Built with [React](https://react.dev/), [Material-UI](https://mui.com/), [hls.js](https://github.com/video-dev/hls.js/), [dashjs](https://github.com/Dash-Industry-Forum/dash.js), [i18next](https://www.i18next.com/), and [Vite](https://vitejs.dev/).
