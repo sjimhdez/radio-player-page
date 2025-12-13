@@ -79,11 +79,9 @@ The source code is hosted on GitHub. See the repository for contributions and is
 
 == Screenshots ==
 
-1. Mobile interface with responsive design
-2. Desktop player with audio visualizer and controls
+1. Player page example with blue theme color and Oscilloscope visualizer
+2. Player page example with green theme color and Amplitude Waterfall visualizer
 3. Admin settings for managing stations
-4. Visualizer selection options
-5. Theme color customization
 
 == Changelog ==
 
