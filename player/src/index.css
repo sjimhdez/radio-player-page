@@ -66,3 +66,16 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+@keyframes animatePlayingDot {
+  0% {
+    transform: scale(0.1);
+  }
+  10% {
+    transform: scale(1);
+  }
+  50%,
+  100% {
+    transform: scale(0.1);
+  }
+}

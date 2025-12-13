@@ -1,10 +1,17 @@
 {
   "dashboard": {
     "volume": "Volume",
-    "isOnLive": "is on live!",
-    "playStreamError": "Unable to play the stream. Please check the URL or try again later.",
+    "connecting": "Connecting",
+    "playStreamError": "Unable to play the stream. Try again later.",
     "audioVisualizer": "Audio Visualizer",
     "play": "Play",
-    "stop": "Stop"
+    "stop": "Stop",
+    "pause": "Pause",
+    "sleepMode": "Sleep mode",
+    "cancelSleepMode": "Cancel sleep mode",
+    "sleepOption30": "30 mins",
+    "sleepOption60": "1 hour",
+    "sleepOption120": "2 hours",
+    "liveRadio": "Live Radio"
   }
 }
