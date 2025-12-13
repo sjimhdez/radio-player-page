@@ -1,154 +1,154 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-2.0.1-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
+[![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-**Create a dedicated page for your Icecast, Shoutcast, or MP3 radio. Continuous playback without interruptions.**
+> Create dedicated pages for up to 10 radio streams with real-time audio visualization, sleep timer, and full customization. Supports Icecast, Shoutcast, HLS, DASH, and MP3.
 
-[View on WordPress.org](https://wordpress.org/plugins/radio-player-page) • [Report Issues](https://github.com/sjimhdez/radio-player-page/issues)
+[View on WordPress.org](https://wordpress.org/plugins/radio-player-page) • [Report Issues](https://github.com/sjimhdez/radio-player-page/issues) • [Documentation](https://wordpress.org/plugins/radio-player-page/)
 
 ---
 
-## 🎯 Overview
+## 📖 Overview
 
-Radio Player Page is a professional WordPress plugin that delivers a dedicated, distraction-free streaming solution for Icecast, Shoutcast, and MP3 stations. Engineered with modern web technologies, it provides uninterrupted playback, seamless performance, and an exceptional user experience on all devices.
+Radio Player Page is a professional WordPress plugin that delivers a dedicated, distraction-free streaming solution for radio stations. Engineered with modern web technologies, it provides uninterrupted playback, seamless performance, and an exceptional user experience on all devices.
 
 The plugin uniquely decouples the streaming interface from the WordPress theme, serving a clean, standalone HTML page with an embedded React application. This architectural approach ensures theme independence, zero style conflicts, and optimal performance.
 
-## ✨ Key Benefits
-
-- **Uninterrupted Playback** – Audio continues streaming even when users navigate away from the player page
-- **Complete Theme Isolation** – The player operates independently; no WordPress styles or scripts interfere with playback
-- **Performance Optimized** – Lightweight, self-contained architecture that minimizes HTTP requests and rendering overhead
-- **Professional, Distraction-Free Interface** – Clean, modern design focused exclusively on audio streaming
-- **Multi-Language Support** – Built-in support for English, Spanish, and Russian with automatic locale detection
-- **Multiple Station Management** – Configure up to 6 radio stations with custom titles and dedicated pages
-- **Modern Streaming Protocols** – Full support for HLS (.m3u8) and DASH (.mpd) adaptive streaming, alongside traditional Icecast/Shoutcast
-
-## 🚀 Features
+## ✨ Features
 
 ### Core Functionality
 
-- **Up to 6 Stations** – Configure multiple stream sources with custom titles and assign each to a dedicated WordPress page
-- **Real-Time Visualization** – Interactive waveform visualizer powered by the Web Audio API for dynamic audio feedback
-- **Responsive Design** – Optimized for desktop, tablet, and mobile devices with fluid layouts
-- **Independent Player Container** – Decoupled frontend rendered in an isolated `<div id="root"></div>` container
-- **Site Icon Integration** – Automatically displays your WordPress site icon as the player favicon
-- **Custom Page Titles** – Each station can have a custom title, or default to your site name
+- **Multiple Station Management** – Configure up to 10 independent radio stations, each with its own dedicated WordPress page
+- **Real-Time Audio Visualization** – Four distinct visualizers powered by Web Audio API:
+  - **Oscilloscope** – Classic waveform visualization showing time-domain audio data
+  - **Bars Spectrum** – Frequency-domain visualization with animated bars
+  - **Amplitude Waterfall** – Time-based visualization displaying amplitude changes
+  - **Spectral Particles** – Dynamic particle system responding to frequency data
+- **Streaming Protocol Support** – Automatic detection and handling for Icecast, Shoutcast, MP3, HLS (`.m3u8`), and DASH (`.mpd`) formats
+- **Customization Options** – Per-station configuration:
+  - Custom titles, background images, and logos
+  - 8 color themes (Neutral, Blue, Green, Red, Orange, Yellow, Purple, Pink)
+  - Visualizer selection (4 options)
+- **Sleep Timer** – Automatic playback stop after 30 minutes, 1 hour, or 2 hours
+- **Volume Control** – Adjustable volume slider (not available on iOS devices due to system limitations)
+- **Media Session API** – Native lock screen controls and artwork display
+- **Responsive Design** – Optimized for desktop, tablet, and mobile devices
+- **Internationalization** – Built-in support for English, Spanish, and Russian with automatic locale detection
 
 ### Architecture & Performance
 
+- **Theme Independence** – Player pages run completely independently of your WordPress theme
 - **Vite Manifest-Based Asset Loading** – Automatic fingerprinting and cache busting for all assets
-- **Modular Build System** – Assets are bundled with predictable naming convention: `radio-player-page-{version}.{ext}`
 - **Template Redirect Hook** – Intercepts page requests at the WordPress template level for maximum efficiency
 - **Early Exit Pattern** – Player page exits before WordPress enqueues additional styles or scripts
-- **Backward Compatible** – Automatic migration from v1.1 (single station) to v1.2.1 (multiple stations)
+- **Backward Compatible** – Automatic migration from v1.1.2 (single station) to v1.2.1 (multiple stations)
+- **Modern Stack** – Built with React 19, TypeScript, Vite, and Material-UI
 
-### Technology Stack
+## 🚀 Quick Start
 
-- **React 19** – Modern, component-based architecture with latest hooks patterns
-- **TypeScript** – Type-safe development ensuring maintainability and developer experience
-- **Vite 6.3.5** – Lightning-fast builds, optimized bundles, and native ES modules
-- **Material-UI 7.1.1** – Professional, accessible interface components with built-in theming
-- **Web Audio API** – Direct browser audio processing for dynamic waveform visualization
-- **hls.js & dash.js** – Industry-standard libraries for adaptive bitrate streaming
-- **i18next** – Robust internationalization with automatic browser language detection
+### Installation
 
-### Developer-Friendly
+1. **Download the plugin:**
 
-- **Full i18n Support** – Three locales included; extensible for additional languages
-- **Clean TypeScript Codebase** – Custom hooks for audio handling, visualization, and capability detection
-- **Production-Ready** – Battle-tested configuration, automated builds, and linting with ESLint
-- **Dual Development Workflows** – Standalone React development or integrated WordPress testing
+   - From [WordPress Plugin Directory](https://wordpress.org/plugins/radio-player-page/)
+   - Or clone this repository: `git clone https://github.com/sjimhdez/radio-player-page.git`
 
-## 📋 Requirements
+2. **Install in WordPress:**
 
-- **WordPress** 5.0 or higher
-- **Node.js** 20.x (for development and building)
-- **PHP** 7.4 or higher
+   - Upload the `radio-player-page` folder to `/wp-content/plugins/`
+   - Or install via WordPress admin: **Plugins → Add New → Upload Plugin**
 
-## 🔧 Installation
+3. **Activate the plugin:**
+   - Navigate to **Plugins** in WordPress admin
+   - Click **Activate** on Radio Player Page
 
-### Quick Setup
+### Configuration
 
-1. Download the plugin from the [WordPress Plugin Directory](https://wordpress.org/plugins/radio-player-page/)
-2. Upload the `radio-player-page` folder to `/wp-content/plugins/`
-3. Navigate to **Plugins** and activate **Radio Player Page**
-4. Go to **Settings → Radio Player Page Settings** to configure your streams
+1. Go to **Settings → Radio Player Page Settings**
+2. For each stream:
+   - Enter your streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
+   - Select the WordPress page where the player should appear
+   - Optionally customize: title, theme color, visualizer type, background image, and logo
+3. Click **Save Changes** and visit the assigned page
 
-### Configuration Steps
+### Requirements
 
-1. Add up to 6 radio stations with their respective stream URLs
-2. Assign each station to a dedicated WordPress page
-3. Optionally customize the station title for each stream (defaults to your site name if left blank)
-4. Save and navigate to the player page to test playback
-
-### Important Notes
-
-- Each station requires both a valid stream URL and an assigned page
-- Stream URLs must be accessible URLs (checked with `esc_url_raw()`)
-- Incomplete entries (missing URL or page) are automatically filtered during save
-- Settings are automatically migrated from older versions
+- **WordPress** 5.0+
+- **PHP** 7.4+
+- **Node.js** 20.x (development only)
+- Valid streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
 
 ## 💻 Development
 
-### Architecture Overview
+### Technology Stack
 
-The plugin follows a clear separation of concerns:
-
-```
-WordPress Backend (PHP)          →  React Frontend (TypeScript)
-├── radio-player-page.php         ├── React 19 Application
-├── admin-page.php                ├── Material-UI Components
-├── compatibility.php             ├── Custom React Hooks
-└── Template Redirect Hook    →   └── Web Audio API Integration
-```
-
-**Key Architectural Features:**
-
-- The main PHP file registers the template redirect hook that intercepts page requests
-- The admin page provides a clean interface for managing stations (up to 6 entries)
-- Compatibility layer automatically migrates settings from v1.1 to v1.2.0+
-- React app receives `STREAM_URL` and `SITE_TITLE` via `window` globals injected by PHP
-- Vite manifest ensures proper asset loading with fingerprinting
+| Technology      | Version | Purpose                                    |
+| --------------- | ------- | ------------------------------------------ |
+| **Node.js**     | 20.x    | Runtime for builds and development tools   |
+| **TypeScript**  | 5.8.3   | Type safety and modern JavaScript features |
+| **React**       | 19.2.1  | UI framework and component patterns        |
+| **Vite**        | 6.3.5   | Build tool and dev server                  |
+| **Material-UI** | 7.1.1   | Component library and theming              |
+| **i18next**     | 25.3.2  | Internationalization framework             |
+| **hls.js**      | 1.6.15  | HLS streaming support                      |
+| **dashjs**      | 5.1.0   | DASH streaming support                     |
+| **ESLint**      | 9.25.0  | Code quality and consistency               |
 
 ### Project Structure
 
 ```
-player/                 # React frontend application
-├── src/
-│   ├── components/
-│   │   ├── dashboard/           # Main player interface
-│   │   └── visualizers/
-│   │       └── oscilloscope-visualizer.tsx   # Web Audio API visualizer
-│   ├── hooks/
-│   │   ├── use-audio-player.tsx      # Core audio playback logic
-│   │   ├── use-audio-visualizer.tsx  # Visualization state management
-│   │   └── use-can-visualize.tsx     # Browser capability detection
-│   ├── config/
-│   │   ├── i18n.ts              # i18next setup with 3 locales
-│   │   └── theme.ts             # Material-UI theme customization
-│   ├── locales/
-│   │   ├── en-US.json           # English (fallback language)
-│   │   ├── es.json              # Spanish
-│   │   └── ru-RU.json           # Russian
-│   ├── types/
-│   │   ├── global.ts            # Window interface augmentation
-│   │   ├── player.tsx           # Player state types
-│   │   └── visualizers.tsx      # Visualizer types
-│   ├── App.tsx                  # Root application component
-│   ├── main.tsx                 # Application entry point
-│   ├── App.css                  # Global styles
-│   └── index.css                # Base styles
-├── index.html                   # Standalone dev entry (uses mock window vars)
-├── vite.config.ts               # Build configuration with fingerprinting
-├── tsconfig.json                # TypeScript root configuration
-├── tsconfig.app.json            # App-specific TypeScript config
-├── tsconfig.node.json           # Node/build tool TypeScript config
-├── eslint.config.js             # ESLint rules
-└── package.json                 # Dependencies and scripts
+radio-player-page/
+├── admin-page.php              # WordPress admin interface
+├── compatibility.php           # Backward compatibility layer
+├── radio-player-page.php       # Main plugin file
+├── readme.txt                  # WordPress.org readme
+├── README.md                   # GitHub readme (this file)
+└── player/                     # React frontend application
+    ├── src/
+    │   ├── components/
+    │   │   ├── dashboard/      # Main player interface
+    │   │   │   ├── index.tsx
+    │   │   │   ├── PlayerControls.tsx
+    │   │   │   ├── StreamInfo.tsx
+    │   │   │   ├── VolumeControl.tsx
+    │   │   │   ├── SleepMode.tsx
+    │   │   │   └── SleepTimer.tsx
+    │   │   └── visualizers/    # Audio visualizers
+    │   │       ├── oscilloscope-visualizer.tsx
+    │   │       ├── bar-visualizer.tsx
+    │   │       ├── amplitude-waterfall-visualizer.tsx
+    │   │       └── particles-visualizer.tsx
+    │   ├── hooks/              # Custom React hooks
+    │   │   ├── use-audio-player.tsx
+    │   │   ├── use-audio-visualizer.tsx
+    │   │   ├── use-can-visualize.tsx
+    │   │   ├── use-is-ios.tsx
+    │   │   └── use-media-session.tsx
+    │   ├── config/             # Configuration files
+    │   │   ├── i18n.ts
+    │   │   ├── theme.ts
+    │   │   └── visualizers.ts
+    │   ├── locales/            # Translation files
+    │   │   ├── en-US.json
+    │   │   ├── es.json
+    │   │   └── ru-RU.json
+    │   ├── types/              # TypeScript type definitions
+    │   │   ├── global.ts
+    │   │   ├── player.tsx
+    │   │   └── visualizers.tsx
+    │   ├── App.tsx             # Root application component
+    │   ├── main.tsx            # Application entry point
+    │   └── index.css           # Global styles
+    ├── dist/                   # Built assets (generated)
+    ├── index.html              # Standalone dev entry
+    ├── vite.config.ts          # Vite configuration
+    ├── tsconfig.json           # TypeScript configuration
+    ├── eslint.config.js        # ESLint configuration
+    └── package.json            # Dependencies and scripts
 ```
 
 ### Development Workflows
@@ -177,6 +177,16 @@ npm run dev:build
 
 This watches for source changes and rebuilds assets into `dist/`, which you can then test inside a running WordPress instance.
 
+#### 3. Production Build
+
+Create optimized production bundles:
+
+```bash
+cd player
+npm install
+npm run build
+```
+
 ### Available Scripts
 
 | Command             | Purpose                                                  |
@@ -186,6 +196,14 @@ This watches for source changes and rebuilds assets into `dist/`, which you can 
 | `npm run build`     | Create production-optimized bundle with TypeScript check |
 | `npm run lint`      | Run ESLint across the entire project                     |
 | `npm run preview`   | Preview production build locally before deployment       |
+
+### Custom Hooks Reference
+
+- **`use-audio-player.tsx`** – Manages audio playback state (play/pause/stop), error handling, and stream monitoring. Supports HLS, DASH, Icecast, Shoutcast, and MP3 formats.
+- **`use-audio-visualizer.tsx`** – Connects Web Audio API to visualization state, handles frequency and time-domain data extraction.
+- **`use-can-visualize.tsx`** – Detects browser support for Web Audio API and handles graceful degradation.
+- **`use-is-ios.tsx`** – Detects iOS devices for platform-specific behavior.
+- **`use-media-session.tsx`** – Configures Media Session API for lock screen controls and artwork display.
 
 ### Build & Asset System
 
@@ -203,50 +221,26 @@ Example manifest.json entry:
 ```json
 {
   "src/main.tsx": {
-    "file": "radio-player-page-1.2.1.js",
-    "css": ["radio-player-page-1.2.1.css"],
+    "file": "radio-player-page-2.0.1.min.js",
+    "css": ["radio-player-page-2.0.1.css"],
     "isEntry": true
   }
 }
 ```
 
-### Technology Versions
-
-| Technology  | Version | Purpose                                    |
-| ----------- | ------- | ------------------------------------------ |
-| Node.js     | 20.x    | Runtime for builds and development tools   |
-| TypeScript  | 5.8.3   | Type safety and modern JavaScript features |
-| React       | 19.1.0  | UI framework and component patterns        |
-| Vite        | 6.3.5   | Build tool and dev server                  |
-| Material-UI | 7.1.1   | Component library and theming              |
-| i18next     | 25.3.2  | Internationalization framework             |
-| ESLint      | 9.25.0  | Code quality and consistency               |
-
-### Custom Hooks Reference
-
-- **`use-audio-player.tsx`** – Manages audio playback state (play/pause/stop), error handling, and stream monitoring
-- **`use-audio-visualizer.tsx`** – Connects Web Audio API to visualization state, handles frequency data extraction
-- **`use-can-visualize.tsx`** – Detects browser support for Web Audio API and handles graceful degradation
-
 ## 🌐 Internationalization
 
-The plugin includes built-in i18n support with three languages:
+Built-in support for English (en-US), Spanish (es), and Russian (ru-RU) with automatic locale detection. Language detection follows: HTML `lang` attribute → localStorage cache → Navigator preference.
 
-- **English (en-US)** – Default fallback language
-- **Spanish (es)** – Automatic detection for Spanish locales
-- **Russian (ru-RU)** – Automatic detection for Russian locales
+To add languages, create a locale file in `player/src/locales/` and register it in `player/src/config/i18n.ts`.
 
-Language detection follows this order:
+## 📸 Screenshots
 
-1. HTML `lang` attribute (set by WordPress)
-2. Browser localStorage cache
-3. Navigator language preference
-
-To add additional languages, create a new locale file in `player/src/locales/` and register it in `player/src/config/i18n.ts`.
-
-## 📚 Documentation
-
-For detailed setup instructions, configuration options, and troubleshooting, visit the [official plugin page](https://wordpress.org/plugins/radio-player-page/).
+1. Mobile interface with responsive design
+2. Desktop player with audio visualizer and controls
+3. Admin settings for managing stations
+4. Visualizer selection options
+5. Theme color customization
 
 ## 🤝 Contributing
 
@@ -265,17 +259,21 @@ Contributions are welcome! To contribute:
 - Test both workflows (standalone and WordPress integration)
 - Update translations if adding new UI text
 - Ensure backward compatibility with older settings format
+- Follow WordPress coding standards for PHP code
+- Write clear commit messages
 
 ## 📝 License
 
-Radio Player Page is licensed under the **GNU General Public License v2.0 or later**. See [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html) for details.
+Radio Player Page is licensed under the **GNU General Public License v2.0 or later**.
 
-## 🐛 Support & Issues
+See [LICENSE](https://www.gnu.org/licenses/gpl-2.0.html) for details.
+
+## 🐛 Support & Documentation
 
 - **Bug Reports** – [GitHub Issues](https://github.com/sjimhdez/radio-player-page/issues)
 - **WordPress Forum** – [Plugin Support](https://wordpress.org/support/plugin/radio-player-page/)
-- **Plugin Directory** – [wordpress.org/plugins/radio-player-page](https://wordpress.org/plugins/radio-player-page)
+- **Documentation** – [Official Plugin Page](https://wordpress.org/plugins/radio-player-page/)
 
-## 📢 Stay Updated
+## 🙏 Acknowledgments
 
-Follow the developer on [Bluesky](https://bsky.app) for announcements, updates, and community news about Radio Player Page and related projects.
+Built with [React](https://react.dev/), [Material-UI](https://mui.com/), [hls.js](https://github.com/video-dev/hls.js/), [dashjs](https://github.com/Dash-Industry-Forum/dash.js), [i18next](https://www.i18next.com/), and [Vite](https://vitejs.dev/).

@@ -36,6 +36,20 @@ function radplapag_register_settings() {
 add_action( 'admin_init', 'radplapag_register_settings' );
 
 /**
+ * Enqueue scripts and styles
+ *
+ * @since 2.0.1
+ */
+function radplapag_admin_scripts() {
+    // Only on our plugin page
+    $screen = get_current_screen();
+    if ( $screen && 'settings_page_radplapag' === $screen->id ) {
+        wp_enqueue_media();
+    }
+}
+add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts' );
+
+/**
  * Validates and sanitizes the input data
  *
  * @since 1.0.0
@@ -46,12 +60,21 @@ add_action( 'admin_init', 'radplapag_register_settings' );
 function radplapag_sanitize_settings( $input ) {
     $output = [ 'stations' => [] ];
     $stations = isset( $input['stations'] ) && is_array( $input['stations'] ) ? $input['stations'] : [];
-    $used_pages = [];
     
     foreach ( $stations as $index => $station ) {
         $url   = isset( $station['stream_url'] ) ? trim( $station['stream_url'] ) : '';
         $page  = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : 0;
         $title = isset( $station['station_title'] ) ? sanitize_text_field( $station['station_title'] ) : '';
+        $bg_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
+        $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
+        $theme = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
+        $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
+        
+        // Validate that the visualizer is valid
+        $valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
+        if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
+            $visualizer = 'oscilloscope';
+        }
         
         // Filter: Must have both URL and Page to be saved
         if ( empty( $url ) || empty( $page ) ) {
@@ -62,9 +85,11 @@ function radplapag_sanitize_settings( $input ) {
             'stream_url'    => esc_url_raw( $url ),
             'player_page'   => $page,
             'station_title' => $title,
+            'background_id' => $bg_id,
+            'logo_id'       => $logo_id,
+            'theme_color'   => $theme,
+            'visualizer'    => $visualizer,
         ];
-        
-        $used_pages[] = $page;
     }  
     return $output;
 }
@@ -98,12 +123,23 @@ function radplapag_render_settings_page() {
     $options = radplapag_get_settings();
     $stations = isset( $options['stations'] ) && is_array( $options['stations'] ) ? $options['stations'] : [];
     $pages = get_pages( [ 'post_status' => 'publish' ] );
-    $max_stations = 6;
+    $max_stations = 10;
     
     // Ensure we have at least one empty streaming slot
     while ( count( $stations ) < $max_stations ) {
-        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '' ];
+        $stations[] = [ 'stream_url' => '', 'player_page' => '', 'station_title' => '', 'background_id' => '', 'logo_id' => '', 'theme_color' => 'neutral', 'visualizer' => 'oscilloscope' ];
     }
+    
+    $colors = [
+        'neutral' => __( 'Neutral', 'radio-player-page' ),
+        'blue'    => __( 'Blue', 'radio-player-page' ),
+        'green'   => __( 'Green', 'radio-player-page' ),
+        'red'     => __( 'Red', 'radio-player-page' ),
+        'orange'  => __( 'Orange', 'radio-player-page' ),
+        'yellow'  => __( 'Yellow', 'radio-player-page' ),
+        'purple'  => __( 'Purple', 'radio-player-page' ),
+        'pink'    => __( 'Pink', 'radio-player-page' ),
+    ];
     ?>
     <div class="wrap">
         <h1><?php esc_html_e( 'Radio Player Page Settings', 'radio-player-page' ); ?></h1>
@@ -112,8 +148,7 @@ function radplapag_render_settings_page() {
 
         <div>
             <h2><?php esc_html_e( 'How to use', 'radio-player-page' ); ?></h2>
-            <p><?php esc_html_e( 'Your Radio Station can have up to six streams. For each stream, enter the stream URL (Icecast, Shoutcast, etc.) and select a different page where the player should appear.', 'radio-player-page' ); ?></p>
-            <p><?php esc_html_e( 'Once configured, each selected page will display a clean, standalone audio player designed for uninterrupted listening.', 'radio-player-page' ); ?></p>
+            <p><?php esc_html_e( 'Configure up to ten streams. For each stream, enter the stream URL (Icecast, Shoutcast, or MP3) and select the page where the player should appear. You can customize the theme color, visualizer, background image, and logo for each stream.', 'radio-player-page' ); ?></p>
         </div>
 
         <form method="post" action="options.php" id="radplapag-settings-form">
@@ -126,6 +161,15 @@ function radplapag_render_settings_page() {
                     $stream_url = isset( $station['stream_url'] ) ? esc_attr( $station['stream_url'] ) : '';
                     $player_page = isset( $station['player_page'] ) ? intval( $station['player_page'] ) : '';
                     $station_title = isset( $station['station_title'] ) ? esc_attr( $station['station_title'] ) : '';
+                    $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : '';
+                    $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : '';
+                    $theme_color = isset( $station['theme_color'] ) ? esc_attr( $station['theme_color'] ) : 'neutral';
+                    $visualizer = isset( $station['visualizer'] ) ? esc_attr( $station['visualizer'] ) : 'oscilloscope';
+
+                    // Get image preview URLs
+                    $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
+                    $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+
                     $is_empty = empty( $stream_url ) && empty( $player_page );
                 ?>
                     <div class="radplapag-station-row" data-index="<?php echo esc_attr( $index ); ?>" <?php echo $is_empty && $index > 0 ? 'style="display:none;"' : ''; ?>>
@@ -160,7 +204,6 @@ function radplapag_render_settings_page() {
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
-                                    <p class="description"><?php esc_html_e( 'The page where the player will be displayed. Each page can only be used once.', 'radio-player-page' ); ?></p>
                                 </td>
                             </tr>
                             <tr>
@@ -179,13 +222,12 @@ function radplapag_render_settings_page() {
                                         placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>"
                                         <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
                                     >
-                                    <p class="description"><?php esc_html_e( 'Example: https://my.station.com:8000/stream', 'radio-player-page' ); ?></p>
                                 </td>
                             </tr>
                             <tr>
                                 <th scope="row">
                                     <label for="radplapag_station_title_<?php echo esc_attr( $index ); ?>">
-                                        <?php esc_html_e( 'Stream Title (Optional)', 'radio-player-page' ); ?>
+                                        <?php esc_html_e( 'Stream Title', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?>
                                     </label>
                                 </th>
                                 <td>
@@ -196,8 +238,91 @@ function radplapag_render_settings_page() {
                                         value="<?php echo esc_attr( $station_title ); ?>" 
                                         class="regular-text radplapag-station-title-input"
                                         placeholder="<?php esc_attr_e( 'My Radio Station', 'radio-player-page' ); ?>"
+                                        maxlength="64"
                                     >
-                                    <p class="description"><?php esc_html_e( 'Custom title for this stream. If left empty, the site title will be used.', 'radio-player-page' ); ?></p>
+                                </td>
+                            </tr>
+                            <!-- Theme Color -->
+                            <tr>
+                                <th scope="row">
+                                    <label for="radplapag_theme_color_<?php echo esc_attr( $index ); ?>">
+                                        <?php esc_html_e( 'Theme Color', 'radio-player-page' ); ?>
+                                    </label>
+                                </th>
+                                <td>
+                                    <select 
+                                        name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][theme_color]" 
+                                        id="radplapag_theme_color_<?php echo esc_attr( $index ); ?>"
+                                    >
+                                        <?php foreach ( $colors as $value => $label ) : ?>
+                                            <option value="<?php echo esc_attr( $value ); ?>" <?php selected( $theme_color, $value ); ?>>
+                                                <?php echo esc_html( $label ); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </td>
+                            </tr>
+                            <!-- Visualizer -->
+                            <tr>
+                                <th scope="row">
+                                    <label for="radplapag_visualizer_<?php echo esc_attr( $index ); ?>">
+                                        <?php esc_html_e( 'Visualizer', 'radio-player-page' ); ?>
+                                    </label>
+                                </th>
+                                <td>
+                                    <select 
+                                        name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][visualizer]" 
+                                        id="radplapag_visualizer_<?php echo esc_attr( $index ); ?>"
+                                    >
+                                        <option value="oscilloscope" <?php selected( $visualizer, 'oscilloscope' ); ?>>
+                                            <?php esc_html_e( 'Oscilloscope', 'radio-player-page' ); ?>
+                                        </option>
+                                        <option value="bars" <?php selected( $visualizer, 'bars' ); ?>>
+                                            <?php esc_html_e( 'Bars Spectrum', 'radio-player-page' ); ?>
+                                        </option>
+                                        <option value="waterfall" <?php selected( $visualizer, 'waterfall' ); ?>>
+                                            <?php esc_html_e( 'Amplitude Waterfall', 'radio-player-page' ); ?>
+                                        </option>
+                                        <option value="particles" <?php selected( $visualizer, 'particles' ); ?>>
+                                            <?php esc_html_e( 'Spectral Particles', 'radio-player-page' ); ?>
+                                        </option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <!-- Logo Image -->
+                            <tr>
+                                <th scope="row">
+                                    <label><?php esc_html_e( 'Logo Image', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?></label>
+                                </th>
+                                <td>
+                                    <div class="radplapag-image-upload-wrapper">
+                                        <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][logo_id]" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-image-id">
+                                        <div class="radplapag-image-preview">
+                                            <?php if ( $logo_url ) : ?>
+                                                <img src="<?php echo esc_url( $logo_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
+                                            <?php endif; ?>
+                                        </div>
+                                        <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+                                        <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Background Image -->
+                            <tr>
+                                <th scope="row">
+                                    <label><?php esc_html_e( 'Background Image', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?></label>
+                                </th>
+                                <td>
+                                    <div class="radplapag-image-upload-wrapper">
+                                        <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][background_id]" value="<?php echo esc_attr( $background_id ); ?>" class="radplapag-image-id">
+                                        <div class="radplapag-image-preview">
+                                            <?php if ( $background_url ) : ?>
+                                                <img src="<?php echo esc_url( $background_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
+                                            <?php endif; ?>
+                                        </div>
+                                        <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+                                        <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $background_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                    </div>
                                 </td>
                             </tr>
                         </table>
@@ -235,6 +360,14 @@ function radplapag_render_settings_page() {
         }
         .radplapag-station-row hr {
             margin: 20px 0 0;
+        }
+        .radplapag-image-preview {
+            margin-bottom: 10px;
+        }
+        .radplapag-image-preview img {
+            border: 1px solid #ddd;
+            padding: 4px;
+            background: #fff;
         }
     </style>
     
@@ -296,6 +429,13 @@ function radplapag_render_settings_page() {
                 if (titleInput) {
                     titleInput.value = '';
                 }
+
+                // Clear images
+                row.querySelectorAll('.radplapag-image-upload-wrapper').forEach(function(wrapper) {
+                    wrapper.querySelector('.radplapag-image-id').value = '';
+                    wrapper.querySelector('.radplapag-image-preview').innerHTML = '';
+                    wrapper.querySelector('.radplapag-remove-image-btn').style.display = 'none';
+                });
                 
                 row.style.display = 'none';
                 updateAddButton();
@@ -327,6 +467,63 @@ function radplapag_render_settings_page() {
                 updatePageOptions();
             }
         }
+
+        // Image Upload Logic
+        function initImageUpload() {
+            var file_frame;
+
+            container.addEventListener('click', function(e) {
+                if (e.target.classList.contains('radplapag-upload-btn')) {
+                    e.preventDefault();
+                    var wrapper = e.target.closest('.radplapag-image-upload-wrapper');
+                    var inputId = wrapper.querySelector('.radplapag-image-id');
+                    var preview = wrapper.querySelector('.radplapag-image-preview');
+                    var removeBtn = wrapper.querySelector('.radplapag-remove-image-btn');
+
+                    // Create the media frame.
+                    if ( file_frame ) {
+                        file_frame.open();
+                        return;
+                    }
+
+                    file_frame = wp.media.frames.file_frame = wp.media({
+                        title: '<?php echo esc_js( __( 'Select Image', 'radio-player-page' ) ); ?>',
+                        button: {
+                            text: '<?php echo esc_js( __( 'Select Image', 'radio-player-page' ) ); ?>',
+                        },
+                        multiple: false
+                    });
+
+                    file_frame.on('select', function() {
+                        var attachment = file_frame.state().get('selection').first().toJSON();
+                        inputId.value = attachment.id;
+                        preview.innerHTML = '<img src="' + attachment.url + '" alt="" style="max-width:150px;max-height:150px;display:block;">';
+                        removeBtn.style.display = 'inline-block';
+                        
+                        // We must clear the frame so next time it opens fresh (or we need to update closure vars)
+                        // Actually better to just attach event per click or update vars.
+                        // For simplicity in this structure, we'll just let it rely on the closure vars
+                        // BUT, since file_frame is global-ish here, it will reuse the last wrapper unless we reconstruct it
+                        // or unbind/rebind 'select'.
+                        // Let's destroy frame reference to force recreation for correct closure capture
+                         file_frame = null; 
+                    });
+
+                    file_frame.open();
+                    
+                    // Hack to fix the closure issue if we didn't nulify:
+                    // We nulify file_frame above so it recreates with the correct 'wrapper' in scope.
+                }
+
+                if (e.target.classList.contains('radplapag-remove-image-btn')) {
+                    e.preventDefault();
+                    var wrapper = e.target.closest('.radplapag-image-upload-wrapper');
+                    wrapper.querySelector('.radplapag-image-id').value = '';
+                    wrapper.querySelector('.radplapag-image-preview').innerHTML = '';
+                    e.target.style.display = 'none';
+                }
+            });
+        }
         
         // Event listeners
         if (addBtn) {
@@ -347,6 +544,7 @@ function radplapag_render_settings_page() {
         // Initialize
         updateAddButton();
         updatePageOptions();
+        initImageUpload();
     })();
     </script>
     <?php
