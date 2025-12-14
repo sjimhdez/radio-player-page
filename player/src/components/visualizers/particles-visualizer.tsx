@@ -187,6 +187,18 @@ function drawParticle(
 // Main Visualizer Function
 // ============================================================================
 
+/**
+ * Particles visualizer
+ * Creates orbiting particles around the center that expand/contract with audio frequency
+ * Each particle is mapped to a different frequency band
+ * Particles orbit at varying speeds and leave trails for a dynamic effect
+ *
+ * @param ctx - Canvas 2D rendering context
+ * @param dataArray - Frequency domain audio data (Uint8Array, range 0-255)
+ * @param canvas - HTML canvas element
+ * @param width - Canvas width in pixels
+ * @param height - Canvas height in pixels
+ */
 export const particlesVisualizer = (
   ctx: CanvasRenderingContext2D,
   dataArray: Uint8Array,

@@ -4,17 +4,50 @@ import type Hls from 'hls.js'
 import type { MediaPlayerClass } from 'dashjs'
 import { useIsIOS } from 'src/hooks/use-is-ios'
 
-// Lazy loaders for streaming libraries
+/**
+ * Lazy loads HLS.js library
+ * Only loaded when needed for HLS stream support on non-iOS devices
+ *
+ * @returns Promise resolving to HLS.js default export
+ */
 const loadHls = async () => {
   const hlsModule = await import('hls.js')
   return hlsModule.default
 }
 
+/**
+ * Lazy loads dash.js MediaPlayer library
+ * Only loaded when needed for DASH stream support
+ *
+ * @returns Promise resolving to dash.js MediaPlayer class
+ */
 const loadDashjs = async () => {
   const dashModule = await import('dashjs')
   return dashModule.MediaPlayer
 }
 
+/**
+ * Custom hook for managing audio playback
+ * Supports multiple streaming protocols: HLS (.m3u8), DASH (.mpd), and standard audio streams
+ * Automatically selects the appropriate playback method based on stream URL and device capabilities
+ *
+ * Features:
+ * - Automatic protocol detection and library loading
+ * - iOS native HLS support (no library needed)
+ * - Error handling and status management
+ * - Volume control (disabled on iOS)
+ * - Cleanup of streaming libraries on unmount or stream change
+ *
+ * @param streamUrl - URL of the audio stream to play
+ * @returns Audio player state and control functions
+ * @returns audioRef - React ref to the HTMLAudioElement
+ * @returns status - Current playback status ('idle' | 'playing' | 'paused' | 'error')
+ * @returns loading - Whether the player is currently loading/buffering
+ * @returns play - Function to start or resume playback
+ * @returns pause - Function to pause playback
+ * @returns volume - Current volume level (0-1)
+ * @returns handleVolumeChange - Function to change volume (ignored on iOS)
+ */
 function useAudioPlayer(streamUrl: string) {
   const audioRef = useRef<HTMLAudioElement>(null!)
   const hlsRef = useRef<Hls | null>(null)
@@ -30,6 +63,10 @@ function useAudioPlayer(streamUrl: string) {
     statusRef.current = status
   }, [status])
 
+  /**
+   * Destroys HLS and DASH player instances
+   * Called when changing streams or on component unmount
+   */
   const destroyPlayers = useCallback(() => {
     if (hlsRef.current) {
       hlsRef.current.destroy()
@@ -48,7 +85,7 @@ function useAudioPlayer(streamUrl: string) {
     try {
       setLoading(true)
 
-      // If we are already playing the same URL, just play
+      // If already playing the same URL, just resume if paused
       if (audio.src === streamUrl && status !== 'error') {
         if (audio.paused) {
           await audio.play()
@@ -60,19 +97,19 @@ function useAudioPlayer(streamUrl: string) {
       // Cleanup previous players if loading a new stream
       destroyPlayers()
 
+      // Detect streaming protocol from URL extension
       const isHls = streamUrl.endsWith('.m3u8')
       const isDash = streamUrl.endsWith('.mpd')
 
       if (isHls) {
-        // iOS Safari has native HLS support, don't use HLS.js
+        // iOS Safari has native HLS support, no library needed
         if (isIOS) {
-          // Use native HLS support on iOS
           audio.src = streamUrl
           audio.crossOrigin = 'anonymous'
           audio.load()
           await audio.play()
         } else {
-          // Lazy load HLS.js only when needed (non-iOS devices)
+          // Use HLS.js for non-iOS devices
           const Hls = await loadHls()
           if (Hls.isSupported()) {
             const hls = new Hls()
@@ -94,7 +131,7 @@ function useAudioPlayer(streamUrl: string) {
               }
             })
           } else {
-            // HLS not supported, fallback to native
+            // HLS.js not supported, fallback to native browser support
             audio.src = streamUrl
             audio.crossOrigin = 'anonymous'
             audio.load()
@@ -102,7 +139,8 @@ function useAudioPlayer(streamUrl: string) {
           }
         }
       } else if (isDash) {
-        // Lazy load dash.js only when needed
+        // DASH streaming using dash.js
+        // Third parameter (true) enables autoPlay - playback starts automatically
         const MediaPlayer = await loadDashjs()
         const player = MediaPlayer().create()
         dashRef.current = player
@@ -112,7 +150,7 @@ function useAudioPlayer(streamUrl: string) {
           statusRef.current = 'error'
         })
       } else {
-        // Native / Standard
+        // Standard audio stream (MP3, OGG, etc.)
         audio.src = streamUrl
         audio.crossOrigin = 'anonymous'
         audio.load()
@@ -155,6 +193,7 @@ function useAudioPlayer(streamUrl: string) {
       audio.volume = volume
     }
 
+    // Event handler: updates playback status to 'playing'
     const onPlaying = () => {
       setStatus('playing')
       statusRef.current = 'playing'
@@ -168,20 +207,26 @@ function useAudioPlayer(streamUrl: string) {
       statusRef.current = 'error'
     }
     const onCanPlay = () => {
+      // Only clear loading state if we were in idle or error state
+      // (don't interfere with normal playback states)
       if (statusRef.current === 'idle' || statusRef.current === 'error') {
-        // Only update if we were waiting for it
         setLoading(false)
       }
     }
     const onWaiting = () => setLoading(true)
+    // Event handler: clears loading state when playback resumes after buffering
+    // Note: This is a second 'playing' listener with a different purpose
     const onPlayingFromWaiting = () => setLoading(false)
 
+    // Add event listeners
+    // Note: 'playing' event has two handlers:
+    // 1. onPlaying: updates status to 'playing'
+    // 2. onPlayingFromWaiting: clears loading state after buffering
     audio.addEventListener('playing', onPlaying)
     audio.addEventListener('pause', onPause)
     audio.addEventListener('error', onError)
     audio.addEventListener('canplay', onCanPlay)
     audio.addEventListener('waiting', onWaiting)
-    // When playing resumes after buffering
     audio.addEventListener('playing', onPlayingFromWaiting)
 
     return () => {
@@ -192,7 +237,7 @@ function useAudioPlayer(streamUrl: string) {
       audio.removeEventListener('waiting', onWaiting)
       audio.removeEventListener('playing', onPlayingFromWaiting)
     }
-  }, [volume, isIOS]) // removed status dependency to avoid loops, intentionally
+  }, [volume, isIOS]) // Note: status dependency intentionally omitted to avoid event loop issues
 
   // Cleanup on unmount
   useEffect(() => {

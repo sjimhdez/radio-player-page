@@ -34,6 +34,17 @@ function generateArtworkArray(logoUrl: string): MediaImage[] {
 
 /**
  * Hook to configure Media Session API with active stream data
+ * Enables lock screen controls and media notification integration
+ *
+ * The hook automatically updates Media Session metadata and action handlers
+ * whenever the provided props change. This ensures the lock screen always
+ * displays current stream information.
+ *
+ * Updates dynamically when:
+ * - Title changes
+ * - Logo URL changes
+ * - Play/pause callbacks change
+ * - Translation language changes
  *
  * @param title - Title of the radio station/stream
  * @param logoUrl - URL of the logo/artwork image (from LOGO_IMAGE). If not provided, no artwork will be sent

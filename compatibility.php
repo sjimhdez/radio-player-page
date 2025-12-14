@@ -2,7 +2,12 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Compatibility functions for backward compatibility.
+ * Backward compatibility and database migration functions.
+ *
+ * This file handles migration from older plugin versions to the current format,
+ * ensuring that existing installations continue to work after updates. It manages
+ * the transition from single-station configuration (v1.1) to multi-station support (v1.2.0+)
+ * and tracks database version for proper migration execution.
  *
  * @package radio-player-page
  * @since 1.2.0
@@ -51,9 +56,16 @@ function radplapag_migrate_old_settings() {
 }
 
 /**
- * Ensure the DB version option exists.
+ * Ensures the database version option exists in the database.
+ *
+ * Creates the 'radplapag_db_version' option with a default value if it doesn't exist.
+ * This is necessary for installations that were created before version 1.2.0, which
+ * introduced the version tracking system. The default '0.0.0' version ensures that
+ * migration functions will run for these older installations.
  *
  * @since 1.2.0
+ *
+ * @return void
  */
 function radplapag_ensure_db_version_option() {
     $current = get_option( 'radplapag_db_version', false );
@@ -63,9 +75,17 @@ function radplapag_ensure_db_version_option() {
 }
 
 /**
- * Checks if a database migration is needed based on version.
+ * Checks the current database version and runs migrations if necessary.
+ *
+ * Compares the installed database version with the current plugin version defined
+ * in RADPLAPAG_DB_VERSION. If the installed version is older, it ensures the version
+ * option exists, runs the migration function to convert old settings format to new format,
+ * and updates the version option to the current version. This function runs on both
+ * admin initialization and plugin load to catch migrations in all contexts.
  *
  * @since 1.2.0
+ *
+ * @return void
  */
 function radplapag_check_version() {
     radplapag_ensure_db_version_option();

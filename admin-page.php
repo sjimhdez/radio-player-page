@@ -2,27 +2,43 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Admin page functions.
+ * Admin interface and settings management.
+ *
+ * This file handles all administrative functionality for the Radio Player Page plugin,
+ * including settings registration, sanitization, menu creation, and the settings page
+ * rendering. It provides a user interface for configuring multiple radio stations
+ * with their associated pages, themes, visualizers, and media assets.
  *
  * @package radio-player-page
  * @since 1.0.0
  */
 
 /**
- * Gets settings
+ * Retrieves the plugin settings from the database.
+ *
+ * Returns the complete settings array containing all configured radio stations.
+ * If no settings exist, returns an empty array with a 'stations' key.
  *
  * @since 1.0.0
  *
- * @return array Settings in new format
+ * @return array Settings array with structure: ['stations' => [['stream_url' => string,
+ *                     'player_page' => int, 'station_title' => string, 'background_id' => int,
+ *                     'logo_id' => int, 'theme_color' => string, 'visualizer' => string], ...]]
  */
 function radplapag_get_settings() {
     return get_option( 'radplapag_settings', [ 'stations' => [] ] );
 }
 
 /**
- * Register settings
+ * Registers the plugin settings with WordPress Settings API.
+ *
+ * Registers the 'radplapag_settings' option with a sanitization callback to ensure
+ * all input data is properly validated and sanitized before being saved to the database.
+ * This hook runs during admin initialization.
  *
  * @since 1.0.0
+ *
+ * @return void
  */
 function radplapag_register_settings() {
     register_setting(
@@ -36,9 +52,14 @@ function radplapag_register_settings() {
 add_action( 'admin_init', 'radplapag_register_settings' );
 
 /**
- * Enqueue scripts and styles
+ * Enqueues scripts and styles for the plugin admin page.
+ *
+ * Loads WordPress media uploader scripts only on the plugin's settings page,
+ * enabling image selection functionality for station logos and backgrounds.
  *
  * @since 2.0.1
+ *
+ * @return void
  */
 function radplapag_admin_scripts() {
     // Only on our plugin page
@@ -50,12 +71,23 @@ function radplapag_admin_scripts() {
 add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts' );
 
 /**
- * Validates and sanitizes the input data
+ * Validates and sanitizes settings input before saving to database.
+ *
+ * Processes the submitted form data, validates all fields, and sanitizes them
+ * according to their data types. Only stations with both a valid stream URL and
+ * a selected player page are saved. Visualizer values are validated against a
+ * whitelist for security. Invalid entries are filtered out.
  *
  * @since 1.0.0
  *
- * @param array $input The settings input.
- * @return array Sanitized settings.
+ * @param array $input Raw settings input from form submission. Expected structure:
+ *                     ['stations' => [['stream_url' => string, 'player_page' => int|string,
+ *                     'station_title' => string, 'background_id' => int|string, 'logo_id' => int|string,
+ *                     'theme_color' => string, 'visualizer' => string], ...]]
+ * @return array Sanitized settings array with validated and cleaned data. Structure:
+ *              ['stations' => [['stream_url' => string (escaped URL), 'player_page' => int,
+ *              'station_title' => string (sanitized text), 'background_id' => int, 'logo_id' => int,
+ *              'theme_color' => string (sanitized key), 'visualizer' => string (validated)], ...]]
  */
 function radplapag_sanitize_settings( $input ) {
     $output = [ 'stations' => [] ];
@@ -95,9 +127,14 @@ function radplapag_sanitize_settings( $input ) {
 }
 
 /**
- * Adds the page to the settings menu
+ * Adds the plugin settings page to the WordPress Settings menu.
+ *
+ * Creates a submenu item under Settings > Radio Player Page Settings that is
+ * accessible only to users with the 'manage_options' capability (typically administrators).
  *
  * @since 1.0.0
+ *
+ * @return void
  */
 function radplapag_settings_menu() {
     add_options_page(
@@ -111,9 +148,16 @@ function radplapag_settings_menu() {
 add_action( 'admin_menu', 'radplapag_settings_menu' );
 
 /**
- * Renders the options form
+ * Renders the complete settings page interface.
+ *
+ * Outputs the HTML form for configuring radio stations, including fields for stream URLs,
+ * page selection, station titles, theme colors, visualizers, and media uploads (logos and
+ * backgrounds). The page supports up to 10 stations and includes JavaScript for dynamic
+ * form management, image uploads via WordPress media library, and page selection validation.
  *
  * @since 1.0.0
+ *
+ * @return void Outputs HTML directly.
  */
 function radplapag_render_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) {

@@ -1,12 +1,27 @@
 import type { VisualizerFn } from 'src/hooks/use-audio-visualizer'
 
+/**
+ * Type of audio data required by a visualizer
+ * - 'time': Time domain data (waveform)
+ * - 'frequency': Frequency domain data (spectrum)
+ * - 'other': Other data types (custom implementations)
+ */
 export type VisualizerDataType = 'time' | 'frequency' | 'other'
 
+/**
+ * Visualizer configuration interface
+ * Contains metadata and the visualizer function for rendering
+ */
 export interface VisualizerConfig {
+  /** Unique identifier for the visualizer */
   id: string
+  /** Display name of the visualizer */
   name: string
+  /** Type of audio data this visualizer requires */
   dataType: VisualizerDataType
+  /** Function that renders the visualization */
   fn: VisualizerFn
+  /** Force vertical centering of stream info when this visualizer is active */
   forceVerticalCenter?: boolean
 }
 
@@ -70,6 +85,11 @@ const visualizerLoaders: Record<string, () => Promise<VisualizerFn>> = {
 
 /**
  * Gets a visualizer by its ID (async, lazy loads the code)
+ * Visualizers are code-split and loaded on-demand to reduce initial bundle size
+ * Results are cached after first load
+ *
+ * @param id - Visualizer identifier (e.g., 'oscilloscope', 'bars', 'particles', 'waterfall')
+ * @returns Promise resolving to visualizer config or undefined if not found
  */
 export async function getVisualizer(id: string): Promise<VisualizerConfig | undefined> {
   // Check cache first
@@ -104,6 +124,9 @@ export async function getVisualizer(id: string): Promise<VisualizerConfig | unde
 
 /**
  * Gets the default visualizer metadata (synchronous, for initial render)
+ * Returns metadata without the visualizer function to avoid loading code during SSR or initial render
+ *
+ * @returns Default visualizer metadata (oscilloscope)
  */
 export function getDefaultVisualizer(): Omit<VisualizerConfig, 'fn'> {
   return VISUALIZER_METADATA.oscilloscope
@@ -111,6 +134,10 @@ export function getDefaultVisualizer(): Omit<VisualizerConfig, 'fn'> {
 
 /**
  * List of all available visualizers (for admin - metadata only)
+ * Returns metadata for all visualizers without loading their code
+ * Used by admin interface to display visualizer options
+ *
+ * @returns Array of visualizer metadata objects
  */
 export function getAvailableVisualizers(): Omit<VisualizerConfig, 'fn'>[] {
   return Object.values(VISUALIZER_METADATA)
