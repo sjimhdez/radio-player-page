@@ -6,13 +6,34 @@ import { useTranslation } from 'react-i18next'
 import { useRef, useState, useEffect } from 'react'
 
 interface StreamInfoProps {
+  /** Radio station or stream title */
   title: string
+  /** Whether the stream is currently playing */
   isPlaying: boolean
+  /** Whether audio visualization is available */
   canVisualize: boolean
+  /** Whether the player is currently loading */
   loading: boolean
+  /** Force vertical centering regardless of visualization state */
   forceVerticalCenter?: boolean
 }
 
+/**
+ * Stream information display component
+ * Shows the station logo, title, connection status, and playing indicator
+ * Dynamically positions itself based on visualization state and playback status
+ *
+ * Features:
+ * - Displays station logo (if LOGO_IMAGE is set)
+ * - Shows station title
+ * - Shows "connecting" message when loading and not playing
+ * - Shows animated dot indicator when playing but visualization is not available
+ *   (e.g., Safari with cross-origin audio due to CORS restrictions)
+ * - Automatically adjusts vertical position based on visualization availability
+ *
+ * @param props - Component props
+ * @returns Stream information display with logo and title
+ */
 const StreamInfo = ({
   title,
   isPlaying,
@@ -83,6 +104,7 @@ const StreamInfo = ({
       >
         {title}
       </Typography>
+      {/* Show connecting message when loading but not yet playing */}
       {loading && !isPlaying && (
         <Typography
           component="p"
@@ -98,6 +120,8 @@ const StreamInfo = ({
         </Typography>
       )}
 
+      {/* Animated playing indicator when playing but visualization is not available
+          (e.g., Safari with cross-origin audio due to CORS restrictions) */}
       <Collapse
         in={isPlaying && !canVisualize}
         timeout={200}

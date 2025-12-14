@@ -100,10 +100,10 @@ function amplitudeToHeight(amplitude: number, canvasHeight: number): number {
 }
 
 /**
- * Calcula las alturas objetivo para todas las barras basadas en los datos de frecuencia
- * Cada barra representa una banda de frecuencia del audio (de graves a agudos)
- * Convierte datos de amplitud (0-255) a altura del canvas (0-100%)
- * Muestra las barras en orden natural sin efecto espejo
+ * Calculates target heights for all bars based on frequency data
+ * Each bar represents a frequency band of the audio (from bass to treble)
+ * Converts amplitude data (0-255) to canvas height (0-100%)
+ * Displays bars in natural order without mirror effect
  */
 function calculateTargetHeights(dataArray: Uint8Array, canvasHeight: number): number[] {
   const dataPointsPerBar = Math.floor(dataArray.length / CONFIG.BAR_COUNT)
@@ -125,14 +125,14 @@ function calculateTargetHeights(dataArray: Uint8Array, canvasHeight: number): nu
 }
 
 /**
- * Aplica suavizado a una altura actual hacia una altura objetivo
+ * Applies smoothing to current height towards a target height
  */
 function smoothHeight(currentHeight: number, targetHeight: number): number {
   return currentHeight + (targetHeight - currentHeight) * CONFIG.SMOOTHING_FACTOR
 }
 
 /**
- * Calcula las dimensiones y posiciones de las barras
+ * Calculates bar dimensions and positions
  */
 function calculateBarDimensions(
   canvasWidth: number,
@@ -151,7 +151,7 @@ function calculateBarDimensions(
 }
 
 /**
- * Dibuja una barra individual en el canvas
+ * Draws an individual bar on the canvas
  */
 function drawBar(
   ctx: CanvasRenderingContext2D,
@@ -160,16 +160,16 @@ function drawBar(
   barHeight: number,
   canvasHeight: number,
 ): void {
-  // Limpiar solo el área vertical de esta barra
+  // Clear only the vertical area of this bar
   ctx.clearRect(x, 0, barWidth, canvasHeight)
 
-  // Dibujar la barra desde abajo hacia arriba
+  // Draw the bar from bottom to top
   ctx.fillStyle = CONFIG.BAR_COLOR
   ctx.fillRect(x, canvasHeight - barHeight, barWidth, barHeight)
 }
 
 /**
- * Dibuja una línea de pico en el canvas
+ * Draws a peak line on the canvas
  */
 function drawPeakLine(ctx: CanvasRenderingContext2D, peak: Peak, canvasHeight: number): void {
   const y = canvasHeight - peak.peakHeight
@@ -237,6 +237,18 @@ function cleanExpiredPeaks(peaks: Peak[], now: number): Peak[] {
 // Main Visualizer Function
 // ============================================================================
 
+/**
+ * Bar visualizer
+ * Displays frequency spectrum as vertical bars
+ * Each bar represents a frequency band, showing amplitude from bass (left) to treble (right)
+ * Includes peak detection and peak line display for visual feedback
+ *
+ * @param ctx - Canvas 2D rendering context
+ * @param dataArray - Frequency domain audio data (Uint8Array, range 0-255)
+ * @param canvas - HTML canvas element
+ * @param width - Canvas width in pixels
+ * @param height - Canvas height in pixels
+ */
 export const barVisualizer = (
   ctx: CanvasRenderingContext2D,
   dataArray: Uint8Array,

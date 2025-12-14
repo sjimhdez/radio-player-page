@@ -5,10 +5,20 @@ import { useTranslation } from 'react-i18next'
 import { useIsIOS } from 'src/hooks/use-is-ios'
 
 interface VolumeControlProps {
+  /** Current volume level (0-1) */
   volume: number
+  /** Callback function called when volume changes */
   onVolumeChange: (volume: number) => void
 }
 
+/**
+ * Volume control component
+ * Displays a slider to control audio volume
+ * Hidden on iOS devices as volume is controlled by system hardware buttons
+ *
+ * @param props - Component props
+ * @returns Volume slider or null on iOS devices
+ */
 const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
   const { t } = useTranslation()
   const isIOS = useIsIOS()

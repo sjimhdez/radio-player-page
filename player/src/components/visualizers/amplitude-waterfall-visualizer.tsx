@@ -139,6 +139,18 @@ function updateWaterfall(state: AmplitudeWaterfallState, newTimeData: Uint8Array
 // Main Visualizer Function
 // ============================================================================
 
+/**
+ * Amplitude waterfall visualizer
+ * Creates a scrolling waterfall effect showing amplitude changes over time
+ * Each column represents the average amplitude at a point in time
+ * Columns scroll left as new data arrives
+ *
+ * @param ctx - Canvas 2D rendering context
+ * @param dataArray - Time domain audio data (Uint8Array, range 0-255)
+ * @param canvas - HTML canvas element
+ * @param width - Canvas width in pixels
+ * @param height - Canvas height in pixels
+ */
 export const amplitudeWaterfallVisualizer = (
   ctx: CanvasRenderingContext2D,
   dataArray: Uint8Array,
