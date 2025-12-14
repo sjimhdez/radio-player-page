@@ -196,13 +196,7 @@ const Dashboard = () => {
         )}
         <Box display="grid" gridTemplateColumns="1fr 1fr 1fr" gap={1}>
           <Box />
-          <PlayerControls
-            status={status}
-            loading={loading}
-            error={openError}
-            onPlay={play}
-            onPause={pause}
-          />
+          <PlayerControls status={status} loading={loading} onPlay={play} onPause={pause} />
           <SleepMode
             isPlaying={status === 'playing'}
             onSleepTimerEnd={pause}

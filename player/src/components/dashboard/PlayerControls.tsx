@@ -10,8 +10,6 @@ interface PlayerControlsProps {
   status: PlayerStatus
   /** Whether the player is currently loading */
   loading: boolean
-  /** Whether an error has occurred */
-  error: boolean
   /** Callback function to start playback */
   onPlay: () => void
   /** Callback function to pause playback */
@@ -30,7 +28,7 @@ interface PlayerControlsProps {
  * @param props - Component props
  * @returns Loading spinner (when loading) or play/pause button (when not loading)
  */
-const PlayerControls = ({ status, loading, error, onPlay, onPause }: PlayerControlsProps) => {
+const PlayerControls = ({ status, loading, onPlay, onPause }: PlayerControlsProps) => {
   const { t } = useTranslation()
   // Show CircularProgress when loading (takes priority over button display)
   if (loading) {
