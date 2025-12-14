@@ -288,6 +288,25 @@ const palettes: Record<string, PaletteOptions> = {
   pink: pinkPalette,
 }
 
+/**
+ * Gets a Material-UI theme with the specified color mode
+ * Returns a complete theme configuration with typography, spacing, and color palette
+ *
+ * Available color modes:
+ * - neutral (white primary, default)
+ * - red
+ * - green
+ * - blue
+ * - yellow
+ * - purple
+ * - orange
+ * - pink
+ *
+ * All themes use dark mode with black background
+ *
+ * @param colorMode - Color mode name (defaults to 'neutral' if invalid or undefined)
+ * @returns Material-UI Theme object
+ */
 export const getTheme = (colorMode: string = 'neutral'): Theme => {
   const selectedPalette = palettes[colorMode] || palettes.neutral
 

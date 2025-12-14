@@ -80,6 +80,17 @@ function drawWaveform(
 // Main Visualizer Function
 // ============================================================================
 
+/**
+ * Oscilloscope visualizer
+ * Displays audio waveform as a continuous line centered on the canvas
+ * Shows real-time audio signal amplitude over time
+ *
+ * @param ctx - Canvas 2D rendering context
+ * @param dataArray - Time domain audio data (Uint8Array, range 0-255, 128 = center/no signal)
+ * @param canvas - HTML canvas element
+ * @param width - Canvas width in pixels
+ * @param height - Canvas height in pixels
+ */
 export const oscilloscopeVisualizer = (
   ctx: CanvasRenderingContext2D,
   dataArray: Uint8Array,

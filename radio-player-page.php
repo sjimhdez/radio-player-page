@@ -15,12 +15,29 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Main plugin file.
+ *
+ * This file handles plugin initialization, activation hooks, and page rendering
+ * for radio player pages. It serves standalone HTML pages for configured radio
+ * stations without loading the full WordPress theme.
+ *
+ * @package radio-player-page
+ * @since 1.2.0
+ */
+
 define( 'RADPLAPAG_DB_VERSION', '1.2.0' );
 
 /**
- * Activation hook to set the initial DB version for new installs
+ * Sets the initial database version option when the plugin is activated.
+ *
+ * This function runs during plugin activation and creates the database version
+ * option to track the current schema version. This is used for migration
+ * purposes when updating the plugin.
  *
  * @since 1.2.0
+ *
+ * @return void
  */
 function radplapag_activate() {
     add_option( 'radplapag_db_version', RADPLAPAG_DB_VERSION );
@@ -31,11 +48,17 @@ require_once plugin_dir_path( __FILE__ ) . 'compatibility.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 
 /**
- * Gets the streaming data for the current page
+ * Retrieves the station configuration for the currently displayed page.
+ *
+ * Searches through all configured stations to find one that matches the current
+ * page ID. Returns the complete station configuration array if a match is found,
+ * including stream URL, page ID, title, theme color, visualizer type, and media IDs.
  *
  * @since 1.0.0
  *
- * @return array|false Streaming data if found, false otherwise
+ * @return array|false Station configuration array with keys: 'stream_url', 'player_page',
+ *                     'station_title', 'background_id', 'logo_id', 'theme_color', 'visualizer'.
+ *                     Returns false if no matching station is found for the current page.
  */
 function radplapag_get_station_for_current_page() {
     $options = radplapag_get_settings();
@@ -59,12 +82,20 @@ function radplapag_get_station_for_current_page() {
 }
 
 /**
- * Serves the player app from a specific page, without visually loading WordPress.
+ * Outputs a standalone HTML page for the radio player without loading WordPress theme.
  *
- * Enqueue functions are intentionally not used.
- * This plugin outputs a standalone HTML page and exits before WordPress can run enqueued assets.
+ * This function intercepts page requests and serves a minimal HTML page containing
+ * the React-based radio player application. It reads the Vite manifest to determine
+ * the correct asset paths, extracts station configuration, and outputs a complete
+ * HTML document with all necessary scripts and styles.
+ *
+ * The function sets global JavaScript variables (window.STREAM_URL, window.SITE_TITLE,
+ * etc.) that the React app uses for configuration. It intentionally bypasses WordPress's
+ * enqueue system by outputting directly and calling exit() to prevent theme loading.
  *
  * @since 1.0.0
+ *
+ * @return void Exits execution after outputting HTML.
  */
 function radplapag_output_clean_page() {
     if ( ! is_page() ) {

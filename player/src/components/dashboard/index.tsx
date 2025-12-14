@@ -15,6 +15,26 @@ import VolumeControl from './VolumeControl'
 import SleepMode from './SleepMode'
 import SleepTimer from './SleepTimer'
 
+/**
+ * Main dashboard component
+ * Orchestrates all player functionality including:
+ * - Audio playback with support for HLS, DASH, and standard streams
+ * - Audio visualization on canvas
+ * - Media Session API integration for lock screen controls
+ * - Sleep timer functionality
+ * - Volume control
+ * - Error handling and user feedback
+ *
+ * Reads configuration from window global variables:
+ * - STREAM_URL: Audio stream URL
+ * - SITE_TITLE: Radio station title
+ * - LOGO_IMAGE: Station logo URL
+ * - BACKGROUND_IMAGE: Optional background image URL
+ * - VISUALIZER: Visualizer ID (oscilloscope, bars, particles, waterfall)
+ * - THEME_COLOR: Theme color name
+ *
+ * @returns Complete radio player dashboard interface
+ */
 const Dashboard = () => {
   const STREAM_URL = window.STREAM_URL || ''
   const SITE_TITLE = window.SITE_TITLE || ''
@@ -36,10 +56,10 @@ const Dashboard = () => {
     useAudioPlayer(STREAM_URL)
   const canVisualize = useCanVisualize(audioRef)
 
-  // Configurar Media Session API para pantalla de bloqueo
+  // Configure Media Session API for lock screen
   useMediaSession(SITE_TITLE, LOGO_IMAGE, play, pause)
 
-  // Load visualizer asynchronously
+  // Load visualizer asynchronously (code splitting)
   useEffect(() => {
     let cancelled = false
 
@@ -47,12 +67,13 @@ const Dashboard = () => {
       const defaultMetadata = getDefaultVisualizer()
       const loadedConfig = await getVisualizer(VISUALIZER_ID)
 
+      // Only update state if component is still mounted
       if (!cancelled) {
         setVisualizerConfig(
           loadedConfig ||
             ({
               ...defaultMetadata,
-              fn: () => {}, // Placeholder until loaded
+              fn: () => {}, // Placeholder no-op function until visualizer loads
             } as VisualizerConfig),
         )
       }
@@ -65,12 +86,14 @@ const Dashboard = () => {
     }
   }, [VISUALIZER_ID])
 
-  // Use visualizer only when loaded
+  // Use visualizer only when loaded, fallback to default with placeholder function
+  // The placeholder function is a no-op that gets called every frame while loading
+  // This prevents errors but doesn't render anything until the visualizer loads
   const currentVisualizerConfig =
     visualizerConfig ||
     ({
       ...getDefaultVisualizer(),
-      fn: () => {}, // Placeholder function
+      fn: () => {}, // Placeholder no-op function (called every frame but does nothing)
     } as VisualizerConfig)
 
   useAudioVisualizer(
@@ -83,6 +106,7 @@ const Dashboard = () => {
     currentVisualizerConfig.dataType,
   )
 
+  // Handle window resize to update canvas dimensions
   useEffect(() => {
     const handleResize = () => {
       setDimensions({
@@ -98,6 +122,7 @@ const Dashboard = () => {
     }
   }, [])
 
+  // Update canvas dimensions when window size changes
   useEffect(() => {
     if (canvasRef.current) {
       canvasRef.current.width = dimensions.width
@@ -105,7 +130,7 @@ const Dashboard = () => {
     }
   }, [dimensions])
 
-  // Show error snackbar when status is 'error' and loading is false
+  // Show error snackbar when error occurs and loading is complete
   useEffect(() => {
     setOpenError(status === 'error' && loading === false)
   }, [status, loading])

@@ -7,14 +7,40 @@ import { useTranslation } from 'react-i18next'
 import Stack from '@mui/material/Stack'
 
 interface SleepModeProps {
+  /** Whether the stream is currently playing */
   isPlaying: boolean
+  /** Callback function called when sleep timer ends */
   onSleepTimerEnd: () => void
+  /** Optional callback to notify parent of timer changes */
   onTimerChange?: (remainingSeconds: number | null) => void
+  /** External timer state to sync with (used when timer is cancelled externally) */
   externalTimerSeconds?: number | null
 }
 
+/** Available sleep timer duration options in minutes */
 const SLEEP_OPTIONS = [30, 60, 120]
 
+/**
+ * Sleep mode component
+ * Provides a button to set a sleep timer that will pause playback after a specified duration
+ * Only visible when playback is active
+ *
+ * State synchronization flow:
+ * 1. Internal state (remainingSeconds) tracks countdown locally
+ * 2. Parent state (externalTimerSeconds) can cancel timer externally
+ * 3. onTimerChange callback notifies parent of timer changes
+ * 4. Timer automatically clears when playback is paused
+ * 5. Timer calls onSleepTimerEnd when countdown reaches zero
+ *
+ * Multiple useEffect hooks manage:
+ * - Timer interval lifecycle (start/stop/cleanup)
+ * - Synchronization with external cancellation state
+ * - Notification of parent component on state changes
+ * - Prevention of stale closures in callbacks
+ *
+ * @param props - Component props
+ * @returns Sleep mode button with duration menu or null if not playing
+ */
 const SleepMode = ({
   isPlaying,
   onSleepTimerEnd,
@@ -29,12 +55,12 @@ const SleepMode = ({
 
   const open = Boolean(anchorEl)
 
-  // Keep the most recent reference of onTimerChange
+  // Keep the most recent reference of onTimerChange to avoid stale closures
   useEffect(() => {
     onTimerChangeRef.current = onTimerChange
   }, [onTimerChange])
 
-  // Clear interval when playback is paused
+  // Clear interval and reset timer when playback is paused
   useEffect(() => {
     if (!isPlaying && intervalRef.current) {
       clearInterval(intervalRef.current)
@@ -54,18 +80,20 @@ const SleepMode = ({
       clearInterval(intervalRef.current)
     }
 
+    // Update timer every second
     intervalRef.current = setInterval(() => {
       setRemainingSeconds((prev) => {
         if (prev === null) {
           onTimerChangeRef.current?.(null)
           return null
         }
+        // When timer reaches 0 or less, stop playback
         if (prev <= 1) {
-          // When it reaches 0 or less, stop playback
           onSleepTimerEnd()
           onTimerChangeRef.current?.(null)
           return null
         }
+        // Decrement timer and notify parent
         const newValue = prev - 1
         onTimerChangeRef.current?.(newValue)
         return newValue
@@ -95,7 +123,7 @@ const SleepMode = ({
     handleClose()
   }
 
-  // Sync with external state when cancelled from outside
+  // Sync with external state when timer is cancelled from parent component
   useEffect(() => {
     if (externalTimerSeconds === null && remainingSeconds !== null) {
       setRemainingSeconds(null)
@@ -106,7 +134,7 @@ const SleepMode = ({
     }
   }, [externalTimerSeconds, remainingSeconds])
 
-  // Notify timer changes
+  // Notify parent component of timer state changes
   useEffect(() => {
     onTimerChange?.(remainingSeconds)
   }, [remainingSeconds, onTimerChange])
