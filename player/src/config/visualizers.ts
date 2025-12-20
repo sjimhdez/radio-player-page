@@ -50,6 +50,11 @@ const VISUALIZER_METADATA: Record<string, Omit<VisualizerConfig, 'fn'>> = {
     name: 'Amplitude Waterfall',
     dataType: 'time',
   },
+  tetris: {
+    id: 'tetris',
+    name: 'Tetris',
+    dataType: 'other',
+  },
 }
 
 /**
@@ -81,6 +86,10 @@ const visualizerLoaders: Record<string, () => Promise<VisualizerFn>> = {
     )
     return amplitudeWaterfallVisualizer
   },
+  tetris: async () => {
+    const { tetrisVisualizer } = await import('src/components/visualizers/tetris-visualizer')
+    return tetrisVisualizer
+  },
 }
 
 /**
@@ -88,7 +97,7 @@ const visualizerLoaders: Record<string, () => Promise<VisualizerFn>> = {
  * Visualizers are code-split and loaded on-demand to reduce initial bundle size
  * Results are cached after first load
  *
- * @param id - Visualizer identifier (e.g., 'oscilloscope', 'bars', 'particles', 'waterfall')
+ * @param id - Visualizer identifier (e.g., 'oscilloscope', 'bars', 'particles', 'waterfall', 'tetris')
  * @returns Promise resolving to visualizer config or undefined if not found
  */
 export async function getVisualizer(id: string): Promise<VisualizerConfig | undefined> {
