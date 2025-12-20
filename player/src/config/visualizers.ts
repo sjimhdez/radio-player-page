@@ -54,6 +54,7 @@ const VISUALIZER_METADATA: Record<string, Omit<VisualizerConfig, 'fn'>> = {
     id: 'tetris',
     name: 'Tetris',
     dataType: 'other',
+    forceVerticalCenter: true,
   },
 }
 

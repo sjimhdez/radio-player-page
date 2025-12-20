@@ -9,7 +9,6 @@ import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import useMediaSession from 'src/hooks/use-media-session'
 import { getVisualizer, getDefaultVisualizer, type VisualizerConfig } from 'src/config/visualizers'
-import { cleanupTetrisKeyboard } from 'src/components/visualizers/tetris-visualizer'
 import StreamInfo from './StreamInfo'
 import PlayerControls from './PlayerControls'
 import VolumeControl from './VolumeControl'
@@ -130,21 +129,6 @@ const Dashboard = () => {
       canvasRef.current.height = dimensions.height
     }
   }, [dimensions])
-
-  // Cleanup Tetris keyboard controls when visualizer changes or component unmounts
-  useEffect(() => {
-    // Cleanup previous visualizer's keyboard handlers if switching away from Tetris
-    if (canvasRef.current) {
-      cleanupTetrisKeyboard(canvasRef.current)
-    }
-
-    return () => {
-      // Cleanup on unmount
-      if (canvasRef.current) {
-        cleanupTetrisKeyboard(canvasRef.current)
-      }
-    }
-  }, [VISUALIZER_ID])
 
   // Show error snackbar when error occurs and loading is complete
   useEffect(() => {
