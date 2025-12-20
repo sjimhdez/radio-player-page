@@ -4,9 +4,9 @@ import type { VisualizerFn } from 'src/hooks/use-audio-visualizer'
  * Type of audio data required by a visualizer
  * - 'time': Time domain data (waveform)
  * - 'frequency': Frequency domain data (spectrum)
- * - 'other': Other data types (custom implementations)
+ * - 'decorative': Decorative visualizers that don't require audio data (e.g., Tetris)
  */
-export type VisualizerDataType = 'time' | 'frequency' | 'other'
+export type VisualizerDataType = 'time' | 'frequency' | 'decorative'
 
 /**
  * Visualizer configuration interface
@@ -53,7 +53,7 @@ const VISUALIZER_METADATA: Record<string, Omit<VisualizerConfig, 'fn'>> = {
   tetris: {
     id: 'tetris',
     name: 'Tetris',
-    dataType: 'other',
+    dataType: 'decorative',
     forceVerticalCenter: true,
   },
 }

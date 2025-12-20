@@ -96,6 +96,9 @@ const Dashboard = () => {
       fn: () => {}, // Placeholder no-op function (called every frame but does nothing)
     } as VisualizerConfig)
 
+  // Check if current visualizer is decorative (doesn't require Web Audio API)
+  const isDecorative = currentVisualizerConfig.dataType === 'decorative'
+
   useAudioVisualizer(
     audioRef,
     canvasRef,
@@ -167,6 +170,7 @@ const Dashboard = () => {
         canVisualize={canVisualize}
         loading={loading}
         forceVerticalCenter={currentVisualizerConfig.forceVerticalCenter}
+        isDecorative={isDecorative}
       />
 
       <Box
@@ -175,7 +179,7 @@ const Dashboard = () => {
         role="img"
         aria-label={t('dashboard.audioVisualizer')}
         sx={{
-          opacity: canVisualize ? 1 : 0,
+          opacity: isDecorative || canVisualize ? 1 : 0,
           width: '100%',
           height: '100%',
           display: 'block',

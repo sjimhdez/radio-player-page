@@ -26,13 +26,14 @@ export type VisualizerFn = (
  * Automatically handles AudioContext creation, node connections, and animation loop
  *
  * The hook:
- * - Creates AudioContext and AnalyserNode on first play
- * - Connects audio element source to analyzer
- * - Retrieves audio data (time or frequency domain) every frame
+ * - Creates AudioContext and AnalyserNode on first play (only for 'time' and 'frequency' dataTypes)
+ * - Connects audio element source to analyzer (only for 'time' and 'frequency' dataTypes)
+ * - Retrieves audio data (time or frequency domain) every frame (only for 'time' and 'frequency' dataTypes)
+ * - For 'decorative' dataType: skips Web Audio API and runs visualizer with empty data array
  * - Calls visualizer function to render on canvas
  * - Cleans up animation frame on pause or unmount
  *
- * Note: Visualization requires CORS-enabled audio source
+ * Note: Visualization requires CORS-enabled audio source (not applicable for 'decorative' type)
  *
  * @param audioRef - React ref to HTMLAudioElement
  * @param canvasRef - React ref to HTMLCanvasElement (can be null to disable visualization)
@@ -40,7 +41,7 @@ export type VisualizerFn = (
  * @param width - Canvas width in pixels
  * @param height - Canvas height in pixels
  * @param visualizerFn - Function that renders visualization on canvas
- * @param dataType - Type of audio data to retrieve ('time' | 'frequency' | 'other'), defaults to 'time'
+ * @param dataType - Type of audio data to retrieve ('time' | 'frequency' | 'decorative'), defaults to 'time'
  */
 function useAudioVisualizer(
   audioRef: React.RefObject<HTMLAudioElement>,
@@ -64,13 +65,37 @@ function useAudioVisualizer(
       return
     }
 
-    if (!audioRef.current || !canvasRef.current) return
+    if (!canvasRef.current) return
 
     const canvas = canvasRef.current
     const ctx = canvas.getContext('2d', { willReadFrequently: true })
     if (!ctx) return
     // Disable image smoothing for sharper pixel-perfect rendering
     ctx.imageSmoothingEnabled = false
+
+    // Handle decorative visualizers (don't require Web Audio API)
+    if (dataType === 'decorative') {
+      // Create empty data array for decorative visualizers
+      const emptyDataArray = new Uint8Array(0)
+
+      // Animation loop that runs every frame
+      const draw = () => {
+        animationRef.current = requestAnimationFrame(draw)
+
+        // Clear previous frame and render new visualization
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        visualizerFn(ctx, emptyDataArray, canvas, width, height)
+      }
+
+      draw()
+
+      return () => {
+        if (animationRef.current) cancelAnimationFrame(animationRef.current)
+      }
+    }
+
+    // Handle audio-based visualizers (require Web Audio API)
+    if (!audioRef.current) return
 
     try {
       // Create AudioContext on first render

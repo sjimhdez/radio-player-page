@@ -16,6 +16,8 @@ interface StreamInfoProps {
   loading: boolean
   /** Force vertical centering regardless of visualization state */
   forceVerticalCenter?: boolean
+  /** Whether the current visualizer is decorative (doesn't require Web Audio API) */
+  isDecorative?: boolean
 }
 
 /**
@@ -29,6 +31,7 @@ interface StreamInfoProps {
  * - Shows "connecting" message when loading and not playing
  * - Shows animated dot indicator when playing but visualization is not available
  *   (e.g., Safari with cross-origin audio due to CORS restrictions)
+ *   or when using a decorative visualizer (e.g., Tetris)
  * - Automatically adjusts vertical position based on visualization availability
  *
  * @param props - Component props
@@ -40,6 +43,7 @@ const StreamInfo = ({
   canVisualize,
   loading,
   forceVerticalCenter = false,
+  isDecorative = false,
 }: StreamInfoProps) => {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
@@ -121,9 +125,10 @@ const StreamInfo = ({
       )}
 
       {/* Animated playing indicator when playing but visualization is not available
-          (e.g., Safari with cross-origin audio due to CORS restrictions) */}
+          (e.g., Safari with cross-origin audio due to CORS restrictions)
+          or when using a decorative visualizer */}
       <Collapse
-        in={isPlaying && !canVisualize}
+        in={isPlaying && (!canVisualize || isDecorative)}
         timeout={200}
         collapsedSize={0}
         orientation="vertical"
