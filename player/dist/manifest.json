@@ -35,6 +35,12 @@
     "src": "src/components/visualizers/particles-visualizer.tsx",
     "isDynamicEntry": true
   },
+  "src/components/visualizers/starfield-visualizer.tsx": {
+    "file": "radio-player-page-2.0.1-starfield-visualizer.min.js",
+    "name": "starfield-visualizer",
+    "src": "src/components/visualizers/starfield-visualizer.tsx",
+    "isDynamicEntry": true
+  },
   "src/components/visualizers/tetris-visualizer.tsx": {
     "file": "radio-player-page-2.0.1-tetris-visualizer.min.js",
     "name": "tetris-visualizer",
@@ -53,7 +59,8 @@
       "src/components/visualizers/bar-visualizer.tsx",
       "src/components/visualizers/particles-visualizer.tsx",
       "src/components/visualizers/amplitude-waterfall-visualizer.tsx",
-      "src/components/visualizers/tetris-visualizer.tsx"
+      "src/components/visualizers/tetris-visualizer.tsx",
+      "src/components/visualizers/starfield-visualizer.tsx"
     ],
     "css": [
       "radio-player-page-2.0.1.css"

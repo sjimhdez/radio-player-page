@@ -30,7 +30,7 @@ import SleepTimer from './SleepTimer'
  * - SITE_TITLE: Radio station title
  * - LOGO_IMAGE: Station logo URL
  * - BACKGROUND_IMAGE: Optional background image URL
- * - VISUALIZER: Visualizer ID (oscilloscope, bars, particles, waterfall, tetris)
+ * - VISUALIZER: Visualizer ID (oscilloscope, bars, particles, waterfall, tetris, starfield)
  * - THEME_COLOR: Theme color name
  *
  * @returns Complete radio player dashboard interface

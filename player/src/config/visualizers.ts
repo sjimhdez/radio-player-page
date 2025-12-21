@@ -56,6 +56,12 @@ const VISUALIZER_METADATA: Record<string, Omit<VisualizerConfig, 'fn'>> = {
     dataType: 'decorative',
     forceVerticalCenter: true,
   },
+  starfield: {
+    id: 'starfield',
+    name: 'Starfield',
+    dataType: 'decorative',
+    forceVerticalCenter: true,
+  },
 }
 
 /**
@@ -91,6 +97,10 @@ const visualizerLoaders: Record<string, () => Promise<VisualizerFn>> = {
     const { tetrisVisualizer } = await import('src/components/visualizers/tetris-visualizer')
     return tetrisVisualizer
   },
+  starfield: async () => {
+    const { starfieldVisualizer } = await import('src/components/visualizers/starfield-visualizer')
+    return starfieldVisualizer
+  },
 }
 
 /**
@@ -98,7 +108,7 @@ const visualizerLoaders: Record<string, () => Promise<VisualizerFn>> = {
  * Visualizers are code-split and loaded on-demand to reduce initial bundle size
  * Results are cached after first load
  *
- * @param id - Visualizer identifier (e.g., 'oscilloscope', 'bars', 'particles', 'waterfall', 'tetris')
+ * @param id - Visualizer identifier (e.g., 'oscilloscope', 'bars', 'particles', 'waterfall', 'tetris', 'starfield')
  * @returns Promise resolving to visualizer config or undefined if not found
  */
 export async function getVisualizer(id: string): Promise<VisualizerConfig | undefined> {
