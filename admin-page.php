@@ -331,10 +331,10 @@ function radplapag_render_settings_page() {
                                             <?php esc_html_e( 'Spectral Particles', 'radio-player-page' ); ?>
                                         </option>
                                         <option value="tetris" <?php selected( $visualizer, 'tetris' ); ?>>
-                                            <?php esc_html_e( 'Tetris', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Tetris', 'radio-player-page' ); ?> (<?php esc_html_e( 'Decorative', 'radio-player-page' ); ?>)
                                         </option>
                                         <option value="starfield" <?php selected( $visualizer, 'starfield' ); ?>>
-                                            <?php esc_html_e( 'Starfield', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Starfield', 'radio-player-page' ); ?> (<?php esc_html_e( 'Decorative', 'radio-player-page' ); ?>)
                                         </option>
                                     </select>
                                 </td>
