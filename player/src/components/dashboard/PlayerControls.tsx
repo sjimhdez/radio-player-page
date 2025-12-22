@@ -44,7 +44,7 @@ const PlayerControls = ({ status, loading, onPlay, onPause }: PlayerControlsProp
   }
 
   return (
-    <IconButton onClick={onPause} size="large" aria-label={t('dashboard.stop')} color="primary">
+    <IconButton onClick={onPause} size="large" aria-label={t('dashboard.pause')} color="primary">
       <PauseCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
     </IconButton>
   )

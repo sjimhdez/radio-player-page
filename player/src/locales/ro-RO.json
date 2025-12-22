@@ -1,0 +1,16 @@
+{
+  "dashboard": {
+    "volume": "Volum",
+    "connecting": "Se conectează",
+    "playStreamError": "Nu se poate reda fluxul. Încercați din nou mai târziu.",
+    "audioVisualizer": "Vizualizator audio",
+    "play": "Redare",
+    "pause": "Pauză",
+    "sleepMode": "Mod somn",
+    "cancelSleepMode": "Anulează mod somn",
+    "sleepOption30": "30 min",
+    "sleepOption60": "1 oră",
+    "sleepOption120": "2 ore",
+    "liveRadio": "Radio în direct"
+  }
+}

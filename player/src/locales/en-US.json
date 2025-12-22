@@ -5,7 +5,6 @@
     "playStreamError": "Unable to play the stream. Try again later.",
     "audioVisualizer": "Audio Visualizer",
     "play": "Play",
-    "stop": "Stop",
     "pause": "Pause",
     "sleepMode": "Sleep mode",
     "cancelSleepMode": "Cancel sleep mode",
