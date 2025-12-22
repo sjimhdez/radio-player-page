@@ -1,0 +1,16 @@
+{
+  "dashboard": {
+    "volume": "Volume",
+    "connecting": "Verbinden",
+    "playStreamError": "Kan de stream niet afspelen. Probeer het later opnieuw.",
+    "audioVisualizer": "Audiovisualisatie",
+    "play": "Afspelen",
+    "pause": "Pauzeren",
+    "sleepMode": "Slaapstand",
+    "cancelSleepMode": "Slaapstand annuleren",
+    "sleepOption30": "30 min",
+    "sleepOption60": "1 uur",
+    "sleepOption120": "2 uur",
+    "liveRadio": "Live uitzending"
+  }
+}

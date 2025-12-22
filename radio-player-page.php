@@ -2,12 +2,12 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: Create a dedicated page for your Icecast, Shoutcast, or MP3 radio. Continuous playback without interruptions.
- * Version: 2.0.1
+ * Version: 2.0.2
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, shoutcast, streaming
  * Requires at least: 5.0
- * Requires PHP: 7.4
+ * Requires PHP: 5.6
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: radio-player-page
@@ -130,9 +130,9 @@ function radplapag_output_clean_page() {
     }
 
     $manifest     = json_decode( file_get_contents( $manifest_path ), true );
-    $main_entry   = $manifest['src/main.tsx'] ?? null;
-    $main_js      = $main_entry['file'] ?? null;
-    $main_css     = $main_entry['css'][0] ?? null;
+    $main_entry   = isset( $manifest['src/main.tsx'] ) ? $manifest['src/main.tsx'] : null;
+    $main_js      = isset( $main_entry['file'] ) ? $main_entry['file'] : null;
+    $main_css     = isset( $main_entry['css'][0] ) ? $main_entry['css'][0] : null;
 
     if ( ! $main_js ) {
         wp_die( esc_html__( 'The main JS file was not found in the Vite manifest.', 'radio-player-page' ) );
@@ -149,7 +149,7 @@ function radplapag_output_clean_page() {
     $display_title = ! empty( $station_title ) ? $station_title : get_bloginfo( 'name' );
 
     echo '<!DOCTYPE html>';
-    echo '<html ' . esc_attr( get_language_attributes() ) . '>';
+    echo '<html lang="' . esc_html( get_bloginfo( 'language' ) ) . '">';
     echo '<head>';
     echo '<meta charset="utf-8">';
     echo '<meta name="viewport" content="width=device-width, initial-scale=1">';

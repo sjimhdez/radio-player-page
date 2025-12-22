@@ -5,6 +5,10 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import translationsEN_US from 'src/locales/en-US.json'
 import translationsES from 'src/locales/es.json'
 import translationsRU_RU from 'src/locales/ru-RU.json'
+import translationsSV_SE from 'src/locales/sv-SE.json'
+import translationsNL_NL from 'src/locales/nl-NL.json'
+import translationsRO_RO from 'src/locales/ro-RO.json'
+import translationsES_MX from 'src/locales/es-MX.json'
 
 /**
  * Internationalization (i18n) configuration
@@ -13,7 +17,11 @@ import translationsRU_RU from 'src/locales/ru-RU.json'
  * Supported languages:
  * - en-US (English - United States) - Default fallback
  * - es (Spanish)
+ * - es-MX (Spanish - Mexico)
  * - ru-RU (Russian - Russia)
+ * - ro-RO (Romanian - Romania)
+ * - nl-NL (Dutch - Netherlands)
+ * - sv-SE (Swedish - Sweden)
  *
  * Language detection order:
  * 1. HTML lang attribute
@@ -35,6 +43,18 @@ i18n
       },
       es: {
         translation: translationsES,
+      },
+      'es-MX': {
+        translation: translationsES_MX,
+      },
+      'sv-SE': {
+        translation: translationsSV_SE,
+      },
+      'nl-NL': {
+        translation: translationsNL_NL,
+      },
+      'ro-RO': {
+        translation: translationsRO_RO,
       },
     },
     fallbackLng: 'en-US',
