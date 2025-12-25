@@ -3,8 +3,8 @@ Contributors: sjimhdez
 Tags: audio, icecast, radio player, shoutcast, streaming
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 2.0.1
-Requires PHP: 7.4
+Stable tag: 2.0.2
+Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,13 +16,13 @@ Radio Player Page creates dedicated, independent pages for your radio streams, p
 
 **Key Features**
 
-* **Multiple Stream Management** – Configure up to 10 independent streams, each with its own dedicated WordPress page
 * **Streaming Protocol Support** – Automatic detection and handling for Icecast, Shoutcast, MP3, HLS (.m3u8), and DASH (.mpd) formats. Uses native browser support on iOS Safari for HLS streams
 * **Four Audio Visualizers** – Choose from Oscilloscope, Bars Spectrum, Amplitude Waterfall, or Spectral Particles for real-time audio visualization powered by Web Audio API
 * **Eight Color Themes** – Customize appearance with Neutral, Blue, Green, Red, Orange, Yellow, Purple, or Pink color schemes
 * **Custom Branding** – Upload custom background images and logos for each station (site favicon used if no custom logo provided)
 * **Custom Station Titles** – Set a unique title for each stream, or use your site name as default
 * **Sleep Timer** – Automatic playback stop after 30 minutes, 1 hour, or 2 hours
+* **Multiple Stream Management** – Configure up to 10 independent streams, each with its own dedicated WordPress page
 * **Volume Control** – Adjustable volume slider (not available on iOS devices due to system limitations)
 * **Media Session API** – Displays station information and artwork on device lock screens and media controls
 * **Responsive Design** – Optimized for desktop, tablet, and mobile devices
@@ -49,18 +49,6 @@ The player interface is built with React 19, TypeScript, and Material-UI, provid
 
 == Frequently Asked Questions ==
 
-= What is the sleep timer feature? =
-
-The sleep timer allows you to automatically stop playback after a set duration. Available options are 30 minutes, 1 hour, or 2 hours. The timer only runs while playback is active and can be cancelled at any time.
-
-= Can I use this for commercial radio stations? =
-
-Yes. The plugin is free and open-source, suitable for both commercial and non-commercial radio stations.
-
-= Why is the volume control not available on my device? =
-
-Volume control is not available on iOS devices due to system limitations. iOS devices use the system volume controls instead.
-
 = Will the player conflict with my theme? =
 
 No. Player pages are completely independent of your WordPress theme, served as standalone HTML pages without loading theme styles or scripts.
@@ -73,6 +61,18 @@ No. Once you assign a page to a stream in the plugin settings, no additional con
 
 Visit the WordPress Support Forum for help, feature requests, and to report any bugs.
 
+= What is the sleep timer feature? =
+
+The sleep timer allows you to automatically stop playback after a set duration. Available options are 30 minutes, 1 hour, or 2 hours. The timer only runs while playback is active and can be cancelled at any time.
+
+= Can I use this for commercial radio stations? =
+
+Yes. The plugin is free and open-source, suitable for both commercial and non-commercial radio stations.
+
+= Why is the volume control not available on my iOS device? =
+
+Volume control is not available on iOS devices due to system limitations. iOS devices use the system volume controls instead.
+
 = Where can I view the full source code? =
 
 The source code is hosted on GitHub. See the repository for contributions and issue tracking.
@@ -80,10 +80,16 @@ The source code is hosted on GitHub. See the repository for contributions and is
 == Screenshots ==
 
 1. Player page example with blue theme color and Oscilloscope visualizer
-2. Player page example with green theme color and Amplitude Waterfall visualizer
-3. Admin settings for managing stations
+2. Player page example with yellow theme color and Amplitude Waterfall visualizer
+3. Player page example with green theme color and Bars Spectrum visualizer
+4. Admin settings for managing stations
 
 == Changelog ==
+
+= 2.0.2 =
+* Added player interface translations for Swedish, Dutch, Mexican Spanish, and Romanian
+* Fixed the logic determining when to use translation files
+* Ensured code compatibility starting from PHP 5.6
 
 = 2.0.1 =
 * Added player customization options - per-station configuration background images and logos

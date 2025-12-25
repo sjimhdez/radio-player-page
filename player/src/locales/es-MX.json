@@ -2,7 +2,7 @@
   "dashboard": {
     "volume": "Volumen",
     "connecting": "Conectando",
-    "playStreamError": "No es posible conectar con la emisión en directo. Inténtalo de nuevo más tarde.",
+    "playStreamError": "No es posible reproducir la transmisión. Inténtalo de nuevo más tarde.",
     "audioVisualizer": "Visualizador de audio",
     "play": "Reproducir",
     "pause": "Pausar",
@@ -11,6 +11,6 @@
     "sleepOption30": "30 min",
     "sleepOption60": "1 hora",
     "sleepOption120": "2 horas",
-    "liveRadio": "Radio en directo"
+    "liveRadio": "Radio en vivo"
   }
 }
