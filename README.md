@@ -92,7 +92,7 @@ Per-station settings (up to 10 stations):
 - Theme color (8 options: neutral, blue, green, red, orange, yellow, purple, pink)
 - Visualizer type (4 options)
 - Background image (optional)
-- Logo image (optional, falls back to site favicon)
+- Logo image (optional)
 
 ### Platform-Specific Behavior
 

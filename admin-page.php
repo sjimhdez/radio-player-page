@@ -360,6 +360,10 @@ function radplapag_render_settings_page() {
                                         </div>
                                         <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
                                         <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                        <p class="description">
+                                            <?php esc_html_e( 'Recommended size', 'radio-player-page' ); ?>: <?php esc_html_e( '512x512 pixels or larger.', 'radio-player-page' ); ?>
+
+                                        </p>
                                     </div>
                                 </td>
                             </tr>

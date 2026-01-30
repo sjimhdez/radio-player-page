@@ -19,7 +19,7 @@ Radio Player Page creates dedicated, independent pages for your radio streams, p
 * **Streaming Protocol Support** – Automatic detection and handling for Icecast, Shoutcast, MP3, HLS (.m3u8), and DASH (.mpd) formats. Uses native browser support on iOS Safari for HLS streams
 * **Four Audio Visualizers** – Choose from Oscilloscope, Bars Spectrum, Amplitude Waterfall, or Spectral Particles for real-time audio visualization powered by Web Audio API
 * **Eight Color Themes** – Customize appearance with Neutral, Blue, Green, Red, Orange, Yellow, Purple, or Pink color schemes
-* **Custom Branding** – Upload custom background images and logos for each station (site favicon used if no custom logo provided)
+* **Custom Branding** – Upload custom background images and logos for each station
 * **Custom Station Titles** – Set a unique title for each stream, or use your site name as default
 * **Sleep Timer** – Automatic playback stop after 30 minutes, 1 hour, or 2 hours
 * **Multiple Stream Management** – Configure up to 10 independent streams, each with its own dedicated WordPress page
