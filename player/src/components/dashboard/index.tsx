@@ -57,7 +57,7 @@ const Dashboard = () => {
   const canVisualize = useCanVisualize(audioRef)
 
   // Configure Media Session API for lock screen
-  useMediaSession(SITE_TITLE, LOGO_IMAGE, play, pause)
+  useMediaSession(SITE_TITLE, LOGO_IMAGE, play, pause, status)
 
   // Load visualizer asynchronously (code splitting)
   useEffect(() => {
