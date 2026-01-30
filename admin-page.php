@@ -90,6 +90,11 @@ add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts' );
  *              'theme_color' => string (sanitized key), 'visualizer' => string (validated)], ...]]
  */
 function radplapag_sanitize_settings( $input ) {
+    // Verify nonce for security
+    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'radplapag_settings' ) ) {
+        return get_option( 'radplapag_settings', [ 'stations' => [] ] );
+    }
+    
     $output = [ 'stations' => [] ];
     $stations = isset( $input['stations'] ) && is_array( $input['stations'] ) ? $input['stations'] : [];
     
@@ -101,6 +106,12 @@ function radplapag_sanitize_settings( $input ) {
         $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
         $theme = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
         $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
+        
+        // Validate that the theme color is valid
+        $valid_themes = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
+        if ( ! in_array( $theme, $valid_themes, true ) ) {
+            $theme = 'neutral';
+        }
         
         // Validate that the visualizer is valid
         $valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
@@ -198,6 +209,7 @@ function radplapag_render_settings_page() {
         <form method="post" action="options.php" id="radplapag-settings-form">
             <?php
             settings_fields( 'radplapag_settings_group' );
+            wp_nonce_field( 'radplapag_settings' );
             ?>
             
             <div id="radplapag-stations-container">

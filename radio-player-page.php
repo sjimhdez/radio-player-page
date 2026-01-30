@@ -18,33 +18,14 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Main plugin file.
  *
- * This file handles plugin initialization, activation hooks, and page rendering
- * for radio player pages. It serves standalone HTML pages for configured radio
- * stations without loading the full WordPress theme.
+ * This file handles plugin initialization and page rendering for radio player pages.
+ * It serves standalone HTML pages for configured radio stations without loading
+ * the full WordPress theme.
  *
  * @package radio-player-page
  * @since 1.2.0
  */
 
-define( 'RADPLAPAG_DB_VERSION', '1.2.0' );
-
-/**
- * Sets the initial database version option when the plugin is activated.
- *
- * This function runs during plugin activation and creates the database version
- * option to track the current schema version. This is used for migration
- * purposes when updating the plugin.
- *
- * @since 1.2.0
- *
- * @return void
- */
-function radplapag_activate() {
-    add_option( 'radplapag_db_version', RADPLAPAG_DB_VERSION );
-}
-register_activation_hook( __FILE__, 'radplapag_activate' );
-
-require_once plugin_dir_path( __FILE__ ) . 'compatibility.php';
 require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
 
 /**
@@ -114,6 +95,12 @@ function radplapag_output_clean_page() {
     $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
     $theme_color = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
     $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
+    
+    // Validate theme color against whitelist for security
+    $valid_themes = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
+    if ( ! in_array( $theme_color, $valid_themes, true ) ) {
+        $theme_color = 'neutral';
+    }
     
     // Validate visualizer against whitelist for security
     $valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];

@@ -18,12 +18,11 @@ Radio Player Page is a WordPress plugin that provides dedicated standalone pages
 
 ### Core Components
 
-**PHP Backend** (`radio-player-page.php`, `admin-page.php`, `compatibility.php`)
+**PHP Backend** (`radio-player-page.php`, `admin-page.php`)
 
 - Plugin initialization and WordPress integration
 - Settings management via WordPress Settings API
 - Template redirect hook for standalone page rendering
-- Backward compatibility layer for version migrations
 - Manifest-based asset loading from Vite build output
 
 **React Frontend** (`player/` directory)
@@ -119,7 +118,6 @@ Per-station settings (up to 10 stations):
 radio-player-page/
 ├── radio-player-page.php      # Main plugin file, template redirect
 ├── admin-page.php              # Settings page UI and management
-├── compatibility.php           # Version migration and backward compatibility
 ├── player/                     # React frontend application
 │   ├── src/
 │   │   ├── components/
@@ -242,14 +240,6 @@ Detection order:
 3. Navigator language preference
 
 To add languages: create locale file in `player/src/locales/` and register in `player/src/config/i18n.ts`.
-
-## Backward Compatibility
-
-The plugin includes migration logic for older versions:
-
-- v1.1.2 (single station) → v1.2.0+ (multiple stations)
-- Automatic format conversion on plugin load
-- Database version tracking via `radplapag_db_version` option
 
 ## API Reference
 
