@@ -1,0 +1,26 @@
+repos:
+  - repo: local
+    hooks:
+      - id: wordpress-plugin-check
+        name: WordPress Plugin Check
+        entry: bash scripts/run-wp-plugin-check.sh
+        language: system
+        types: [php]
+        pass_filenames: false
+        stages: [commit]
+      
+      - id: php-versions-check
+        name: PHP Versions Compatibility Check
+        entry: bash scripts/run-php-versions-check.sh
+        language: system
+        types: [php]
+        pass_filenames: false
+        stages: [commit]
+      
+      - id: eslint
+        name: ESLint (Player)
+        entry: bash scripts/run-eslint.sh
+        language: system
+        types: [file]
+        files: ^player/.*\.(ts|tsx)$
+        stages: [commit]

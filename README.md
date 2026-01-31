@@ -221,6 +221,87 @@ npm run lint           # ESLint code quality check
 - Dark mode only
 - Per-station theme selection
 
+### Pre-commit Hooks
+
+The project uses [pre-commit](https://pre-commit.com/) framework to run automated checks before each commit. This ensures code quality and WordPress standards compliance.
+
+**Installation**
+
+1. Install pre-commit (requires Python 3.6+):
+   ```bash
+   pip install pre-commit
+   ```
+
+2. Install the git hooks:
+   ```bash
+   pre-commit install
+   ```
+
+**Hooks Configured**
+
+- **WordPress Plugin Check**: Validates PHP code against WordPress coding standards
+  - Excludes `player/` directory (React frontend)
+  - Ignores specific codes matching CI workflow
+  - Requires PHPCS with WordPress Coding Standards or WP-CLI with WordPress installed
+- **PHP Versions Compatibility Check**: Tests PHP syntax compatibility with different PHP versions
+  - Verifies compatibility with minimum PHP version (5.6) and current/maximum versions
+  - Checks syntax of all PHP files in the plugin
+  - Based on `test-php-versions.sh.local` script
+  - Automatically detects available PHP versions (Homebrew, system PHP, etc.)
+- **ESLint**: Lints TypeScript/React code in `player/` directory
+  - Runs `npx eslint .` in the player directory
+  - Automatically installs dependencies if needed
+
+**Running Hooks Manually**
+
+```bash
+# Run on all files
+pre-commit run --all-files
+
+# Run on staged files only (default)
+pre-commit run
+
+# Run a specific hook
+pre-commit run wordpress-plugin-check
+pre-commit run php-versions-check
+pre-commit run eslint
+```
+
+**WordPress Plugin Check Setup**
+
+To enable WordPress Plugin Check locally, you need either:
+
+**Option 1: PHPCS with WordPress Coding Standards**
+```bash
+composer require --dev squizlabs/php_codesniffer wp-coding-standards/wpcs
+vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs
+```
+
+**Option 2: WP-CLI with WordPress**
+```bash
+# Install WP-CLI and ensure WordPress is available
+wp plugin check /path/to/plugin
+```
+
+If neither is available, the hook will skip WordPress checks but will still run in CI.
+
+**PHP Versions Compatibility Check**
+
+The PHP Versions Check hook automatically detects and tests with available PHP versions. It will:
+- Test with minimum required PHP version (5.6)
+- Test with current PHP version (if different)
+- Test with maximum supported version (8.4) if available
+
+To install multiple PHP versions on macOS with Homebrew:
+```bash
+brew install php@5.6
+brew install php@7.0
+brew install php@8.0
+# etc...
+```
+
+The hook will automatically find and use available versions. If no specific versions are found, it will use the current system PHP.
+
 ## Internationalization
 
 Supported locales:
@@ -309,3 +390,4 @@ GPLv2 or later
 - WordPress PHP coding standards for PHP files
 - ESLint configuration in `eslint.config.js`
 - Prettier for code formatting (see `.prettierrc`)
+- Pre-commit hooks enforce standards before commits (see [Pre-commit Hooks](#pre-commit-hooks) section)
