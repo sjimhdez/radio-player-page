@@ -150,6 +150,11 @@ function radplapag_output_clean_page() {
     echo '<script>window.LOGO_IMAGE = "' . esc_js( $logo_url ) . '";</script>';
     echo '<script>window.THEME_COLOR = "' . esc_js( $theme_color ) . '";</script>';
     echo '<script>window.VISUALIZER = "' . esc_js( $visualizer ) . '";</script>';
+    
+    // Inject schedule if it exists
+    if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
+        echo '<script>window.SCHEDULE = ' . wp_json_encode( $station['schedule'] ) . ';</script>';
+    }
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
     }

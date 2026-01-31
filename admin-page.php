@@ -23,7 +23,8 @@ defined( 'ABSPATH' ) || exit;
  *
  * @return array Settings array with structure: ['stations' => [['stream_url' => string,
  *                     'player_page' => int, 'station_title' => string, 'background_id' => int,
- *                     'logo_id' => int, 'theme_color' => string, 'visualizer' => string], ...]]
+ *                     'logo_id' => int, 'theme_color' => string, 'visualizer' => string,
+ *                     'schedule' => array (optional, weekly schedule with programs by day)], ...]]
  */
 function radplapag_get_settings() {
     return get_option( 'radplapag_settings', [ 'stations' => [] ] );
@@ -76,22 +77,25 @@ add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts' );
  * Processes the submitted form data, validates all fields, and sanitizes them
  * according to their data types. Only stations with both a valid stream URL and
  * a selected player page are saved. Visualizer values are validated against a
- * whitelist for security. Invalid entries are filtered out.
+ * whitelist for security. Program schedules are validated for time format, non-overlapping
+ * intervals, and proper time ordering. Invalid entries are filtered out.
  *
  * @since 1.0.0
  *
  * @param array $input Raw settings input from form submission. Expected structure:
  *                     ['stations' => [['stream_url' => string, 'player_page' => int|string,
  *                     'station_title' => string, 'background_id' => int|string, 'logo_id' => int|string,
- *                     'theme_color' => string, 'visualizer' => string], ...]]
+ *                     'theme_color' => string, 'visualizer' => string, 'schedule' => array], ...]]
  * @return array Sanitized settings array with validated and cleaned data. Structure:
  *              ['stations' => [['stream_url' => string (escaped URL), 'player_page' => int,
  *              'station_title' => string (sanitized text), 'background_id' => int, 'logo_id' => int,
- *              'theme_color' => string (sanitized key), 'visualizer' => string (validated)], ...]]
+ *              'theme_color' => string (sanitized key), 'visualizer' => string (validated),
+ *              'schedule' => array (optional, weekly schedule with programs by day)], ...]]
  */
 function radplapag_sanitize_settings( $input ) {
-    // Verify nonce for security
-    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'radplapag_settings' ) ) {
+    // Verify nonce for security (settings_fields generates nonce with action: radplapag_settings_group-options)
+    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'radplapag_settings_group-options' ) ) {
+        // If nonce fails, return current settings to prevent data loss
         return get_option( 'radplapag_settings', [ 'stations' => [] ] );
     }
     
@@ -124,7 +128,258 @@ function radplapag_sanitize_settings( $input ) {
             continue;
         }
         
-        $output['stations'][] = [
+        // Sanitize and validate schedule if present
+        $schedule = [];
+        $day_labels = [
+            'monday' => __( 'Monday', 'radio-player-page' ),
+            'tuesday' => __( 'Tuesday', 'radio-player-page' ),
+            'wednesday' => __( 'Wednesday', 'radio-player-page' ),
+            'thursday' => __( 'Thursday', 'radio-player-page' ),
+            'friday' => __( 'Friday', 'radio-player-page' ),
+            'saturday' => __( 'Saturday', 'radio-player-page' ),
+            'sunday' => __( 'Sunday', 'radio-player-page' ),
+        ];
+        
+        if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) ) {
+            $valid_days = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
+            $time_regex = '/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/';
+            
+            foreach ( $valid_days as $day ) {
+                if ( ! isset( $station['schedule'][ $day ] ) || ! is_array( $station['schedule'][ $day ] ) ) {
+                    continue;
+                }
+                
+                $day_programs = [];
+                $day_intervals = [];
+                
+                // First pass: collect all valid programs with their data for overlap checking
+                $programs_data = [];
+                foreach ( $station['schedule'][ $day ] as $prog_idx => $program ) {
+                    if ( ! is_array( $program ) ) {
+                        continue;
+                    }
+                    
+                    $program_name = isset( $program['name'] ) ? sanitize_text_field( $program['name'] ) : '';
+                    $program_start = isset( $program['start'] ) ? trim( $program['start'] ) : '';
+                    $program_end = isset( $program['end'] ) ? trim( $program['end'] ) : '';
+                    
+                    // Filter out completely empty programs (no name, no start, no end)
+                    if ( empty( $program_name ) && empty( $program_start ) && empty( $program_end ) ) {
+                        continue;
+                    }
+                    
+                    // Validate program name length (max 100 characters)
+                    if ( strlen( $program_name ) > 100 ) {
+                        $program_name = substr( $program_name, 0, 100 );
+                    }
+                    
+                    // Skip if name is empty (program must have a name to be valid)
+                    if ( empty( $program_name ) ) {
+                        continue;
+                    }
+                    
+                    // Validate time format
+                    if ( ! preg_match( $time_regex, $program_start ) || ! preg_match( $time_regex, $program_end ) ) {
+                        add_settings_error(
+                            'radplapag_settings',
+                            'radplapag_schedule_time_format',
+                            sprintf(
+                                /* translators: 1: Program name, 2: Day name */
+                                __( 'Program "%1$s" on %2$s: Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
+                                esc_html( $program_name ),
+                                esc_html( $day_labels[ $day ] )
+                            )
+                        );
+                        continue;
+                    }
+                    
+                    // Validate time range (allow programs that cross midnight, e.g., 23:00 to 00:00)
+                    $start_time = strtotime( '2000-01-01 ' . $program_start . ':00' );
+                    $end_time = strtotime( '2000-01-01 ' . $program_end . ':00' );
+                    
+                    // If end < start, it means the program crosses midnight (ends next day)
+                    // In this case, we treat end as 24:00 (end of day) for validation purposes
+                    $end_time_for_validation = $end_time;
+                    if ( $end_time <= $start_time ) {
+                        // Program crosses midnight, end is on next day
+                        $end_time_for_validation = strtotime( '2000-01-02 ' . $program_end . ':00' );
+                    }
+                    
+                    // Validate that start < end (considering midnight crossing)
+                    if ( $start_time >= $end_time_for_validation ) {
+                        add_settings_error(
+                            'radplapag_settings',
+                            'radplapag_schedule_time_range',
+                            sprintf(
+                                /* translators: 1: Program name, 2: Day name */
+                                __( 'Program "%1$s" on %2$s: End time must be after start time.', 'radio-player-page' ),
+                                esc_html( $program_name ),
+                                esc_html( $day_labels[ $day ] )
+                            )
+                        );
+                        continue;
+                    }
+                    
+                    // Store program data for overlap checking
+                    // For programs crossing midnight, we store end_time as next day for comparison
+                    $end_time_for_overlap = $end_time;
+                    if ( $end_time <= $start_time ) {
+                        $end_time_for_overlap = strtotime( '2000-01-02 ' . $program_end . ':00' );
+                    }
+                    
+                    $programs_data[] = [
+                        'index' => $prog_idx,
+                        'name' => $program_name,
+                        'start' => $program_start,
+                        'end' => $program_end,
+                        'start_time' => $start_time,
+                        'end_time' => $end_time_for_overlap,
+                        'crosses_midnight' => ( $end_time <= $start_time ),
+                    ];
+                }
+                
+                // Second pass: check for overlaps (sort by start time first)
+                usort( $programs_data, function( $a, $b ) {
+                    return $a['start_time'] - $b['start_time'];
+                } );
+                
+                foreach ( $programs_data as $prog_data ) {
+                    // Check for overlaps with already accepted programs
+                    $has_overlap = false;
+                    $overlapping_program = null;
+                    
+                    foreach ( $day_intervals as $interval ) {
+                        if ( ( $prog_data['start_time'] < $interval['end'] && $prog_data['end_time'] > $interval['start'] ) ) {
+                            $has_overlap = true;
+                            $overlapping_program = $interval['name'];
+                            break;
+                        }
+                    }
+                    
+                    if ( $has_overlap ) {
+                        add_settings_error(
+                            'radplapag_settings',
+                            'radplapag_schedule_overlap',
+                            sprintf(
+                                /* translators: 1: Program name, 2: Day name, 3: Overlapping program name */
+                                __( 'Program "%1$s" on %2$s: Time slot overlaps with "%3$s".', 'radio-player-page' ),
+                                esc_html( $prog_data['name'] ),
+                                esc_html( $day_labels[ $day ] ),
+                                esc_html( $overlapping_program )
+                            )
+                        );
+                        continue;
+                    }
+                    
+                    // Add to intervals for overlap checking
+                    $day_intervals[] = [
+                        'start' => $prog_data['start_time'],
+                        'end' => $prog_data['end_time'],
+                        'name' => $prog_data['name'],
+                    ];
+                    
+                    // Add valid program
+                    $day_programs[] = [
+                        'name' => $prog_data['name'],
+                        'start' => $prog_data['start'],
+                        'end' => $prog_data['end'],
+                    ];
+                }
+                
+                // Only add day if it has programs
+                if ( ! empty( $day_programs ) ) {
+                    $schedule[ $day ] = $day_programs;
+                }
+            }
+            
+            // Third pass: validate cross-day overlaps for programs that cross midnight
+            $days_array = array_keys( $day_labels );
+            foreach ( $days_array as $day_idx => $day ) {
+                if ( ! isset( $schedule[ $day ] ) || empty( $schedule[ $day ] ) ) {
+                    continue;
+                }
+                
+                // Find programs that cross midnight in this day
+                foreach ( $schedule[ $day ] as $program ) {
+                    if ( ! is_array( $program ) ) {
+                        continue;
+                    }
+                    
+                    $program_name = isset( $program['name'] ) ? $program['name'] : '';
+                    $program_start = isset( $program['start'] ) ? trim( $program['start'] ) : '';
+                    $program_end = isset( $program['end'] ) ? trim( $program['end'] ) : '';
+                    
+                    if ( empty( $program_start ) || empty( $program_end ) || empty( $program_name ) ) {
+                        continue;
+                    }
+                    
+                    $start_time = strtotime( '2000-01-01 ' . $program_start . ':00' );
+                    $end_time = strtotime( '2000-01-01 ' . $program_end . ':00' );
+                    
+                    // If program crosses midnight
+                    if ( $end_time <= $start_time ) {
+                        // Get next day
+                        $next_day_idx = ( $day_idx + 1 ) % 7;
+                        $next_day = $days_array[ $next_day_idx ];
+                        
+                        // Calculate end time on next day for overlap checking
+                        $end_time_next_day = strtotime( '2000-01-02 ' . $program_end . ':00' );
+                        
+                        // Check for overlaps with programs on the next day
+                        if ( isset( $schedule[ $next_day ] ) && is_array( $schedule[ $next_day ] ) ) {
+                            foreach ( $schedule[ $next_day ] as $next_program ) {
+                                if ( ! is_array( $next_program ) ) {
+                                    continue;
+                                }
+                                
+                                $next_program_name = isset( $next_program['name'] ) ? $next_program['name'] : '';
+                                $next_program_start = isset( $next_program['start'] ) ? trim( $next_program['start'] ) : '';
+                                $next_program_end = isset( $next_program['end'] ) ? trim( $next_program['end'] ) : '';
+                                
+                                if ( empty( $next_program_start ) || empty( $next_program_end ) || empty( $next_program_name ) ) {
+                                    continue;
+                                }
+                                
+                                $next_start_time = strtotime( '2000-01-01 ' . $next_program_start . ':00' );
+                                $next_end_time = strtotime( '2000-01-01 ' . $next_program_end . ':00' );
+                                
+                                // Handle next program that might also cross midnight
+                                $next_end_for_overlap = $next_end_time;
+                                if ( $next_end_time <= $next_start_time ) {
+                                    $next_end_for_overlap = strtotime( '2000-01-02 ' . $next_program_end . ':00' );
+                                }
+                                
+                                // Check for overlap: program from previous day crosses midnight and ends on next day
+                                // The crossing program is active on the next day from 00:00 (midnight) to end_time (e.g., 01:00 = 60 minutes)
+                                // The next day's program is active from next_start_time to next_end_for_overlap
+                                // Overlap formula: (start1 < end2 && end1 > start2)
+                                // Crossing program on next day: start = 0 (midnight), end = end_time
+                                // Next day's program: start = next_start_time, end = next_end_for_overlap
+                                // Overlap if: (0 < next_end_for_overlap && end_time > next_start_time)
+                                // Simplified: end_time > next_start_time (since 0 is always < next_end_for_overlap for valid programs)
+                                if ( $end_time > $next_start_time ) {
+                                    add_settings_error(
+                                        'radplapag_settings',
+                                        'radplapag_schedule_cross_day_overlap',
+                                        sprintf(
+                                            /* translators: 1: Program name, 2: Day name, 3: Overlapping program name, 4: Next day name */
+                                            __( 'Program "%1$s" on %2$s (crosses midnight) overlaps with "%3$s" on %4$s.', 'radio-player-page' ),
+                                            esc_html( $program_name ),
+                                            esc_html( $day_labels[ $day ] ),
+                                            esc_html( $next_program_name ),
+                                            esc_html( $day_labels[ $next_day ] )
+                                        )
+                                    );
+                                    break 2; // Break both loops
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        $station_data = [
             'stream_url'    => esc_url_raw( $url ),
             'player_page'   => $page,
             'station_title' => $title,
@@ -133,6 +388,13 @@ function radplapag_sanitize_settings( $input ) {
             'theme_color'   => $theme,
             'visualizer'    => $visualizer,
         ];
+        
+        // Add schedule if it exists
+        if ( ! empty( $schedule ) ) {
+            $station_data['schedule'] = $schedule;
+        }
+        
+        $output['stations'][] = $station_data;
     }  
     return $output;
 }
@@ -209,7 +471,6 @@ function radplapag_render_settings_page() {
         <form method="post" action="options.php" id="radplapag-settings-form">
             <?php
             settings_fields( 'radplapag_settings_group' );
-            wp_nonce_field( 'radplapag_settings' );
             ?>
             
             <div id="radplapag-stations-container">
@@ -385,6 +646,106 @@ function radplapag_render_settings_page() {
                                     </div>
                                 </td>
                             </tr>
+                            <!-- Program Schedule -->
+                            <tr>
+                                <th scope="row">
+                                    <label><?php esc_html_e( 'Program Schedule', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?></label>
+                                </th>
+                                <td>
+                                    <?php
+                                    $schedule = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
+                                    $days = [
+                                        'monday' => __( 'Monday', 'radio-player-page' ),
+                                        'tuesday' => __( 'Tuesday', 'radio-player-page' ),
+                                        'wednesday' => __( 'Wednesday', 'radio-player-page' ),
+                                        'thursday' => __( 'Thursday', 'radio-player-page' ),
+                                        'friday' => __( 'Friday', 'radio-player-page' ),
+                                        'saturday' => __( 'Saturday', 'radio-player-page' ),
+                                        'sunday' => __( 'Sunday', 'radio-player-page' ),
+                                    ];
+                                    // Check if schedule has any programs configured
+                                    $has_schedule = false;
+                                    foreach ( $days as $day_key => $day_label ) {
+                                        if ( isset( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) && ! empty( $schedule[ $day_key ] ) ) {
+                                            // Check if any program has data
+                                            foreach ( $schedule[ $day_key ] as $program ) {
+                                                if ( ! empty( $program['name'] ) || ! empty( $program['start'] ) || ! empty( $program['end'] ) ) {
+                                                    $has_schedule = true;
+                                                    break 2;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    $schedule_collapsed_class = $has_schedule ? '' : 'radplapag-schedule-collapsed';
+                                    ?>
+                                    <button type="button" class="button-link radplapag-schedule-toggle" data-station-index="<?php echo esc_attr( $index ); ?>" aria-expanded="<?php echo $has_schedule ? 'true' : 'false'; ?>">
+                                        <span class="toggle-indicator" aria-hidden="true"></span>
+                                        <?php echo $has_schedule ? esc_html__( 'Hide Program Schedule', 'radio-player-page' ) : esc_html__( 'Show Program Schedule', 'radio-player-page' ); ?>
+                                    </button>
+                                    <div class="radplapag-schedule-wrapper <?php echo esc_attr( $schedule_collapsed_class ); ?>" data-station-index="<?php echo esc_attr( $index ); ?>">
+                                        <?php foreach ( $days as $day_key => $day_label ) : 
+                                            $day_programs = isset( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) ? $schedule[ $day_key ] : [];
+                                            // Ensure at least one empty program slot
+                                            if ( empty( $day_programs ) ) {
+                                                $day_programs = [ [ 'name' => '', 'start' => '', 'end' => '' ] ];
+                                            }
+                                        ?>
+                                            <div class="radplapag-schedule-day" data-day="<?php echo esc_attr( $day_key ); ?>">
+                                                <h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">
+                                                    <?php echo esc_html( $day_label ); ?>
+                                                </h4>
+                                                <div class="radplapag-programs-list">
+                                                    <?php foreach ( $day_programs as $prog_index => $program ) : 
+                                                        $prog_name = isset( $program['name'] ) ? esc_attr( $program['name'] ) : '';
+                                                        $prog_start = isset( $program['start'] ) ? esc_attr( $program['start'] ) : '';
+                                                        $prog_end = isset( $program['end'] ) ? esc_attr( $program['end'] ) : '';
+                                                        $is_empty_program = empty( $prog_name ) && empty( $prog_start ) && empty( $prog_end );
+                                                    ?>
+                                                        <div class="radplapag-program-row" data-program-index="<?php echo esc_attr( $prog_index ); ?>" <?php echo $is_empty_program && $prog_index > 0 ? 'style="display:none;"' : ''; ?>>
+                                                            <input 
+                                                                type="text" 
+                                                                name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][schedule][<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][name]" 
+                                                                value="<?php echo esc_attr( $prog_name ); ?>" 
+                                                                placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>"
+                                                                class="radplapag-program-name"
+                                                                maxlength="100"
+                                                                required
+                                                                style="width: 200px; margin-right: 10px;"
+                                                            >
+                                                            <input 
+                                                                type="time" 
+                                                                name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][schedule][<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" 
+                                                                value="<?php echo esc_attr( $prog_start ); ?>" 
+                                                                class="radplapag-program-start"
+                                                                style="width: 100px; margin-right: 5px;"
+                                                            >
+                                                            <span style="margin-right: 5px;">-</span>
+                                                            <input 
+                                                                type="time" 
+                                                                name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][schedule][<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" 
+                                                                value="<?php echo esc_attr( $prog_end ); ?>" 
+                                                                class="radplapag-program-end"
+                                                                style="width: 100px; margin-right: 10px;"
+                                                            >
+                                                            <?php if ( $prog_index > 0 || ! $is_empty_program ) : ?>
+                                                                <button type="button" class="button radplapag-remove-program" style="height: 30px; line-height: 28px;">
+                                                                    <?php esc_html_e( 'Remove', 'radio-player-page' ); ?>
+                                                                </button>
+                                                            <?php endif; ?>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                                <button type="button" class="button radplapag-add-program" data-day="<?php echo esc_attr( $day_key ); ?>" style="margin-top: 5px; margin-bottom: 15px;">
+                                                    <?php esc_html_e( 'Add Program', 'radio-player-page' ); ?>
+                                                </button>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <p class="description" style="margin-top: 10px;">
+                                        <?php esc_html_e( 'Define weekly program schedule. Programs are displayed automatically in the player based on current time.', 'radio-player-page' ); ?>
+                                    </p>
+                                </td>
+                            </tr>
                         </table>
                         <?php if ( $index > 0 ) : ?>
                             <p>
@@ -428,6 +789,94 @@ function radplapag_render_settings_page() {
             border: 1px solid #ddd;
             padding: 4px;
             background: #fff;
+        }
+        .radplapag-program-row {
+            margin-bottom: 8px;
+            padding: 8px;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            transition: border-color 0.3s ease;
+        }
+        .radplapag-program-row.radplapag-error {
+            border-color: #dc3232;
+            background-color: #fff5f5;
+        }
+        .radplapag-program-row input.radplapag-error {
+            border-color: #dc3232;
+            box-shadow: 0 0 2px rgba(220, 50, 50, 0.3);
+        }
+        .radplapag-program-error-message {
+            color: #dc3232;
+            font-size: 12px;
+            margin-top: 4px;
+            margin-left: 0;
+            display: none;
+        }
+        .radplapag-program-error-message.show {
+            display: block;
+        }
+        .radplapag-schedule-toggle {
+            padding: 0;
+            border: none;
+            background: none;
+            color: #2271b1;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 13px;
+            line-height: 2.15384615;
+            margin-bottom: 10px;
+        }
+        .radplapag-schedule-toggle:hover {
+            color: #135e96;
+        }
+        .radplapag-schedule-toggle:focus {
+            color: #135e96;
+            box-shadow: 0 0 0 1px #2271b1;
+            outline: 2px solid transparent;
+        }
+        .radplapag-schedule-toggle .toggle-indicator {
+            float: left;
+            margin-top: 5px;
+            margin-right: 5px;
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            position: relative;
+            color: #50575e;
+        }
+        .radplapag-schedule-toggle .toggle-indicator:before {
+            content: "\f140"; /* Dashicon for arrow-up-alt2 (collapsed) */
+            font: normal 20px/1 dashicons;
+            speak: never;
+            display: inline-block;
+            padding: 0;
+            top: 0;
+            left: 0;
+            position: relative;
+            vertical-align: top;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-decoration: none !important;
+        }
+        .radplapag-schedule-toggle[aria-expanded="false"] .toggle-indicator:before {
+            content: "\f140"; /* Dashicon for arrow-up-alt2 (collapsed) */
+        }
+        .radplapag-schedule-toggle[aria-expanded="true"] .toggle-indicator:before {
+            content: "\f142"; /* Dashicon for arrow-down-alt2 (expanded) */
+        }
+        .radplapag-schedule-wrapper {
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease, padding 0.3s ease;
+            overflow: hidden;
+        }
+        .radplapag-schedule-wrapper.radplapag-schedule-collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+        .radplapag-schedule-wrapper:not(.radplapag-schedule-collapsed) {
+            max-height: 5000px;
+            opacity: 1;
         }
     </style>
     
@@ -508,25 +957,25 @@ function radplapag_render_settings_page() {
                 return window.getComputedStyle(row).display === 'none';
             });
             
-            if (hiddenRows.length > 0) {
-                var row = hiddenRows[0];
-                row.style.display = '';
-                row.querySelector('.radplapag-stream-url').required = true;
-                row.querySelector('.radplapag-player-page').required = true;
-                var title = row.querySelector('.radplapag-station-title');
-                if (title) {
-                    var visibleCount = 0;
-                    container.querySelectorAll('.radplapag-station-row').forEach(function(r) {
-                        if (window.getComputedStyle(r).display !== 'none') {
-                            visibleCount++;
+                    if (hiddenRows.length > 0) {
+                        var row = hiddenRows[0];
+                        row.style.display = '';
+                        row.querySelector('.radplapag-stream-url').required = true;
+                        row.querySelector('.radplapag-player-page').required = true;
+                        var title = row.querySelector('.radplapag-station-title');
+                        if (title) {
+                            var visibleCount = 0;
+                            container.querySelectorAll('.radplapag-station-row').forEach(function(r) {
+                                if (window.getComputedStyle(r).display !== 'none') {
+                                    visibleCount++;
+                                }
+                            });
+                            title.textContent = '<?php echo esc_js( __( 'Stream', 'radio-player-page' ) ); ?> ' + visibleCount;
                         }
-                    });
-                    title.textContent = '<?php echo esc_js( __( 'Stream', 'radio-player-page' ) ); ?> ' + visibleCount;
+                        updateAddButton();
+                        updatePageOptions();
+                    }
                 }
-                updateAddButton();
-                updatePageOptions();
-            }
-        }
 
         // Image Upload Logic
         function initImageUpload() {
@@ -601,10 +1050,807 @@ function radplapag_render_settings_page() {
             select.addEventListener('change', updatePageOptions);
         });
         
+        // Program Schedule Validation Functions
+        function validateTimeFormat(timeString) {
+            // Validate time format using same regex as backend: /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/
+            var timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+            if (!timeString || !timeRegex.test(timeString)) {
+                return { valid: false, message: '<?php echo esc_js( __( 'Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ) ); ?>' };
+            }
+            return { valid: true };
+        }
+        
+        function validateTimeRange(startTime, endTime) {
+            if (!startTime || !endTime) {
+                return { valid: false, message: '<?php echo esc_js( __( 'Please complete all time fields', 'radio-player-page' ) ); ?>' };
+            }
+            
+            // Validate time format first
+            var startFormatValidation = validateTimeFormat(startTime);
+            if (!startFormatValidation.valid) {
+                return startFormatValidation;
+            }
+            
+            var endFormatValidation = validateTimeFormat(endTime);
+            if (!endFormatValidation.valid) {
+                return endFormatValidation;
+            }
+            
+            var start = timeToMinutes(startTime);
+            var end = timeToMinutes(endTime);
+            
+            // Allow programs that cross midnight (e.g., 23:00 to 00:00)
+            // If end <= start, it means the program crosses midnight
+            // In this case, we treat it as valid (end is on next day)
+            // Only invalid if start and end are exactly the same
+            if (start === end) {
+                return { valid: false, message: '<?php echo esc_js( __( 'Start and end times cannot be the same', 'radio-player-page' ) ); ?>' };
+            }
+            
+            return { valid: true };
+        }
+        
+        function timeToMinutes(timeString) {
+            if (!timeString || timeString.length < 5) {
+                return 0;
+            }
+            var parts = timeString.split(':');
+            return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+        }
+        
+        function checkOverlaps(dayWrapper, currentRow, excludeIndex) {
+            var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
+            var currentStart = currentRow.querySelector('.radplapag-program-start').value;
+            var currentEnd = currentRow.querySelector('.radplapag-program-end').value;
+            
+            if (!currentStart || !currentEnd) {
+                return { valid: true };
+            }
+            
+            var currentStartMin = timeToMinutes(currentStart);
+            var currentEndMin = timeToMinutes(currentEnd);
+            
+            for (var i = 0; i < allRows.length; i++) {
+                if (i === excludeIndex) {
+                    continue;
+                }
+                
+                var row = allRows[i];
+                // Skip hidden rows
+                if (window.getComputedStyle(row).display === 'none') {
+                    continue;
+                }
+                
+                var otherStart = row.querySelector('.radplapag-program-start').value;
+                var otherEnd = row.querySelector('.radplapag-program-end').value;
+                
+                if (!otherStart || !otherEnd) {
+                    continue;
+                }
+                
+                var otherStartMin = timeToMinutes(otherStart);
+                var otherEndMin = timeToMinutes(otherEnd);
+                
+                // Handle programs that cross midnight
+                // If end <= start, the program crosses midnight (ends next day)
+                var currentEndForOverlap = currentEndMin;
+                var otherEndForOverlap = otherEndMin;
+                
+                if (currentEndMin <= currentStartMin) {
+                    // Current program crosses midnight, treat end as next day (24:00 = 1440 minutes)
+                    currentEndForOverlap = 24 * 60;
+                }
+                if (otherEndMin <= otherStartMin) {
+                    // Other program crosses midnight, treat end as next day
+                    otherEndForOverlap = 24 * 60;
+                }
+                
+                // Check for overlap: (start1 < end2 && end1 > start2)
+                if (currentStartMin < otherEndForOverlap && currentEndForOverlap > otherStartMin) {
+                    var otherName = row.querySelector('.radplapag-program-name').value || '<?php echo esc_js( __( 'Unnamed program', 'radio-player-page' ) ); ?>';
+                    return {
+                        valid: false,
+                        message: '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + otherName
+                    };
+                }
+            }
+            
+            return { valid: true };
+        }
+        
+        // Check for overlaps with programs on the next day (for programs that cross midnight)
+        function checkCrossDayOverlaps(programRow) {
+            var startInput = programRow.querySelector('.radplapag-program-start');
+            var endInput = programRow.querySelector('.radplapag-program-end');
+            var nameInput = programRow.querySelector('.radplapag-program-name');
+            
+            if (!startInput || !endInput || !nameInput) {
+                return { valid: true };
+            }
+            
+            var start = startInput.value;
+            var end = endInput.value;
+            var name = nameInput.value.trim();
+            
+            // Only check if program has all fields filled
+            if (!start || !end || !name) {
+                return { valid: true };
+            }
+            
+            var startMin = timeToMinutes(start);
+            var endMin = timeToMinutes(end);
+            
+            // Only check if program crosses midnight
+            if (endMin > startMin) {
+                return { valid: true };
+            }
+            
+            // Program crosses midnight, check next day
+            var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
+            if (!scheduleWrapper) {
+                return { valid: true };
+            }
+            
+            var currentDayWrapper = programRow.closest('.radplapag-schedule-day');
+            if (!currentDayWrapper) {
+                return { valid: true };
+            }
+            
+            var currentDay = currentDayWrapper.getAttribute('data-day');
+            if (!currentDay) {
+                return { valid: true };
+            }
+            
+            // Map of days to next day
+            var dayMap = {
+                'monday': 'tuesday',
+                'tuesday': 'wednesday',
+                'wednesday': 'thursday',
+                'thursday': 'friday',
+                'friday': 'saturday',
+                'saturday': 'sunday',
+                'sunday': 'monday'
+            };
+            
+            var nextDay = dayMap[currentDay];
+            if (!nextDay) {
+                return { valid: true };
+            }
+            
+            // Find next day's wrapper
+            var nextDayWrapper = scheduleWrapper.querySelector('.radplapag-schedule-day[data-day="' + nextDay + '"]');
+            if (!nextDayWrapper) {
+                return { valid: true };
+            }
+            
+            // Check all programs in next day
+            var nextDayRows = nextDayWrapper.querySelectorAll('.radplapag-program-row');
+            for (var i = 0; i < nextDayRows.length; i++) {
+                var nextRow = nextDayRows[i];
+                
+                // Skip hidden rows
+                if (window.getComputedStyle(nextRow).display === 'none') {
+                    continue;
+                }
+                
+                var nextStartInput = nextRow.querySelector('.radplapag-program-start');
+                var nextEndInput = nextRow.querySelector('.radplapag-program-end');
+                var nextNameInput = nextRow.querySelector('.radplapag-program-name');
+                
+                if (!nextStartInput || !nextEndInput || !nextNameInput) {
+                    continue;
+                }
+                
+                var nextStart = nextStartInput.value;
+                var nextEnd = nextEndInput.value;
+                var nextName = nextNameInput.value.trim();
+                
+                // Skip incomplete programs
+                if (!nextStart || !nextEnd || !nextName) {
+                    continue;
+                }
+                
+                var nextStartMin = timeToMinutes(nextStart);
+                var nextEndMin = timeToMinutes(nextEnd);
+                
+                // Handle next program that might also cross midnight
+                var nextEndForOverlap = nextEndMin;
+                if (nextEndMin <= nextStartMin) {
+                    nextEndForOverlap = 24 * 60;
+                }
+                
+                // Check for overlap: crossing program ends at endMin on next day (e.g., 01:00 = 60 minutes)
+                // Next day program starts at nextStartMin
+                // Overlap if: endMin > nextStartMin (crossing program ends after next program starts)
+                if (endMin > nextStartMin) {
+                    // Unified error message format for both programs
+                    var errorMessage = '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + nextName;
+                    
+                    // Mark error in the program on next day
+                    showProgramError(nextRow, '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + name);
+                    
+                    return {
+                        valid: false,
+                        message: errorMessage
+                    };
+                }
+            }
+            
+            return { valid: true };
+        }
+        
+        function validateProgramRow(programRow) {
+            var name = programRow.querySelector('.radplapag-program-name').value.trim();
+            var start = programRow.querySelector('.radplapag-program-start').value;
+            var end = programRow.querySelector('.radplapag-program-end').value;
+            
+            // Step 1: Check if program is completely empty
+            var hasData = name || start || end;
+            if (!hasData) {
+                clearProgramError(programRow);
+                return { valid: true, isEmpty: true };
+            }
+            
+            // Step 2: Validate that name is required if times are provided
+            if ((start || end) && !name) {
+                var errorMessage = '<?php echo esc_js( __( 'Program name is required', 'radio-player-page' ) ); ?>';
+                showProgramError(programRow, errorMessage);
+                return { valid: false, message: errorMessage };
+            }
+            
+            // Step 3: Validate time format (if times are provided)
+            if (start || end) {
+                if (start) {
+                    var startFormatValidation = validateTimeFormat(start);
+                    if (!startFormatValidation.valid) {
+                        showProgramError(programRow, startFormatValidation.message);
+                        return { valid: false, message: startFormatValidation.message };
+                    }
+                }
+                
+                if (end) {
+                    var endFormatValidation = validateTimeFormat(end);
+                    if (!endFormatValidation.valid) {
+                        showProgramError(programRow, endFormatValidation.message);
+                        return { valid: false, message: endFormatValidation.message };
+                    }
+                }
+            }
+            
+            // Step 4: Validate time range (if both times are provided)
+            if (start && end) {
+                var timeRangeValidation = validateTimeRange(start, end);
+                if (!timeRangeValidation.valid) {
+                    showProgramError(programRow, timeRangeValidation.message);
+                    return { valid: false, message: timeRangeValidation.message };
+                }
+            }
+            
+            // Step 5: If program is incomplete (missing name, start, or end), don't validate overlaps yet
+            if (!name || !start || !end) {
+                clearProgramError(programRow);
+                return { valid: true, isIncomplete: true };
+            }
+            
+            // Step 6: Check for overlaps within the same day
+            var dayWrapper = programRow.closest('.radplapag-schedule-day');
+            var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
+            var currentIndex = Array.prototype.indexOf.call(allRows, programRow);
+            var overlapCheck = checkOverlaps(dayWrapper, programRow, currentIndex);
+            
+            if (!overlapCheck.valid) {
+                showProgramError(programRow, overlapCheck.message);
+                return { valid: false, message: overlapCheck.message };
+            }
+            
+            // Step 7: Check for cross-day overlaps (programs that cross midnight)
+            var crossDayOverlapCheck = checkCrossDayOverlaps(programRow);
+            if (!crossDayOverlapCheck.valid) {
+                showProgramError(programRow, crossDayOverlapCheck.message);
+                return { valid: false, message: crossDayOverlapCheck.message };
+            }
+            
+            // Step 8: Check if this program is overlapped by a program from previous day that crosses midnight
+            var prevDayOverlapCheck = checkPrevDayCrossOverlaps(programRow);
+            if (!prevDayOverlapCheck.valid) {
+                showProgramError(programRow, prevDayOverlapCheck.message);
+                return { valid: false, message: prevDayOverlapCheck.message };
+            }
+            
+            // All validations passed
+            clearProgramError(programRow);
+            return { valid: true };
+        }
+        
+        // Check if this program is overlapped by a program from previous day that crosses midnight
+        function checkPrevDayCrossOverlaps(programRow) {
+            var startInput = programRow.querySelector('.radplapag-program-start');
+            var endInput = programRow.querySelector('.radplapag-program-end');
+            var nameInput = programRow.querySelector('.radplapag-program-name');
+            
+            if (!startInput || !endInput || !nameInput) {
+                return { valid: true };
+            }
+            
+            var start = startInput.value;
+            var end = endInput.value;
+            var name = nameInput.value.trim();
+            
+            // Only check if program has all fields filled
+            if (!start || !end || !name) {
+                return { valid: true };
+            }
+            
+            var startMin = timeToMinutes(start);
+            var endMin = timeToMinutes(end);
+            
+            // Get schedule wrapper and current day
+            var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
+            if (!scheduleWrapper) {
+                return { valid: true };
+            }
+            
+            var currentDayWrapper = programRow.closest('.radplapag-schedule-day');
+            if (!currentDayWrapper) {
+                return { valid: true };
+            }
+            
+            var currentDay = currentDayWrapper.getAttribute('data-day');
+            if (!currentDay) {
+                return { valid: true };
+            }
+            
+            // Map of days to previous day
+            var prevDayMap = {
+                'monday': 'sunday',
+                'tuesday': 'monday',
+                'wednesday': 'tuesday',
+                'thursday': 'wednesday',
+                'friday': 'thursday',
+                'saturday': 'friday',
+                'sunday': 'saturday'
+            };
+            
+            var prevDay = prevDayMap[currentDay];
+            if (!prevDay) {
+                return { valid: true };
+            }
+            
+            // Find previous day's wrapper
+            var prevDayWrapper = scheduleWrapper.querySelector('.radplapag-schedule-day[data-day="' + prevDay + '"]');
+            if (!prevDayWrapper) {
+                return { valid: true };
+            }
+            
+            // Check all programs in previous day for ones that cross midnight
+            var prevDayRows = prevDayWrapper.querySelectorAll('.radplapag-program-row');
+            for (var i = 0; i < prevDayRows.length; i++) {
+                var prevRow = prevDayRows[i];
+                
+                // Skip hidden rows
+                if (window.getComputedStyle(prevRow).display === 'none') {
+                    continue;
+                }
+                
+                var prevStartInput = prevRow.querySelector('.radplapag-program-start');
+                var prevEndInput = prevRow.querySelector('.radplapag-program-end');
+                var prevNameInput = prevRow.querySelector('.radplapag-program-name');
+                
+                if (!prevStartInput || !prevEndInput || !prevNameInput) {
+                    continue;
+                }
+                
+                var prevStart = prevStartInput.value;
+                var prevEnd = prevEndInput.value;
+                var prevName = prevNameInput.value.trim();
+                
+                // Skip incomplete programs
+                if (!prevStart || !prevEnd || !prevName) {
+                    continue;
+                }
+                
+                var prevStartMin = timeToMinutes(prevStart);
+                var prevEndMin = timeToMinutes(prevEnd);
+                
+                // Only check programs that cross midnight (end <= start)
+                if (prevEndMin > prevStartMin) {
+                    continue;
+                }
+                
+                // Check for overlap: previous day program crosses midnight and ends at prevEndMin on current day
+                // Current day program starts at startMin
+                // Overlap if: prevEndMin > startMin (previous program ends after current program starts)
+                if (prevEndMin > startMin) {
+                    // Unified error message format for both programs
+                    var errorMessage = '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + prevName;
+                    
+                    // Mark error in the program from previous day
+                    showProgramError(prevRow, '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + name);
+                    
+                    return {
+                        valid: false,
+                        message: errorMessage
+                    };
+                }
+            }
+            
+            return { valid: true };
+        }
+        
+        function showProgramError(programRow, message) {
+            programRow.classList.add('radplapag-error');
+            var startInput = programRow.querySelector('.radplapag-program-start');
+            var endInput = programRow.querySelector('.radplapag-program-end');
+            if (startInput) startInput.classList.add('radplapag-error');
+            if (endInput) endInput.classList.add('radplapag-error');
+            
+            // Remove existing error message if any
+            var existingError = programRow.querySelector('.radplapag-program-error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add error message
+            var errorMsg = document.createElement('div');
+            errorMsg.className = 'radplapag-program-error-message show';
+            errorMsg.textContent = message;
+            programRow.appendChild(errorMsg);
+        }
+        
+        function clearProgramError(programRow) {
+            programRow.classList.remove('radplapag-error');
+            var inputs = programRow.querySelectorAll('input');
+            inputs.forEach(function(input) {
+                input.classList.remove('radplapag-error');
+            });
+            
+            var errorMsg = programRow.querySelector('.radplapag-program-error-message');
+            if (errorMsg) {
+                errorMsg.remove();
+            }
+        }
+        
+        // Revalidate programs in adjacent days (for cross-day overlap detection)
+        function revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper) {
+            if (!scheduleWrapper || !dayWrapper) {
+                return;
+            }
+            
+            var currentDay = dayWrapper.getAttribute('data-day');
+            if (!currentDay) {
+                return;
+            }
+            
+            var dayMap = {
+                'monday': 'tuesday',
+                'tuesday': 'wednesday',
+                'wednesday': 'thursday',
+                'thursday': 'friday',
+                'friday': 'saturday',
+                'saturday': 'sunday',
+                'sunday': 'monday'
+            };
+            var prevDayMap = {
+                'monday': 'sunday',
+                'tuesday': 'monday',
+                'wednesday': 'tuesday',
+                'thursday': 'wednesday',
+                'friday': 'thursday',
+                'saturday': 'friday',
+                'sunday': 'saturday'
+            };
+            
+            // Re-validate next day (in case this program crosses midnight)
+            var nextDay = dayMap[currentDay];
+            if (nextDay) {
+                var nextDayWrapper = scheduleWrapper.querySelector('.radplapag-schedule-day[data-day="' + nextDay + '"]');
+                if (nextDayWrapper) {
+                    nextDayWrapper.querySelectorAll('.radplapag-program-row').forEach(function(row) {
+                        if (window.getComputedStyle(row).display !== 'none') {
+                            validateProgramRow(row);
+                        }
+                    });
+                }
+            }
+            
+            // Re-validate previous day (in case previous day's programs cross midnight)
+            var prevDay = prevDayMap[currentDay];
+            if (prevDay) {
+                var prevDayWrapper = scheduleWrapper.querySelector('.radplapag-schedule-day[data-day="' + prevDay + '"]');
+                if (prevDayWrapper) {
+                    prevDayWrapper.querySelectorAll('.radplapag-program-row').forEach(function(row) {
+                        if (window.getComputedStyle(row).display !== 'none') {
+                            validateProgramRow(row);
+                        }
+                    });
+                }
+            }
+        }
+        
+        // Program Schedule Management
+        function initScheduleManagement() {
+            // Add validation event listeners to existing time inputs
+            container.querySelectorAll('.radplapag-program-start, .radplapag-program-end').forEach(function(input) {
+                input.addEventListener('change', function() {
+                    var programRow = this.closest('.radplapag-program-row');
+                    if (!programRow) return;
+                    
+                    // Validate the program row
+                    validateProgramRow(programRow);
+                    
+                    // Re-validate all programs in the same day to check for new overlaps
+                    var dayWrapper = programRow.closest('.radplapag-schedule-day');
+                    if (dayWrapper) {
+                        var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
+                        allRows.forEach(function(row) {
+                            if (row !== programRow) {
+                                validateProgramRow(row);
+                            }
+                        });
+                    }
+                    
+                    // Re-validate programs in adjacent days for cross-day overlaps
+                    var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
+                    revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper);
+                });
+                
+                input.addEventListener('blur', function() {
+                    var programRow = this.closest('.radplapag-program-row');
+                    if (programRow) {
+                        validateProgramRow(programRow);
+                    }
+                });
+            });
+            
+            // Add validation to program name changes
+            container.querySelectorAll('.radplapag-program-name').forEach(function(input) {
+                input.addEventListener('blur', function() {
+                    var programRow = this.closest('.radplapag-program-row');
+                    if (programRow) {
+                        validateProgramRow(programRow);
+                    }
+                });
+            });
+            
+            container.addEventListener('click', function(e) {
+                // Add program
+                if (e.target.classList.contains('radplapag-add-program')) {
+                    e.preventDefault();
+                    var day = e.target.getAttribute('data-day');
+                    var dayWrapper = e.target.closest('.radplapag-schedule-day');
+                    var programsList = dayWrapper.querySelector('.radplapag-programs-list');
+                    var stationIndex = e.target.closest('.radplapag-schedule-wrapper').getAttribute('data-station-index');
+                    
+                    // Find next available program index
+                    var existingPrograms = programsList.querySelectorAll('.radplapag-program-row');
+                    var nextIndex = existingPrograms.length;
+                    
+                    // Find hidden programs first
+                    var hiddenPrograms = Array.prototype.slice.call(existingPrograms).filter(function(row) {
+                        return window.getComputedStyle(row).display === 'none';
+                    });
+                    
+                    if (hiddenPrograms.length > 0) {
+                        var hiddenRow = hiddenPrograms[0];
+                        hiddenRow.style.display = '';
+                        hiddenRow.querySelector('.radplapag-program-name').value = '';
+                        hiddenRow.querySelector('.radplapag-program-start').value = '';
+                        hiddenRow.querySelector('.radplapag-program-end').value = '';
+                        var removeBtn = hiddenRow.querySelector('.radplapag-remove-program');
+                        if (removeBtn) {
+                            removeBtn.style.display = 'inline-block';
+                        }
+                    } else {
+                        // Create new program row
+                        var newRow = document.createElement('div');
+                        newRow.className = 'radplapag-program-row';
+                        newRow.setAttribute('data-program-index', nextIndex);
+                        newRow.innerHTML = 
+                            '<input type="text" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][name]" value="" placeholder="<?php echo esc_js( __( 'Program name', 'radio-player-page' ) ); ?>" class="radplapag-program-name" maxlength="100" required style="width: 200px; margin-right: 10px;">' +
+                            '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][start]" value="" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">' +
+                            '<span style="margin-right: 5px;">-</span>' +
+                            '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][end]" value="" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">' +
+                            '<button type="button" class="button radplapag-remove-program" style="height: 30px; line-height: 28px;"><?php echo esc_js( __( 'Remove', 'radio-player-page' ) ); ?></button>';
+                        programsList.appendChild(newRow);
+                        
+                        // Add event listeners to new inputs
+                        var newStartInput = newRow.querySelector('.radplapag-program-start');
+                        var newEndInput = newRow.querySelector('.radplapag-program-end');
+                        var newNameInput = newRow.querySelector('.radplapag-program-name');
+                        
+                        if (newStartInput) {
+                            newStartInput.addEventListener('change', function() {
+                                validateProgramRow(newRow);
+                                // Re-validate all programs in the same day
+                                var dayWrapper = newRow.closest('.radplapag-schedule-day');
+                                if (dayWrapper) {
+                                    var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
+                                    allRows.forEach(function(row) {
+                                        if (row !== newRow) {
+                                            validateProgramRow(row);
+                                        }
+                                    });
+                                }
+                                
+                                // Re-validate adjacent days for cross-day overlaps
+                                var scheduleWrapper = newRow.closest('.radplapag-schedule-wrapper');
+                                revalidateAdjacentDays(newRow, scheduleWrapper, dayWrapper);
+                            });
+                            newStartInput.addEventListener('blur', function() {
+                                validateProgramRow(newRow);
+                            });
+                        }
+                        
+                        if (newEndInput) {
+                            newEndInput.addEventListener('change', function() {
+                                validateProgramRow(newRow);
+                                // Re-validate all programs in the same day
+                                var dayWrapper = newRow.closest('.radplapag-schedule-day');
+                                if (dayWrapper) {
+                                    var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
+                                    allRows.forEach(function(row) {
+                                        if (row !== newRow) {
+                                            validateProgramRow(row);
+                                        }
+                                    });
+                                }
+                                
+                                // Re-validate adjacent days for cross-day overlaps
+                                var scheduleWrapper = newRow.closest('.radplapag-schedule-wrapper');
+                                revalidateAdjacentDays(newRow, scheduleWrapper, dayWrapper);
+                            });
+                            newEndInput.addEventListener('blur', function() {
+                                validateProgramRow(newRow);
+                            });
+                        }
+                        
+                        if (newNameInput) {
+                            newNameInput.addEventListener('blur', function() {
+                                validateProgramRow(newRow);
+                            });
+                        }
+                    }
+                }
+                
+                // Remove program (or clear if it's the last one)
+                if (e.target.classList.contains('radplapag-remove-program')) {
+                    e.preventDefault();
+                    var programRow = e.target.closest('.radplapag-program-row');
+                    if (programRow) {
+                        var dayWrapper = programRow.closest('.radplapag-schedule-day');
+                        var isLastVisible = false;
+                        
+                        if (dayWrapper) {
+                            // Count visible programs
+                            var visiblePrograms = Array.prototype.slice.call(
+                                dayWrapper.querySelectorAll('.radplapag-program-row')
+                            ).filter(function(row) {
+                                return window.getComputedStyle(row).display !== 'none';
+                            });
+                            
+                            // If it's the last visible program, clear instead of hiding
+                            if (visiblePrograms.length <= 1) {
+                                isLastVisible = true;
+                            }
+                        }
+                        
+                        // Clear the fields
+                        programRow.querySelector('.radplapag-program-name').value = '';
+                        programRow.querySelector('.radplapag-program-start').value = '';
+                        programRow.querySelector('.radplapag-program-end').value = '';
+                        
+                        // Clear any errors on the row
+                        clearProgramError(programRow);
+                        
+                        // If it's the last visible program, keep it visible but clear
+                        // Otherwise, hide it
+                        if (!isLastVisible) {
+                            programRow.style.display = 'none';
+                            e.target.style.display = 'none';
+                        }
+                        
+                        // Re-validate other programs in the same day for overlaps
+                        if (dayWrapper) {
+                            dayWrapper.querySelectorAll('.radplapag-program-row').forEach(function(row) {
+                                if (window.getComputedStyle(row).display !== 'none') {
+                                    validateProgramRow(row);
+                                }
+                            });
+                        }
+                        
+                        // Re-validate adjacent days for cross-day overlaps
+                        var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
+                        revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper);
+                    }
+                }
+            });
+        }
+        
+        // Form submission validation
+        var form = document.getElementById('radplapag-settings-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                var hasErrors = false;
+                var firstErrorElement = null;
+                var errorCount = 0;
+                
+                // Validate all visible program rows
+                container.querySelectorAll('.radplapag-program-row').forEach(function(row) {
+                    // Only validate visible rows
+                    if (window.getComputedStyle(row).display === 'none') {
+                        return;
+                    }
+                    
+                    // Validate the program row (includes format, range, and overlap checks)
+                    var validation = validateProgramRow(row);
+                    if (!validation.valid) {
+                        hasErrors = true;
+                        errorCount++;
+                        // Track first error element for scrolling
+                        if (!firstErrorElement) {
+                            firstErrorElement = row;
+                        }
+                    }
+                });
+                
+                if (hasErrors) {
+                    e.preventDefault();
+                    // Show descriptive error message
+                    var errorMessage = '<?php echo esc_js( __( 'Please fix the errors in the program schedule before saving.', 'radio-player-page' ) ); ?>';
+                    if (errorCount > 1) {
+                        errorMessage = '<?php echo esc_js( sprintf( __( 'Please fix %d errors in the program schedule before saving.', 'radio-player-page' ), '%d' ) ); ?>'.replace('%d', errorCount);
+                    }
+                    alert(errorMessage);
+                    
+                    // Scroll to first error element
+                    if (firstErrorElement) {
+                        // Use setTimeout to ensure DOM is updated before scrolling
+                        setTimeout(function() {
+                            firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 100);
+                    }
+                    return false;
+                }
+            });
+        }
+        
+        // Schedule Toggle Functionality (using event delegation for dynamically added elements)
+        function initScheduleToggle() {
+            // Use event delegation to handle clicks on toggle buttons (including dynamically added ones)
+            container.addEventListener('click', function(e) {
+                if (e.target.closest('.radplapag-schedule-toggle')) {
+                    e.preventDefault();
+                    var toggle = e.target.closest('.radplapag-schedule-toggle');
+                    var stationIndex = toggle.getAttribute('data-station-index');
+                    var scheduleWrapper = container.querySelector('.radplapag-schedule-wrapper[data-station-index="' + stationIndex + '"]');
+                    
+                    if (!scheduleWrapper) {
+                        return;
+                    }
+                    
+                    var isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+                    
+                    if (isExpanded) {
+                        // Collapse
+                        scheduleWrapper.classList.add('radplapag-schedule-collapsed');
+                        toggle.setAttribute('aria-expanded', 'false');
+                        toggle.innerHTML = '<span class="toggle-indicator" aria-hidden="true"></span><?php echo esc_js( __( 'Show Program Schedule', 'radio-player-page' ) ); ?>';
+                    } else {
+                        // Expand
+                        scheduleWrapper.classList.remove('radplapag-schedule-collapsed');
+                        toggle.setAttribute('aria-expanded', 'true');
+                        toggle.innerHTML = '<span class="toggle-indicator" aria-hidden="true"></span><?php echo esc_js( __( 'Hide Program Schedule', 'radio-player-page' ) ); ?>';
+                    }
+                }
+            });
+        }
+        
         // Initialize
         updateAddButton();
         updatePageOptions();
         initImageUpload();
+        initScheduleManagement();
+        initScheduleToggle();
     })();
     </script>
     <?php

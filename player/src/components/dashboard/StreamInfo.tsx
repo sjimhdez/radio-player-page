@@ -4,6 +4,7 @@ import Collapse from '@mui/material/Collapse'
 import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState, useEffect } from 'react'
+import useCurrentProgram from 'src/hooks/use-current-program'
 
 interface StreamInfoProps {
   /** Radio station or stream title */
@@ -26,6 +27,7 @@ interface StreamInfoProps {
  * Features:
  * - Displays station logo (if LOGO_IMAGE is set)
  * - Shows station title
+ * - Shows active program name and time range if schedule is configured
  * - Shows "connecting" message when loading and not playing
  * - Shows animated dot indicator when playing but visualization is not available
  *   (e.g., Safari with cross-origin audio due to CORS restrictions)
@@ -44,6 +46,7 @@ const StreamInfo = ({
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState<number>(0)
+  const currentProgram = useCurrentProgram()
 
   useEffect(() => {
     const updateHeight = () => {
@@ -62,7 +65,7 @@ const StreamInfo = ({
     return () => {
       resizeObserver.disconnect()
     }
-  }, [title, isPlaying, canVisualize, loading])
+  }, [title, isPlaying, canVisualize, loading, currentProgram])
 
   return (
     <Stack
@@ -104,6 +107,21 @@ const StreamInfo = ({
       >
         {title}
       </Typography>
+      {/* Show active program if schedule is configured */}
+      {currentProgram && (
+        <Typography
+          variant="h5"
+          component="p"
+          sx={{
+            textWrap: 'balance',
+            hyphens: 'auto',
+            opacity: 0.8,
+            transition: 'opacity 0.3s ease',
+          }}
+        >
+          {currentProgram.programName} - {currentProgram.timeRange}
+        </Typography>
+      )}
       {/* Show connecting message when loading but not yet playing */}
       {loading && !isPlaying && (
         <Typography

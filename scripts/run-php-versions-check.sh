@@ -19,11 +19,6 @@ PHP_FILES=(
     "$PLUGIN_DIR/admin-page.php"
 )
 
-# Check if compatibility.php exists and add it
-if [ -f "$PLUGIN_DIR/compatibility.php" ]; then
-    PHP_FILES+=("$PLUGIN_DIR/compatibility.php")
-fi
-
 # Minimum and maximum PHP versions to test (from plugin requirements)
 MIN_PHP_VERSION="5.6"
 MAX_PHP_VERSION="8.4"

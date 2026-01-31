@@ -82,6 +82,10 @@ Four visualizers powered by Web Audio API:
 
 Visualizers are code-split and lazy-loaded to reduce initial bundle size.
 
+### Program Schedule
+
+Define weekly program schedules per station with time slots. The currently active program name and time range are automatically displayed in the player interface. The schedule updates automatically every minute as programs change throughout the day.
+
 ### Configuration
 
 Per-station settings (up to 10 stations):
@@ -93,6 +97,7 @@ Per-station settings (up to 10 stations):
 - Visualizer type (4 options)
 - Background image (optional)
 - Logo image (optional)
+- Program schedule (optional) - Weekly schedule with programs by day and time slots
 
 ### Platform-Specific Behavior
 
@@ -313,6 +318,8 @@ Supported locales:
 - Romanian (ro-RO)
 - Spanish - Mexico (es-MX)
 - Swedish (sv-SE)
+- Galician (gl-ES)
+- Danish (da-DK)
 
 Detection order:
 
@@ -344,12 +351,16 @@ Set by PHP before React initialization:
 - `window.LOGO_IMAGE`: Logo image URL (optional)
 - `window.THEME_COLOR`: Theme color identifier
 - `window.VISUALIZER`: Visualizer type identifier
+- `window.SCHEDULE`: Program schedule object (optional)
+  - Structure: `{ monday?: Program[], tuesday?: Program[], ... }`
+  - Each program: `{ name: string, start: string, end: string }`
+  - Times in "HH:MM" format (24-hour)
 
 ### PHP Functions
 
 **Public API**
 
-- `radplapag_get_settings()`: Retrieves plugin settings array
+- `radplapag_get_settings()`: Retrieves plugin settings array. Each station may include an optional `schedule` property with weekly program schedule structure: `{ monday?: Program[], tuesday?: Program[], ... }` where each program has `{ name: string, start: string, end: string }` format with times in "HH:MM" (24-hour).
 - `radplapag_get_station_for_current_page()`: Gets station config for current page
 
 **Internal**
