@@ -8,6 +8,7 @@ import useAudioPlayer from 'src/hooks/use-audio-player'
 import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import useMediaSession from 'src/hooks/use-media-session'
+import useConfig from 'src/hooks/use-config'
 import { getVisualizer, getDefaultVisualizer, type VisualizerConfig } from 'src/config/visualizers'
 import StreamInfo from './StreamInfo'
 import PlayerControls from './PlayerControls'
@@ -25,21 +26,20 @@ import SleepTimer from './SleepTimer'
  * - Volume control
  * - Error handling and user feedback
  *
- * Reads configuration from window global variables:
- * - STREAM_URL: Audio stream URL
- * - SITE_TITLE: Radio station title
- * - LOGO_IMAGE: Station logo URL
- * - BACKGROUND_IMAGE: Optional background image URL
- * - VISUALIZER: Visualizer ID (oscilloscope, bars, particles, waterfall)
- * - THEME_COLOR: Theme color name
+ * Reads configuration from WordPress via the useConfig() hook, which accesses
+ * the window.RADPLAPAG_CONFIG object containing:
+ * - streamUrl: Audio stream URL
+ * - siteTitle: Radio station title
+ * - logoImage: Station logo URL (optional)
+ * - backgroundImage: Optional background image URL
+ * - visualizer: Visualizer ID (oscilloscope, bars, particles, waterfall)
+ * - themeColor: Theme color name
+ * - schedule: Optional program schedule
  *
  * @returns Complete radio player dashboard interface
  */
 const Dashboard = () => {
-  const STREAM_URL = window.STREAM_URL || ''
-  const SITE_TITLE = window.SITE_TITLE || ''
-  const LOGO_IMAGE = window.LOGO_IMAGE || ''
-  const VISUALIZER_ID = window.VISUALIZER || 'oscilloscope'
+  const config = useConfig()
 
   const [dimensions, setDimensions] = useState({
     width: window.innerWidth,
@@ -53,11 +53,11 @@ const Dashboard = () => {
 
   const { t } = useTranslation()
   const { audioRef, status, loading, play, pause, volume, handleVolumeChange } =
-    useAudioPlayer(STREAM_URL)
+    useAudioPlayer(config.streamUrl)
   const canVisualize = useCanVisualize(audioRef)
 
   // Configure Media Session API for lock screen
-  useMediaSession(SITE_TITLE, LOGO_IMAGE, play, pause, status)
+  useMediaSession(config.siteTitle, config.logoImage || '', play, pause, status)
 
   // Load visualizer asynchronously (code splitting)
   useEffect(() => {
@@ -65,7 +65,7 @@ const Dashboard = () => {
 
     const loadVisualizer = async () => {
       const defaultMetadata = getDefaultVisualizer()
-      const loadedConfig = await getVisualizer(VISUALIZER_ID)
+      const loadedConfig = await getVisualizer(config.visualizer)
 
       // Only update state if component is still mounted
       if (!cancelled) {
@@ -84,7 +84,7 @@ const Dashboard = () => {
     return () => {
       cancelled = true
     }
-  }, [VISUALIZER_ID])
+  }, [config.visualizer])
 
   // Use visualizer only when loaded, fallback to default with placeholder function
   // The placeholder function is a no-op that gets called every frame while loading
@@ -143,10 +143,10 @@ const Dashboard = () => {
       height="100vh"
       position="relative"
     >
-      {window.BACKGROUND_IMAGE && (
+      {config.backgroundImage && (
         <Box
           component="img"
-          src={window.BACKGROUND_IMAGE}
+          src={config.backgroundImage}
           alt="Background"
           sx={{
             position: 'absolute',
@@ -162,7 +162,8 @@ const Dashboard = () => {
       )}
 
       <StreamInfo
-        title={SITE_TITLE}
+        title={config.siteTitle}
+        logoImage={config.logoImage}
         isPlaying={status === 'playing'}
         canVisualize={canVisualize}
         loading={loading}

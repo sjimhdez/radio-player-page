@@ -70,9 +70,14 @@ function radplapag_get_station_for_current_page() {
  * the correct asset paths, extracts station configuration, and outputs a complete
  * HTML document with all necessary scripts and styles.
  *
- * The function sets global JavaScript variables (window.STREAM_URL, window.SITE_TITLE,
- * etc.) that the React app uses for configuration. It intentionally bypasses WordPress's
- * enqueue system by outputting directly and calling exit() to prevent theme loading.
+ * The function sets a global JavaScript configuration object (window.RADPLAPAG_CONFIG)
+ * that contains all station configuration data as a single JSON object. This object
+ * includes stream URL, site title, theme color, visualizer type, media URLs, and
+ * optional program schedule. The React app accesses this configuration via the
+ * useConfig() hook which validates and sanitizes all values.
+ *
+ * It intentionally bypasses WordPress's enqueue system by outputting directly and
+ * calling exit() to prevent theme loading.
  *
  * @since 1.0.0
  *
@@ -144,17 +149,25 @@ function radplapag_output_clean_page() {
     if ($favicon_url) {
         echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
     }
-    echo '<script>window.STREAM_URL = "' . esc_js( $stream_url ) . '";</script>';
-    echo '<script>window.SITE_TITLE = "' . esc_js( $display_title ) . '";</script>';
-    echo '<script>window.BACKGROUND_IMAGE = "' . esc_js( $background_url ) . '";</script>';
-    echo '<script>window.LOGO_IMAGE = "' . esc_js( $logo_url ) . '";</script>';
-    echo '<script>window.THEME_COLOR = "' . esc_js( $theme_color ) . '";</script>';
-    echo '<script>window.VISUALIZER = "' . esc_js( $visualizer ) . '";</script>';
     
-    // Inject schedule if it exists
+    // Build configuration object
+    $config = [
+        'streamUrl' => $stream_url,
+        'siteTitle' => $display_title,
+        'backgroundImage' => $background_url ? $background_url : null,
+        'logoImage' => $logo_url ? $logo_url : null,
+        'themeColor' => $theme_color,
+        'visualizer' => $visualizer,
+    ];
+    
+    // Add schedule only if it exists and is not empty
     if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
-        echo '<script>window.SCHEDULE = ' . wp_json_encode( $station['schedule'] ) . ';</script>';
+        $config['schedule'] = $station['schedule'];
     }
+    
+    // Output single script tag with JSON configuration object
+    // wp_json_encode with security flags prevents XSS in HTML contexts
+    echo '<script>window.RADPLAPAG_CONFIG = ' . wp_json_encode( $config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';</script>';
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Schedule } from 'src/types/global'
+import useConfig from 'src/hooks/use-config'
 
 /**
  * Result of the current program calculation
@@ -15,7 +16,7 @@ export interface CurrentProgram {
  * Hook to determine the currently active program based on the schedule and current time.
  *
  * This hook:
- * - Reads the schedule from window.SCHEDULE if available
+ * - Reads the schedule from plugin configuration via useConfig() hook
  * - Calculates the current day of the week (0=Sunday, 1=Monday, etc.)
  * - Determines which program is currently active by comparing current time with program time slots
  * - Updates automatically every minute to reflect program changes
@@ -24,10 +25,11 @@ export interface CurrentProgram {
  * @returns CurrentProgram object with programName and timeRange, or null if no active program
  */
 function useCurrentProgram(): CurrentProgram | null {
+  const config = useConfig()
   const [currentProgram, setCurrentProgram] = useState<CurrentProgram | null>(null)
 
   useEffect(() => {
-    const schedule: Schedule | undefined = window.SCHEDULE
+    const schedule: Schedule | undefined = config.schedule
 
     // If no schedule, return null
     if (!schedule) {
@@ -128,7 +130,7 @@ function useCurrentProgram(): CurrentProgram | null {
     return () => {
       clearInterval(interval)
     }
-  }, [])
+  }, [config.schedule])
 
   return currentProgram
 }

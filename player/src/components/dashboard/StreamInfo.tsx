@@ -9,6 +9,8 @@ import useCurrentProgram from 'src/hooks/use-current-program'
 interface StreamInfoProps {
   /** Radio station or stream title */
   title: string
+  /** Station logo image URL (optional) */
+  logoImage?: string | null
   /** Whether the stream is currently playing */
   isPlaying: boolean
   /** Whether audio visualization is available */
@@ -25,7 +27,7 @@ interface StreamInfoProps {
  * Dynamically positions itself based on visualization state and playback status
  *
  * Features:
- * - Displays station logo (if LOGO_IMAGE is set)
+ * - Displays station logo (if logoImage prop is provided)
  * - Shows station title
  * - Shows active program name and time range if schedule is configured
  * - Shows "connecting" message when loading and not playing
@@ -38,6 +40,7 @@ interface StreamInfoProps {
  */
 const StreamInfo = ({
   title,
+  logoImage,
   isPlaying,
   canVisualize,
   loading,
@@ -87,10 +90,10 @@ const StreamInfo = ({
       alignItems="center"
       justifyContent="center"
     >
-      {window.LOGO_IMAGE && (
+      {logoImage && (
         <Box
           component="img"
-          src={window.LOGO_IMAGE}
+          src={logoImage}
           alt="Logo"
           sx={{
             width: 75,

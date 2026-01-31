@@ -7,8 +7,23 @@ import 'src/index.css'
 import App from 'src/App.tsx'
 import 'src/config/i18n'
 
-// Get theme color from global window variable or use default
-const themeColor = window.THEME_COLOR || 'neutral'
+// Valid theme color values
+const VALID_THEMES = [
+  'neutral',
+  'blue',
+  'green',
+  'red',
+  'orange',
+  'yellow',
+  'purple',
+  'pink',
+] as const
+
+// Get theme color from configuration object or use default
+// Validate against whitelist for security
+const rawThemeColor = window.RADPLAPAG_CONFIG?.themeColor || window.THEME_COLOR || 'neutral'
+const themeColor =
+  VALID_THEMES.includes(rawThemeColor as any) ? rawThemeColor : 'neutral'
 const themeInstance = getTheme(themeColor)
 
 // Initialize React app with Material-UI theme provider
