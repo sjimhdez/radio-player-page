@@ -3,7 +3,7 @@
  * Function signature for audio visualizer implementations
  *
  * Note: This is a duplicate type definition. The main type is defined in use-audio-visualizer.tsx
- * Kept here for backwards compatibility or alternative import paths
+ * Kept here for alternative import paths
  *
  * @param canvasCtx - Canvas 2D rendering context
  * @param dataArray - Audio data array (time or frequency domain)

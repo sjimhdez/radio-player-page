@@ -49,7 +49,7 @@ function generateArtworkArray(logoUrl: string): MediaImage[] {
  * - Player status changes (synchronizes playbackState)
  *
  * @param title - Title of the radio station/stream
- * @param logoUrl - URL of the logo/artwork image (from LOGO_IMAGE). If not provided, no artwork will be sent
+ * @param logoUrl - URL of the logo/artwork image (from RADPLAPAG_CONFIG.logoImage). If not provided, no artwork will be sent
  * @param onPlay - Callback function for play action
  * @param onPause - Callback function for pause action
  * @param status - Current player status to synchronize playbackState

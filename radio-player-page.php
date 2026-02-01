@@ -150,8 +150,15 @@ function radplapag_output_clean_page() {
         echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
     }
     
-    // Get WordPress timezone (returns IANA timezone string, e.g., "America/Mexico_City", "Europe/Madrid", "UTC")
-    $timezone = wp_timezone_string();
+    // Get WordPress timezone object and calculate numeric offset
+    // This ensures we always have a numeric value (handles DST automatically)
+    $timezone_obj = wp_timezone();
+    
+    // Calculate current offset in hours (numeric, handles DST)
+    // getOffset() returns seconds, convert to hours
+    $now = new DateTime();
+    $offset_seconds = $timezone_obj->getOffset( $now );
+    $timezone_offset = $offset_seconds / 3600; // Convert to hours (float)
     
     // Build configuration object
     $config = [
@@ -161,7 +168,7 @@ function radplapag_output_clean_page() {
         'logoImage' => $logo_url ? $logo_url : null,
         'themeColor' => $theme_color,
         'visualizer' => $visualizer,
-        'timezone' => $timezone,
+        'timezoneOffset' => $timezone_offset, // Numeric offset in hours from UTC
     ];
     
     // Add schedule only if it exists and is not empty

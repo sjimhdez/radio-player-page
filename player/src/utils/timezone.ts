@@ -1,66 +1,67 @@
-import { toZonedTime } from 'date-fns-tz'
-import { getHours, getMinutes, getDay } from 'date-fns'
-
 /**
- * Get current date/time information in a specific timezone
+ * Get current date/time information using timezone offset
  *
- * This function uses date-fns-tz to convert the current UTC time to a specific
- * timezone and extracts the day of week and current time in minutes since midnight.
- * It includes robust error handling with fallback to UTC if the timezone is invalid.
+ * This function uses the numeric offset (in hours) to calculate the current time
+ * in WordPress timezone. The numeric offset is reliable as it's always a number
+ * and handles DST automatically from WordPress.
  *
- * @param timezone IANA timezone string (e.g., "America/Mexico_City", "Europe/Madrid", "UTC")
+ * @param timezoneOffset Numeric offset in hours from UTC (e.g., -6, 5.5, 0)
  * @returns Object with dayOfWeek (0-6, 0=Sunday) and currentTime (minutes since midnight)
  * @throws Never throws, always returns a valid result (falls back to UTC on error)
  */
-export function getCurrentTimeInTimezone(timezone: string): {
+export function getCurrentTimeInTimezone(timezoneOffset: number): {
   dayOfWeek: number
   currentTime: number
 } {
-  try {
-    // Validate timezone is not empty
-    if (!timezone || typeof timezone !== 'string' || timezone.trim() === '') {
+  // Validate and use numeric offset
+  if (typeof timezoneOffset === 'number' && !isNaN(timezoneOffset)) {
+    try {
+      // Get current UTC time
+      const now = new Date()
+      
+      // Calculate local time by adding WordPress timezone offset (in milliseconds)
+      const offsetMs = timezoneOffset * 60 * 60 * 1000
+      const localTimeMs = now.getTime() + offsetMs
+      
+      // Create a Date object representing the local time in WordPress timezone
+      const localDate = new Date(localTimeMs)
+
+      // Extract components using UTC methods
+      // Since we've added the offset to UTC time, UTC methods give us the local time
+      const hour = localDate.getUTCHours()
+      const minute = localDate.getUTCMinutes()
+      const dayOfWeek = localDate.getUTCDay() // Returns 0 (Sunday) to 6 (Saturday)
+
+      return {
+        dayOfWeek,
+        currentTime: hour * 60 + minute,
+      }
+    } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        console.warn(
-          '[Radio Player] Invalid timezone provided, falling back to UTC:',
-          timezone
+        console.error(
+          '[Radio Player] Error calculating time with offset, falling back to UTC:',
+          error
         )
       }
-      timezone = 'UTC'
+      // Fall through to UTC fallback
     }
+  }
 
-    // Get current UTC time
-    const now = new Date()
+  // Fallback: Return UTC time if offset is invalid
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(
+      '[Radio Player] Invalid timezone offset, using UTC fallback. Offset:',
+      timezoneOffset
+    )
+  }
 
-    // Convert UTC time to the specified timezone
-    const zonedDate = toZonedTime(now, timezone)
+  const now = new Date()
+  const hour = now.getUTCHours()
+  const minute = now.getUTCMinutes()
+  const dayOfWeek = now.getUTCDay()
 
-    // Extract components using date-fns
-    const hour = getHours(zonedDate)
-    const minute = getMinutes(zonedDate)
-    const dayOfWeek = getDay(zonedDate) // Returns 0 (Sunday) to 6 (Saturday)
-
-    return {
-      dayOfWeek,
-      currentTime: hour * 60 + minute,
-    }
-  } catch (error) {
-    // Fallback to UTC if timezone conversion fails
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        '[Radio Player] Error converting timezone, falling back to UTC:',
-        error
-      )
-    }
-
-    // Return UTC time as fallback
-    const now = new Date()
-    const hour = getHours(now)
-    const minute = getMinutes(now)
-    const dayOfWeek = getDay(now)
-
-    return {
-      dayOfWeek,
-      currentTime: hour * 60 + minute,
-    }
+  return {
+    dayOfWeek,
+    currentTime: hour * 60 + minute,
   }
 }

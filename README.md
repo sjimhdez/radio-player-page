@@ -46,9 +46,9 @@ radplapag_output_clean_page()
   ↓
 Reads manifest.json → Loads fingerprinted assets
   ↓
-Outputs standalone HTML with window.* globals
+Outputs standalone HTML with window.RADPLAPAG_CONFIG
   ↓
-React app initializes from window.STREAM_URL, etc.
+React app initializes from window.RADPLAPAG_CONFIG
 ```
 
 ### Asset Loading System
@@ -353,7 +353,6 @@ To add languages: create locale file in `player/src/locales/` and register in `p
 
 Set by PHP before React initialization:
 
-**Preferred format** (since v2.0.3+):
 - `window.RADPLAPAG_CONFIG`: Complete configuration object with:
   - `streamUrl`: Audio stream URL
   - `siteTitle`: Station title or site name
@@ -361,24 +360,13 @@ Set by PHP before React initialization:
   - `logoImage`: Logo image URL (optional, null if not set)
   - `themeColor`: Theme color identifier
   - `visualizer`: Visualizer type identifier
-  - `timezone`: WordPress timezone in IANA format (e.g., "America/Mexico_City", "Europe/Madrid", "UTC")
+  - `timezoneOffset`: WordPress timezone offset in hours from UTC (numeric, e.g., -6, 5.5, 0)
+    - Calculated using `wp_timezone()->getOffset()` which handles DST automatically
     - Used by the player to calculate the current active program according to WordPress timezone, not browser timezone
   - `schedule`: Program schedule object (optional)
     - Structure: `{ monday?: Program[], tuesday?: Program[], ... }`
     - Each program: `{ name: string, start: string, end: string }`
     - Times in "HH:MM" format (24-hour)
-
-**Deprecated format** (maintained for compatibility):
-- `window.STREAM_URL`: Audio stream URL
-- `window.SITE_TITLE`: Station title or site name
-- `window.BACKGROUND_IMAGE`: Background image URL (optional)
-- `window.LOGO_IMAGE`: Logo image URL (optional)
-- `window.THEME_COLOR`: Theme color identifier
-- `window.VISUALIZER`: Visualizer type identifier
-- `window.SCHEDULE`: Program schedule object (optional)
-  - Structure: `{ monday?: Program[], tuesday?: Program[], ... }`
-  - Each program: `{ name: string, start: string, end: string }`
-  - Times in "HH:MM" format (24-hour)
 
 ### PHP Functions
 

@@ -58,6 +58,14 @@ function useConfig(): PluginConfig {
         ? rawConfig.visualizer
         : 'oscilloscope'
 
+    // Validate timezoneOffset (must be a number between -12 and 14)
+    const timezoneOffset =
+      typeof rawConfig?.timezoneOffset === 'number' &&
+      rawConfig.timezoneOffset >= -12 &&
+      rawConfig.timezoneOffset <= 14
+        ? rawConfig.timezoneOffset
+        : 0 // Default to UTC (0) if invalid
+
     return {
       streamUrl: rawConfig?.streamUrl || '',
       siteTitle: rawConfig?.siteTitle || '',
@@ -65,7 +73,7 @@ function useConfig(): PluginConfig {
       logoImage: rawConfig?.logoImage || undefined,
       themeColor,
       visualizer,
-      timezone: rawConfig?.timezone || 'UTC',
+      timezoneOffset,
       schedule: rawConfig?.schedule,
     }
   }, [])
