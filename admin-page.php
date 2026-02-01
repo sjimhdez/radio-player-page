@@ -1626,6 +1626,11 @@ function radplapag_render_settings_page() {
                     if (!isStillInGroup) {
                         // Use setTimeout to ensure the focus change has completed
                         setTimeout(function() {
+                            // Check if the programRow is still in the DOM (might have been removed)
+                            if (!programRow.parentNode) {
+                                return;
+                            }
+                            
                             // Double-check that focus is not still in the group
                             var activeElement = document.activeElement;
                             var stillInGroup = programRow.contains(activeElement);
@@ -1646,7 +1651,9 @@ function radplapag_render_settings_page() {
                                 
                                 // Re-validate programs in adjacent days for cross-day overlaps
                                 var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
-                                revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper);
+                                if (scheduleWrapper && dayWrapper) {
+                                    revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper);
+                                }
                             }
                         }, 10);
                     }
