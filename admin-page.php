@@ -1063,6 +1063,24 @@ function radplapag_render_settings_page() {
         });
         
         // Program Schedule Validation Functions
+        // Day labels for error messages
+        var dayLabels = {
+            'monday': '<?php echo esc_js( __( 'Monday', 'radio-player-page' ) ); ?>',
+            'tuesday': '<?php echo esc_js( __( 'Tuesday', 'radio-player-page' ) ); ?>',
+            'wednesday': '<?php echo esc_js( __( 'Wednesday', 'radio-player-page' ) ); ?>',
+            'thursday': '<?php echo esc_js( __( 'Thursday', 'radio-player-page' ) ); ?>',
+            'friday': '<?php echo esc_js( __( 'Friday', 'radio-player-page' ) ); ?>',
+            'saturday': '<?php echo esc_js( __( 'Saturday', 'radio-player-page' ) ); ?>',
+            'sunday': '<?php echo esc_js( __( 'Sunday', 'radio-player-page' ) ); ?>'
+        };
+        
+        // Helper function to format overlap error message with day and time
+        function formatOverlapMessage(programName, dayKey, startTime, endTime) {
+            var dayLabel = dayLabels[dayKey] || dayKey;
+            var timeRange = startTime + ' - ' + endTime;
+            return programName + ' (' + dayLabel + ', ' + timeRange + ')';
+        }
+        
         function validateTimeFormat(timeString) {
             // Validate time format using same regex as backend: /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/
             var timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
@@ -1160,9 +1178,12 @@ function radplapag_render_settings_page() {
                 // Check for overlap: (start1 < end2 && end1 > start2)
                 if (currentStartMin < otherEndForOverlap && currentEndForOverlap > otherStartMin) {
                     var otherName = row.querySelector('.radplapag-program-name').value || '<?php echo esc_js( __( 'Unnamed program', 'radio-player-page' ) ); ?>';
+                    // Get day from dayWrapper
+                    var dayKey = dayWrapper.getAttribute('data-day');
+                    var formattedMessage = formatOverlapMessage(otherName, dayKey, otherStart, otherEnd);
                     return {
                         valid: false,
-                        message: '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + otherName
+                        message: '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + formattedMessage
                     };
                 }
             }
@@ -1275,11 +1296,15 @@ function radplapag_render_settings_page() {
                 // Next day program starts at nextStartMin
                 // Overlap if: endMin > nextStartMin (crossing program ends after next program starts)
                 if (endMin > nextStartMin) {
+                    // Format messages with day and time
+                    var nextFormattedMessage = formatOverlapMessage(nextName, nextDay, nextStart, nextEnd);
+                    var currentFormattedMessage = formatOverlapMessage(name, currentDay, start, end);
+                    
                     // Unified error message format for both programs
-                    var errorMessage = '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + nextName;
+                    var errorMessage = '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + nextFormattedMessage;
                     
                     // Mark error in the program on next day
-                    showProgramError(nextRow, '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + name);
+                    showProgramError(nextRow, '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + currentFormattedMessage);
                     
                     return {
                         valid: false,
@@ -1474,11 +1499,15 @@ function radplapag_render_settings_page() {
                 // Current day program starts at startMin
                 // Overlap if: prevEndMin > startMin (previous program ends after current program starts)
                 if (prevEndMin > startMin) {
+                    // Format messages with day and time
+                    var prevFormattedMessage = formatOverlapMessage(prevName, prevDay, prevStart, prevEnd);
+                    var currentFormattedMessage = formatOverlapMessage(name, currentDay, start, end);
+                    
                     // Unified error message format for both programs
-                    var errorMessage = '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + prevName;
+                    var errorMessage = '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + prevFormattedMessage;
                     
                     // Mark error in the program from previous day
-                    showProgramError(prevRow, '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + name);
+                    showProgramError(prevRow, '<?php echo esc_js( __( 'This time slot overlaps with', 'radio-player-page' ) ); ?>: ' + currentFormattedMessage);
                     
                     return {
                         valid: false,
@@ -1583,62 +1612,46 @@ function radplapag_render_settings_page() {
         // Program Schedule Management
         function initScheduleManagement() {
             // Helper function to validate when focus leaves the program group
+            // Each program row (name, start time, end time) is treated as a single group
             function setupGroupValidation(programRow) {
                 // Use focusout on the program row container to detect when focus leaves the group
-                programRow.addEventListener('focusout', function() {
-                    // Use setTimeout to check if the next focused element is still within the group
-                    setTimeout(function() {
-                        var activeElement = document.activeElement;
-                        var isStillInGroup = programRow.contains(activeElement);
-                        
-                        // Only validate if focus has left the group completely
-                        if (!isStillInGroup) {
-                            validateProgramRow(programRow);
+                programRow.addEventListener('focusout', function(e) {
+                    var relatedTarget = e.relatedTarget;
+                    
+                    // Check if the next focused element is still within the group
+                    // If relatedTarget is null or not in the group, focus has left the group
+                    var isStillInGroup = relatedTarget && programRow.contains(relatedTarget);
+                    
+                    // Only validate if focus has left the group completely
+                    if (!isStillInGroup) {
+                        // Use setTimeout to ensure the focus change has completed
+                        setTimeout(function() {
+                            // Double-check that focus is not still in the group
+                            var activeElement = document.activeElement;
+                            var stillInGroup = programRow.contains(activeElement);
                             
-                            // Re-validate all programs in the same day to check for new overlaps
-                            var dayWrapper = programRow.closest('.radplapag-schedule-day');
-                            if (dayWrapper) {
-                                var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
-                                allRows.forEach(function(row) {
-                                    if (row !== programRow) {
-                                        validateProgramRow(row);
-                                    }
-                                });
+                            if (!stillInGroup) {
+                                validateProgramRow(programRow);
+                                
+                                // Re-validate all programs in the same day to check for new overlaps
+                                var dayWrapper = programRow.closest('.radplapag-schedule-day');
+                                if (dayWrapper) {
+                                    var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
+                                    allRows.forEach(function(row) {
+                                        if (row !== programRow) {
+                                            validateProgramRow(row);
+                                        }
+                                    });
+                                }
+                                
+                                // Re-validate programs in adjacent days for cross-day overlaps
+                                var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
+                                revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper);
                             }
-                            
-                            // Re-validate programs in adjacent days for cross-day overlaps
-                            var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
-                            revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper);
-                        }
-                    }, 0);
+                        }, 10);
+                    }
                 });
             }
-            
-            // Add validation event listeners to existing time inputs
-            container.querySelectorAll('.radplapag-program-start, .radplapag-program-end').forEach(function(input) {
-                input.addEventListener('change', function() {
-                    var programRow = this.closest('.radplapag-program-row');
-                    if (!programRow) return;
-                    
-                    // Validate the program row
-                    validateProgramRow(programRow);
-                    
-                    // Re-validate all programs in the same day to check for new overlaps
-                    var dayWrapper = programRow.closest('.radplapag-schedule-day');
-                    if (dayWrapper) {
-                        var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
-                        allRows.forEach(function(row) {
-                            if (row !== programRow) {
-                                validateProgramRow(row);
-                            }
-                        });
-                    }
-                    
-                    // Re-validate programs in adjacent days for cross-day overlaps
-                    var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
-                    revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper);
-                });
-            });
             
             // Setup group validation for existing program rows
             container.querySelectorAll('.radplapag-program-row').forEach(function(programRow) {
@@ -1669,50 +1682,6 @@ function radplapag_render_settings_page() {
                         '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][end]" value="" class="radplapag-program-end" required style="width: 100px; margin-right: 10px;">' +
                         '<button type="button" class="button radplapag-remove-program" style="height: 30px; line-height: 28px;"><?php echo esc_js( __( 'Remove', 'radio-player-page' ) ); ?></button>';
                     programsList.appendChild(newRow);
-                    
-                    // Add event listeners to new inputs
-                    var newStartInput = newRow.querySelector('.radplapag-program-start');
-                    var newEndInput = newRow.querySelector('.radplapag-program-end');
-                    
-                    if (newStartInput) {
-                        newStartInput.addEventListener('change', function() {
-                            validateProgramRow(newRow);
-                            // Re-validate all programs in the same day
-                            var dayWrapper = newRow.closest('.radplapag-schedule-day');
-                            if (dayWrapper) {
-                                var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
-                                allRows.forEach(function(row) {
-                                    if (row !== newRow) {
-                                        validateProgramRow(row);
-                                    }
-                                });
-                            }
-                            
-                            // Re-validate adjacent days for cross-day overlaps
-                            var scheduleWrapper = newRow.closest('.radplapag-schedule-wrapper');
-                            revalidateAdjacentDays(newRow, scheduleWrapper, dayWrapper);
-                        });
-                    }
-                    
-                    if (newEndInput) {
-                        newEndInput.addEventListener('change', function() {
-                            validateProgramRow(newRow);
-                            // Re-validate all programs in the same day
-                            var dayWrapper = newRow.closest('.radplapag-schedule-day');
-                            if (dayWrapper) {
-                                var allRows = dayWrapper.querySelectorAll('.radplapag-program-row');
-                                allRows.forEach(function(row) {
-                                    if (row !== newRow) {
-                                        validateProgramRow(row);
-                                    }
-                                });
-                            }
-                            
-                            // Re-validate adjacent days for cross-day overlaps
-                            var scheduleWrapper = newRow.closest('.radplapag-schedule-wrapper');
-                            revalidateAdjacentDays(newRow, scheduleWrapper, dayWrapper);
-                        });
-                    }
                     
                     // Setup group validation for the new program row
                     setupGroupValidation(newRow);
