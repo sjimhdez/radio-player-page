@@ -65,6 +65,7 @@ function useConfig(): PluginConfig {
       logoImage: rawConfig?.logoImage || undefined,
       themeColor,
       visualizer,
+      timezone: rawConfig?.timezone || 'UTC',
       schedule: rawConfig?.schedule,
     }
   }, [])

@@ -55,6 +55,8 @@ export interface PluginConfig {
   themeColor: 'neutral' | 'blue' | 'green' | 'red' | 'orange' | 'yellow' | 'purple' | 'pink'
   /** Visualizer ID (validated against whitelist, defaults to 'oscilloscope') */
   visualizer: 'oscilloscope' | 'bars' | 'particles' | 'waterfall'
+  /** WordPress timezone in IANA format (e.g., "America/Mexico_City", "Europe/Madrid", "UTC") */
+  timezone: string
   /** Program schedule (optional, weekly schedule with programs by day) */
   schedule?: Schedule
 }

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Schedule } from 'src/types/global'
 import useConfig from 'src/hooks/use-config'
+import { getCurrentTimeInTimezone } from 'src/utils/timezone'
 
 /**
  * Result of the current program calculation
@@ -17,10 +18,13 @@ export interface CurrentProgram {
  *
  * This hook:
  * - Reads the schedule from plugin configuration via useConfig() hook
- * - Calculates the current day of the week (0=Sunday, 1=Monday, etc.)
+ * - Uses WordPress timezone (not browser timezone) to calculate current time via date-fns-tz
+ * - Calculates the current day of the week (0=Sunday, 1=Monday, etc.) in WordPress timezone
  * - Determines which program is currently active by comparing current time with program time slots
  * - Updates automatically every minute to reflect program changes
  * - Returns null if no schedule is configured or no program is active
+ *
+ * Uses date-fns and date-fns-tz for robust timezone handling with error handling and UTC fallback.
  *
  * @returns CurrentProgram object with programName and timeRange, or null if no active program
  */
@@ -41,9 +45,8 @@ function useCurrentProgram(): CurrentProgram | null {
      * Calculate the current active program
      */
     const calculateCurrentProgram = (): CurrentProgram | null => {
-      const now = new Date()
-      const dayOfWeek = now.getDay() // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-      const currentTime = now.getHours() * 60 + now.getMinutes() // Current time in minutes since midnight
+      // Get current time in WordPress timezone
+      const { dayOfWeek, currentTime } = getCurrentTimeInTimezone(config.timezone)
 
       // Map day of week to schedule key
       const dayMap: Record<number, keyof Schedule> = {
@@ -130,7 +133,7 @@ function useCurrentProgram(): CurrentProgram | null {
     return () => {
       clearInterval(interval)
     }
-  }, [config.schedule])
+  }, [config.schedule, config.timezone])
 
   return currentProgram
 }

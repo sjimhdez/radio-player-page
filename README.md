@@ -209,6 +209,7 @@ npm run lint           # ESLint code quality check
 - `use-audio-player.tsx`: Manages audio element, protocol detection, library loading
 - `use-audio-visualizer.tsx`: Web Audio API connection, data extraction
 - `use-can-visualize.tsx`: Browser capability detection
+- `use-current-program.tsx`: Determines active program from schedule using date-fns-tz for timezone handling
 - `use-is-ios.tsx`: Platform detection
 - `use-media-session.tsx`: Media Session API configuration
 
@@ -225,6 +226,13 @@ npm run lint           # ESLint code quality check
 - 8 predefined color palettes
 - Dark mode only
 - Per-station theme selection
+
+**Date/Time Handling**
+
+- Uses `date-fns` and `date-fns-tz` for robust timezone and date manipulation
+- Timezone-aware program schedule calculation using WordPress timezone
+- Tree-shaking enabled (only imports needed functions)
+- Centralized timezone utilities in `src/utils/timezone.ts`
 
 ### Pre-commit Hooks
 
@@ -345,6 +353,22 @@ To add languages: create locale file in `player/src/locales/` and register in `p
 
 Set by PHP before React initialization:
 
+**Preferred format** (since v2.0.3+):
+- `window.RADPLAPAG_CONFIG`: Complete configuration object with:
+  - `streamUrl`: Audio stream URL
+  - `siteTitle`: Station title or site name
+  - `backgroundImage`: Background image URL (optional, null if not set)
+  - `logoImage`: Logo image URL (optional, null if not set)
+  - `themeColor`: Theme color identifier
+  - `visualizer`: Visualizer type identifier
+  - `timezone`: WordPress timezone in IANA format (e.g., "America/Mexico_City", "Europe/Madrid", "UTC")
+    - Used by the player to calculate the current active program according to WordPress timezone, not browser timezone
+  - `schedule`: Program schedule object (optional)
+    - Structure: `{ monday?: Program[], tuesday?: Program[], ... }`
+    - Each program: `{ name: string, start: string, end: string }`
+    - Times in "HH:MM" format (24-hour)
+
+**Deprecated format** (maintained for compatibility):
 - `window.STREAM_URL`: Audio stream URL
 - `window.SITE_TITLE`: Station title or site name
 - `window.BACKGROUND_IMAGE`: Background image URL (optional)

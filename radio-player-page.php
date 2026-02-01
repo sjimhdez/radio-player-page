@@ -150,6 +150,9 @@ function radplapag_output_clean_page() {
         echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
     }
     
+    // Get WordPress timezone (returns IANA timezone string, e.g., "America/Mexico_City", "Europe/Madrid", "UTC")
+    $timezone = wp_timezone_string();
+    
     // Build configuration object
     $config = [
         'streamUrl' => $stream_url,
@@ -158,6 +161,7 @@ function radplapag_output_clean_page() {
         'logoImage' => $logo_url ? $logo_url : null,
         'themeColor' => $theme_color,
         'visualizer' => $visualizer,
+        'timezone' => $timezone,
     ];
     
     // Add schedule only if it exists and is not empty
