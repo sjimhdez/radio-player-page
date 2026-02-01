@@ -73,7 +73,8 @@ function useCurrentProgram(): CurrentProgram | null {
 
       // Sort programs by start time to handle ties correctly
       // When a program ends exactly when another starts (e.g., 19:00-20:00 and 20:00-21:00),
-      // at exactly 20:00 we show the program that starts (20:00-21:00), not the one that ends
+      // at exactly 20:00 we show the program that starts (20:00-21:00), not the one that ends.
+      // This is achieved by using `currentTime < endTime` (not `<=`) in the condition below.
       const sortedPrograms = [...dayPrograms].sort((a, b) => {
         const [aHour, aMinute] = a.start.split(':').map(Number)
         const [bHour, bMinute] = b.start.split(':').map(Number)
@@ -83,6 +84,9 @@ function useCurrentProgram(): CurrentProgram | null {
       })
 
       // Find the active program
+      // We iterate through sorted programs and return the first one that matches.
+      // The sorting ensures that when multiple programs could match (e.g., at exact boundary times),
+      // we prioritize programs that start at that time over programs that end at that time.
       for (const program of sortedPrograms) {
         const [startHour, startMinute] = program.start.split(':').map(Number)
         const [endHour, endMinute] = program.end.split(':').map(Number)
@@ -92,8 +96,10 @@ function useCurrentProgram(): CurrentProgram | null {
 
         // Handle programs that cross midnight
         if (endTime <= startTime) {
-          // Program crosses midnight (e.g., 23:00 to 00:00)
+          // Program crosses midnight (e.g., 23:00 to 01:00)
           // Check if current time is after start (before midnight) or before end (after midnight)
+          // Note: We use `currentTime < endTime` (not `<=`) so that at exactly endTime,
+          // the program that starts at that time takes precedence.
           if (currentTime >= startTime || currentTime < endTime) {
             return {
               programName: program.name,
@@ -102,6 +108,12 @@ function useCurrentProgram(): CurrentProgram | null {
           }
         } else {
           // Normal program (doesn't cross midnight)
+          // Critical: We use `currentTime < endTime` (not `<=`) to handle exact boundary times correctly.
+          // Example: Program A (19:00-20:00) and Program B (20:00-21:00)
+          // At exactly 20:00 (currentTime === 1200 minutes):
+          // - Program A: 1200 >= 1140 (start) && 1200 < 1200 (end) = false (not shown)
+          // - Program B: 1200 >= 1200 (start) && 1200 < 1260 (end) = true (shown)
+          // This ensures the program that starts at the boundary time is displayed.
           if (currentTime >= startTime && currentTime < endTime) {
             return {
               programName: program.name,
@@ -134,6 +146,9 @@ function useCurrentProgram(): CurrentProgram | null {
           const endTime = endHour * 60 + endMinute
 
           // If program crosses midnight and we're in the early hours (before end time)
+          // Note: We use `currentTime < endTime` (not `<=`) for consistency with the main logic.
+          // This ensures that if a program from the previous day ends exactly when a program
+          // from the current day starts, the current day's program takes precedence.
           if (endTime <= startTime && currentTime < endTime) {
             return {
               programName: program.name,

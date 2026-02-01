@@ -15,6 +15,8 @@ import PlayerControls from './PlayerControls'
 import VolumeControl from './VolumeControl'
 import SleepMode from './SleepMode'
 import SleepTimer from './SleepTimer'
+import TimezoneClock from './TimezoneClock'
+import useEmissionTime from 'src/hooks/use-emission-time'
 
 /**
  * Main dashboard component
@@ -55,6 +57,7 @@ const Dashboard = () => {
   const { audioRef, status, loading, play, pause, volume, handleVolumeChange } =
     useAudioPlayer(config.streamUrl)
   const canVisualize = useCanVisualize(audioRef)
+  const emissionTimeData = useEmissionTime()
 
   // Configure Media Session API for lock screen
   useMediaSession(config.siteTitle, config.logoImage || '', play, pause, status)
@@ -210,6 +213,9 @@ const Dashboard = () => {
       </Stack>
 
       <audio ref={audioRef} hidden preload="none" />
+
+      {/* Timezone clock - positioned discretely in top-right corner */}
+      <TimezoneClock isPlaying={status === 'playing'} emissionTimeData={emissionTimeData} />
 
       <Snackbar open={openError} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
         <Alert severity="error" variant="filled" sx={{ width: '100%' }}>

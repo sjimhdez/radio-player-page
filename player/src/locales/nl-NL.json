@@ -11,6 +11,11 @@
     "sleepOption30": "30 min",
     "sleepOption60": "1 uur",
     "sleepOption120": "2 uur",
-    "liveRadio": "Live uitzending"
+    "liveRadio": "Live uitzending",
+    "timezoneClock": "Uitzendtijd",
+    "timezoneClockLabel": "Uitzendtijdzone",
+    "timezoneWarning": "Uw lokale tijd: {{browserTime}}, Uitzendtijd: {{emissionTime}}, Verschil: {{difference}}",
+    "timezoneDifferenceHours": "{{count}} uur",
+    "timezoneDifferenceHours_plural": "{{count}} uur"
   }
 }

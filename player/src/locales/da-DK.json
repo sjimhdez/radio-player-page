@@ -11,6 +11,11 @@
     "sleepOption30": "30 min",
     "sleepOption60": "1 time",
     "sleepOption120": "2 timer",
-    "liveRadio": "Live radio"
+    "liveRadio": "Live radio",
+    "timezoneClock": "Udsendelsestid",
+    "timezoneClockLabel": "Udsendelsestidszone",
+    "timezoneWarning": "Din lokale tid: {{browserTime}}, Udsendelsestid: {{emissionTime}}, Forskel: {{difference}}",
+    "timezoneDifferenceHours": "{{count}} time",
+    "timezoneDifferenceHours_plural": "{{count}} timer"
   }
 }

@@ -11,6 +11,11 @@
     "sleepOption30": "30 min",
     "sleepOption60": "1 hora",
     "sleepOption120": "2 horas",
-    "liveRadio": "Radio en vivo"
+    "liveRadio": "Radio en vivo",
+    "timezoneClock": "Hora de emisión",
+    "timezoneClockLabel": "Zona horaria del emisor",
+    "timezoneWarning": "Tu hora local: {{browserTime}}, Hora de emisión: {{emissionTime}}, Diferencia: {{difference}}",
+    "timezoneDifferenceHours": "{{count}} hora",
+    "timezoneDifferenceHours_plural": "{{count}} horas"
   }
 }

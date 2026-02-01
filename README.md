@@ -86,6 +86,41 @@ Visualizers are code-split and lazy-loaded to reduce initial bundle size.
 
 Define weekly program schedules per station with time slots. The currently active program name and time range are automatically displayed in the player interface. The schedule updates automatically every minute as programs change throughout the day.
 
+**Program Overlap Handling**: When a program ends exactly when another starts (e.g., 19:00-20:00 and 20:00-21:00), at exactly 20:00 the program that starts (20:00-21:00) is displayed, not the one that ends. This ensures correct program transitions at boundary times.
+
+### Timezone Clock
+
+When the player is actively playing and there is a timezone difference between the user's browser and the WordPress timezone (emission timezone), a discrete real-time clock is displayed in the top-right corner showing:
+
+- **Informative Label**: "Zona horaria del emisor" (or equivalent in other languages) indicating this is the emission timezone
+- **Emission Time**: Current time in the WordPress timezone (where the radio station is located) displayed in "HH:MM:SS" format, updating every second
+- **Timezone Difference Indicator**: A colored badge showing the time difference (e.g., "+6", "-3") with:
+  - Green color for positive differences (WordPress ahead of browser)
+  - Orange color for negative differences (WordPress behind browser)
+
+The timezone clock only appears when:
+- The stream is currently playing (`isPlaying === true`)
+- There is a non-zero timezone difference between browser and WordPress timezone
+
+**Design**:
+- Positioned discretely in the top-right corner with reduced opacity (0.6)
+- Compact design with semi-transparent background and blur effect
+- Minimal, elegant styling that doesn't interfere with main content
+
+**Timezone Calculation**:
+- WordPress timezone offset is obtained from `wp_timezone()->getOffset()` which handles DST automatically
+- Browser timezone is detected automatically from the user's system settings
+- The difference is calculated as: `WordPress offset - Browser offset`
+- Positive values indicate WordPress is ahead of browser time, negative values indicate it's behind
+
+**Implementation Details**:
+- Uses `useEmissionTime()` hook to calculate and update times in real-time
+- Updates every second for accurate clock display
+- Handles half-hour timezones (e.g., India UTC+5:30) correctly
+- All timezone calculations respect DST changes automatically
+- Component: `TimezoneClock.tsx` positioned in Dashboard
+- Utilities: `src/utils/timezone.ts` provides timezone calculation functions
+
 ### Configuration
 
 Per-station settings (up to 10 stations):
@@ -209,7 +244,11 @@ npm run lint           # ESLint code quality check
 - `use-audio-player.tsx`: Manages audio element, protocol detection, library loading
 - `use-audio-visualizer.tsx`: Web Audio API connection, data extraction
 - `use-can-visualize.tsx`: Browser capability detection
-- `use-current-program.tsx`: Determines active program from schedule using date-fns-tz for timezone handling
+- `use-current-program.tsx`: Determines active program from schedule using WordPress timezone offset
+- `use-emission-time.tsx`: Calculates and updates emission timezone clock in real-time, detects browser timezone difference
+  - Returns: `emissionTime`, `browserTime`, `timeDifference`, `hasDifference`
+  - Updates every second for real-time clock display
+  - Only calculates when needed (uses `useConfig()` for WordPress timezone offset)
 - `use-is-ios.tsx`: Platform detection
 - `use-media-session.tsx`: Media Session API configuration
 
@@ -229,10 +268,16 @@ npm run lint           # ESLint code quality check
 
 **Date/Time Handling**
 
-- Uses `date-fns` and `date-fns-tz` for robust timezone and date manipulation
-- Timezone-aware program schedule calculation using WordPress timezone
-- Tree-shaking enabled (only imports needed functions)
-- Centralized timezone utilities in `src/utils/timezone.ts`
+- Timezone-aware program schedule calculation using WordPress timezone offset (numeric, handles DST automatically)
+- Browser timezone detection for timezone difference calculation
+- Real-time emission timezone clock updates every second
+- Centralized timezone utilities in `src/utils/timezone.ts`:
+  - `getCurrentTimeInTimezone()`: Calculate current time in WordPress timezone (used by program schedule)
+  - `getBrowserTimezoneOffset()`: Get browser timezone offset in hours from UTC
+  - `getTimezoneDifference()`: Calculate difference between WordPress and browser timezones
+  - `formatTimeInTimezone()`: Format time in specific timezone for display (supports with/without seconds)
+  - `formatTimezoneDifference()`: Format timezone difference for display (e.g., "+6", "-3", "+5.5")
+- All timezone functions handle DST automatically and support half-hour timezones
 
 ### Pre-commit Hooks
 
