@@ -16,6 +16,7 @@
     "timezoneClockLabel": "Emission timezone",
     "timezoneWarning": "Your local time: {{browserTime}}, Emission time: {{emissionTime}}, Difference: {{difference}}",
     "timezoneDifferenceHours": "{{count}} hour",
-    "timezoneDifferenceHours_plural": "{{count}} hours"
+    "timezoneDifferenceHours_plural": "{{count}} hours",
+    "upcomingProgram": "Upcoming: {{programName}} - {{timeRange}} (in {{minutes}} min)"
   }
 }

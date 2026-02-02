@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState, useEffect } from 'react'
 import useCurrentProgram from 'src/hooks/use-current-program'
+import useUpcomingProgram from 'src/hooks/use-upcoming-program'
 
 interface StreamInfoProps {
   /** Radio station or stream title */
@@ -50,6 +51,7 @@ const StreamInfo = ({
   const containerRef = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState<number>(0)
   const currentProgram = useCurrentProgram()
+  const upcomingProgram = useUpcomingProgram()
 
   useEffect(() => {
     const updateHeight = () => {
@@ -68,7 +70,7 @@ const StreamInfo = ({
     return () => {
       resizeObserver.disconnect()
     }
-  }, [title, isPlaying, canVisualize, loading, currentProgram])
+  }, [title, isPlaying, canVisualize, loading, currentProgram, upcomingProgram])
 
   return (
     <Stack
@@ -125,6 +127,27 @@ const StreamInfo = ({
           {currentProgram.programName} - {currentProgram.timeRange}
         </Typography>
       )}
+      {/* Show upcoming program announcement if it starts within 5 minutes */}
+      {upcomingProgram &&
+        upcomingProgram.minutesUntil > 0 &&
+        upcomingProgram.minutesUntil <= 5 && (
+          <Typography
+            variant="h5"
+            component="p"
+            sx={{
+              textWrap: 'balance',
+              hyphens: 'auto',
+              opacity: 0.8,
+              transition: 'opacity 0.3s ease',
+            }}
+          >
+            {t('dashboard.upcomingProgram', {
+              programName: upcomingProgram.programName,
+              timeRange: upcomingProgram.timeRange,
+              minutes: upcomingProgram.minutesUntil,
+            })}
+          </Typography>
+        )}
       {/* Show connecting message when loading but not yet playing */}
       {loading && !isPlaying && (
         <Typography

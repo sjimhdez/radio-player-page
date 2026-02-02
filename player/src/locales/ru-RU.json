@@ -16,6 +16,7 @@
     "timezoneClockLabel": "Часовой пояс вещания",
     "timezoneWarning": "Ваше местное время: {{browserTime}}, Время вещания: {{emissionTime}}, Разница: {{difference}}",
     "timezoneDifferenceHours": "{{count}} час",
-    "timezoneDifferenceHours_plural": "{{count}} часа"
+    "timezoneDifferenceHours_plural": "{{count}} часа",
+    "upcomingProgram": "Скоро: {{programName}} - {{timeRange}} (через {{minutes}} мин)"
   }
 }

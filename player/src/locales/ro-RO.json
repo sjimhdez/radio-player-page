@@ -16,6 +16,7 @@
     "timezoneClockLabel": "Fus orar al emisiunii",
     "timezoneWarning": "Ora ta locală: {{browserTime}}, Ora emisiunii: {{emissionTime}}, Diferență: {{difference}}",
     "timezoneDifferenceHours": "{{count}} oră",
-    "timezoneDifferenceHours_plural": "{{count}} ore"
+    "timezoneDifferenceHours_plural": "{{count}} ore",
+    "upcomingProgram": "În curând: {{programName}} - {{timeRange}} (în {{minutes}} min)"
   }
 }

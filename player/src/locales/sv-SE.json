@@ -16,6 +16,7 @@
     "timezoneClockLabel": "Sändningstidszon",
     "timezoneWarning": "Din lokala tid: {{browserTime}}, Sändningstid: {{emissionTime}}, Skillnad: {{difference}}",
     "timezoneDifferenceHours": "{{count}} timme",
-    "timezoneDifferenceHours_plural": "{{count}} timmar"
+    "timezoneDifferenceHours_plural": "{{count}} timmar",
+    "upcomingProgram": "Kommer snart: {{programName}} - {{timeRange}} (om {{minutes}} min)"
   }
 }

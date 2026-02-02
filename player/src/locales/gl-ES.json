@@ -16,6 +16,7 @@
     "timezoneClockLabel": "Zona horaria do emisor",
     "timezoneWarning": "A túa hora local: {{browserTime}}, Hora de emisión: {{emissionTime}}, Diferenza: {{difference}}",
     "timezoneDifferenceHours": "{{count}} hora",
-    "timezoneDifferenceHours_plural": "{{count}} horas"
+    "timezoneDifferenceHours_plural": "{{count}} horas",
+    "upcomingProgram": "Próximamente: {{programName}} - {{timeRange}} (en {{minutes}} min)"
   }
 }
