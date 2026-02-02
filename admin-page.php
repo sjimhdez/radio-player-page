@@ -111,6 +111,14 @@ function radplapag_sanitize_settings( $input ) {
         $theme = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
         $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
         
+        // Validate attachment IDs: ensure they are valid image attachments
+        if ( $bg_id > 0 && ! wp_attachment_is_image( $bg_id ) ) {
+            $bg_id = 0;
+        }
+        if ( $logo_id > 0 && ! wp_attachment_is_image( $logo_id ) ) {
+            $logo_id = 0;
+        }
+        
         // Validate that the theme color is valid
         $valid_themes = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
         if ( ! in_array( $theme, $valid_themes, true ) ) {
