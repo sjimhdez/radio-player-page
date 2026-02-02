@@ -38,14 +38,12 @@ function radplapag_uninstall_plugin() {
 
 	// For multisite installations, delete from all sites
 	if ( is_multisite() ) {
-		global $wpdb;
+		// Get all sites using WordPress API (recommended over direct database queries)
+		$sites = get_sites( [ 'number' => 0 ] );
 		
-		// Get all blog IDs
-		$blog_ids = $wpdb->get_col( "SELECT blog_id FROM $wpdb->blogs" );
-
-		foreach ( $blog_ids as $blog_id ) {
+		foreach ( $sites as $site ) {
 			// Delete option for each site
-			delete_blog_option( $blog_id, 'radplapag_settings' );
+			delete_blog_option( $site->blog_id, 'radplapag_settings' );
 		}
 	}
 }

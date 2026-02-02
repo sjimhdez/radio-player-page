@@ -94,7 +94,14 @@ add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts' );
  */
 function radplapag_sanitize_settings( $input ) {
     // Verify nonce for security (settings_fields generates nonce with action: radplapag_settings_group-options)
-    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['_wpnonce'] ), 'radplapag_settings_group-options' ) ) {
+    if ( ! isset( $_POST['_wpnonce'] ) ) {
+        // If nonce is not set, return current settings to prevent data loss
+        return get_option( 'radplapag_settings', [ 'stations' => [] ] );
+    }
+    
+    // Sanitize nonce before verification
+    $nonce = isset( $_POST['_wpnonce'] ) ? sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ) : '';
+    if ( ! wp_verify_nonce( $nonce, 'radplapag_settings_group-options' ) ) {
         // If nonce fails, return current settings to prevent data loss
         return get_option( 'radplapag_settings', [ 'stations' => [] ] );
     }
