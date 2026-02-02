@@ -88,12 +88,14 @@ Define weekly program schedules per station with time slots. The currently activ
 
 **Program Overlap Handling**: When a program ends exactly when another starts (e.g., 19:00-20:00 and 20:00-21:00), at exactly 20:00 the program that starts (20:00-21:00) is displayed, not the one that ends. This ensures correct program transitions at boundary times.
 
+**Upcoming Program Announcement**: When a program is scheduled to start within 5 minutes, an announcement is automatically displayed showing the program name, time range, and minutes until it starts. This announcement appears regardless of whether there is a currently active program, and updates every minute to ensure timely display for users already connected.
+
 ### Timezone Clock
 
 When the player is actively playing and there is a timezone difference between the user's browser and the WordPress timezone (emission timezone), a discrete real-time clock is displayed in the top-right corner showing:
 
 - **Informative Label**: "Zona horaria del emisor" (or equivalent in other languages) indicating this is the emission timezone
-- **Emission Time**: Current time in the WordPress timezone (where the radio station is located) displayed in "HH:MM:SS" format, updating every second
+- **Emission Time**: Current time in the WordPress timezone (where the radio station is located) displayed in "HH:MM" format, updating every minute
 - **Timezone Difference Indicator**: A colored badge showing the time difference (e.g., "+6", "-3") with:
   - Green color for positive differences (WordPress ahead of browser)
   - Orange color for negative differences (WordPress behind browser)
@@ -114,8 +116,9 @@ The timezone clock only appears when:
 - Positive values indicate WordPress is ahead of browser time, negative values indicate it's behind
 
 **Implementation Details**:
-- Uses `useEmissionTime()` hook to calculate and update times in real-time
-- Updates every second for accurate clock display
+- Uses `useEmissionTime()` hook to calculate and update times
+- Updates every minute (same pattern as program schedule hooks for consistency and performance)
+- Displays time in "HH:MM" format (without seconds for better performance)
 - Handles half-hour timezones (e.g., India UTC+5:30) correctly
 - All timezone calculations respect DST changes automatically
 - Component: `TimezoneClock.tsx` positioned in Dashboard
@@ -245,9 +248,15 @@ npm run lint           # ESLint code quality check
 - `use-audio-visualizer.tsx`: Web Audio API connection, data extraction
 - `use-can-visualize.tsx`: Browser capability detection
 - `use-current-program.tsx`: Determines active program from schedule using WordPress timezone offset
-- `use-emission-time.tsx`: Calculates and updates emission timezone clock in real-time, detects browser timezone difference
+  - Updates every minute to reflect program changes
+- `use-upcoming-program.tsx`: Determines upcoming program that will start within 5 minutes
+  - Returns: `programName`, `timeRange`, `minutesUntil`
+  - Updates every minute to ensure timely announcement display
+  - Works independently of current program status
+- `use-emission-time.tsx`: Calculates and updates emission timezone clock, detects browser timezone difference
   - Returns: `emissionTime`, `browserTime`, `timeDifference`, `hasDifference`
-  - Updates every second for real-time clock display
+  - Updates every minute (same pattern as program schedule hooks for consistency and performance)
+  - Displays time in "HH:MM" format (without seconds for better performance)
   - Only calculates when needed (uses `useConfig()` for WordPress timezone offset)
 - `use-is-ios.tsx`: Platform detection
 - `use-media-session.tsx`: Media Session API configuration
@@ -270,7 +279,11 @@ npm run lint           # ESLint code quality check
 
 - Timezone-aware program schedule calculation using WordPress timezone offset (numeric, handles DST automatically)
 - Browser timezone detection for timezone difference calculation
-- Real-time emission timezone clock updates every second
+- Emission timezone clock updates every minute (same pattern as program schedule hooks)
+- All time-related hooks update every minute for consistency and optimal performance:
+  - `use-current-program`: Active program detection
+  - `use-upcoming-program`: Upcoming program announcement (within 5 minutes)
+  - `use-emission-time`: Timezone clock display
 - Centralized timezone utilities in `src/utils/timezone.ts`:
   - `getCurrentTimeInTimezone()`: Calculate current time in WordPress timezone (used by program schedule)
   - `getBrowserTimezoneOffset()`: Get browser timezone offset in hours from UTC
