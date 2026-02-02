@@ -94,7 +94,7 @@ add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts' );
  */
 function radplapag_sanitize_settings( $input ) {
     // Verify nonce for security (settings_fields generates nonce with action: radplapag_settings_group-options)
-    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'radplapag_settings_group-options' ) ) {
+    if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['_wpnonce'] ), 'radplapag_settings_group-options' ) ) {
         // If nonce fails, return current settings to prevent data loss
         return get_option( 'radplapag_settings', [ 'stations' => [] ] );
     }
@@ -1778,6 +1778,7 @@ function radplapag_render_settings_page() {
                     // Show descriptive error message
                     var errorMessage = '<?php echo esc_js( __( 'Please fix the errors in the program schedule before saving.', 'radio-player-page' ) ); ?>';
                     if (errorCount > 1) {
+                        <?php /* translators: %d: Number of errors in the program schedule */ ?>
                         errorMessage = '<?php echo esc_js( sprintf( __( 'Please fix %d errors in the program schedule before saving.', 'radio-player-page' ), '%d' ) ); ?>'.replace('%d', errorCount);
                     }
                     alert(errorMessage);
