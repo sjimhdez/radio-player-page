@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
-import BedtimeIcon from '@mui/icons-material/Bedtime'
+import BedIcon from '@mui/icons-material/Bed';
 import { useTranslation } from 'react-i18next'
 import Stack from '@mui/material/Stack'
 
@@ -147,7 +147,7 @@ const SleepMode = ({
     <>
       <Stack alignItems="flex-start" justifyContent="center">
         <IconButton onClick={handleClick} aria-label={t('dashboard.sleepMode')} color="primary">
-          <BedtimeIcon />
+          <BedIcon />
         </IconButton>
       </Stack>
       <Menu
