@@ -531,7 +531,7 @@ function radplapag_render_settings_page() {
                             ?>
                         </h3>
                         <table class="form-table" role="presentation">
-                            <tr>
+                            <tr data-field="player_page">
                                 <th scope="row">
                                     <label for="radplapag_page_<?php echo esc_attr( $index ); ?>">
                                         <?php esc_html_e( 'Player page', 'radio-player-page' ); ?>
@@ -542,7 +542,6 @@ function radplapag_render_settings_page() {
                                         name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][player_page]" 
                                         id="radplapag_page_<?php echo esc_attr( $index ); ?>" 
                                         class="radplapag-player-page"
-                                        <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
                                     >
                                         <option value=""><?php esc_html_e( 'Select a page', 'radio-player-page' ); ?></option>
                                         <?php foreach ( $pages as $page ) : ?>
@@ -553,7 +552,7 @@ function radplapag_render_settings_page() {
                                     </select>
                                 </td>
                             </tr>
-                            <tr>
+                            <tr data-field="stream_url">
                                 <th scope="row">
                                     <label for="radplapag_stream_url_<?php echo esc_attr( $index ); ?>">
                                         <?php esc_html_e( 'Stream URL', 'radio-player-page' ); ?>
@@ -567,11 +566,10 @@ function radplapag_render_settings_page() {
                                         value="<?php echo esc_url( $stream_url ); ?>" 
                                         class="regular-text radplapag-stream-url"
                                         placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>"
-                                        <?php echo ( ! $is_empty || $index === 0 ) ? 'required' : ''; ?>
                                     >
                                 </td>
                             </tr>
-                            <tr>
+                            <tr data-field="station_title">
                                 <th scope="row">
                                     <label for="radplapag_station_title_<?php echo esc_attr( $index ); ?>">
                                         <?php esc_html_e( 'Stream Title', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?>
@@ -735,7 +733,6 @@ function radplapag_render_settings_page() {
                                                                     placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>"
                                                                     class="radplapag-program-name"
                                                                     maxlength="100"
-                                                                    required
                                                                     style="width: 200px; margin-right: 10px;"
                                                                 >
                                                                 <input 
@@ -743,7 +740,6 @@ function radplapag_render_settings_page() {
                                                                     name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][schedule][<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" 
                                                                     value="<?php echo esc_attr( $prog_start ); ?>" 
                                                                     class="radplapag-program-start"
-                                                                    required
                                                                     style="width: 100px; margin-right: 5px;"
                                                                 >
                                                                 <span style="margin-right: 5px;">-</span>
@@ -752,7 +748,6 @@ function radplapag_render_settings_page() {
                                                                     name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][schedule][<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" 
                                                                     value="<?php echo esc_attr( $prog_end ); ?>" 
                                                                     class="radplapag-program-end"
-                                                                    required
                                                                     style="width: 100px; margin-right: 10px;"
                                                                 >
                                                                 <button type="button" class="button radplapag-remove-program" style="height: 30px; line-height: 28px;">
@@ -840,6 +835,21 @@ function radplapag_render_settings_page() {
             display: none;
         }
         .radplapag-program-error-message.show {
+            display: block;
+        }
+        .radplapag-station-row td.radplapag-error input,
+        .radplapag-station-row td.radplapag-error select {
+            border-color: #dc3232;
+            box-shadow: 0 0 2px rgba(220, 50, 50, 0.3);
+        }
+        .radplapag-field-error-message {
+            color: #dc3232;
+            font-size: 12px;
+            margin-top: 4px;
+            margin-left: 0;
+            display: none;
+        }
+        .radplapag-field-error-message.show {
             display: block;
         }
         .radplapag-schedule-toggle {
@@ -957,14 +967,20 @@ function radplapag_render_settings_page() {
                 var titleInput = row.querySelector('.radplapag-station-title-input');
                 
                 urlInput.value = '';
-                urlInput.required = false;
                 
                 pageSelect.value = '';
-                pageSelect.required = false;
 
                 if (titleInput) {
                     titleInput.value = '';
                 }
+
+                // Clear field errors so no stale messages when row is shown again
+                ['player_page', 'stream_url', 'station_title'].forEach(function(fieldName) {
+                    var fieldTr = row.querySelector('tr[data-field="' + fieldName + '"]');
+                    if (fieldTr) {
+                        clearFieldError(fieldTr);
+                    }
+                });
 
                 // Clear images
                 row.querySelectorAll('.radplapag-image-upload-wrapper').forEach(function(wrapper) {
@@ -987,8 +1003,6 @@ function radplapag_render_settings_page() {
                     if (hiddenRows.length > 0) {
                         var row = hiddenRows[0];
                         row.style.display = '';
-                        row.querySelector('.radplapag-stream-url').required = true;
-                        row.querySelector('.radplapag-player-page').required = true;
                         var title = row.querySelector('.radplapag-station-title');
                         if (title) {
                             var visibleCount = 0;
@@ -1075,6 +1089,138 @@ function radplapag_render_settings_page() {
         
         container.querySelectorAll('.radplapag-player-page').forEach(function(select) {
             select.addEventListener('change', updatePageOptions);
+        });
+        
+        // Station field validation: translated messages (same pattern as program validation)
+        var stationFieldMessages = {
+            streamUrlRequired: '<?php echo esc_js( __( 'Stream URL is required.', 'radio-player-page' ) ); ?>',
+            streamUrlInvalid: '<?php echo esc_js( __( 'Please enter a valid URL.', 'radio-player-page' ) ); ?>',
+            playerPageRequired: '<?php echo esc_js( __( 'Please select a player page.', 'radio-player-page' ) ); ?>',
+            stationTitleMax: '<?php echo esc_js( __( 'Stream title must be 64 characters or less.', 'radio-player-page' ) ); ?>'
+        };
+        
+        function showFieldError(fieldTr, message) {
+            var td = fieldTr.querySelector('td:last-child') || fieldTr.cells[1];
+            if (!td) { return; }
+            var input = td.querySelector('input, select');
+            if (input) {
+                input.classList.add('radplapag-error');
+            }
+            td.classList.add('radplapag-error');
+            var existing = td.querySelector('.radplapag-field-error-message');
+            if (existing) {
+                existing.textContent = message;
+                existing.classList.add('show');
+            } else {
+                var errorMsg = document.createElement('div');
+                errorMsg.className = 'radplapag-field-error-message show';
+                errorMsg.textContent = message;
+                td.appendChild(errorMsg);
+            }
+        }
+        
+        function clearFieldError(fieldTr) {
+            var td = fieldTr.querySelector('td:last-child') || fieldTr.cells[1];
+            if (!td) { return; }
+            var input = td.querySelector('input, select');
+            if (input) {
+                input.classList.remove('radplapag-error');
+            }
+            td.classList.remove('radplapag-error');
+            var existing = td.querySelector('.radplapag-field-error-message');
+            if (existing) {
+                existing.remove();
+            }
+        }
+        
+        function validateStreamUrl(value, isRequired) {
+            var trimmed = (value || '').trim();
+            if (isRequired && !trimmed) {
+                return { valid: false, message: stationFieldMessages.streamUrlRequired };
+            }
+            if (trimmed) {
+                try {
+                    new URL(trimmed);
+                } catch (err) {
+                    return { valid: false, message: stationFieldMessages.streamUrlInvalid };
+                }
+            }
+            return { valid: true };
+        }
+        
+        function validatePlayerPage(value, isRequired) {
+            if (isRequired && (!value || value === '')) {
+                return { valid: false, message: stationFieldMessages.playerPageRequired };
+            }
+            return { valid: true };
+        }
+        
+        function validateStationTitle(value) {
+            if (value && value.length > 64) {
+                return { valid: false, message: stationFieldMessages.stationTitleMax };
+            }
+            return { valid: true };
+        }
+        
+        function validateStationRow(stationRow) {
+            if (window.getComputedStyle(stationRow).display === 'none') {
+                return { valid: true };
+            }
+            var isRequired = true;
+            var fields = ['player_page', 'stream_url', 'station_title'];
+            for (var f = 0; f < fields.length; f++) {
+                var fieldName = fields[f];
+                var fieldTr = stationRow.querySelector('tr[data-field="' + fieldName + '"]');
+                if (!fieldTr) { continue; }
+                var td = fieldTr.querySelector('td:last-child') || fieldTr.cells[1];
+                if (!td) { continue; }
+                var input = td.querySelector('input, select');
+                var value = input ? (input.value || '').trim() : '';
+                if (fieldName === 'player_page') {
+                    value = input ? input.value : '';
+                }
+                var result;
+                if (fieldName === 'player_page') {
+                    result = validatePlayerPage(value, isRequired);
+                } else if (fieldName === 'stream_url') {
+                    result = validateStreamUrl(value, isRequired);
+                } else {
+                    result = validateStationTitle(value);
+                }
+                if (!result.valid) {
+                    showFieldError(fieldTr, result.message);
+                    return { valid: false, firstErrorTr: fieldTr };
+                }
+                clearFieldError(fieldTr);
+            }
+            return { valid: true };
+        }
+        
+        // Station field validation on focusout (event delegation for visible rows only)
+        container.addEventListener('focusout', function(e) {
+            var target = e.target;
+            if (!target || !target.classList) { return; }
+            var fieldTr = target.closest ? target.closest('tr[data-field]') : null;
+            if (!fieldTr) { return; }
+            var stationRow = target.closest('.radplapag-station-row');
+            if (!stationRow || window.getComputedStyle(stationRow).display === 'none') { return; }
+            var fieldName = fieldTr.getAttribute('data-field');
+            if (!fieldName || ['player_page', 'stream_url', 'station_title'].indexOf(fieldName) === -1) { return; }
+            var value = (target.value || '').trim();
+            if (fieldName === 'player_page') { value = target.value || ''; }
+            var result;
+            if (fieldName === 'player_page') {
+                result = validatePlayerPage(value, true);
+            } else if (fieldName === 'stream_url') {
+                result = validateStreamUrl(value, true);
+            } else {
+                result = validateStationTitle(value);
+            }
+            if (!result.valid) {
+                showFieldError(fieldTr, result.message);
+            } else {
+                clearFieldError(fieldTr);
+            }
         });
         
         // Program Schedule Validation Functions
@@ -1698,10 +1844,10 @@ function radplapag_render_settings_page() {
                     newRow.className = 'radplapag-program-row';
                     newRow.setAttribute('data-program-index', nextIndex);
                     newRow.innerHTML = 
-                        '<input type="text" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][name]" value="" placeholder="<?php echo esc_js( __( 'Program name', 'radio-player-page' ) ); ?>" class="radplapag-program-name" maxlength="100" required style="width: 200px; margin-right: 10px;">' +
-                        '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][start]" value="" class="radplapag-program-start" required style="width: 100px; margin-right: 5px;">' +
+                        '<input type="text" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][name]" value="" placeholder="<?php echo esc_js( __( 'Program name', 'radio-player-page' ) ); ?>" class="radplapag-program-name" maxlength="100" style="width: 200px; margin-right: 10px;">' +
+                        '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][start]" value="" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">' +
                         '<span style="margin-right: 5px;">-</span>' +
-                        '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][end]" value="" class="radplapag-program-end" required style="width: 100px; margin-right: 10px;">' +
+                        '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][end]" value="" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">' +
                         '<button type="button" class="button radplapag-remove-program" style="height: 30px; line-height: 28px;"><?php echo esc_js( __( 'Remove', 'radio-player-page' ) ); ?></button>';
                     programsList.appendChild(newRow);
                     
@@ -1767,21 +1913,42 @@ function radplapag_render_settings_page() {
             form.addEventListener('submit', function(e) {
                 var hasErrors = false;
                 var firstErrorElement = null;
-                var errorCount = 0;
+                
+                // Clear previous station field errors for visible stations
+                container.querySelectorAll('.radplapag-station-row').forEach(function(stationRow) {
+                    if (window.getComputedStyle(stationRow).display === 'none') {
+                        return;
+                    }
+                    ['player_page', 'stream_url', 'station_title'].forEach(function(fieldName) {
+                        var fieldTr = stationRow.querySelector('tr[data-field="' + fieldName + '"]');
+                        if (fieldTr) {
+                            clearFieldError(fieldTr);
+                        }
+                    });
+                });
+                
+                // Validate visible station rows first
+                container.querySelectorAll('.radplapag-station-row').forEach(function(stationRow) {
+                    if (window.getComputedStyle(stationRow).display === 'none') {
+                        return;
+                    }
+                    var validation = validateStationRow(stationRow);
+                    if (!validation.valid) {
+                        hasErrors = true;
+                        if (!firstErrorElement && validation.firstErrorTr) {
+                            firstErrorElement = validation.firstErrorTr;
+                        }
+                    }
+                });
                 
                 // Validate all visible program rows
                 container.querySelectorAll('.radplapag-program-row').forEach(function(row) {
-                    // Only validate visible rows
                     if (window.getComputedStyle(row).display === 'none') {
                         return;
                     }
-                    
-                    // Validate the program row (includes format, range, and overlap checks)
                     var validation = validateProgramRow(row);
                     if (!validation.valid) {
                         hasErrors = true;
-                        errorCount++;
-                        // Track first error element for scrolling
                         if (!firstErrorElement) {
                             firstErrorElement = row;
                         }
@@ -1790,20 +1957,8 @@ function radplapag_render_settings_page() {
                 
                 if (hasErrors) {
                     e.preventDefault();
-                    // Show descriptive error message
-                    var errorMessage = '<?php echo esc_js( __( 'Please fix the errors in the program schedule before saving.', 'radio-player-page' ) ); ?>';
-                    if (errorCount > 1) {
-                        <?php /* translators: %d: Number of errors in the program schedule */ ?>
-                        errorMessage = '<?php echo esc_js( sprintf( __( 'Please fix %d errors in the program schedule before saving.', 'radio-player-page' ), '%d' ) ); ?>'.replace('%d', errorCount);
-                    }
-                    alert(errorMessage);
-                    
-                    // Scroll to first error element
                     if (firstErrorElement) {
-                        // Use setTimeout to ensure DOM is updated before scrolling
-                        setTimeout(function() {
-                            firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 100);
+                        firstErrorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                     return false;
                 }
