@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Schedule } from 'src/types/global'
 import useConfig from 'src/hooks/use-config'
 import { getCurrentTimeInTimezone } from 'src/utils/timezone'
@@ -26,7 +26,7 @@ export interface UpcomingProgram {
  * - Orders programs by start time before evaluation
  * - Finds the first program that starts after the current time and within 5 minutes
  * - Checks current day and next day's programs
- * - Updates automatically every minute to reflect program changes
+ * - Updates at the start of each system minute (at :00 seconds) to reflect program changes
  * - Returns null if no schedule is configured or no program starts within 5 minutes
  *
  * Uses numeric offset from WordPress (handles DST automatically) with UTC fallback.
@@ -36,8 +36,20 @@ export interface UpcomingProgram {
 function useUpcomingProgram(): UpcomingProgram | null {
   const config = useConfig()
   const [upcomingProgram, setUpcomingProgram] = useState<UpcomingProgram | null>(null)
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
+    // Clear any previous timers when effect re-runs (before early returns)
+    if (timeoutIdRef.current !== null) {
+      clearTimeout(timeoutIdRef.current)
+      timeoutIdRef.current = null
+    }
+    if (intervalIdRef.current !== null) {
+      clearInterval(intervalIdRef.current)
+      intervalIdRef.current = null
+    }
+
     const schedule: Schedule | undefined = config.schedule
 
     // If no schedule, return null
@@ -173,13 +185,25 @@ function useUpcomingProgram(): UpcomingProgram | null {
     // Calculate initial program
     setUpcomingProgram(calculateUpcomingProgram())
 
-    // Update every minute to reflect program changes
-    const interval = setInterval(() => {
+    // Align to system minute: first tick at next :00, then every 60s
+    const msIntoMinute = Date.now() % 60000
+    const delay = msIntoMinute === 0 ? 0 : 60000 - msIntoMinute
+    timeoutIdRef.current = setTimeout(() => {
       setUpcomingProgram(calculateUpcomingProgram())
-    }, 60000) // 60 seconds
+      intervalIdRef.current = setInterval(() => {
+        setUpcomingProgram(calculateUpcomingProgram())
+      }, 60000)
+    }, delay)
 
     return () => {
-      clearInterval(interval)
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current)
+        timeoutIdRef.current = null
+      }
+      if (intervalIdRef.current !== null) {
+        clearInterval(intervalIdRef.current)
+        intervalIdRef.current = null
+      }
     }
   }, [config.schedule, config.timezoneOffset])
 

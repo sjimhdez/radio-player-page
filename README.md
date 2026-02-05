@@ -84,18 +84,18 @@ Visualizers are code-split and lazy-loaded to reduce initial bundle size.
 
 ### Program Schedule
 
-Define weekly program schedules per station with time slots. The currently active program name and time range are automatically displayed in the player interface. The schedule updates automatically every minute as programs change throughout the day.
+Define weekly program schedules per station with time slots. The currently active program name and time range are automatically displayed in the player interface. The schedule updates at the start of each system minute (at :00 seconds) as programs change throughout the day.
 
 **Program Overlap Handling**: When a program ends exactly when another starts (e.g., 19:00-20:00 and 20:00-21:00), at exactly 20:00 the program that starts (20:00-21:00) is displayed, not the one that ends. This ensures correct program transitions at boundary times.
 
-**Upcoming Program Announcement**: When a program is scheduled to start within 5 minutes, an announcement is automatically displayed showing the program name, time range, and minutes until it starts. This announcement appears regardless of whether there is a currently active program, and updates every minute to ensure timely display for users already connected.
+**Upcoming Program Announcement**: When a program is scheduled to start within 5 minutes, an announcement is automatically displayed showing the program name, time range, and minutes until it starts. This announcement appears regardless of whether there is a currently active program, and updates at the start of each system minute to ensure timely display for users already connected.
 
 ### Timezone Clock
 
 When the player is actively playing and there is a timezone difference between the user's browser and the WordPress timezone (emission timezone), a discrete real-time clock is displayed in the top-right corner showing:
 
 - **Informative Label**: "Zona horaria del emisor" (or equivalent in other languages) indicating this is the emission timezone
-- **Emission Time**: Current time in the WordPress timezone (where the radio station is located) displayed in "HH:MM" format, updating every minute
+- **Emission Time**: Current time in the WordPress timezone (where the radio station is located) displayed in "HH:MM" format, updating at the start of each system minute
 - **Timezone Difference Indicator**: A colored badge showing the time difference (e.g., "+6", "-3") with:
   - Green color for positive differences (WordPress ahead of browser)
   - Orange color for negative differences (WordPress behind browser)
@@ -117,7 +117,7 @@ The timezone clock only appears when:
 
 **Implementation Details**:
 - Uses `useEmissionTime()` hook to calculate and update times
-- Updates every minute (same pattern as program schedule hooks for consistency and performance)
+- Updates at the start of each system minute (at :00 seconds) for alignment with the user's clock
 - Displays time in "HH:MM" format (without seconds for better performance)
 - Handles half-hour timezones (e.g., India UTC+5:30) correctly
 - All timezone calculations respect DST changes automatically

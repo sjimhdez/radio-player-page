@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import useConfig from 'src/hooks/use-config'
 import {
   getBrowserTimezoneOffset,
@@ -27,15 +27,15 @@ export interface EmissionTime {
  * - Calculates the current time in WordPress timezone (emission timezone)
  * - Calculates the current time in browser timezone
  * - Calculates the timezone difference between them
- * - Updates every minute to show the clock (same pattern as program schedule updates)
+ * - Updates at the start of each system minute (at :00 seconds) to show the clock
  * - Returns formatted time strings in "HH:MM" format (without seconds for better performance)
  * - Returns difference information
  *
  * The hook uses the WordPress timezone offset from configuration, which handles DST automatically.
  * The browser timezone is detected automatically from the user's system settings.
  *
- * Updates every minute for good balance between accuracy and performance, following the same
- * pattern as the program schedule hooks (use-current-program, use-upcoming-program).
+ * Updates at the start of each system minute for alignment with the user's clock, following the
+ * same pattern as the program schedule hooks (use-current-program, use-upcoming-program).
  *
  * @returns EmissionTime object with emissionTime, browserTime, timeDifference, and hasDifference
  *
@@ -53,8 +53,20 @@ function useEmissionTime(): EmissionTime {
   const [emissionTime, setEmissionTime] = useState<string>('')
   const [browserTime, setBrowserTime] = useState<string>('')
   const [timeDifference, setTimeDifference] = useState<number>(0)
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
+    // Clear any previous timers when effect re-runs
+    if (timeoutIdRef.current !== null) {
+      clearTimeout(timeoutIdRef.current)
+      timeoutIdRef.current = null
+    }
+    if (intervalIdRef.current !== null) {
+      clearInterval(intervalIdRef.current)
+      intervalIdRef.current = null
+    }
+
     /**
      * Update time values
      */
@@ -72,11 +84,23 @@ function useEmissionTime(): EmissionTime {
     // Update immediately
     updateTimes()
 
-    // Update every minute (same pattern as program schedule hooks for consistency and performance)
-    const interval = setInterval(updateTimes, 60000) // 60 seconds
+    // Align to system minute: first tick at next :00, then every 60s
+    const msIntoMinute = Date.now() % 60000
+    const delay = msIntoMinute === 0 ? 0 : 60000 - msIntoMinute
+    timeoutIdRef.current = setTimeout(() => {
+      updateTimes()
+      intervalIdRef.current = setInterval(updateTimes, 60000)
+    }, delay)
 
     return () => {
-      clearInterval(interval)
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current)
+        timeoutIdRef.current = null
+      }
+      if (intervalIdRef.current !== null) {
+        clearInterval(intervalIdRef.current)
+        intervalIdRef.current = null
+      }
     }
   }, [config.timezoneOffset])
 

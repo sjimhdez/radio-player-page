@@ -91,6 +91,9 @@ You can define a weekly program schedule for each station in the plugin settings
 
 == Changelog ==
 
+= 2.0.3 =
+* The player clock and program schedule now update at the start of each system minute (at :00 seconds) for better alignment with the user's clock.
+
 = 2.1.0 =
 * Added program schedule feature - define weekly schedules per station with time slots
 * Player now displays active program name and time range automatically

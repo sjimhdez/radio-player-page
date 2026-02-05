@@ -25,7 +25,7 @@ interface TimezoneClockProps {
  *
  * Features:
  * - Compact clock showing emission timezone in "HH:MM" format
- * - Updates every minute (same pattern as program schedule for consistency and performance)
+ * - Updates at the start of each system minute (at :00 seconds)
  * - Subtle time difference indicator
  * - Discreet positioning in top-right corner
  * - Minimal, elegant design using Material-UI components

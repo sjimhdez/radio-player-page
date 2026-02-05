@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { Schedule } from 'src/types/global'
 import useConfig from 'src/hooks/use-config'
 import { getCurrentTimeInTimezone } from 'src/utils/timezone'
@@ -23,7 +23,7 @@ export interface CurrentProgram {
  * - Calculates the current day of the week (0=Sunday, 1=Monday, etc.) in WordPress timezone
  * - Orders programs by start time before evaluation to handle ties correctly
  * - Determines which program is currently active by comparing current time with program time slots
- * - Updates automatically every minute to reflect program changes
+ * - Updates at the start of each system minute (at :00 seconds) to reflect program changes
  * - Returns null if no schedule is configured or no program is active
  *
  * Uses numeric offset from WordPress (handles DST automatically) with UTC fallback.
@@ -33,8 +33,20 @@ export interface CurrentProgram {
 function useCurrentProgram(): CurrentProgram | null {
   const config = useConfig()
   const [currentProgram, setCurrentProgram] = useState<CurrentProgram | null>(null)
+  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
+    // Clear any previous timers when effect re-runs (before early returns)
+    if (timeoutIdRef.current !== null) {
+      clearTimeout(timeoutIdRef.current)
+      timeoutIdRef.current = null
+    }
+    if (intervalIdRef.current !== null) {
+      clearInterval(intervalIdRef.current)
+      intervalIdRef.current = null
+    }
+
     const schedule: Schedule | undefined = config.schedule
 
     // If no schedule, return null
@@ -164,13 +176,25 @@ function useCurrentProgram(): CurrentProgram | null {
     // Calculate initial program
     setCurrentProgram(calculateCurrentProgram())
 
-    // Update every minute to reflect program changes
-    const interval = setInterval(() => {
+    // Align to system minute: first tick at next :00, then every 60s
+    const msIntoMinute = Date.now() % 60000
+    const delay = msIntoMinute === 0 ? 0 : 60000 - msIntoMinute
+    timeoutIdRef.current = setTimeout(() => {
       setCurrentProgram(calculateCurrentProgram())
-    }, 60000) // 60 seconds
+      intervalIdRef.current = setInterval(() => {
+        setCurrentProgram(calculateCurrentProgram())
+      }, 60000)
+    }, delay)
 
     return () => {
-      clearInterval(interval)
+      if (timeoutIdRef.current !== null) {
+        clearTimeout(timeoutIdRef.current)
+        timeoutIdRef.current = null
+      }
+      if (intervalIdRef.current !== null) {
+        clearInterval(intervalIdRef.current)
+        intervalIdRef.current = null
+      }
     }
   }, [config.schedule, config.timezoneOffset])
 
