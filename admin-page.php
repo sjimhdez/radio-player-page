@@ -713,6 +713,21 @@ function radplapag_render_settings_page() {
                                     <div class="radplapag-schedule-wrapper <?php echo esc_attr( $schedule_collapsed_class ); ?>" data-station-index="<?php echo esc_attr( $index ); ?>">
                                         <?php foreach ( $days as $day_key => $day_label ) : 
                                             $day_programs = isset( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) ? $schedule[ $day_key ] : [];
+                                            // Sort by start time (programs without start go last).
+                                            uasort( $day_programs, function( $a, $b ) {
+                                                $start_a = isset( $a['start'] ) ? $a['start'] : '';
+                                                $start_b = isset( $b['start'] ) ? $b['start'] : '';
+                                                if ( empty( $start_a ) && empty( $start_b ) ) {
+                                                    return 0;
+                                                }
+                                                if ( empty( $start_a ) ) {
+                                                    return 1;
+                                                }
+                                                if ( empty( $start_b ) ) {
+                                                    return -1;
+                                                }
+                                                return strcmp( $start_a, $start_b );
+                                            } );
                                         ?>
                                             <div class="radplapag-schedule-day" data-day="<?php echo esc_attr( $day_key ); ?>">
                                                 <h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">
@@ -1772,6 +1787,25 @@ function radplapag_render_settings_page() {
         
         // Program Schedule Management
         function initScheduleManagement() {
+            // Sort program rows by start time (empty values last).
+            function sortProgramsByStartTime(programsList) {
+                var rows = Array.prototype.slice.call(programsList.querySelectorAll('.radplapag-program-row'));
+                if (rows.length <= 1) return;
+
+                rows.sort(function(a, b) {
+                    var startA = (a.querySelector('.radplapag-program-start') || {}).value || '';
+                    var startB = (b.querySelector('.radplapag-program-start') || {}).value || '';
+                    if (!startA && !startB) return 0;
+                    if (!startA) return 1;
+                    if (!startB) return -1;
+                    return startA.localeCompare(startB);
+                });
+
+                rows.forEach(function(row) {
+                    programsList.appendChild(row);
+                });
+            }
+
             // Helper function to validate when focus leaves the program group
             // Each program row (name, start time, end time) is treated as a single group
             function setupGroupValidation(programRow) {
@@ -1814,6 +1848,12 @@ function radplapag_render_settings_page() {
                                 var scheduleWrapper = programRow.closest('.radplapag-schedule-wrapper');
                                 if (scheduleWrapper && dayWrapper) {
                                     revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper);
+                                }
+
+                                // Re-sort programs by start time
+                                var programsList = dayWrapper.querySelector('.radplapag-programs-list');
+                                if (programsList) {
+                                    sortProgramsByStartTime(programsList);
                                 }
                             }
                         }, 10);
