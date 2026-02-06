@@ -203,9 +203,9 @@ function radplapag_sanitize_settings( $input ) {
                         }
                     }
                     
-                    // Validate program name length (max 100 characters)
-                    if ( strlen( $program_name ) > 100 ) {
-                        $program_name = substr( $program_name, 0, 100 );
+                    // Validate program name length (max 64 characters)
+                    if ( strlen( $program_name ) > 64 ) {
+                        $program_name = substr( $program_name, 0, 64 );
                     }
                     
                     // Validate time format
@@ -747,7 +747,7 @@ function radplapag_render_settings_page() {
                                                                     value="<?php echo esc_attr( $prog_name ); ?>" 
                                                                     placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>"
                                                                     class="radplapag-program-name"
-                                                                    maxlength="100"
+                                                                    maxlength="64"
                                                                     style="width: 200px; margin-right: 10px;"
                                                                 >
                                                                 <input 
@@ -1511,6 +1511,13 @@ function radplapag_render_settings_page() {
                 return { valid: false, message: errorMessage };
             }
             
+            // Step 2b: Validate program name length (max 64 characters)
+            if (name && name.length > 64) {
+                var errorMessage = '<?php echo esc_js( __( 'Program name must be 64 characters or less.', 'radio-player-page' ) ); ?>';
+                showProgramError(programRow, errorMessage);
+                return { valid: false, message: errorMessage };
+            }
+            
             // Step 3: Validate time format (if times are provided)
             if (start || end) {
                 if (start) {
@@ -1884,7 +1891,7 @@ function radplapag_render_settings_page() {
                     newRow.className = 'radplapag-program-row';
                     newRow.setAttribute('data-program-index', nextIndex);
                     newRow.innerHTML = 
-                        '<input type="text" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][name]" value="" placeholder="<?php echo esc_js( __( 'Program name', 'radio-player-page' ) ); ?>" class="radplapag-program-name" maxlength="100" style="width: 200px; margin-right: 10px;">' +
+                        '<input type="text" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][name]" value="" placeholder="<?php echo esc_js( __( 'Program name', 'radio-player-page' ) ); ?>" class="radplapag-program-name" maxlength="64" style="width: 200px; margin-right: 10px;">' +
                         '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][start]" value="" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">' +
                         '<span style="margin-right: 5px;">-</span>' +
                         '<input type="time" name="radplapag_settings[stations][' + stationIndex + '][schedule][' + day + '][' + nextIndex + '][end]" value="" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">' +

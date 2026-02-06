@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# PHP Versions Compatibility Check Script
-# Tests PHP syntax compatibility with different PHP versions
-# Based on test-php-versions.sh.local
+# Script to test plugin compatibility with different PHP versions
+# From PHP 5.6 to the latest available version
 
 # Colors for output
 RED='\033[0;31m'
@@ -10,36 +9,27 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Get the plugin directory (parent of scripts/)
-PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-
-# PHP files to check (matching test-php-versions.sh.local)
+# Plugin directory
+PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PHP_FILES=(
     "$PLUGIN_DIR/radio-player-page.php"
     "$PLUGIN_DIR/admin-page.php"
+    "$PLUGIN_DIR/uninstall.php"
 )
 
-# Minimum and maximum PHP versions to test (from plugin requirements)
-MIN_PHP_VERSION="5.6"
-MAX_PHP_VERSION="8.4"
+# PHP versions to test (from 5.6 to 8.4)
+PHP_VERSIONS=("5.6" "7.0" "7.1" "7.2" "7.3" "7.4" "8.0" "8.1" "8.2" "8.3" "8.4")
 
-# Versions to test (minimum, current, and maximum if available)
-PHP_VERSIONS_TO_TEST=("$MIN_PHP_VERSION")
+# Array to store results (bash 3.2 compatible)
+RESULTS=()
 
-# Add current PHP version if available
-CURRENT_PHP_VERSION=$(php -r 'echo PHP_VERSION;' 2>/dev/null | cut -d. -f1,2)
-if [ -n "$CURRENT_PHP_VERSION" ] && [ "$CURRENT_PHP_VERSION" != "$MIN_PHP_VERSION" ]; then
-    PHP_VERSIONS_TO_TEST+=("$CURRENT_PHP_VERSION")
-fi
+echo "========================================="
+echo "  PHP Compatibility Test"
+echo "  Plugin: Radio Player Page"
+echo "========================================="
+echo ""
 
-# Add max version if different
-if [ "$MAX_PHP_VERSION" != "$MIN_PHP_VERSION" ] && [ "$MAX_PHP_VERSION" != "$CURRENT_PHP_VERSION" ]; then
-    PHP_VERSIONS_TO_TEST+=("$MAX_PHP_VERSION")
-fi
-
-echo -e "${YELLOW}Running PHP Versions Compatibility Check...${NC}"
-
-# Function to find PHP binary for a specific version
+# Function to find PHP executable for a specific version
 find_php_binary() {
     local version=$1
     local binary=""
@@ -51,111 +41,152 @@ find_php_binary() {
     # Direct binary: php5.6, php7.0, etc.
     elif command -v "php${version}" &> /dev/null; then
         binary="php${version}"
-    # Some installations: php-5.6, php-7.0, etc.
+    # In some installations: php-5.6, php-7.0, etc.
     elif command -v "php-${version}" &> /dev/null; then
         binary="php-${version}"
     # Typical Homebrew path
     elif [ -f "/opt/homebrew/opt/php@${version}/bin/php" ]; then
         binary="/opt/homebrew/opt/php@${version}/bin/php"
-    # Old Homebrew path (Intel)
+    # Legacy Homebrew path (Intel)
     elif [ -f "/usr/local/opt/php@${version}/bin/php" ]; then
         binary="/usr/local/opt/php@${version}/bin/php"
     # If it's the current version, use php directly
-    elif [ "$version" = "$CURRENT_PHP_VERSION" ]; then
+    elif [ "$version" = "$(php -r 'echo PHP_VERSION;' 2>/dev/null | cut -d. -f1,2)" ]; then
         binary="php"
     fi
     
     echo "$binary"
 }
 
-# Function to test syntax of a file
+# Function to verify syntax of a file
 test_syntax() {
     local php_binary=$1
     local file=$2
+    local output
+    local exit_code
     
-    if [ ! -f "$file" ]; then
-        return 0  # File doesn't exist, skip
-    fi
+    output=$($php_binary -l "$file" 2>&1)
+    exit_code=$?
     
-    if $php_binary -l "$file" > /dev/null 2>&1; then
+    if [ $exit_code -eq 0 ]; then
         return 0
     else
         return 1
     fi
 }
 
-# Track if any version failed
-ANY_FAILED=false
-FAILED_VERSIONS=()
+# Detect available PHP versions
+echo "Detecting available PHP versions..."
+echo ""
 
-# Test each required version
-for version in "${PHP_VERSIONS_TO_TEST[@]}"; do
+AVAILABLE_VERSIONS=()
+
+for version in "${PHP_VERSIONS[@]}"; do
     php_binary=$(find_php_binary "$version")
     
-    if [ -z "$php_binary" ]; then
-        # If minimum version not found, try current PHP
-        if [ "$version" = "$MIN_PHP_VERSION" ]; then
-            if [ -n "$CURRENT_PHP_VERSION" ]; then
-                echo -e "${YELLOW}PHP ${version} not found, using current PHP ${CURRENT_PHP_VERSION}${NC}"
-                php_binary="php"
-                version="$CURRENT_PHP_VERSION"
-            else
-                echo -e "${YELLOW}PHP ${version} not found and no current PHP available. Skipping...${NC}"
-                continue
-            fi
-        else
-            echo -e "${YELLOW}PHP ${version} not found. Skipping...${NC}"
-            continue
+    if [ -n "$php_binary" ]; then
+        # Verify it actually works
+        php_version_output=$($php_binary -r 'echo PHP_VERSION;' 2>/dev/null)
+        if [ $? -eq 0 ]; then
+            AVAILABLE_VERSIONS+=("$version|$php_binary|$php_version_output")
+            echo "  ✓ PHP ${version} found: $php_binary (version: $php_version_output)"
         fi
     fi
-    
-    # Verify binary works
-    detected_version=$($php_binary -r 'echo PHP_VERSION;' 2>/dev/null)
-    if [ $? -ne 0 ]; then
-        echo -e "${YELLOW}PHP ${version} binary found but not working. Skipping...${NC}"
-        continue
-    fi
+done
+
+echo ""
+echo "Versions found: ${#AVAILABLE_VERSIONS[@]}"
+echo ""
+echo "========================================="
+echo "  Running syntax tests..."
+echo "========================================="
+echo ""
+
+# Test each available version
+for version_info in "${AVAILABLE_VERSIONS[@]}"; do
+    IFS='|' read -r version php_binary detected_version <<< "$version_info"
     
     echo -n "Testing PHP ${version} (${detected_version})... "
     
-    version_passed=true
+    all_passed=true
     failed_files=()
     
     # Test each PHP file
     for php_file in "${PHP_FILES[@]}"; do
-        if ! test_syntax "$php_binary" "$php_file"; then
-            version_passed=false
+        if ! test_syntax "$php_binary" "$php_file" > /dev/null 2>&1; then
+            all_passed=false
             failed_files+=("$(basename "$php_file")")
         fi
     done
     
-    if [ "$version_passed" = true ]; then
+    # Save result
+    if [ "$all_passed" = true ]; then
+        RESULTS+=("${version}:OK")
         echo -e "${GREEN}✓ OK${NC}"
     else
+        RESULTS+=("${version}:FAIL")
         echo -e "${RED}✗ FAIL${NC}"
         for failed_file in "${failed_files[@]}"; do
-            echo "    Error in: $failed_file"
-            # Show actual error
-            $php_binary -l "$PLUGIN_DIR/$failed_file" 2>&1 | head -5
+            echo "    - Error in: $failed_file"
         done
-        ANY_FAILED=true
-        FAILED_VERSIONS+=("$version")
     fi
 done
 
-# If no PHP versions were tested, warn but don't fail
-if [ ${#PHP_VERSIONS_TO_TEST[@]} -eq 0 ] || [ -z "$php_binary" ]; then
-    echo -e "${YELLOW}⚠ No PHP versions available for testing${NC}"
-    echo -e "${YELLOW}This check will still run in CI.${NC}"
-    exit 0
+# If no versions found, warn
+if [ ${#AVAILABLE_VERSIONS[@]} -eq 0 ]; then
+    echo -e "${YELLOW}⚠ No installed PHP versions found${NC}"
+    echo ""
+    echo "To install PHP versions on macOS with Homebrew:"
+    echo "  brew install php@5.6"
+    echo "  brew install php@7.0"
+    echo "  # etc..."
+    echo ""
+    echo "Or use a version manager like:"
+    echo "  - phpenv (https://github.com/phpenv/phpenv)"
+    echo "  - phpbrew (https://github.com/phpbrew/phpbrew)"
 fi
 
-# Final result
-if [ "$ANY_FAILED" = true ]; then
-    echo -e "${RED}PHP Versions Compatibility Check failed!${NC}"
-    echo -e "${RED}Failed versions: ${FAILED_VERSIONS[*]}${NC}"
+# Final summary
+echo ""
+echo "========================================="
+echo "  RESULTS SUMMARY"
+echo "========================================="
+echo ""
+
+# Count results
+total_ok=0
+total_fail=0
+
+# Display results sorted
+for version in "${PHP_VERSIONS[@]}"; do
+    result_found=""
+    for result_entry in "${RESULTS[@]}"; do
+        result_version="${result_entry%%:*}"
+        if [ "$result_version" = "$version" ]; then
+            result="${result_entry##*:}"
+            result_found="$result"
+            if [ "$result" = "OK" ]; then
+                echo -e "PHP ${version}: ${GREEN}${result}${NC}"
+                total_ok=$((total_ok + 1))
+            else
+                echo -e "PHP ${version}: ${RED}${result}${NC}"
+                total_fail=$((total_fail + 1))
+            fi
+            break
+        fi
+    done
+done
+
+echo ""
+echo "========================================="
+
+echo "Total OK:  ${total_ok}"
+echo "Total FAIL: ${total_fail}"
+echo ""
+
+# Exit code based on results
+if [ $total_fail -gt 0 ]; then
     exit 1
 else
-    echo -e "${GREEN}PHP Versions Compatibility Check passed!${NC}"
     exit 0
 fi
