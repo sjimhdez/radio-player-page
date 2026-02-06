@@ -1108,9 +1108,9 @@ function radplapag_render_settings_page() {
         
         // Station field validation: translated messages (same pattern as program validation)
         var stationFieldMessages = {
-            streamUrlRequired: '<?php echo esc_js( __( 'Stream URL is required.', 'radio-player-page' ) ); ?>',
+            streamUrlRequired: '<?php echo esc_js( __( 'This field is required.', 'radio-player-page' ) ); ?>',
             streamUrlInvalid: '<?php echo esc_js( __( 'Please enter a valid URL.', 'radio-player-page' ) ); ?>',
-            playerPageRequired: '<?php echo esc_js( __( 'Please select a player page.', 'radio-player-page' ) ); ?>',
+            playerPageRequired: '<?php echo esc_js( __( 'This field is required.', 'radio-player-page' ) ); ?>',
             stationTitleMax: '<?php echo esc_js( __( 'Stream title must be 64 characters or less.', 'radio-player-page' ) ); ?>'
         };
         
@@ -1506,7 +1506,7 @@ function radplapag_render_settings_page() {
             
             // Step 2: Validate that name is required if times are provided
             if ((start || end) && !name) {
-                var errorMessage = '<?php echo esc_js( __( 'Program name is required', 'radio-player-page' ) ); ?>';
+                var errorMessage = '<?php echo esc_js( __( 'This field is required.', 'radio-player-page' ) ); ?>';
                 showProgramError(programRow, errorMessage);
                 return { valid: false, message: errorMessage };
             }
@@ -1541,7 +1541,7 @@ function radplapag_render_settings_page() {
             
             // Step 5: If program is incomplete (missing name, start, or end), show error
             if (!name || !start || !end) {
-                var errorMessage = '<?php echo esc_js( __( 'All fields are required', 'radio-player-page' ) ); ?>';
+                var errorMessage = '<?php echo esc_js( __( 'All fields are required.', 'radio-player-page' ) ); ?>';
                 showProgramError(programRow, errorMessage);
                 return { valid: false, message: errorMessage };
             }
