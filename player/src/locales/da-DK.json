@@ -17,6 +17,8 @@
     "timezoneWarning": "Din lokale tid: {{browserTime}}, Udsendelsestid: {{emissionTime}}, Forskel: {{difference}}",
     "timezoneDifferenceHours": "{{count}} time",
     "timezoneDifferenceHours_plural": "{{count}} timer",
-    "upcomingProgram": "Kommer snart: {{programName}} - {{timeRange}} (om {{minutes}} min)"
+    "upcomingPrefix": "Næste",
+    "upcomingInMinutes": "(om {{minutes}} min)",
+    "activeProgram": "Nu"
   }
 }

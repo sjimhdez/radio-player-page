@@ -17,6 +17,8 @@
     "timezoneWarning": "Ваше местное время: {{browserTime}}, Время вещания: {{emissionTime}}, Разница: {{difference}}",
     "timezoneDifferenceHours": "{{count}} час",
     "timezoneDifferenceHours_plural": "{{count}} часа",
-    "upcomingProgram": "Скоро: {{programName}} - {{timeRange}} (через {{minutes}} мин)"
+    "upcomingPrefix": "Далее",
+    "upcomingInMinutes": "(через {{minutes}} мин)",
+    "activeProgram": "Сейчас"
   }
 }

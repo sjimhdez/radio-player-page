@@ -17,6 +17,8 @@
     "timezoneWarning": "Ora ta locală: {{browserTime}}, Ora emisiunii: {{emissionTime}}, Diferență: {{difference}}",
     "timezoneDifferenceHours": "{{count}} oră",
     "timezoneDifferenceHours_plural": "{{count}} ore",
-    "upcomingProgram": "În curând: {{programName}} - {{timeRange}} (în {{minutes}} min)"
+    "upcomingPrefix": "Următorul",
+    "upcomingInMinutes": "(în {{minutes}} min)",
+    "activeProgram": "Acum"
   }
 }

@@ -17,6 +17,8 @@
     "timezoneWarning": "Your local time: {{browserTime}}, Emission time: {{emissionTime}}, Difference: {{difference}}",
     "timezoneDifferenceHours": "{{count}} hour",
     "timezoneDifferenceHours_plural": "{{count}} hours",
-    "upcomingProgram": "Upcoming: {{programName}} - {{timeRange}} (in {{minutes}} min)"
+    "upcomingPrefix": "Next",
+    "upcomingInMinutes": "(in {{minutes}} min)",
+    "activeProgram": "Now"
   }
 }

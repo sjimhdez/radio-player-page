@@ -63,23 +63,13 @@ const TimezoneClock = ({ isPlaying, emissionTimeData }: TimezoneClockProps) => {
     >
       <Stack direction="column" alignItems="flex-end" spacing={0.5}>
         {/* Informative text */}
-        <Typography
-          variant="caption"
-          textTransform="uppercase"
-          letterSpacing="0.05em"
-          color="text.secondary"
-        >
+        <Typography variant="caption" letterSpacing="0.05em" color="text.secondary">
           {t('dashboard.timezoneClockLabel')}
         </Typography>
 
         {/* Emission time clock and difference indicator */}
         <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography
-            variant="body2"
-            fontFamily="monospace"
-            letterSpacing="0.05em"
-            fontWeight={500}
-          >
+          <Typography variant="body2" letterSpacing="0.05em" fontWeight={500}>
             {emissionTime}
           </Typography>
 
@@ -90,7 +80,6 @@ const TimezoneClock = ({ isPlaying, emissionTimeData }: TimezoneClockProps) => {
             color={isPositive ? 'success' : 'warning'}
             variant="outlined"
             sx={{
-              fontFamily: 'monospace',
               fontWeight: 600,
               fontSize: '0.7rem',
               height: 20,

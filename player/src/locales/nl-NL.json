@@ -17,6 +17,8 @@
     "timezoneWarning": "Uw lokale tijd: {{browserTime}}, Uitzendtijd: {{emissionTime}}, Verschil: {{difference}}",
     "timezoneDifferenceHours": "{{count}} uur",
     "timezoneDifferenceHours_plural": "{{count}} uur",
-    "upcomingProgram": "Binnenkort: {{programName}} - {{timeRange}} (over {{minutes}} min)"
+    "upcomingPrefix": "Volgend",
+    "upcomingInMinutes": "(over {{minutes}} min)",
+    "activeProgram": "Nu"
   }
 }

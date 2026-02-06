@@ -49,8 +49,7 @@ const StreamInfo = ({
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState<number>(0)
-  const { active: currentProgram, incoming: upcomingProgram } =
-    useProgramSchedule()
+  const { active: currentProgram, incoming: upcomingProgram } = useProgramSchedule()
 
   useEffect(() => {
     const updateHeight = () => {
@@ -105,7 +104,7 @@ const StreamInfo = ({
         />
       )}
       <Typography
-        variant="h1"
+        variant="h2"
         component="h1"
         sx={{ textWrap: 'balance', hyphens: 'auto', overflowWrap: 'break-word' }}
       >
@@ -113,38 +112,27 @@ const StreamInfo = ({
       </Typography>
       {/* Show active program if schedule is configured */}
       {currentProgram && (
-        <Typography
-          variant="h5"
-          component="p"
-          sx={{
-            textWrap: 'balance',
-            hyphens: 'auto',
-            opacity: 0.8,
-            transition: 'opacity 0.3s ease',
-          }}
-        >
-          {currentProgram.programName} - {currentProgram.timeRange}
-        </Typography>
+        <Stack direction="row" alignItems="baseline" gap={1}>
+          <Typography variant="h4" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+            {currentProgram.programName}
+          </Typography>
+          <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+            {currentProgram.timeRange}
+          </Typography>
+        </Stack>
       )}
       {/* Show upcoming program announcement if it starts within 10 minutes */}
       {upcomingProgram && (
-          <Typography
-            variant="h5"
-            component="p"
-            sx={{
-              textWrap: 'balance',
-              hyphens: 'auto',
-              opacity: 0.8,
-              transition: 'opacity 0.3s ease',
-            }}
-          >
-            {t('dashboard.upcomingProgram', {
-              programName: upcomingProgram.programName,
-              timeRange: upcomingProgram.timeRange,
-              minutes: upcomingProgram.minutesUntil,
-            })}
+        <Stack direction="row" alignItems="baseline" gap={1}>
+          <Typography variant="h5" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+            {upcomingProgram.programName}{' '}
           </Typography>
-        )}
+          <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+            {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
+            {upcomingProgram.timeRange}
+          </Typography>
+        </Stack>
+      )}
       {/* Show connecting message when loading but not yet playing */}
       {loading && !isPlaying && (
         <Typography
