@@ -19,13 +19,12 @@ Radio Player Page creates dedicated, independent pages for your radio streams, p
 * **Streaming Protocol Support** – Automatic detection and handling for Icecast, Shoutcast, MP3, HLS (.m3u8), and DASH (.mpd) formats. Uses native browser support on iOS Safari for HLS streams
 * **Four Audio Visualizers** – Choose from Oscilloscope, Bars Spectrum, Amplitude Waterfall, or Spectral Particles for real-time audio visualization powered by Web Audio API
 * **Eight Color Themes** – Customize appearance with Neutral, Blue, Green, Red, Orange, Yellow, Purple, or Pink color schemes
-* **Custom Branding** – Upload custom background images and logos for each station
+* **Custom Branding** – Upload custom background images and logos for each station (site favicon used if no custom logo provided)
 * **Custom Station Titles** – Set a unique title for each stream, or use your site name as default
 * **Sleep Timer** – Automatic playback stop after 30 minutes, 1 hour, or 2 hours
 * **Multiple Stream Management** – Configure up to 10 independent streams, each with its own dedicated WordPress page
 * **Volume Control** – Adjustable volume slider (not available on iOS devices due to system limitations)
 * **Media Session API** – Displays station information and artwork on device lock screens and media controls
-* **Program Schedule** – Define weekly program schedules for each station with time slots. The active program name and schedule are automatically displayed in the player.
 * **Responsive Design** – Optimized for desktop, tablet, and mobile devices
 * **Performance Optimized** – Lightweight architecture with minimal HTTP requests
 
@@ -41,7 +40,7 @@ The player interface is built with React 19, TypeScript, and Material-UI, provid
 4. For each stream:
    * Enter your streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
    * Select the WordPress page where the player should appear
-   * Optionally customize: title, theme color, visualizer type, background image, logo, and program schedule
+   * Optionally customize: title, theme color, visualizer type, background image, and logo
 5. Click **Save Changes** and visit the assigned page
 
 **Important Notes**
@@ -78,10 +77,6 @@ Volume control is not available on iOS devices due to system limitations. iOS de
 
 The source code is hosted on GitHub. See the repository for contributions and issue tracking.
 
-= How does the program schedule work? =
-
-You can define a weekly program schedule for each station in the plugin settings. For each day of the week, you can add programs with start and end times. The player will automatically detect and display the currently active program name and time range. The schedule updates automatically every minute. If no schedule is configured or no program is active at the current time, only the station title is displayed.
-
 == Screenshots ==
 
 1. Player page example with blue theme color and Oscilloscope visualizer
@@ -90,14 +85,6 @@ You can define a weekly program schedule for each station in the plugin settings
 4. Admin settings for managing stations
 
 == Changelog ==
-
-= 2.0.3 =
-* The player clock and program schedule now update at the start of each system minute (at :00 seconds) for better alignment with the user's clock.
-
-= 2.1.0 =
-* Added program schedule feature - define weekly schedules per station with time slots
-* Player now displays active program name and time range automatically
-* Schedule updates in real-time as programs change throughout the day
 
 = 2.0.2 =
 * Added player interface translations for Swedish, Dutch, Mexican Spanish, and Romanian
@@ -118,4 +105,5 @@ You can define a weekly program schedule for each station in the plugin settings
 * Added support for multiple streams (up to 10)
 * Added optional custom stream title field
 * Improved Settings screen with dynamic streaming management interface
+* Added backward compatibility migration from single-stream version
 * Enhanced user experience with better form validation and page selection
