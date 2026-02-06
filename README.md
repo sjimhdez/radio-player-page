@@ -88,7 +88,7 @@ Define weekly program schedules per station with time slots. The currently activ
 
 **Program Overlap Handling**: When a program ends exactly when another starts (e.g., 19:00-20:00 and 20:00-21:00), at exactly 20:00 the program that starts (20:00-21:00) is displayed, not the one that ends. This ensures correct program transitions at boundary times.
 
-**Upcoming Program Announcement**: When a program is scheduled to start within 5 minutes, an announcement is automatically displayed showing the program name, time range, and minutes until it starts. This announcement appears regardless of whether there is a currently active program, and updates at the start of each system minute to ensure timely display for users already connected.
+**Upcoming Program Announcement**: When a program is scheduled to start within 10 minutes, an announcement is automatically displayed showing the program name, time range, and minutes until it starts. This announcement appears regardless of whether there is a currently active program, and updates at the start of each system minute to ensure timely display for users already connected.
 
 ### Timezone Clock
 
@@ -170,6 +170,7 @@ radio-player-page/
 │   │   │   ├── use-audio-player.tsx      # Playback management
 │   │   │   ├── use-audio-visualizer.tsx  # Web Audio API integration
 │   │   │   ├── use-can-visualize.tsx     # Browser capability detection
+│   │   │   ├── use-config.tsx            # Centralized config access and validation
 │   │   │   ├── use-is-ios.tsx            # iOS detection
 │   │   │   └── use-media-session.tsx     # Media Session API
 │   │   ├── config/
@@ -183,6 +184,10 @@ radio-player-page/
 │   ├── dist/                  # Build output (generated)
 │   ├── vite.config.ts         # Vite configuration
 │   └── package.json           # Dependencies and scripts
+├── scripts/                   # Development and CI scripts
+│   ├── run-eslint.sh          # ESLint on player
+│   ├── run-wp-plugin-check.sh # WordPress plugin check
+│   └── run-php-versions-check.sh  # PHP version compatibility
 └── readme.txt                 # WordPress.org readme format
 ```
 
@@ -335,6 +340,14 @@ pre-commit run wordpress-plugin-check
 pre-commit run php-versions-check
 pre-commit run eslint
 ```
+
+**Manual Script Execution**
+
+The scripts in `scripts/` can be run directly for CI or local debugging without pre-commit:
+
+- `./scripts/run-eslint.sh` – ESLint on player directory
+- `./scripts/run-wp-plugin-check.sh` – WordPress plugin check (PHPCS)
+- `./scripts/run-php-versions-check.sh` – PHP version compatibility check
 
 **WordPress Plugin Check Setup**
 
