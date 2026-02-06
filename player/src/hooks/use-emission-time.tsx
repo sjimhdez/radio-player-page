@@ -35,7 +35,7 @@ export interface EmissionTime {
  * The browser timezone is detected automatically from the user's system settings.
  *
  * Updates at the start of each system minute for alignment with the user's clock, following the
- * same pattern as the program schedule hooks (use-current-program, use-upcoming-program).
+ * same pattern as the program schedule hook (use-program-schedule).
  *
  * @returns EmissionTime object with emissionTime, browserTime, timeDifference, and hasDifference
  *

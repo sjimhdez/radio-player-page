@@ -247,12 +247,11 @@ npm run lint           # ESLint code quality check
 - `use-audio-player.tsx`: Manages audio element, protocol detection, library loading
 - `use-audio-visualizer.tsx`: Web Audio API connection, data extraction
 - `use-can-visualize.tsx`: Browser capability detection
-- `use-current-program.tsx`: Determines active program from schedule using WordPress timezone offset
+- `use-program-schedule.tsx`: Determines active and incoming programs from schedule
+  - Active: current time >= entry AND < exit
+  - Incoming: first program after active, within 10 minutes
+  - Returns: `{ active, incoming }` with `programName`, `timeRange`, `minutesUntil` (for incoming)
   - Updates every minute to reflect program changes
-- `use-upcoming-program.tsx`: Determines upcoming program that will start within 5 minutes
-  - Returns: `programName`, `timeRange`, `minutesUntil`
-  - Updates every minute to ensure timely announcement display
-  - Works independently of current program status
 - `use-emission-time.tsx`: Calculates and updates emission timezone clock, detects browser timezone difference
   - Returns: `emissionTime`, `browserTime`, `timeDifference`, `hasDifference`
   - Updates every minute (same pattern as program schedule hooks for consistency and performance)
@@ -281,8 +280,7 @@ npm run lint           # ESLint code quality check
 - Browser timezone detection for timezone difference calculation
 - Emission timezone clock updates every minute (same pattern as program schedule hooks)
 - All time-related hooks update every minute for consistency and optimal performance:
-  - `use-current-program`: Active program detection
-  - `use-upcoming-program`: Upcoming program announcement (within 5 minutes)
+  - `use-program-schedule`: Active and incoming program detection (incoming within 10 minutes)
   - `use-emission-time`: Timezone clock display
 - Centralized timezone utilities in `src/utils/timezone.ts`:
   - `getCurrentTimeInTimezone()`: Calculate current time in WordPress timezone (used by program schedule)

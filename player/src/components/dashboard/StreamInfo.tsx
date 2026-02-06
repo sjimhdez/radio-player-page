@@ -4,8 +4,7 @@ import Collapse from '@mui/material/Collapse'
 import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState, useEffect } from 'react'
-import useCurrentProgram from 'src/hooks/use-current-program'
-import useUpcomingProgram from 'src/hooks/use-upcoming-program'
+import useProgramSchedule from 'src/hooks/use-program-schedule'
 
 interface StreamInfoProps {
   /** Radio station or stream title */
@@ -50,8 +49,8 @@ const StreamInfo = ({
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState<number>(0)
-  const currentProgram = useCurrentProgram()
-  const upcomingProgram = useUpcomingProgram()
+  const { active: currentProgram, incoming: upcomingProgram } =
+    useProgramSchedule()
 
   useEffect(() => {
     const updateHeight = () => {
@@ -127,10 +126,8 @@ const StreamInfo = ({
           {currentProgram.programName} - {currentProgram.timeRange}
         </Typography>
       )}
-      {/* Show upcoming program announcement if it starts within 5 minutes */}
-      {upcomingProgram &&
-        upcomingProgram.minutesUntil > 0 &&
-        upcomingProgram.minutesUntil <= 5 && (
+      {/* Show upcoming program announcement if it starts within 10 minutes */}
+      {upcomingProgram && (
           <Typography
             variant="h5"
             component="p"
