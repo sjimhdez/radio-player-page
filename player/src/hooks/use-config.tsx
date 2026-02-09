@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { PluginConfig } from 'src/types/global'
+import type { ResolvedConfig, ProgramDefinition, Schedule } from 'src/types/global'
 
 /**
  * Valid theme color values
@@ -31,7 +31,10 @@ const VALID_VISUALIZERS = ['oscilloscope', 'bars', 'particles', 'waterfall'] as 
  * The configuration is memoized to prevent unnecessary recalculations on
  * re-renders. All validation happens once when the component mounts.
  *
- * @returns PluginConfig object with validated and sanitized configuration values
+ * Reads RADPLAPAG_CONFIG, RADPLAPAG_PROGRAMS and RADPLAPAG_SCHEDULE and returns
+ * a resolved config with programs and schedule (relational) for use in the app.
+ *
+ * @returns ResolvedConfig (config + programs + schedule)
  *
  * @example
  * ```tsx
@@ -41,20 +44,21 @@ const VALID_VISUALIZERS = ['oscilloscope', 'bars', 'particles', 'waterfall'] as 
  * }
  * ```
  */
-function useConfig(): PluginConfig {
+function useConfig(): ResolvedConfig {
   return useMemo(() => {
     const rawConfig = window.RADPLAPAG_CONFIG
 
     // Validate themeColor against whitelist
     const themeColor =
-      rawConfig?.themeColor && VALID_THEMES.includes(rawConfig.themeColor as any)
+      rawConfig?.themeColor &&
+      VALID_THEMES.includes(rawConfig.themeColor as (typeof VALID_THEMES)[number])
         ? rawConfig.themeColor
         : 'neutral'
 
     // Validate visualizer against whitelist
     const visualizer =
       rawConfig?.visualizer &&
-      VALID_VISUALIZERS.includes(rawConfig.visualizer as any)
+      VALID_VISUALIZERS.includes(rawConfig.visualizer as (typeof VALID_VISUALIZERS)[number])
         ? rawConfig.visualizer
         : 'oscilloscope'
 
@@ -66,6 +70,15 @@ function useConfig(): PluginConfig {
         ? rawConfig.timezoneOffset
         : 0 // Default to UTC (0) if invalid
 
+    const programs: ProgramDefinition[] | undefined = Array.isArray(window.RADPLAPAG_PROGRAMS)
+      ? window.RADPLAPAG_PROGRAMS
+      : undefined
+
+    const schedule: Schedule | undefined =
+      window.RADPLAPAG_SCHEDULE && typeof window.RADPLAPAG_SCHEDULE === 'object'
+        ? window.RADPLAPAG_SCHEDULE
+        : undefined
+
     return {
       streamUrl: rawConfig?.streamUrl || '',
       siteTitle: rawConfig?.siteTitle || '',
@@ -74,7 +87,8 @@ function useConfig(): PluginConfig {
       themeColor,
       visualizer,
       timezoneOffset,
-      schedule: rawConfig?.schedule,
+      programs,
+      schedule,
     }
   }, [])
 }

@@ -112,25 +112,57 @@ const StreamInfo = ({
       </Typography>
       {/* Show active program if schedule is configured */}
       {currentProgram && (
-        <Stack direction="row" alignItems="baseline" gap={1}>
-          <Typography variant="h4" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
-            {currentProgram.programName}
-          </Typography>
-          <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
-            {currentProgram.timeRange}
-          </Typography>
+        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+          {currentProgram.programLogoUrl && (
+            <Box
+              component="img"
+              src={currentProgram.programLogoUrl}
+              alt=""
+              aria-hidden
+              sx={{
+                width: 36,
+                height: 36,
+                objectFit: 'contain',
+                borderRadius: 1,
+              }}
+            />
+          )}
+          <Stack direction="row" alignItems="baseline" gap={1}>
+            <Typography variant="h4" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+              {currentProgram.programName}
+            </Typography>
+            <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+              {currentProgram.timeRange}
+            </Typography>
+          </Stack>
         </Stack>
       )}
       {/* Show upcoming program announcement if it starts within 10 minutes */}
       {upcomingProgram && (
-        <Stack direction="row" alignItems="baseline" gap={1}>
-          <Typography variant="h5" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
-            {upcomingProgram.programName}{' '}
-          </Typography>
-          <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
-            {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
-            {upcomingProgram.timeRange}
-          </Typography>
+        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+          {upcomingProgram.programLogoUrl && (
+            <Box
+              component="img"
+              src={upcomingProgram.programLogoUrl}
+              alt=""
+              aria-hidden
+              sx={{
+                width: 32,
+                height: 32,
+                objectFit: 'contain',
+                borderRadius: 1,
+              }}
+            />
+          )}
+          <Stack direction="row" alignItems="baseline" gap={1}>
+            <Typography variant="h5" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+              {upcomingProgram.programName}{' '}
+            </Typography>
+            <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+              {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
+              {upcomingProgram.timeRange}
+            </Typography>
+          </Stack>
         </Stack>
       )}
       {/* Show connecting message when loading but not yet playing */}

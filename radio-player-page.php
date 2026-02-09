@@ -70,11 +70,11 @@ function radplapag_get_station_for_current_page() {
  * the correct asset paths, extracts station configuration, and outputs a complete
  * HTML document with all necessary scripts and styles.
  *
- * The function sets a global JavaScript configuration object (window.RADPLAPAG_CONFIG)
- * that contains all station configuration data as a single JSON object. This object
- * includes stream URL, site title, theme color, visualizer type, media URLs, and
- * optional program schedule. The React app accesses this configuration via the
- * useConfig() hook which validates and sanitizes all values.
+ * The function sets global JavaScript variables for the React app:
+ * - window.RADPLAPAG_CONFIG: stream URL, site title, theme, visualizer, media URLs, timezone (no schedule).
+ * - window.RADPLAPAG_PROGRAMS: array of { name, logoUrl } for relational resolution.
+ * - window.RADPLAPAG_SCHEDULE: weekly schedule as { day: [ { program_id, start, end }, ... ] } (relational).
+ * The React app resolves program name/logo from RADPLAPAG_PROGRAMS by program_id to avoid duplicating data.
  *
  * It intentionally bypasses WordPress's enqueue system by outputting directly and
  * calling exit() to prevent theme loading.
@@ -160,7 +160,7 @@ function radplapag_output_clean_page() {
     $offset_seconds = $timezone_obj->getOffset( $now );
     $timezone_offset = $offset_seconds / 3600; // Convert to hours (float)
     
-    // Build configuration object
+    // Build configuration object (no schedule or programs; those are passed separately)
     $config = [
         'streamUrl' => $stream_url,
         'siteTitle' => $display_title,
@@ -170,15 +170,57 @@ function radplapag_output_clean_page() {
         'visualizer' => $visualizer,
         'timezoneOffset' => $timezone_offset, // Numeric offset in hours from UTC
     ];
-    
-    // Add schedule only if it exists and is not empty
-    if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
-        $config['schedule'] = $station['schedule'];
+
+    // Programs list: name + logoUrl (relational, no duplication in schedule)
+    $programs_for_player = [];
+    if ( isset( $station['programs'] ) && is_array( $station['programs'] ) ) {
+        foreach ( $station['programs'] as $prog ) {
+            $name = isset( $prog['name'] ) ? $prog['name'] : '';
+            $prog_logo_id = isset( $prog['logo_id'] ) ? intval( $prog['logo_id'] ) : 0;
+            $prog_logo_url = ( $prog_logo_id > 0 ) ? wp_get_attachment_image_url( $prog_logo_id, 'full' ) : '';
+            $programs_for_player[] = [
+                'name'    => $name,
+                'logoUrl' => $prog_logo_url ? $prog_logo_url : null,
+            ];
+        }
     }
-    
-    // Output single script tag with JSON configuration object
-    // wp_json_encode with security flags prevents XSS in HTML contexts
-    echo '<script>window.RADPLAPAG_CONFIG = ' . wp_json_encode( $config, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . ';</script>';
+
+    // Schedule: relational entries (program_id, start, end) — resolve name/logo in React via programs
+    $schedule_for_player = [];
+    if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
+        foreach ( $station['schedule'] as $day => $day_programs ) {
+            if ( ! is_array( $day_programs ) ) {
+                continue;
+            }
+            $day_entries = [];
+            foreach ( $day_programs as $entry ) {
+                if ( ! is_array( $entry ) ) {
+                    continue;
+                }
+                $program_id = isset( $entry['program_id'] ) ? intval( $entry['program_id'] ) : -1;
+                $start = isset( $entry['start'] ) ? $entry['start'] : '';
+                $end = isset( $entry['end'] ) ? $entry['end'] : '';
+                if ( $program_id < 0 || empty( $start ) || empty( $end ) ) {
+                    continue;
+                }
+                $day_entries[] = [
+                    'program_id' => $program_id,
+                    'start'      => $start,
+                    'end'        => $end,
+                ];
+            }
+            if ( ! empty( $day_entries ) ) {
+                $schedule_for_player[ $day ] = $day_entries;
+            }
+        }
+    }
+
+    $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+    echo '<script>';
+    echo 'window.RADPLAPAG_CONFIG = ' . wp_json_encode( $config, $json_flags ) . ';';
+    echo 'window.RADPLAPAG_PROGRAMS = ' . wp_json_encode( $programs_for_player, $json_flags ) . ';';
+    echo 'window.RADPLAPAG_SCHEDULE = ' . wp_json_encode( $schedule_for_player, $json_flags ) . ';';
+    echo '</script>';
     if ( $main_css ) {
         echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
     }

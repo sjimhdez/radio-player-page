@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react'
-import type { Schedule } from 'src/types/global'
 import useConfig from 'src/hooks/use-config'
 import { getCurrentTimeInTimezone } from 'src/utils/timezone'
 import {
@@ -18,11 +17,15 @@ export interface ProgramScheduleResult {
 
 /**
  * Hook to determine the active and incoming programs based on schedule and current time.
+ * Uses relational data: config.schedule (program_id, start, end) and config.programs (name, logoUrl).
  *
  * Active: current >= entry AND current < exit
- * Incoming: first program after active, within 10 minutes
+ * Incoming: first program that starts within 10 minutes from now (relative to current time, not to active program)
  *
  * Updates at the start of each system minute (:00 seconds).
+ *
+ * The result is used only for display (StreamInfo). The schedule must never
+ * trigger play/pause: playback state is controlled solely by the user.
  *
  * @returns Object with active and incoming program, or null for each if none
  */
@@ -45,7 +48,8 @@ function useProgramSchedule(): ProgramScheduleResult {
       intervalIdRef.current = null
     }
 
-    const schedule: Schedule | undefined = config.schedule
+    const schedule = config.schedule
+    const programs = config.programs
 
     if (!schedule) {
       setResult({ active: null, incoming: null })
@@ -56,12 +60,17 @@ function useProgramSchedule(): ProgramScheduleResult {
       const { dayOfWeek, currentTime } = getCurrentTimeInTimezone(
         config.timezoneOffset
       )
-      const active = findActiveProgram(schedule, dayOfWeek, currentTime)
+      const active = findActiveProgram(
+        schedule,
+        programs,
+        dayOfWeek,
+        currentTime
+      )
       const incoming = findIncomingProgram(
         schedule,
+        programs,
         dayOfWeek,
-        currentTime,
-        active
+        currentTime
       )
       return { active, incoming }
     }
@@ -85,7 +94,7 @@ function useProgramSchedule(): ProgramScheduleResult {
         intervalIdRef.current = null
       }
     }
-  }, [config.schedule, config.timezoneOffset])
+  }, [config.schedule, config.programs, config.timezoneOffset])
 
   return result
 }

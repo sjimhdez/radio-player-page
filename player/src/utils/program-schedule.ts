@@ -1,25 +1,31 @@
 /**
  * Pure functions for program schedule logic.
  *
- * Determines active and incoming programs based on schedule and current time.
- * Handles programs that cross midnight correctly.
+ * Schedule and programs are relational: schedule entries have program_id;
+ * name and logo are resolved from the programs array.
+ *
+ * IMPORTANT: The schedule is for display only (e.g. showing current/next program in the UI).
+ * It must never control playback: when a program ends or there is no next program,
+ * playback must continue unchanged. The user controls play/pause exclusively.
  *
  * @since 2.0.3
  */
 
-import type { Program, Schedule } from 'src/types/global'
+import type { Schedule, ScheduleEntry, ProgramDefinition } from 'src/types/global'
 
-/** Program name and time range for display */
+/** Program name and time range for display (resolved from schedule + programs) */
 export interface CurrentProgram {
   programName: string
   timeRange: string
+  programLogoUrl?: string | null
 }
 
-/** Incoming program with minutes until start */
+/** Incoming program with minutes until start (resolved from schedule + programs) */
 export interface IncomingProgram {
   programName: string
   timeRange: string
   minutesUntil: number
+  programLogoUrl?: string | null
 }
 
 /** Day of week to schedule key mapping (0=Sunday, 1=Monday, ...) */
@@ -40,86 +46,100 @@ function parseToMinutes(time: string): number {
 }
 
 /**
- * Check if a program is currently active.
+ * Check if a schedule entry is currently active (by start/end only).
  *
- * Active when: current >= entry AND current < exit
- *
- * @param program - Program with start and end times
+ * @param entry - Schedule entry with start and end times
  * @param currentTime - Current time as minutes since midnight (0-1439)
- * @param isPrevDayCrossing - True when evaluating a previous day's program that crosses midnight
- * @returns True if the program is active
+ * @param isPrevDayCrossing - True when evaluating a previous day's entry that crosses midnight
  */
 export function isProgramActive(
-  program: Program,
+  entry: { start: string; end: string },
   currentTime: number,
-  isPrevDayCrossing = false
+  isPrevDayCrossing = false,
 ): boolean {
-  const startTime = parseToMinutes(program.start)
-  const endTime = parseToMinutes(program.end)
+  const startTime = parseToMinutes(entry.start)
+  const endTime = parseToMinutes(entry.end)
 
   if (isPrevDayCrossing) {
-    // Previous day's program that crosses midnight: we're in early hours of current day
-    // Active when currentTime < endTime (e.g. 00:30 < 60 for 01:00)
     return endTime <= startTime && currentTime < endTime
   }
 
   if (endTime <= startTime) {
-    // Program crosses midnight (e.g. 23:00 to 01:00)
     return currentTime >= startTime || currentTime < endTime
   }
 
-  // Normal program: current >= start AND current < end
   return currentTime >= startTime && currentTime < endTime
+}
+
+/**
+ * Resolve program name and logo from programs array by program_id.
+ */
+function resolveProgram(
+  programs: ProgramDefinition[] | undefined,
+  programId: number,
+): { name: string; logoUrl: string | null } {
+  if (!programs || programId < 0 || programId >= programs.length) {
+    return { name: '', logoUrl: null }
+  }
+  const p = programs[programId]
+  return {
+    name: p?.name ?? '',
+    logoUrl: p?.logoUrl ?? null,
+  }
 }
 
 /**
  * Find the currently active program.
  *
- * @param schedule - Weekly schedule
+ * @param schedule - Weekly schedule (relational: program_id, start, end)
+ * @param programs - Program definitions to resolve name/logo by program_id
  * @param dayOfWeek - Current day (0=Sunday, 1=Monday, ...)
  * @param currentTime - Current time as minutes since midnight
- * @returns Active program or null
+ * @returns Active program (resolved) or null
  */
 export function findActiveProgram(
-  schedule: Schedule,
+  schedule: Schedule | undefined,
+  programs: ProgramDefinition[] | undefined,
   dayOfWeek: number,
-  currentTime: number
+  currentTime: number,
 ): CurrentProgram | null {
-  const dayKey = DAY_MAP[dayOfWeek]
-  const dayPrograms = schedule[dayKey]
+  if (!schedule) return null
 
-  if (!dayPrograms || dayPrograms.length === 0) {
+  const dayKey = DAY_MAP[dayOfWeek]
+  const dayEntries = schedule[dayKey]
+
+  if (!dayEntries || dayEntries.length === 0) {
     return null
   }
 
-  const sortedPrograms = [...dayPrograms].sort((a, b) => {
-    return parseToMinutes(a.start) - parseToMinutes(b.start)
-  })
+  const sorted = [...dayEntries].sort((a, b) => parseToMinutes(a.start) - parseToMinutes(b.start))
 
-  for (const program of sortedPrograms) {
-    if (isProgramActive(program, currentTime, false)) {
+  for (const entry of sorted) {
+    if (isProgramActive(entry, currentTime, false)) {
+      const { name, logoUrl } = resolveProgram(programs, entry.program_id)
       return {
-        programName: program.name,
-        timeRange: `${program.start}-${program.end}`,
+        programName: name,
+        timeRange: `${entry.start}-${entry.end}`,
+        programLogoUrl: logoUrl,
       }
     }
   }
 
-  // Check previous day's programs that cross midnight
   const prevDayIndex = (dayOfWeek - 1 + 7) % 7
   const prevDayKey = DAY_MAP[prevDayIndex]
-  const prevDayPrograms = schedule[prevDayKey]
+  const prevDayEntries = schedule[prevDayKey]
 
-  if (prevDayPrograms && prevDayPrograms.length > 0) {
-    const sortedPrevDay = [...prevDayPrograms].sort((a, b) => {
-      return parseToMinutes(a.start) - parseToMinutes(b.start)
-    })
-
-    for (const program of sortedPrevDay) {
-      if (isProgramActive(program, currentTime, true)) {
+  if (prevDayEntries && prevDayEntries.length > 0) {
+    const sortedPrev = [...prevDayEntries].sort(
+      (a, b) => parseToMinutes(a.start) - parseToMinutes(b.start),
+    )
+    for (const entry of sortedPrev) {
+      if (isProgramActive(entry, currentTime, true)) {
+        const { name, logoUrl } = resolveProgram(programs, entry.program_id)
         return {
-          programName: program.name,
-          timeRange: `${program.start}-${program.end}`,
+          programName: name,
+          timeRange: `${entry.start}-${entry.end}`,
+          programLogoUrl: logoUrl,
         }
       }
     }
@@ -128,75 +148,65 @@ export function findActiveProgram(
   return null
 }
 
-/** Incoming program window in minutes */
+/** Incoming program window in minutes (relative to current time) */
 const INCOMING_WINDOW_MINUTES = 10
 
 /**
- * Find the first incoming program (first after active, within 10 minutes).
+ * Find the first incoming program (next program that starts within 10 minutes from now).
  *
- * @param schedule - Weekly schedule
+ * Calculated relative to current time, not to the active program, so the incoming
+ * program is shown even when there is no program currently active.
+ *
+ * @param schedule - Weekly schedule (relational)
+ * @param programs - Program definitions to resolve name/logo
  * @param dayOfWeek - Current day (0=Sunday, 1=Monday, ...)
  * @param currentTime - Current time as minutes since midnight
- * @param activeProgram - The currently active program (from findActiveProgram)
- * @returns Incoming program or null
+ * @returns Incoming program (resolved) or null
  */
 export function findIncomingProgram(
-  schedule: Schedule,
+  schedule: Schedule | undefined,
+  programs: ProgramDefinition[] | undefined,
   dayOfWeek: number,
   currentTime: number,
-  activeProgram: CurrentProgram | null
 ): IncomingProgram | null {
-  if (!activeProgram) {
+  if (!schedule) {
     return null
   }
-
-  // Parse referenceEnd and referenceStart from active program's timeRange "HH:MM-HH:MM"
-  const rangeParts = activeProgram.timeRange.split('-')
-  if (rangeParts.length !== 2) {
-    return null
-  }
-  const referenceStart = parseToMinutes(rangeParts[0])
-  const referenceEnd = parseToMinutes(rangeParts[1])
-  const activeCrossesMidnight = referenceEnd <= referenceStart
 
   const dayKey = DAY_MAP[dayOfWeek]
-  const dayPrograms = schedule[dayKey] ?? []
+  const dayEntries = schedule[dayKey] ?? []
+  const nextDayKey = DAY_MAP[(dayOfWeek + 1) % 7]
+  const nextDayEntries = schedule[nextDayKey] ?? []
 
-  // Build candidates: programs that start >= referenceEnd
-  // When active crosses midnight and we're before midnight (currentTime > referenceEnd),
-  // same-day programs with start >= referenceEnd are "next calendar day" - add 1440
-  const beforeMidnightInCrossing = activeCrossesMidnight && currentTime > referenceEnd
+  const candidates: Array<{ entry: ScheduleEntry; startTime: number }> = []
 
-  const candidates: Array<{ program: Program; startTime: number }> = []
-
-  for (const program of dayPrograms) {
-    const start = parseToMinutes(program.start)
-    if (start >= referenceEnd) {
-      const startTime = beforeMidnightInCrossing ? start + 1440 : start
-      candidates.push({ program, startTime })
+  // Today: programs that start after current time
+  for (const entry of dayEntries) {
+    const start = parseToMinutes(entry.start)
+    if (start > currentTime) {
+      candidates.push({ entry, startTime: start })
     }
   }
 
-  const nextDayIndex = (dayOfWeek + 1) % 7
-  const nextDayKey = DAY_MAP[nextDayIndex]
-  const nextDayPrograms = schedule[nextDayKey] ?? []
-
-  for (const program of nextDayPrograms) {
+  // Next day: all programs (their start is "tomorrow" in same timeline)
+  for (const entry of nextDayEntries) {
     candidates.push({
-      program,
-      startTime: parseToMinutes(program.start) + 1440,
+      entry,
+      startTime: parseToMinutes(entry.start) + 1440,
     })
   }
 
   candidates.sort((a, b) => a.startTime - b.startTime)
 
-  for (const { program, startTime } of candidates) {
+  for (const { entry, startTime } of candidates) {
     const minutesUntil = startTime - currentTime
     if (minutesUntil > 0 && minutesUntil <= INCOMING_WINDOW_MINUTES) {
+      const { name, logoUrl } = resolveProgram(programs, entry.program_id)
       return {
-        programName: program.name,
-        timeRange: `${program.start}-${program.end}`,
+        programName: name,
+        timeRange: `${entry.start}-${entry.end}`,
         minutesUntil,
+        programLogoUrl: logoUrl,
       }
     }
   }
