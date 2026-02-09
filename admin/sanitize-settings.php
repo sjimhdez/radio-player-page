@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
  * Validates and sanitizes settings input before saving to database.
  *
  * Processes the submitted form data, validates all fields, and sanitizes them
- * according to their data types. Only stations with both a valid stream URL and
+ * according to their data types. Only stations with both a valid streaming URL and
  * a selected player page are saved. Visualizer values are validated against a
  * whitelist for security. Program schedules are validated for time format, non-overlapping
  * intervals, and proper time ordering. Invalid entries are filtered out.

@@ -19,14 +19,14 @@ function radplapag_get_admin_strings() {
     return [
         'maxStations' => 10,
         'strings'     => [
-            'stream'                   => __( 'Stream', 'radio-player-page' ),
-            'addProgramImage'          => __( 'Add program image', 'radio-player-page' ),
+            'stationNumberFormat'      => __( 'Station %d', 'radio-player-page' ),
+            'addProgramImage'          => __( 'Add Program Image', 'radio-player-page' ),
             'selectImage'              => __( 'Select Image', 'radio-player-page' ),
-            'changeImage'              => __( 'Change image', 'radio-player-page' ),
+            'changeImage'              => __( 'Change Image', 'radio-player-page' ),
             'streamUrlRequired'        => __( 'This field is required.', 'radio-player-page' ),
             'streamUrlInvalid'         => __( 'Please enter a valid URL.', 'radio-player-page' ),
             'playerPageRequired'       => __( 'This field is required.', 'radio-player-page' ),
-            'stationTitleMax'          => __( 'Stream title must be 64 characters or less.', 'radio-player-page' ),
+            'stationTitleMax'          => __( 'Station name must be 64 characters or less.', 'radio-player-page' ),
             'monday'                   => __( 'Monday', 'radio-player-page' ),
             'tuesday'                  => __( 'Tuesday', 'radio-player-page' ),
             'wednesday'                => __( 'Wednesday', 'radio-player-page' ),
@@ -35,21 +35,22 @@ function radplapag_get_admin_strings() {
             'saturday'                 => __( 'Saturday', 'radio-player-page' ),
             'sunday'                   => __( 'Sunday', 'radio-player-page' ),
             'invalidTimeFormat'        => __( 'Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
-            'completeTimeFields'       => __( 'Please complete all time fields', 'radio-player-page' ),
+            'completeTimeFields'       => __( 'Please complete all time fields.', 'radio-player-page' ),
             'startEndSame'             => __( 'Start and end times cannot be the same', 'radio-player-page' ),
             'unnamedProgram'           => __( 'Unnamed program', 'radio-player-page' ),
             'timeSlotOverlapsWith'     => __( 'This time slot overlaps with', 'radio-player-page' ),
+            'timeSlotOverlapsWithMessage' => __( 'This time slot overlaps with: %s', 'radio-player-page' ),
             'pleaseSelectProgram'      => __( 'Please select a program.', 'radio-player-page' ),
-            'pleaseSelectProgramWithName' => __( 'Please select a program with a name. Program name is required.', 'radio-player-page' ),
+            'pleaseSelectProgramWithName' => __( 'Please select a program and enter a name. Program name is required for the schedule.', 'radio-player-page' ),
             'allFieldsRequired'        => __( 'All fields are required.', 'radio-player-page' ),
-            'selectProgram'            => __( 'Select program', 'radio-player-page' ),
+            'selectProgram'            => __( 'Select Program', 'radio-player-page' ),
             'to'                       => __( 'to', 'radio-player-page' ),
-            'removeTimeSlot'           => __( 'Remove time slot', 'radio-player-page' ),
+            'removeTimeSlot'           => __( 'Remove Time Slot', 'radio-player-page' ),
             'showProgramSchedule'      => __( 'Show Program Schedule', 'radio-player-page' ),
             'hideProgramSchedule'      => __( 'Hide Program Schedule', 'radio-player-page' ),
             'programName'              => __( 'Program name', 'radio-player-page' ),
-            'removeImage'              => __( 'Remove image', 'radio-player-page' ),
-            'removeProgram'            => __( 'Remove program', 'radio-player-page' ),
+            'removeImage'              => __( 'Remove Image', 'radio-player-page' ),
+            'removeProgram'            => __( 'Remove Program', 'radio-player-page' ),
             'programNameRequired'      => __( 'Program name is required. Enter a name to use this program in the schedule.', 'radio-player-page' ),
         ],
     ];
@@ -96,8 +97,8 @@ function radplapag_render_settings_page() {
         <?php settings_errors( 'radplapag_settings' ); ?>
 
         <div>
-            <h2><?php esc_html_e( 'How to use', 'radio-player-page' ); ?></h2>
-            <p><?php esc_html_e( 'Configure up to ten streams. For each stream, enter the stream URL (Icecast, Shoutcast, or MP3) and select the page where the player should appear. You can customize the theme color, visualizer, background image, and logo for each stream.', 'radio-player-page' ); ?></p>
+            <h2><?php esc_html_e( 'How to Use', 'radio-player-page' ); ?></h2>
+            <p><?php esc_html_e( 'Configure up to ten stations. For each station, enter the streaming URL (Icecast, Shoutcast, or MP3) and select the WordPress page where the player will appear. You can optionally set a station name, logo image, and background image, and choose a theme color and visualizer. Optionally, define a weekly program schedule with time slots; the player will display the current and next program based on your site timezone.', 'radio-player-page' ); ?></p>
         </div>
 
         <form method="post" action="options.php" id="radplapag-settings-form">
@@ -122,10 +123,10 @@ function radplapag_render_settings_page() {
                         <h3 class="radplapag-station-title">
                             <?php
                             if ( ! $is_empty ) {
-                                /* translators: %d: Streaming number */
-                                echo esc_html( sprintf( __( 'Stream %d', 'radio-player-page' ), $index + 1 ) );
+                                /* translators: %d: Station number */
+                                echo esc_html( sprintf( __( 'Station %d', 'radio-player-page' ), $index + 1 ) );
                             } else {
-                                esc_html_e( 'New Stream', 'radio-player-page' );
+                                esc_html_e( 'New Station', 'radio-player-page' );
                             }
                             ?>
                         </h3>
@@ -133,7 +134,7 @@ function radplapag_render_settings_page() {
                             <tr data-field="player_page">
                                 <th scope="row">
                                     <label for="radplapag_page_<?php echo esc_attr( $index ); ?>">
-                                        <?php esc_html_e( 'Player page', 'radio-player-page' ); ?>
+                                        <?php esc_html_e( 'Player Page', 'radio-player-page' ); ?>
                                     </label>
                                 </th>
                                 <td>
@@ -142,7 +143,7 @@ function radplapag_render_settings_page() {
                                         id="radplapag_page_<?php echo esc_attr( $index ); ?>"
                                         class="radplapag-player-page"
                                     >
-                                        <option value=""><?php esc_html_e( 'Select a page', 'radio-player-page' ); ?></option>
+                                        <option value=""><?php esc_html_e( 'Select a Page', 'radio-player-page' ); ?></option>
                                         <?php foreach ( $pages as $page ) : ?>
                                             <option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $player_page, $page->ID ); ?>>
                                                 <?php echo esc_html( $page->post_title ); ?>
@@ -154,7 +155,7 @@ function radplapag_render_settings_page() {
                             <tr data-field="stream_url">
                                 <th scope="row">
                                     <label for="radplapag_stream_url_<?php echo esc_attr( $index ); ?>">
-                                        <?php esc_html_e( 'Stream URL', 'radio-player-page' ); ?>
+                                        <?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?>
                                     </label>
                                 </th>
                                 <td>
@@ -171,7 +172,7 @@ function radplapag_render_settings_page() {
                             <tr data-field="station_title">
                                 <th scope="row">
                                     <label for="radplapag_station_title_<?php echo esc_attr( $index ); ?>">
-                                        <?php esc_html_e( 'Stream Title', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?>
+                                        <?php esc_html_e( 'Station Name (Optional)', 'radio-player-page' ); ?>
                                     </label>
                                 </th>
                                 <td>
@@ -233,7 +234,7 @@ function radplapag_render_settings_page() {
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <label><?php esc_html_e( 'Logo Image', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?></label>
+                                    <label><?php esc_html_e( 'Logo Image (Optional)', 'radio-player-page' ); ?></label>
                                 </th>
                                 <td>
                                     <div class="radplapag-image-upload-wrapper">
@@ -246,14 +247,14 @@ function radplapag_render_settings_page() {
                                         <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
                                         <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
                                         <p class="description">
-                                            <?php esc_html_e( 'Recommended size', 'radio-player-page' ); ?>: <?php esc_html_e( '512x512 pixels or larger.', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Recommended size: 512x512 pixels or larger.', 'radio-player-page' ); ?>
                                         </p>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <label><?php esc_html_e( 'Background Image', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?></label>
+                                    <label><?php esc_html_e( 'Background Image (Optional)', 'radio-player-page' ); ?></label>
                                 </th>
                                 <td>
                                     <div class="radplapag-image-upload-wrapper">
@@ -270,7 +271,7 @@ function radplapag_render_settings_page() {
                             </tr>
                             <tr>
                                 <th scope="row">
-                                    <label><?php esc_html_e( 'Program Schedule', 'radio-player-page' ); ?> <?php esc_html_e( '(Optional)', 'radio-player-page' ); ?></label>
+                                    <label><?php esc_html_e( 'Program Schedule (Optional)', 'radio-player-page' ); ?></label>
                                 </th>
                                 <td>
                                     <?php
@@ -332,12 +333,12 @@ function radplapag_render_settings_page() {
                                                                         <img src="<?php echo esc_url( $prog_logo_url ); ?>" alt="" style="max-width:30px;max-height:30px;display:block;">
                                                                     <?php endif; ?>
                                                                 </div>
-                                                                <button type="button" class="button radplapag-upload-btn"><?php echo $prog_logo_id ? esc_html__( 'Change image', 'radio-player-page' ) : esc_html__( 'Add program image', 'radio-player-page' ); ?></button>
-                                                                <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $prog_logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove image', 'radio-player-page' ); ?></button>
+                                                                <button type="button" class="button radplapag-upload-btn"><?php echo $prog_logo_id ? esc_html__( 'Change Image', 'radio-player-page' ) : esc_html__( 'Add Program Image', 'radio-player-page' ); ?></button>
+                                                                <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $prog_logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove Image', 'radio-player-page' ); ?></button>
                                                             </div>
                                                         </div>
                                                         <div class="radplapag-program-definition-remove-cell">
-                                                            <a href="#" class="submitdelete radplapag-remove-program-definition" data-station-index="<?php echo esc_attr( $index ); ?>" data-program-def-index="<?php echo esc_attr( $prog_idx ); ?>"><?php esc_html_e( 'Remove program', 'radio-player-page' ); ?></a>
+                                                            <a href="#" class="submitdelete radplapag-remove-program-definition" data-station-index="<?php echo esc_attr( $index ); ?>" data-program-def-index="<?php echo esc_attr( $prog_idx ); ?>"><?php esc_html_e( 'Remove Program', 'radio-player-page' ); ?></a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -387,7 +388,7 @@ function radplapag_render_settings_page() {
                                                                     class="radplapag-program-id"
                                                                     style="width: 200px; margin-right: 24px;"
                                                                 >
-                                                                    <option value=""><?php esc_html_e( 'Select program', 'radio-player-page' ); ?></option>
+                                                                    <option value=""><?php esc_html_e( 'Select Program', 'radio-player-page' ); ?></option>
                                                                     <?php foreach ( $programs as $pid => $p ) :
                                                                         $pname = isset( $p['name'] ) ? $p['name'] : '';
                                                                         ?>
@@ -410,7 +411,7 @@ function radplapag_render_settings_page() {
                                                                     style="width: 100px; margin-right: 10px;"
                                                                 >
                                                                 <div class="radplapag-schedule-remove-cell">
-                                                                    <a href="#" class="submitdelete radplapag-remove-program"><?php esc_html_e( 'Remove time slot', 'radio-player-page' ); ?></a>
+                                                                    <a href="#" class="submitdelete radplapag-remove-program"><?php esc_html_e( 'Remove Time Slot', 'radio-player-page' ); ?></a>
                                                                 </div>
                                                                 <div class="radplapag-program-error-message" style="display: none;"></div>
                                                             </div>
@@ -418,7 +419,7 @@ function radplapag_render_settings_page() {
                                                     <?php endif; ?>
                                                 </div>
                                                 <button type="button" class="button radplapag-add-program" data-day="<?php echo esc_attr( $day_key ); ?>" style="margin-top: 5px; margin-bottom: 15px;">
-                                                    <?php esc_html_e( 'Add time slot', 'radio-player-page' ); ?>
+                                                    <?php esc_html_e( 'Add Time Slot', 'radio-player-page' ); ?>
                                                 </button>
                                             </div>
                                         <?php endforeach; ?>
@@ -431,7 +432,7 @@ function radplapag_render_settings_page() {
                         </table>
                         <?php if ( $index > 0 ) : ?>
                             <p>
-                                <a href="#" class="submitdelete radplapag-remove-station" data-index="<?php echo esc_attr( $index ); ?>"><?php esc_html_e( 'Remove Stream', 'radio-player-page' ); ?></a>
+                                <a href="#" class="submitdelete radplapag-remove-station" data-index="<?php echo esc_attr( $index ); ?>"><?php esc_html_e( 'Remove Station', 'radio-player-page' ); ?></a>
                             </p>
                         <?php endif; ?>
                     </div>
@@ -440,7 +441,7 @@ function radplapag_render_settings_page() {
 
             <p>
                 <button type="button" class="button radplapag-add-station" id="radplapag-add-station-btn" style="display:none;">
-                    <?php esc_html_e( 'Add Stream', 'radio-player-page' ); ?>
+                    <?php esc_html_e( 'Add Station', 'radio-player-page' ); ?>
                 </button>
             </p>
 

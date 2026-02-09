@@ -201,3 +201,24 @@
 .radplapag-program-definition-row .radplapag-program-error-message.show {
     display: block !important;
 }
+
+/* Remove Program / Remove Time Slot: visible only on row hover, red on link hover */
+.radplapag-program-row .radplapag-schedule-remove-cell,
+.radplapag-program-definition-row .radplapag-program-definition-remove-cell {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+}
+.radplapag-program-row:hover .radplapag-schedule-remove-cell,
+.radplapag-program-definition-row:hover .radplapag-program-definition-remove-cell {
+    opacity: 1;
+    pointer-events: auto;
+}
+.radplapag-program-row .radplapag-remove-program,
+.radplapag-program-definition-row .radplapag-remove-program-definition {
+    transition: color 0.15s ease;
+}
+.radplapag-program-row .radplapag-remove-program:hover,
+.radplapag-program-definition-row .radplapag-remove-program-definition:hover {
+    color: #dc3232;
+}
