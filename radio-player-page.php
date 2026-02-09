@@ -26,7 +26,11 @@ defined( 'ABSPATH' ) || exit;
  * @since 1.2.0
  */
 
-require_once plugin_dir_path( __FILE__ ) . 'admin-page.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-settings.php';
+
+if ( is_admin() ) {
+    require_once plugin_dir_path( __FILE__ ) . 'admin/admin.php';
+}
 
 /**
  * Retrieves the station configuration for the currently displayed page.

@@ -13,7 +13,10 @@ NC='\033[0m' # No Color
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PHP_FILES=(
     "$PLUGIN_DIR/radio-player-page.php"
-    "$PLUGIN_DIR/admin-page.php"
+    "$PLUGIN_DIR/includes/radplapag-settings.php"
+    "$PLUGIN_DIR/admin/admin.php"
+    "$PLUGIN_DIR/admin/sanitize-settings.php"
+    "$PLUGIN_DIR/admin/settings-page.php"
     "$PLUGIN_DIR/uninstall.php"
 )
 

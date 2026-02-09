@@ -88,7 +88,16 @@ echo "Including production files..."
 
 # Plugin PHP
 cp "$PLUGIN_DIR/radio-player-page.php" "$RELEASE_ROOT/"
-cp "$PLUGIN_DIR/admin-page.php"     "$RELEASE_ROOT/"
+mkdir -p "$RELEASE_ROOT/includes"
+cp "$PLUGIN_DIR/includes/radplapag-settings.php" "$RELEASE_ROOT/includes/"
+mkdir -p "$RELEASE_ROOT/admin"
+cp "$PLUGIN_DIR/admin/admin.php" "$RELEASE_ROOT/admin/"
+cp "$PLUGIN_DIR/admin/sanitize-settings.php" "$RELEASE_ROOT/admin/"
+cp "$PLUGIN_DIR/admin/settings-page.php" "$RELEASE_ROOT/admin/"
+mkdir -p "$RELEASE_ROOT/admin/css"
+cp "$PLUGIN_DIR/admin/css/admin.css" "$RELEASE_ROOT/admin/css/"
+mkdir -p "$RELEASE_ROOT/admin/js"
+cp "$PLUGIN_DIR/admin/js/admin.js" "$RELEASE_ROOT/admin/js/"
 cp "$PLUGIN_DIR/uninstall.php"      "$RELEASE_ROOT/"
 
 # readme.txt (WordPress)

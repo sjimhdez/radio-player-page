@@ -18,10 +18,11 @@ Radio Player Page is a WordPress plugin that provides dedicated standalone pages
 
 ### Core Components
 
-**PHP Backend** (`radio-player-page.php`, `admin-page.php`)
+**PHP Backend** (`radio-player-page.php`, `includes/`, `admin/`)
 
 - Plugin initialization and WordPress integration
-- Settings management via WordPress Settings API
+- Shared settings in `includes/radplapag-settings.php`; admin loaded conditionally via `admin/admin.php`
+- Settings management via WordPress Settings API (sanitization in `admin/sanitize-settings.php`, UI in `admin/settings-page.php`)
 - Template redirect hook for standalone page rendering
 - Manifest-based asset loading from Vite build output
 
@@ -160,7 +161,16 @@ Per-station settings (up to 10 stations):
 ```
 radio-player-page/
 ├── radio-player-page.php      # Main plugin file, template redirect
-├── admin-page.php              # Settings page UI and management
+├── includes/
+│   └── radplapag-settings.php # Shared settings (frontend + admin)
+├── admin/                      # Admin-only (loaded when is_admin())
+│   ├── admin.php              # Bootstrap, hooks, module loading
+│   ├── sanitize-settings.php  # Settings sanitization and validation
+│   ├── settings-page.php      # Settings page render and JS strings
+│   ├── css/
+│   │   └── admin.css          # Admin styles
+│   └── js/
+│       └── admin.js           # Admin form logic and validation
 ├── player/                     # React frontend application
 │   ├── src/
 │   │   ├── components/
