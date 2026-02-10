@@ -78,6 +78,6 @@ function radplapag_settings_menu() {
 }
 add_action( 'admin_menu', 'radplapag_settings_menu' );
 
-$admin_dir = plugin_dir_path( __FILE__ );
-require_once $admin_dir . 'sanitize-settings.php';
-require_once $admin_dir . 'settings-page.php';
+$radplapag_admin_dir = plugin_dir_path( __FILE__ );
+require_once $radplapag_admin_dir . 'sanitize-settings.php';
+require_once $radplapag_admin_dir . 'settings-page.php';

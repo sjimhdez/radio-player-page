@@ -19,6 +19,7 @@ function radplapag_get_admin_strings() {
     return [
         'maxStations' => 10,
         'strings'     => [
+            /* translators: %d: station number (1-based). */
             'stationNumberFormat'      => __( 'Station %d', 'radio-player-page' ),
             'addProgramImage'          => __( 'Add Program Image', 'radio-player-page' ),
             'selectImage'              => __( 'Select Image', 'radio-player-page' ),
@@ -39,6 +40,7 @@ function radplapag_get_admin_strings() {
             'startEndSame'             => __( 'Start and end times cannot be the same', 'radio-player-page' ),
             'unnamedProgram'           => __( 'Unnamed program', 'radio-player-page' ),
             'timeSlotOverlapsWith'     => __( 'This time slot overlaps with', 'radio-player-page' ),
+            /* translators: %s: program name or time slot description. */
             'timeSlotOverlapsWithMessage' => __( 'This time slot overlaps with: %s', 'radio-player-page' ),
             'pleaseSelectProgram'      => __( 'Please select a program.', 'radio-player-page' ),
             'pleaseSelectProgramWithName' => __( 'Please select a program and enter a name. Program name is required for the schedule.', 'radio-player-page' ),
@@ -322,7 +324,7 @@ function radplapag_render_settings_page() {
                                                 <div class="radplapag-program-definition-row" data-program-def-index="<?php echo esc_attr( $prog_idx ); ?>">
                                                     <div class="radplapag-program-definition-line">
                                                         <div class="radplapag-program-definition-name-cell">
-                                                            <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][name]" value="<?php echo $prog_name; ?>" placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>" class="radplapag-program-definition-name" maxlength="64" style="width: 200px;">
+                                                            <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][name]" value="<?php echo esc_attr( $prog_name ); ?>" placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>" class="radplapag-program-definition-name" maxlength="64" style="width: 200px;">
                                                             <div class="radplapag-program-error-message" style="display: none;"></div>
                                                         </div>
                                                         <div class="radplapag-program-definition-main">
@@ -398,7 +400,7 @@ function radplapag_render_settings_page() {
                                                                 <input
                                                                     type="time"
                                                                     name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][schedule][<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]"
-                                                                    value="<?php echo $prog_start; ?>"
+                                                                    value="<?php echo esc_attr( $prog_start ); ?>"
                                                                     class="radplapag-program-start"
                                                                     style="width: 100px; margin-right: 5px;"
                                                                 >
@@ -406,7 +408,7 @@ function radplapag_render_settings_page() {
                                                                 <input
                                                                     type="time"
                                                                     name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][schedule][<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]"
-                                                                    value="<?php echo $prog_end; ?>"
+                                                                    value="<?php echo esc_attr( $prog_end ); ?>"
                                                                     class="radplapag-program-end"
                                                                     style="width: 100px; margin-right: 10px;"
                                                                 >
