@@ -27,7 +27,7 @@
 
 ## What Is This?
 
-**Radio Player Page** creates dedicated, standalone pages for your radio streams that are completely independent of your WordPress theme. Each player lives on its own URL, loads as a clean HTML page, and provides continuous playback without theme or plugin conflicts.
+**Radio Player Page** is an official WordPress.org plugin that creates dedicated, standalone pages for your radio streams. Each player lives on its own URL, loads as a clean HTML page, and provides continuous playback without theme or plugin conflicts.
 
 **The key differentiator:** Player pages are fully independent—no theme styles or scripts are loaded. You get a focused listening experience, optimal performance, and one clear URL per station.
 
@@ -199,46 +199,6 @@ Each station must have both a valid stream URL and an assigned page. No configur
 
 ---
 
-## Frequently Asked Questions
-
-**Will the player conflict with my theme?**  
-No. Player pages are standalone HTML pages. Theme styles and scripts are not loaded on player URLs.
-
-**Do I need to configure anything on the WordPress page?**  
-No. Once you assign a page to a station in the plugin settings, the plugin serves the player on that URL. Page content and template are bypassed.
-
-**Where can I get support or report issues?**  
-Use the [WordPress Support Forum](https://wordpress.org/support/plugin/radio-player-page/) for help and bug reports.
-
-**What is the sleep timer?**  
-It stops playback automatically after 30 minutes, 1 hour, or 2 hours. It only runs while the stream is playing and can be cancelled at any time.
-
-**Can I use this for commercial radio stations?**  
-Yes. The plugin is free and open-source (GPLv2 or later), suitable for commercial and non-commercial use.
-
-**Why is the volume control missing on my iOS device?**  
-iOS does not allow in-page volume control for audio; the system volume is used instead.
-
-**Where is the source code?**  
-On [GitHub](https://github.com/sjimhdez/radio-player-page). You can open issues and contribute there.
-
-**How does the program schedule work?**  
-Define programs with names and optional logos, then assign them to time slots throughout the week. The player automatically detects and displays the current program, and shows upcoming programs 10 minutes before they start.
-
-**Can I use different themes for different stations?**  
-Yes. Each station can have its own theme color, visualizer, background image, and logo.
-
----
-
-## Links
-
-- [Plugin on WordPress.org](https://wordpress.org/plugins/radio-player-page/)
-- [GitHub repository](https://github.com/sjimhdez/radio-player-page)
-- [Report issues](https://github.com/sjimhdez/radio-player-page/issues)
-- [Documentation (WordPress.org)](https://wordpress.org/plugins/radio-player-page/)
-
----
-
 ## Documentation for Developers
 
 ### Requirements
@@ -350,16 +310,6 @@ Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK. D
 
 - Stream URLs validated with `esc_url_raw()`; visualizer and theme values whitelisted; settings sanitized via the WordPress Settings API; attachment IDs validated as integers; output escaped with WordPress escaping functions.
 - Modern browsers with Web Audio API support; iOS Safari 10+ (native HLS); Chrome, Firefox, Edge (recent versions). Visualization requires Web Audio API.
-
-### Contributing
-
-1. Fork the repository and create a feature branch.
-2. Follow TypeScript/ESLint rules for the player and WordPress PHP coding standards for PHP.
-3. Run pre-commit (or the scripts in `scripts/`) and ensure CI passes.
-4. Test in both standalone (`npm run dev`) and WordPress (assigned page).
-5. Open a pull request.
-
-Coding standards: TypeScript and ESLint for React; WordPress PHPCS for PHP; Prettier for formatting (`.prettierrc`). Pre-commit runs the checks before each commit.
 
 ### License
 
