@@ -317,11 +317,13 @@ function radplapag_render_settings_page() {
                                         </p>
                                         <div class="radplapag-program-definitions-list">
                                             <?php foreach ( $programs as $prog_idx => $prog_def ) :
+                                                $prog_id = isset( $prog_def['id'] ) ? esc_attr( $prog_def['id'] ) : '';
                                                 $prog_name = isset( $prog_def['name'] ) ? esc_attr( $prog_def['name'] ) : '';
                                                 $prog_logo_id = isset( $prog_def['logo_id'] ) ? intval( $prog_def['logo_id'] ) : 0;
                                                 $prog_logo_url = $prog_logo_id ? wp_get_attachment_image_url( $prog_logo_id, 'medium' ) : '';
                                                 ?>
-                                                <div class="radplapag-program-definition-row" data-program-def-index="<?php echo esc_attr( $prog_idx ); ?>">
+                                                <div class="radplapag-program-definition-row" data-program-def-index="<?php echo esc_attr( $prog_idx ); ?>" data-program-id="<?php echo esc_attr( $prog_id ); ?>">
+                                                    <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][id]" value="<?php echo esc_attr( $prog_id ); ?>" class="radplapag-program-id-field">
                                                     <div class="radplapag-program-definition-line">
                                                         <div class="radplapag-program-definition-name-cell">
                                                             <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][name]" value="<?php echo esc_attr( $prog_name ); ?>" placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>" class="radplapag-program-definition-name" maxlength="64" style="width: 200px;">
@@ -392,9 +394,10 @@ function radplapag_render_settings_page() {
                                                                 >
                                                                     <option value=""><?php esc_html_e( 'Select Program', 'radio-player-page' ); ?></option>
                                                                     <?php foreach ( $programs as $pid => $p ) :
+                                                                        $p_id = isset( $p['id'] ) ? esc_attr( $p['id'] ) : '';
                                                                         $pname = isset( $p['name'] ) ? $p['name'] : '';
                                                                         ?>
-                                                                        <option value="<?php echo esc_attr( $pid ); ?>" <?php selected( $prog_id !== '' && (int) $prog_id === (int) $pid ); ?>><?php echo esc_html( $pname ); ?></option>
+                                                                        <option value="<?php echo esc_attr( $p_id ); ?>" <?php selected( $prog_id !== '' && $prog_id === $p_id ); ?>><?php echo esc_html( $pname ); ?></option>
                                                                     <?php endforeach; ?>
                                                                 </select>
                                                                 <input

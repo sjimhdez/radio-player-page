@@ -22,12 +22,14 @@ defined( 'ABSPATH' ) || exit;
  * @param array $input Raw settings input from form submission. Expected structure:
  *                     ['stations' => [['stream_url' => string, 'player_page' => int|string,
  *                     'station_title' => string, 'background_id' => int|string, 'logo_id' => int|string,
- *                     'theme_color' => string, 'visualizer' => string, 'schedule' => array], ...]]
+ *                     'theme_color' => string, 'visualizer' => string, 'programs' => array (with 'id' field),
+ *                     'schedule' => array], ...]]
  * @return array Sanitized settings array with validated and cleaned data. Structure:
  *              ['stations' => [['stream_url' => string (escaped URL), 'player_page' => int,
  *              'station_title' => string (sanitized text), 'background_id' => int, 'logo_id' => int,
  *              'theme_color' => string (sanitized key), 'visualizer' => string (validated),
- *              'schedule' => array (optional, weekly schedule with programs by day)], ...]]
+ *              'programs' => array (with unique 'id' strings), 'schedule' => array (optional, weekly schedule
+ *              with programs referenced by unique ID strings)], ...]]
  */
 function radplapag_sanitize_settings( $input ) {
     // Verify nonce for security (settings_fields generates nonce with action: radplapag_settings_group-options)
@@ -80,13 +82,14 @@ function radplapag_sanitize_settings( $input ) {
             continue;
         }
 
-        // Sanitize and validate program definitions (name + logo_id per station)
+        // Sanitize and validate program definitions (id + name + logo_id per station)
         $programs_list = [];
         if ( isset( $station['programs'] ) && is_array( $station['programs'] ) ) {
             foreach ( $station['programs'] as $prog_def ) {
                 if ( ! is_array( $prog_def ) ) {
                     continue;
                 }
+                $prog_id = isset( $prog_def['id'] ) ? sanitize_text_field( $prog_def['id'] ) : '';
                 $prog_name = isset( $prog_def['name'] ) ? sanitize_text_field( $prog_def['name'] ) : '';
                 $prog_logo_id = isset( $prog_def['logo_id'] ) ? intval( $prog_def['logo_id'] ) : 0;
                 if ( $prog_logo_id > 0 && ! wp_attachment_is_image( $prog_logo_id ) ) {
@@ -98,14 +101,23 @@ function radplapag_sanitize_settings( $input ) {
                 if ( strlen( $prog_name ) > 64 ) {
                     $prog_name = substr( $prog_name, 0, 64 );
                 }
+                // Generate unique ID if not provided
+                if ( empty( $prog_id ) ) {
+                    $prog_id = 'prog_' . wp_generate_password( 12, false );
+                }
+                // Validate ID format (must start with 'prog_' and be alphanumeric + underscore)
+                if ( ! preg_match( '/^prog_[a-zA-Z0-9_]+$/', $prog_id ) ) {
+                    $prog_id = 'prog_' . wp_generate_password( 12, false );
+                }
                 $programs_list[] = [
+                    'id'      => $prog_id,
                     'name'    => $prog_name,
                     'logo_id' => $prog_logo_id,
                 ];
             }
         }
 
-        // Sanitize and validate schedule if present (schedule entries use program_id + start + end)
+        // Sanitize and validate schedule if present (schedule entries use program_id (unique string ID) + start + end)
         $schedule = [];
         $day_labels = [
             'monday' => __( 'Monday', 'radio-player-page' ),
@@ -130,24 +142,24 @@ function radplapag_sanitize_settings( $input ) {
                 $day_intervals = [];
 
                 // First pass: collect all valid programs with their data for overlap checking
-                // Schedule entries use program_id (index into programs_list)
+                // Schedule entries use program_id (unique string ID)
                 $programs_data = [];
                 foreach ( $station['schedule'][ $day ] as $prog_idx => $program ) {
                     if ( ! is_array( $program ) ) {
                         continue;
                     }
 
-                    $program_id = isset( $program['program_id'] ) ? intval( $program['program_id'] ) : -1;
+                    $program_id = isset( $program['program_id'] ) ? sanitize_text_field( $program['program_id'] ) : '';
                     $program_start = isset( $program['start'] ) ? trim( $program['start'] ) : '';
                     $program_end = isset( $program['end'] ) ? trim( $program['end'] ) : '';
 
                     // Filter out completely empty programs (no program selection, no start, no end)
-                    if ( $program_id < 0 && empty( $program_start ) && empty( $program_end ) ) {
+                    if ( empty( $program_id ) && empty( $program_start ) && empty( $program_end ) ) {
                         continue;
                     }
 
                     // Validate that all fields are required if any field is filled
-                    $has_program = $program_id >= 0;
+                    $has_program = ! empty( $program_id );
                     $has_start = ! empty( $program_start );
                     $has_end = ! empty( $program_end );
 
@@ -166,7 +178,16 @@ function radplapag_sanitize_settings( $input ) {
                         }
                     }
 
-                    if ( $program_id < 0 || $program_id >= count( $programs_list ) ) {
+                    // Find program by ID (not by index)
+                    $found_program = null;
+                    foreach ( $programs_list as $prog ) {
+                        if ( isset( $prog['id'] ) && $prog['id'] === $program_id ) {
+                            $found_program = $prog;
+                            break;
+                        }
+                    }
+
+                    if ( ! $found_program ) {
                         add_settings_error(
                             'radplapag_settings',
                             'radplapag_schedule_invalid_program',
@@ -179,7 +200,7 @@ function radplapag_sanitize_settings( $input ) {
                         continue;
                     }
 
-                    $program_name = isset( $programs_list[ $program_id ]['name'] ) ? $programs_list[ $program_id ]['name'] : '';
+                    $program_name = isset( $found_program['name'] ) ? $found_program['name'] : '';
 
                     // Validate time format
                     if ( ! preg_match( $time_regex, $program_start ) || ! preg_match( $time_regex, $program_end ) ) {
@@ -231,8 +252,8 @@ function radplapag_sanitize_settings( $input ) {
                     }
 
                     $programs_data[] = [
-                        'index' => $prog_idx,
-                        'program_id' => $program_id,
+                        'index' => $prog_idx, // Index in schedule array (for sorting), not program ID
+                        'program_id' => $program_id, // Unique string ID
                         'name' => $program_name,
                         'start' => $program_start,
                         'end' => $program_end,
@@ -309,12 +330,20 @@ function radplapag_sanitize_settings( $input ) {
                         continue;
                     }
 
-                    $program_id = isset( $program['program_id'] ) ? intval( $program['program_id'] ) : -1;
-                    $program_name = ( $program_id >= 0 && isset( $programs_list[ $program_id ]['name'] ) ) ? $programs_list[ $program_id ]['name'] : '';
+                    $program_id = isset( $program['program_id'] ) ? sanitize_text_field( $program['program_id'] ) : '';
+                    // Find program by ID
+                    $found_program = null;
+                    foreach ( $programs_list as $prog ) {
+                        if ( isset( $prog['id'] ) && $prog['id'] === $program_id ) {
+                            $found_program = $prog;
+                            break;
+                        }
+                    }
+                    $program_name = $found_program ? ( isset( $found_program['name'] ) ? $found_program['name'] : '' ) : '';
                     $program_start = isset( $program['start'] ) ? trim( $program['start'] ) : '';
                     $program_end = isset( $program['end'] ) ? trim( $program['end'] ) : '';
 
-                    if ( empty( $program_start ) || empty( $program_end ) || $program_id < 0 ) {
+                    if ( empty( $program_start ) || empty( $program_end ) || empty( $program_id ) || ! $found_program ) {
                         continue;
                     }
 
@@ -334,12 +363,20 @@ function radplapag_sanitize_settings( $input ) {
                                     continue;
                                 }
 
-                                $next_program_id = isset( $next_program['program_id'] ) ? intval( $next_program['program_id'] ) : -1;
-                                $next_program_name = ( $next_program_id >= 0 && isset( $programs_list[ $next_program_id ]['name'] ) ) ? $programs_list[ $next_program_id ]['name'] : '';
+                                $next_program_id = isset( $next_program['program_id'] ) ? sanitize_text_field( $next_program['program_id'] ) : '';
+                                // Find next program by ID
+                                $found_next_program = null;
+                                foreach ( $programs_list as $prog ) {
+                                    if ( isset( $prog['id'] ) && $prog['id'] === $next_program_id ) {
+                                        $found_next_program = $prog;
+                                        break;
+                                    }
+                                }
+                                $next_program_name = $found_next_program ? ( isset( $found_next_program['name'] ) ? $found_next_program['name'] : '' ) : '';
                                 $next_program_start = isset( $next_program['start'] ) ? trim( $next_program['start'] ) : '';
                                 $next_program_end = isset( $next_program['end'] ) ? trim( $next_program['end'] ) : '';
 
-                                if ( empty( $next_program_start ) || empty( $next_program_end ) || $next_program_id < 0 ) {
+                                if ( empty( $next_program_start ) || empty( $next_program_end ) || empty( $next_program_id ) || ! $found_next_program ) {
                                     continue;
                                 }
 
@@ -390,7 +427,7 @@ function radplapag_sanitize_settings( $input ) {
             $station_data['programs'] = $programs_list;
         }
 
-        // Add schedule if it exists (entries use program_id; frontend will resolve to name + logoUrl)
+        // Add schedule if it exists (entries use program_id as unique string ID; frontend will resolve to name + logoUrl)
         if ( ! empty( $schedule ) ) {
             $station_data['schedule'] = $schedule;
         }

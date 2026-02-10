@@ -606,12 +606,17 @@
       var defRows = definitionsList
         ? definitionsList.querySelectorAll(".radplapag-program-definition-row")
         : [];
-      var idx = parseInt(programId, 10);
-      if (idx >= 0 && idx < defRows.length) {
-        var defRow = defRows[idx];
-        var nameInput = defRow
-          ? defRow.querySelector(".radplapag-program-definition-name")
-          : null;
+      // Find program definition by ID (not by index)
+      var foundDefRow = null;
+      for (var i = 0; i < defRows.length; i++) {
+        var idField = defRows[i].querySelector(".radplapag-program-id-field");
+        if (idField && idField.value === programId) {
+          foundDefRow = defRows[i];
+          break;
+        }
+      }
+      if (foundDefRow) {
+        var nameInput = foundDefRow.querySelector(".radplapag-program-definition-name");
         var programName = nameInput ? nameInput.value.trim() : "";
         if (programName === "") {
           var errMsg =
@@ -849,13 +854,15 @@
       ".radplapag-program-definition-row",
     );
     var programs = [];
-    var validIndices = {};
-    defRows.forEach(function (row, idx) {
+    var validIds = {};
+    defRows.forEach(function (row) {
       var nameInput = row.querySelector(".radplapag-program-definition-name");
+      var idField = row.querySelector(".radplapag-program-id-field");
       var name = nameInput ? nameInput.value.trim() : "";
-      if (name !== "") {
-        programs.push({ index: idx, name: name });
-        validIndices[idx] = true;
+      var programId = idField ? idField.value.trim() : "";
+      if (name !== "" && programId !== "") {
+        programs.push({ id: programId, name: name });
+        validIds[programId] = true;
       }
     });
     var scheduleWrapper = stationRow.querySelector(
@@ -863,22 +870,20 @@
     );
     if (!scheduleWrapper) return;
     var selects = scheduleWrapper.querySelectorAll(".radplapag-program-id");
-    var maxIndex = defRows && defRows.length ? defRows.length - 1 : -1;
     var selectProgramOpt = s.selectProgram || "Select Program";
     selects.forEach(function (sel) {
       var currentVal = sel.value;
       sel.innerHTML = '<option value="">' + selectProgramOpt + "</option>";
       programs.forEach(function (p) {
         var opt = document.createElement("option");
-        opt.value = p.index;
+        opt.value = p.id;
         opt.textContent = p.name;
         sel.appendChild(opt);
       });
-      var numVal = currentVal !== "" ? parseInt(currentVal, 10) : -1;
-      if (numVal < 0 || numVal > maxIndex || !validIndices[numVal]) {
-        sel.value = "";
-      } else {
+      if (currentVal !== "" && validIds[currentVal]) {
         sel.value = currentVal;
+      } else {
+        sel.value = "";
       }
     });
   }
@@ -898,13 +903,15 @@
     );
     var selectProgramOpt = s.selectProgram || "Select Program";
     var opts = '<option value="">' + selectProgramOpt + "</option>";
-    defRows.forEach(function (row, idx) {
+    defRows.forEach(function (row) {
       var nameInput = row.querySelector(".radplapag-program-definition-name");
+      var idField = row.querySelector(".radplapag-program-id-field");
       var name = nameInput ? nameInput.value.trim() : "";
-      if (name !== "") {
+      var programId = idField ? idField.value.trim() : "";
+      if (name !== "" && programId !== "") {
         opts +=
           '<option value="' +
-          idx +
+          programId.replace(/"/g, "&quot;") +
           '">' +
           name
             .replace(/</g, "&lt;")
@@ -1214,6 +1221,12 @@
           ".radplapag-program-definition-row",
         );
         var nextIndex = defRows ? defRows.length : 0;
+        // Generate unique ID for new program
+        var newProgramId =
+          "prog_" +
+          Date.now() +
+          "_" +
+          Math.random().toString(36).substr(2, 9);
         var programNamePlaceholder = s.programName || "Program name";
         var addProgramImage = s.addProgramImage || "Add Program Image";
         var removeImage = s.removeImage || "Remove Image";
@@ -1221,7 +1234,15 @@
         var newRow = document.createElement("div");
         newRow.className = "radplapag-program-definition-row";
         newRow.setAttribute("data-program-def-index", nextIndex);
+        newRow.setAttribute("data-program-id", newProgramId);
         newRow.innerHTML =
+          '<input type="hidden" name="radplapag_settings[stations][' +
+          stationIndex +
+          "][programs][" +
+          nextIndex +
+          '][id]" value="' +
+          newProgramId.replace(/"/g, "&quot;") +
+          '" class="radplapag-program-id-field">' +
           '<div class="radplapag-program-definition-line">' +
           '<div class="radplapag-program-definition-name-cell">' +
           '<input type="text" name="radplapag_settings[stations][' +
@@ -1287,6 +1308,7 @@
             ".radplapag-image-upload-wrapper input.radplapag-image-id",
           );
           var nameInput = r.querySelector(".radplapag-program-definition-name");
+          var idField = r.querySelector(".radplapag-program-id-field");
           var removeBtn = r.querySelector(
             ".radplapag-remove-program-definition",
           );
@@ -1304,6 +1326,13 @@
               "][programs][" +
               idx +
               "][name]";
+          if (idField)
+            idField.name =
+              "radplapag_settings[stations][" +
+              stationIndex +
+              "][programs][" +
+              idx +
+              "][id]";
           if (removeBtn) removeBtn.setAttribute("data-program-def-index", idx);
         });
         syncProgramSelects(stationIndex);

@@ -18,6 +18,8 @@ export type ScheduleDayKey =
  * Resolved by program_id from schedule entries.
  */
 export interface ProgramDefinition {
+  /** Unique program identifier */
+  id: string
   /** Program name */
   name: string
   /** Program logo image URL (optional) */
@@ -25,12 +27,12 @@ export interface ProgramDefinition {
 }
 
 /**
- * Schedule slot (relational): references program by index.
- * Name and logo are resolved from RADPLAPAG_PROGRAMS[program_id].
+ * Schedule slot (relational): references program by unique ID.
+ * Name and logo are resolved from RADPLAPAG_PROGRAMS by matching program_id.
  */
 export interface ScheduleEntry {
-  /** Index into RADPLAPAG_PROGRAMS array */
-  program_id: number
+  /** Unique ID of program in RADPLAPAG_PROGRAMS array */
+  program_id: string
   /** Start time in "HH:MM" format (24-hour) */
   start: string
   /** End time in "HH:MM" format (24-hour) */
@@ -39,7 +41,7 @@ export interface ScheduleEntry {
 
 /**
  * Weekly schedule (relational): day -> array of { program_id, start, end }.
- * Resolve name/logo from programs[program_id] in the UI.
+ * Resolve name/logo from programs by matching program_id in the UI.
  */
 export interface Schedule {
   monday?: ScheduleEntry[]
@@ -86,9 +88,9 @@ declare global {
   interface Window {
     /** Plugin configuration (no schedule/programs) */
     RADPLAPAG_CONFIG?: PluginConfig
-    /** Program definitions: [{ name, logoUrl }, ...] */
+    /** Program definitions: [{ id, name, logoUrl }, ...] */
     RADPLAPAG_PROGRAMS?: ProgramDefinition[]
-    /** Weekly schedule relational: { day: [{ program_id, start, end }, ...] } */
+    /** Weekly schedule relational: { day: [{ program_id (string ID), start, end }, ...] } */
     RADPLAPAG_SCHEDULE?: Schedule
   }
 }

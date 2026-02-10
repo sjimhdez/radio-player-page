@@ -76,9 +76,9 @@ function radplapag_get_station_for_current_page() {
  *
  * The function sets global JavaScript variables for the React app:
  * - window.RADPLAPAG_CONFIG: stream URL, site title, theme, visualizer, media URLs, timezone (no schedule).
- * - window.RADPLAPAG_PROGRAMS: array of { name, logoUrl } for relational resolution.
- * - window.RADPLAPAG_SCHEDULE: weekly schedule as { day: [ { program_id, start, end }, ... ] } (relational).
- * The React app resolves program name/logo from RADPLAPAG_PROGRAMS by program_id to avoid duplicating data.
+ * - window.RADPLAPAG_PROGRAMS: array of { id, name, logoUrl } for relational resolution.
+ * - window.RADPLAPAG_SCHEDULE: weekly schedule as { day: [ { program_id (string ID), start, end }, ... ] } (relational).
+ * The React app resolves program name/logo from RADPLAPAG_PROGRAMS by matching program_id (unique string ID) to avoid duplicating data.
  *
  * It intentionally bypasses WordPress's enqueue system by outputting directly and
  * calling exit() to prevent theme loading.
@@ -175,14 +175,20 @@ function radplapag_output_clean_page() {
         'timezoneOffset' => $timezone_offset, // Numeric offset in hours from UTC
     ];
 
-    // Programs list: name + logoUrl (relational, no duplication in schedule)
+    // Programs list: id + name + logoUrl (relational, no duplication in schedule)
     $programs_for_player = [];
     if ( isset( $station['programs'] ) && is_array( $station['programs'] ) ) {
         foreach ( $station['programs'] as $prog ) {
+            $prog_id = isset( $prog['id'] ) ? sanitize_text_field( $prog['id'] ) : '';
             $name = isset( $prog['name'] ) ? $prog['name'] : '';
             $prog_logo_id = isset( $prog['logo_id'] ) ? intval( $prog['logo_id'] ) : 0;
             $prog_logo_url = ( $prog_logo_id > 0 ) ? wp_get_attachment_image_url( $prog_logo_id, 'full' ) : '';
+            // Generate ID if missing (should not happen after sanitization, but safety check)
+            if ( empty( $prog_id ) ) {
+                $prog_id = 'prog_' . wp_generate_password( 12, false );
+            }
             $programs_for_player[] = [
+                'id'      => $prog_id,
                 'name'    => $name,
                 'logoUrl' => $prog_logo_url ? $prog_logo_url : null,
             ];
@@ -201,10 +207,10 @@ function radplapag_output_clean_page() {
                 if ( ! is_array( $entry ) ) {
                     continue;
                 }
-                $program_id = isset( $entry['program_id'] ) ? intval( $entry['program_id'] ) : -1;
+                $program_id = isset( $entry['program_id'] ) ? sanitize_text_field( $entry['program_id'] ) : '';
                 $start = isset( $entry['start'] ) ? $entry['start'] : '';
                 $end = isset( $entry['end'] ) ? $entry['end'] : '';
-                if ( $program_id < 0 || empty( $start ) || empty( $end ) ) {
+                if ( empty( $program_id ) || empty( $start ) || empty( $end ) ) {
                     continue;
                 }
                 $day_entries[] = [

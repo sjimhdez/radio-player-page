@@ -72,16 +72,16 @@ export function isProgramActive(
 }
 
 /**
- * Resolve program name and logo from programs array by program_id.
+ * Resolve program name and logo from programs array by program_id (unique string ID).
  */
 function resolveProgram(
   programs: ProgramDefinition[] | undefined,
-  programId: number,
+  programId: string,
 ): { name: string; logoUrl: string | null } {
-  if (!programs || programId < 0 || programId >= programs.length) {
+  if (!programs || !programId) {
     return { name: '', logoUrl: null }
   }
-  const p = programs[programId]
+  const p = programs.find((prog) => prog.id === programId)
   return {
     name: p?.name ?? '',
     logoUrl: p?.logoUrl ?? null,
@@ -91,8 +91,8 @@ function resolveProgram(
 /**
  * Find the currently active program.
  *
- * @param schedule - Weekly schedule (relational: program_id, start, end)
- * @param programs - Program definitions to resolve name/logo by program_id
+ * @param schedule - Weekly schedule (relational: program_id (string ID), start, end)
+ * @param programs - Program definitions to resolve name/logo by program_id (unique string ID)
  * @param dayOfWeek - Current day (0=Sunday, 1=Monday, ...)
  * @param currentTime - Current time as minutes since midnight
  * @returns Active program (resolved) or null
@@ -157,8 +157,8 @@ const INCOMING_WINDOW_MINUTES = 10
  * Calculated relative to current time, not to the active program, so the incoming
  * program is shown even when there is no program currently active.
  *
- * @param schedule - Weekly schedule (relational)
- * @param programs - Program definitions to resolve name/logo
+ * @param schedule - Weekly schedule (relational: program_id is unique string ID)
+ * @param programs - Program definitions to resolve name/logo by program_id (unique string ID)
  * @param dayOfWeek - Current day (0=Sunday, 1=Monday, ...)
  * @param currentTime - Current time as minutes since midnight
  * @returns Incoming program (resolved) or null
