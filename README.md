@@ -161,7 +161,7 @@ Adjustable volume slider in the player interface. Note: Volume control is not av
 
 Player interface available in **9 languages:**
 
-**en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK**
+**English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish**
 
 Automatic language detection based on browser settings, with fallback to English.
 
