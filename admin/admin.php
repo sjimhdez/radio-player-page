@@ -47,13 +47,13 @@ function radplapag_admin_scripts() {
         'radplapag-admin',
         $admin_url . 'css/admin.css',
         [],
-        '1.0'
+        '2.0.3'
     );
     wp_enqueue_script(
         'radplapag-admin',
         $admin_url . 'js/admin.js',
         [],
-        '1.0',
+        '2.0.3',
         true
     );
     wp_localize_script( 'radplapag-admin', 'radplapagAdmin', radplapag_get_admin_strings() );
