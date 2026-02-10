@@ -139,7 +139,6 @@ Personalize each station:
 - **Background images** – Upload custom backgrounds per station
 - **Station logos** – Custom logos displayed in the player
 - **Station titles** – Set unique titles or use your site name
-- **Fallback handling** – Site favicon used when no custom logo is set
 
 ---
 
