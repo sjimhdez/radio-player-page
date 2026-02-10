@@ -6,546 +6,221 @@
 [![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-[View on WordPress.org](https://wordpress.org/plugins/radio-player-page) • [Report Issues](https://github.com/sjimhdez/radio-player-page/issues) • [Documentation](https://wordpress.org/plugins/radio-player-page/)
+[View on WordPress.org](https://wordpress.org/plugins/radio-player-page) · [Report Issues](https://github.com/sjimhdez/radio-player-page/issues) · [Documentation](https://wordpress.org/plugins/radio-player-page/)
 
 ---
 
-## Overview
+## Table of Contents
 
-Radio Player Page is a WordPress plugin that provides dedicated standalone pages for audio stream playback. The plugin serves independent HTML pages containing a React-based player application, completely decoupled from the active WordPress theme.
+- [What Is This?](#what-is-this)
+- [Who Is It For?](#who-is-it-for)
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Frequently Asked Questions](#frequently-asked-questions)
+- [Links](#links)
+- [Documentation for Developers](#documentation-for-developers)
 
-## Architecture
+---
 
-### Core Components
+## What Is This?
 
-**PHP Backend** (`radio-player-page.php`, `includes/`, `admin/`)
+**Radio Player Page** gives you dedicated standalone pages for your radio streams—Icecast, Shoutcast, HLS, DASH, or plain MP3—without depending on your WordPress theme. Each player lives on its own URL, loads as a clean HTML page with an embedded player, and keeps playing without theme or plugin conflicts.
 
-- Plugin initialization and WordPress integration
-- Shared settings in `includes/radplapag-settings.php`; admin loaded conditionally via `admin/admin.php`
-- Settings management via WordPress Settings API (sanitization in `admin/sanitize-settings.php`, UI in `admin/settings-page.php`)
-- Template redirect hook for standalone page rendering
-- Manifest-based asset loading from Vite build output
+Player pages are fully independent of your active theme: no theme styles or scripts are loaded. You get a focused listening experience and one clear URL per station.
 
-**React Frontend** (`player/` directory)
+## Who Is It For?
 
-- TypeScript-based React 19 application
-- Material-UI component library
-- Vite build system with code splitting
-- Web Audio API integration for real-time visualization
-- Media Session API for native device controls (lock screen, media controls)
-- StreamInfo component for station title and active/upcoming program display
-
-### Data Flow
-
-```
-WordPress Page Request
-  ↓
-template_redirect hook
-  ↓
-radplapag_get_station_for_current_page()
-  ↓
-radplapag_output_clean_page()
-  ↓
-Reads manifest.json → Loads fingerprinted assets
-  ↓
-Outputs standalone HTML with three global variables:
-  - window.RADPLAPAG_CONFIG (base config: streamUrl, theme, visualizer, timezoneOffset; no schedule/programs)
-  - window.RADPLAPAG_PROGRAMS (array of program definitions: name, logoUrl)
-  - window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end }, ...])
-  ↓
-React app: useConfig() combines and validates the three globals → ResolvedConfig
-  ↓
-Components access config, schedule, and programs via useConfig()
-```
-
-### Asset Loading System
-
-The plugin uses Vite's manifest-based asset loading:
-
-- Build produces `manifest.json` with fingerprinted filenames
-- PHP reads manifest to determine correct asset paths
-- Assets follow naming: `radio-player-page-{version}.{ext}`
-- Automatic cache busting via content hashes
+- **Radio stations and broadcasters** who want a simple, reliable web player on their site.
+- **Podcasts or live streams** that need a dedicated page per stream.
+- **Any WordPress site** that needs a “radio player page” that just works, with optional program schedule and branding.
 
 ## Features
 
-### Streaming Protocol Support
+- **Streaming protocol support** – Automatic handling for Icecast, Shoutcast, MP3, HLS (.m3u8), and DASH (.mpd). iOS Safari uses native HLS; other browsers use the appropriate library when needed.
+- **Four audio visualizers** – Oscilloscope, Bars Spectrum, Amplitude Waterfall, or Spectral Particles, powered by the Web Audio API.
+- **Eight color themes** – Neutral, Blue, Green, Red, Orange, Yellow, Purple, or Pink per station.
+- **Custom branding** – Upload a background image and logo per station; the site favicon is used when no custom logo is set.
+- **Custom station titles** – Set a title per stream or use your site name.
+- **Sleep timer** – Stop playback automatically after 30 minutes, 1 hour, or 2 hours.
+- **Program schedule** – Optional weekly schedule with program names and optional logos; the player shows the current and upcoming program.
+- **Emission timezone clock** – When the stream is playing and your site timezone differs from the listener’s, a small clock shows the station’s time and the difference.
+- **Up to 10 stations** – Each with its own stream URL and WordPress page.
+- **Volume control** – Slider in the player (not available on iOS; system volume is used there).
+- **Media Session API** – Station name and artwork on device lock screens and media controls.
+- **Responsive design** – Works on desktop, tablet, and mobile.
+- **Multilingual player** – Interface translations for several locales (see [Internationalization](#internationalization)).
 
-- **HLS (.m3u8)**: Uses hls.js library on non-iOS devices; native support on iOS Safari
-- **DASH (.mpd)**: Uses dash.js MediaPlayer
-- **Icecast/Shoutcast**: Native HTML5 audio element
-- **MP3/OGG**: Standard audio streams via HTML5 audio
+Screenshots and more details are on [WordPress.org](https://wordpress.org/plugins/radio-player-page/).
 
-Protocol detection is URL-based (file extension). Libraries are lazy-loaded only when needed.
+## Quick Start
 
-### Audio Visualization
+**Requirements:** WordPress 5.0+, PHP 5.6+, and a valid streaming URL.
 
-Four visualizers powered by Web Audio API:
+1. Install the plugin into `/wp-content/plugins/radio-player-page/` (or install via the WordPress Plugins screen).
+2. Activate the plugin.
+3. Go to **Settings → Radio Player Page Settings**.
+4. Add at least one station:
+   - Enter the **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3).
+   - Select the **WordPress page** where the player should appear.
+   - Optionally set a station title, theme color, visualizer, background image, and logo.
+5. Click **Save Changes** and open the assigned page in your browser.
 
-- **Oscilloscope**: Time-domain waveform visualization
-- **Bars Spectrum**: Frequency-domain bar chart
-- **Amplitude Waterfall**: Time-based amplitude visualization
-- **Orbiting Particles**: Frequency-driven particle system
+Each station must have both a valid stream URL and an assigned page. No configuration is needed on the page itself—the plugin serves the player when that page is requested.
 
-Visualizers are code-split and lazy-loaded to reduce initial bundle size.
+## Frequently Asked Questions
 
-### Program Schedule
+**Will the player conflict with my theme?**  
+No. Player pages are standalone HTML pages. Theme styles and scripts are not loaded on player URLs.
 
-Define weekly program schedules per station using a **relational structure**: first define programs (name and optional logo) per station; then assign them to time slots by day. Each time slot stores `program_id` (index into the programs list), `start`, and `end` (HH:MM). The player resolves program names and logos from the programs array by `program_id`, avoiding duplication.
+**Do I need to configure anything on the WordPress page?**  
+No. Once you assign a page to a station in the plugin settings, the plugin serves the player on that URL. Page content and template are bypassed.
 
-The currently active program name and time range are automatically displayed in the player interface. The schedule updates at the start of each system minute (at :00 seconds) as programs change throughout the day. All calculations use the WordPress timezone (not the browser timezone).
+**Where can I get support or report issues?**  
+Use the [WordPress Support Forum](https://wordpress.org/support/plugin/radio-player-page/) for help and bug reports.
 
-**Program Overlap Handling**: When a program ends exactly when another starts (e.g., 19:00-20:00 and 20:00-21:00), at exactly 20:00 the program that starts (20:00-21:00) is displayed, not the one that ends. This ensures correct program transitions at boundary times.
+**What is the sleep timer?**  
+It stops playback automatically after 30 minutes, 1 hour, or 2 hours. It only runs while the stream is playing and can be cancelled at any time.
 
-**Upcoming Program Announcement**: When a program is scheduled to start within 10 minutes, an announcement is automatically displayed showing the program name, time range, and minutes until it starts. This announcement appears regardless of whether there is a currently active program, and updates at the start of each system minute to ensure timely display for users already connected.
+**Can I use this for commercial radio stations?**  
+Yes. The plugin is free and open-source (GPLv2 or later), suitable for commercial and non-commercial use.
 
-### Timezone Clock
+**Why is the volume control missing on my iOS device?**  
+iOS does not allow in-page volume control for audio; the system volume is used instead.
 
-When the player is actively playing and there is a timezone difference between the user's browser and the WordPress timezone (emission timezone), a discrete real-time clock is displayed in the top-right corner showing:
+**Where is the source code?**  
+On [GitHub](https://github.com/sjimhdez/radio-player-page). You can open issues and contribute there.
 
-- **Informative Label**: "Zona horaria del emisor" (or equivalent in other languages) indicating this is the emission timezone
-- **Emission Time**: Current time in the WordPress timezone (where the radio station is located) displayed in "HH:MM" format, updating at the start of each system minute
-- **Timezone Difference Indicator**: A colored badge showing the time difference (e.g., "+6", "-3") with:
-  - Green color for positive differences (WordPress ahead of browser)
-  - Orange color for negative differences (WordPress behind browser)
+## Links
 
-The timezone clock only appears when:
+- [Plugin on WordPress.org](https://wordpress.org/plugins/radio-player-page/)
+- [GitHub repository](https://github.com/sjimhdez/radio-player-page)
+- [Report issues](https://github.com/sjimhdez/radio-player-page/issues)
+- [Documentation (WordPress.org)](https://wordpress.org/plugins/radio-player-page/)
 
-- The stream is currently playing (`isPlaying === true`)
-- There is a non-zero timezone difference between browser and WordPress timezone
+---
 
-**Design**:
+## Documentation for Developers
 
-- Positioned discretely in the top-right corner with reduced opacity (0.6)
-- Compact design with semi-transparent background and blur effect
-- Minimal, elegant styling that doesn't interfere with main content
+### Requirements
 
-**Timezone Calculation**:
+- **WordPress** 5.0+
+- **PHP** 5.6+
+- **Node.js** 20.x (development only; see `player/.nvmrc`)
 
-- WordPress timezone offset is obtained from `wp_timezone()->getOffset()` which handles DST automatically
-- Browser timezone is detected automatically from the user's system settings
-- The difference is calculated as: `WordPress offset - Browser offset`
-- Positive values indicate WordPress is ahead of browser time, negative values indicate it's behind
+**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes the option `radplapag_settings` from the database (and from each site on multisite) and flushes the object cache. Data is not removed on deactivation.
 
-**Implementation Details**:
+### Architecture and Data Flow
 
-- Uses `useEmissionTime()` hook to calculate and update times
-- Updates at the start of each system minute (at :00 seconds) for alignment with the user's clock
-- Displays time in "HH:MM" format (without seconds for better performance)
-- Handles half-hour timezones (e.g., India UTC+5:30) correctly
-- All timezone calculations respect DST changes automatically
-- Component: `TimezoneClock.tsx` positioned in Dashboard
-- Utilities: `src/utils/timezone.ts` provides timezone calculation functions
+The plugin uses WordPress `template_redirect` to intercept requests for pages assigned to a station. It then outputs a minimal HTML document that loads the React player and injects configuration via three global variables. The React app combines and validates them with `useConfig()`.
 
-### Sleep Timer
+```
+WordPress page request
+  → template_redirect
+  → radplapag_get_station_for_current_page()
+  → radplapag_output_clean_page()
+  → Reads manifest.json, loads fingerprinted assets
+  → Outputs HTML with:
+      window.RADPLAPAG_CONFIG   (streamUrl, theme, visualizer, timezoneOffset; no schedule/programs)
+      window.RADPLAPAG_PROGRAMS (array of { name, logoUrl? })
+      window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end }, ...])
+  → React: useConfig() → ResolvedConfig
+  → Components use useConfig() for config, schedule, and programs
+```
 
-Automatically stop playback after a set duration. Options: 30, 60, or 120 minutes. The timer runs only while playback is active and is cancelled automatically when the user pauses. Components: `SleepMode.tsx` (selector) and `SleepTimer.tsx` (countdown display). Available from the dashboard at any time.
+Asset paths come from Vite’s `manifest.json` (content-hashed filenames) for cache busting.
 
-### Error Handling
+### Technology Stack
 
-Playback errors (e.g., stream unreachable, unsupported format) are shown via a Material-UI Snackbar with Alert. The error message is displayed only when the error is definitive (not during loading). Messages are translated (i18n). This keeps the UI clear during transient states and informs the user when action may be needed.
+| Component     | Purpose                                |
+| ------------ | -------------------------------------- |
+| React        | UI framework                           |
+| TypeScript   | Type safety                            |
+| Vite         | Build tool and dev server              |
+| Material-UI  | Component library                      |
+| hls.js       | HLS streaming (non-iOS)                |
+| dashjs       | DASH streaming                         |
+| i18next      | Internationalization                  |
+| date-fns     | Date/time formatting                   |
+| Web Audio API| Audio analysis for visualizers         |
 
-### Configuration
+Node 20.x is used for development (`player/.nvmrc`, `player/package.json`).
 
-Per-station settings (up to 10 stations):
-
-- Stream URL (required)
-- WordPress page assignment (required)
-- Station title (optional, defaults to site name)
-- Theme color (8 options: neutral, blue, green, red, orange, yellow, purple, pink)
-- Visualizer type (4 options)
-- Background image (optional)
-- Logo image (optional)
-- Program schedule (optional) - Weekly schedule with programs by day and time slots (relational: programs list + schedule with program_id)
-- **Favicon**: The standalone player page uses the site favicon (`get_site_icon_url()` or site icon attachment) in the `<head>` when available
-
-### Platform-Specific Behavior
-
-- **iOS**: Volume control disabled (uses system volume); native HLS support
-- **Other platforms**: Full volume control; HLS via hls.js library
-
-## Technology Stack
-
-| Component     | Version | Purpose                                |
-| ------------- | ------- | -------------------------------------- |
-| React         | 19.2.1  | UI framework                           |
-| TypeScript    | 5.8.3   | Type safety                            |
-| Vite          | 6.3.5   | Build tool and dev server              |
-| Material-UI   | 7.1.1   | Component library                      |
-| hls.js        | 1.6.15  | HLS streaming support                  |
-| dashjs        | 5.1.0   | DASH streaming support                 |
-| i18next       | 25.3.2  | Internationalization                   |
-| date-fns      | 3.x     | Date/time formatting (e.g. SleepTimer) |
-| Web Audio API | Native  | Audio analysis for visualization       |
-
-Node 20.x is used for development (see `player/.nvmrc` and `package.json`).
-
-## Project Structure
+### Project Structure
 
 ```
 radio-player-page/
 ├── radio-player-page.php      # Main plugin file, template redirect
-├── uninstall.php              # Runs on uninstall: deletes radplapag_settings, multisite support
+├── uninstall.php              # Removes radplapag_settings on uninstall (multisite-aware)
 ├── includes/
 │   └── radplapag-settings.php # Shared settings (radplapag_get_settings)
-├── admin/                      # Admin-only (loaded when is_admin())
-│   ├── admin.php              # Bootstrap, hooks, module loading
-│   ├── sanitize-settings.php  # Settings sanitization and validation
-│   ├── settings-page.php      # Settings page render and JS strings
-│   ├── css/
-│   │   └── admin.css          # Admin styles
-│   └── js/
-│       └── admin.js           # Admin form logic and validation
-├── player/                     # React frontend application
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── dashboard/      # Main player UI components
-│   │   │   │   ├── index.tsx         # Dashboard root, Snackbar, layout
-│   │   │   │   ├── PlayerControls.tsx # Play/pause, loading indicator
-│   │   │   │   ├── VolumeControl.tsx  # Volume slider (hidden on iOS)
-│   │   │   │   ├── StreamInfo.tsx     # Station title, active/upcoming program
-│   │   │   │   ├── SleepMode.tsx      # Sleep timer selector
-│   │   │   │   ├── SleepTimer.tsx     # Sleep countdown display
-│   │   │   │   └── TimezoneClock.tsx  # Emission timezone clock
-│   │   │   └── visualizers/   # Audio visualization (lazy-loaded)
-│   │   │       ├── oscilloscope-visualizer.tsx
-│   │   │       ├── bar-visualizer.tsx
-│   │   │       ├── particles-visualizer.tsx
-│   │   │       └── amplitude-waterfall-visualizer.tsx
-│   │   ├── hooks/
-│   │   │   ├── use-audio-player.tsx      # Playback, protocol detection
-│   │   │   ├── use-audio-visualizer.tsx  # Web Audio API integration
-│   │   │   ├── use-can-visualize.tsx     # Browser capability detection
-│   │   │   ├── use-config.tsx            # Combines three globals → ResolvedConfig
-│   │   │   ├── use-emission-time.tsx     # Emission timezone clock data
-│   │   │   ├── use-is-ios.tsx            # iOS detection
-│   │   │   ├── use-media-session.tsx     # Media Session API
-│   │   │   └── use-program-schedule.tsx  # Active/incoming program from schedule
-│   │   ├── config/
-│   │   │   ├── i18n.ts        # Internationalization setup
-│   │   │   ├── theme.ts       # Material-UI theme configuration
-│   │   │   └── visualizers.ts # Visualizer registry and lazy loading
-│   │   ├── locales/           # Translation files (en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK)
-│   │   ├── types/
-│   │   │   ├── global.ts      # Window globals, PluginConfig, Schedule, ProgramDefinition
-│   │   │   ├── player.tsx    # Player-related types
-│   │   │   └── visualizers.tsx # Visualizer types
-│   │   ├── utils/
-│   │   │   ├── program-schedule.ts # findActiveProgram, findIncomingProgram (relational)
-│   │   │   └── timezone.ts    # getCurrentTimeInTimezone, getBrowserTimezoneOffset, etc.
-│   │   ├── App.tsx            # Root component
-│   │   └── main.tsx           # Application entry point
-│   ├── dist/                  # Build output (generated)
-│   ├── vite.config.ts         # Vite configuration
-│   └── package.json           # Dependencies and scripts
-├── scripts/
-│   ├── build-release-zip.sh   # Build release zip (PHP + player/dist)
-│   ├── run-eslint.sh          # ESLint on player
-│   ├── run-wp-plugin-check.sh # WordPress plugin check
-│   └── run-php-versions-check.sh # PHP version compatibility
-└── readme.txt                 # WordPress.org readme format
+├── admin/                      # Loaded when is_admin()
+│   ├── admin.php               # Bootstrap, hooks
+│   ├── sanitize-settings.php   # Sanitization and validation
+│   ├── settings-page.php       # Settings UI and JS strings
+│   ├── css/, js/               # Admin styles and form logic
+├── player/                     # React frontend
+│   ├── src/                    # Components, hooks, config, locales, types, utils
+│   ├── dist/                   # Build output (generated)
+│   ├── vite.config.ts
+│   └── package.json
+├── scripts/                    # run-eslint, run-wp-plugin-check, run-php-versions-check, build-release-zip
+└── readme.txt                  # WordPress.org readme format
 ```
 
-## Installation
+### Development
 
-### Requirements
-
-- WordPress 5.0+
-- PHP 5.6+
-- Node.js 20.x (development only)
-- Valid streaming URL
-
-### Setup
-
-1. Install plugin to `/wp-content/plugins/radio-player-page/`
-2. Activate via WordPress admin
-3. Navigate to **Settings → Radio Player Page Settings**
-4. Configure stations:
-   - Enter stream URL
-   - Select WordPress page
-   - Optionally customize appearance
-5. Save and visit assigned page
-
-**Uninstall**: When the plugin is uninstalled (not just deactivated), `uninstall.php` removes the option `radplapag_settings` from the database and, on multisite, from each site; it also flushes the object cache. Data is not removed on deactivation.
-
-## Development
-
-### Prerequisites
-
-- Node.js 20.x
-- npm or compatible package manager
-
-### Build Commands
+From the `player/` directory:
 
 ```bash
-cd player
 npm install
-npm run build          # Production build
-npm run dev            # Development server (standalone)
-npm run dev:build      # Watch mode for WordPress testing
-npm run lint           # ESLint code quality check
+npm run build          # Production build to dist/
+npm run dev            # Standalone dev server (http://localhost:5173), mock globals in index.html
+npm run dev:build      # Watch mode; rebuilds to dist/ for testing in WordPress
+npm run lint           # ESLint
 ```
 
-### Development Workflows
-
-**Standalone Development**
-
-- Run `npm run dev` in `player/` directory
-- Access at `http://localhost:5173`
-- Uses mock `window.*` globals from `index.html`
-- Hot Module Replacement enabled
+**Standalone:** `npm run dev` uses mock `window.*` globals from `player/index.html` and hot reload.  
+**WordPress:** Use `npm run dev:build` and load the player via the assigned page; manifest and assets are read from `dist/`.
 
-**WordPress Integration**
+The project uses [pre-commit](https://pre-commit.com/) for WordPress plugin check, PHP versions check, and ESLint. See [.github/workflows/test.yml](.github/workflows/test.yml) for CI. Scripts in `scripts/` can be run manually (e.g. `./scripts/run-eslint.sh`, `./scripts/build-release-zip.sh --build`).
 
-- Run `npm run dev:build` for watch mode
-- Rebuilds to `dist/` on file changes
-- Test in local WordPress instance
-- Manifest.json updated automatically
+### API Reference
 
-### Code Organization
+**WordPress**
 
-**Hooks**
+- **Action** `template_redirect`: Intercepts requests for player pages.
+- **Filters:** None exposed.
 
-- `use-config.tsx`: Centralizes and validates the three window globals (`RADPLAPAG_CONFIG`, `RADPLAPAG_PROGRAMS`, `RADPLAPAG_SCHEDULE`) and returns a single `ResolvedConfig` (config + programs + schedule). All components that need configuration, schedule, or programs should use this hook.
-- `use-audio-player.tsx`: Manages audio element, protocol detection, library loading
-- `use-audio-visualizer.tsx`: Web Audio API connection, data extraction
-- `use-can-visualize.tsx`: Browser capability detection
-- `use-program-schedule.tsx`: Determines active and incoming programs from the relational schedule. Reads `config.schedule` and `config.programs` from `useConfig()`; uses `utils/program-schedule.ts` (`findActiveProgram`, `findIncomingProgram`) to resolve names/logos by `program_id`. Returns `{ active, incoming }` with `programName`, `timeRange`, `minutesUntil` (for incoming). Active: current time >= entry AND < exit (WordPress timezone); incoming: first program starting within 10 minutes from now. Updates every minute.
-- `use-emission-time.tsx`: Calculates and updates emission timezone clock, detects browser timezone difference. Returns: `emissionTime`, `browserTime`, `timeDifference`, `hasDifference`. Updates every minute. Uses `useConfig()` for WordPress timezone offset.
-- `use-is-ios.tsx`: Platform detection
-- `use-media-session.tsx`: Media Session API configuration
+**JavaScript globals** (set by PHP before React; combined in React via `useConfig()`):
 
-**Visualizers**
+- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
+- **`window.RADPLAPAG_PROGRAMS`** – Array of `{ name, logoUrl? }`. Optional.
+- **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end }], ... }`. `program_id` is index into `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour). Optional.
 
-- Lazy-loaded via dynamic imports
-- Cached after first load
-- Metadata available synchronously for initial render
-- Code-split to reduce bundle size
+**PHP (public)**
 
-**Theming**
+- `radplapag_get_settings()` – Returns the full plugin settings array (stations, each with optional `programs` and `schedule`).
+- `radplapag_get_station_for_current_page()` – Returns the station config for the current page, or `false`.
 
-- Material-UI theme system
-- 8 predefined color palettes
-- Dark mode only
-- Per-station theme selection
+### Internationalization
 
-**Date/Time Handling**
+Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK. Detection: HTML `lang` → localStorage → navigator. To add a language: add a JSON file in `player/src/locales/` and register it in `player/src/config/i18n.ts`.
 
-- Timezone-aware program schedule calculation using WordPress timezone offset (numeric, handles DST automatically)
-- Browser timezone detection for timezone difference calculation
-- Emission timezone clock updates every minute (same pattern as program schedule hooks)
-- All time-related hooks update every minute for consistency and optimal performance:
-  - `use-program-schedule`: Active and incoming program detection (incoming within 10 minutes)
-  - `use-emission-time`: Timezone clock display
-- Centralized timezone utilities in `src/utils/timezone.ts`:
-  - `getCurrentTimeInTimezone()`: Calculate current time in WordPress timezone (used by program schedule)
-  - `getBrowserTimezoneOffset()`: Get browser timezone offset in hours from UTC
-  - `getTimezoneDifference()`: Calculate difference between WordPress and browser timezones
-  - `formatTimeInTimezone()`: Format time in specific timezone for display (supports with/without seconds)
-  - `formatTimezoneDifference()`: Format timezone difference for display (e.g., "+6", "-3", "+5.5")
-- All timezone functions handle DST automatically and support half-hour timezones
+### Security and Browser Support
 
-### Pre-commit Hooks
+- Stream URLs validated with `esc_url_raw()`; visualizer and theme values whitelisted; settings sanitized via the WordPress Settings API; attachment IDs validated as integers; output escaped with WordPress escaping functions.
+- Modern browsers with Web Audio API support; iOS Safari 10+ (native HLS); Chrome, Firefox, Edge (recent versions). Visualization requires Web Audio API.
 
-The project uses [pre-commit](https://pre-commit.com/) framework to run automated checks before each commit. This ensures code quality and WordPress standards compliance.
+### Contributing
 
-**Installation**
+1. Fork the repository and create a feature branch.
+2. Follow TypeScript/ESLint rules for the player and WordPress PHP coding standards for PHP.
+3. Run pre-commit (or the scripts in `scripts/`) and ensure CI passes.
+4. Test in both standalone (`npm run dev`) and WordPress (assigned page).
+5. Open a pull request.
 
-1. Install pre-commit (requires Python 3.6+):
+Coding standards: TypeScript and ESLint for React; WordPress PHPCS for PHP; Prettier for formatting (`.prettierrc`). Pre-commit runs the checks before each commit.
 
-   ```bash
-   pip install pre-commit
-   ```
+### License
 
-2. Install the git hooks:
-   ```bash
-   pre-commit install
-   ```
-
-**Hooks Configured**
-
-- **WordPress Plugin Check**: Validates PHP code against WordPress coding standards
-  - Excludes `player/` directory (React frontend)
-  - Ignores specific codes matching CI workflow
-  - Requires PHPCS with WordPress Coding Standards or WP-CLI with WordPress installed
-- **PHP Versions Compatibility Check**: Tests PHP syntax compatibility with different PHP versions
-  - Verifies compatibility with minimum PHP version (5.6) and current/maximum versions
-  - Checks syntax of all PHP files in the plugin
-  - Based on `test-php-versions.sh.local` script
-  - Automatically detects available PHP versions (Homebrew, system PHP, etc.)
-- **ESLint**: Lints TypeScript/React code in `player/` directory
-  - Runs `npx eslint .` in the player directory
-  - Automatically installs dependencies if needed
-
-**Running Hooks Manually**
-
-```bash
-# Run on all files
-pre-commit run --all-files
-
-# Run on staged files only (default)
-pre-commit run
-
-# Run a specific hook
-pre-commit run wordpress-plugin-check
-pre-commit run php-versions-check
-pre-commit run eslint
-```
-
-**Manual Script Execution**
-
-The scripts in `scripts/` can be run directly for CI or local debugging without pre-commit:
-
-- `./scripts/run-eslint.sh` – ESLint on player directory
-- `./scripts/run-wp-plugin-check.sh` – WordPress plugin check (PHPCS)
-- `./scripts/run-php-versions-check.sh` – PHP version compatibility check
-- `./scripts/build-release-zip.sh` – Build a release zip containing only PHP files and `player/dist/` (no source or dev files). Options: `--build` to run `npm run build` in `player/` if dist is missing or empty; `--output DIR|FILE` to set the zip path (default: current directory).
-
-**CI (GitHub Actions)**
-
-The workflow in `.github/workflows/test.yml` runs on push and pull requests to `main` and `develop`:
-
-- **Plugin Check**: WordPress plugin-check (excludes `player/` directory)
-- **Build React Player**: `npm ci` and `npm run build` in `player/`
-- **Test React Player**: `npm ci` and `npx eslint .` in `player/`
-
-**Admin Form Validation**
-
-The settings page uses unified JavaScript validation for station fields and the program schedule. No HTML5 `required` or `alert()`; errors are shown inline (e.g. `showFieldError` / `showProgramError`) and the form scrolls to the first error on submit. Station fields (stream URL, player page, station title) and schedule rows (program_id, start, end, overlaps) are validated before save. See project skills `admin-javascript-patterns` and `program-schedule` for implementation details.
-
-**WordPress Plugin Check Setup**
-
-To enable WordPress Plugin Check locally, you need either:
-
-**Option 1: PHPCS with WordPress Coding Standards**
-
-```bash
-composer require --dev squizlabs/php_codesniffer wp-coding-standards/wpcs
-vendor/bin/phpcs --config-set installed_paths vendor/wp-coding-standards/wpcs
-```
-
-**Option 2: WP-CLI with WordPress**
-
-```bash
-# Install WP-CLI and ensure WordPress is available
-wp plugin check /path/to/plugin
-```
-
-If neither is available, the hook will skip WordPress checks but will still run in CI.
-
-**PHP Versions Compatibility Check**
-
-The PHP Versions Check hook automatically detects and tests with available PHP versions. It will:
-
-- Test with minimum required PHP version (5.6)
-- Test with current PHP version (if different)
-- Test with maximum supported version (8.4) if available
-
-To install multiple PHP versions on macOS with Homebrew:
-
-```bash
-brew install php@5.6
-brew install php@7.0
-brew install php@8.0
-# etc...
-```
-
-The hook will automatically find and use available versions. If no specific versions are found, it will use the current system PHP.
-
-## Internationalization
-
-Supported locales:
-
-- English (en-US)
-- Spanish (es)
-- Russian (ru-RU)
-- Dutch (nl-NL)
-- Romanian (ro-RO)
-- Spanish - Mexico (es-MX)
-- Swedish (sv-SE)
-- Galician (gl-ES)
-- Danish (da-DK)
-
-Detection order:
-
-1. HTML `lang` attribute
-2. localStorage cache
-3. Navigator language preference
-
-To add languages: create locale file in `player/src/locales/` and register in `player/src/config/i18n.ts`.
-
-## API Reference
-
-### WordPress Hooks
-
-**Actions**
-
-- `template_redirect`: Intercepts page requests for player pages
-
-**Filters**
-
-- None currently exposed
-
-### JavaScript Globals
-
-Set by PHP before React initialization (three separate variables; the React app uses `useConfig()` to combine them into a single `ResolvedConfig`):
-
-- **`window.RADPLAPAG_CONFIG`**: Base configuration object (does not include schedule or programs).
-  - `streamUrl`: Audio stream URL
-  - `siteTitle`: Station title or site name
-  - `backgroundImage`: Background image URL (optional, null if not set)
-  - `logoImage`: Logo image URL (optional, null if not set)
-  - `themeColor`: Theme color identifier
-  - `visualizer`: Visualizer type identifier
-  - `timezoneOffset`: WordPress timezone offset in hours from UTC (numeric, e.g., -6, 5.5, 0)
-    - Calculated using `wp_timezone()->getOffset()` which handles DST automatically
-    - Used by the player to calculate the current active program according to WordPress timezone, not browser timezone
-- **`window.RADPLAPAG_PROGRAMS`**: Array of program definitions (optional). Structure: `[{ name: string, logoUrl?: string | null }, ...]`. Names and logos are resolved in the player from this array by index.
-- **`window.RADPLAPAG_SCHEDULE`**: Weekly schedule, relational (optional). Structure: `{ monday?: ScheduleEntry[], tuesday?: ..., }` where each entry is `{ program_id: number, start: string, end: string }`. `program_id` is the index into `RADPLAPAG_PROGRAMS`; times are "HH:MM" (24-hour).
-
-### PHP Functions
-
-**Public API**
-
-- `radplapag_get_settings()`: Retrieves plugin settings array. Each station may include optional `programs` (array of `{ name, logo_id }`) and `schedule` (weekly schedule with entries `{ program_id, start, end }` where `program_id` is the index into that station’s `programs` array). Times in "HH:MM" (24-hour).
-- `radplapag_get_station_for_current_page()`: Gets station config for current page
-
-**Internal**
-
-- `radplapag_output_clean_page()`: Renders standalone HTML page
-- `radplapag_sanitize_settings()`: Validates and sanitizes settings input
-
-## Security Considerations
-
-- Stream URLs validated via `esc_url_raw()`
-- Visualizer values whitelist-validated
-- Settings sanitized via WordPress Settings API
-- Media attachment IDs validated as integers
-- All output escaped via WordPress escaping functions
-
-## Browser Support
-
-- Modern browsers with Web Audio API support
-- iOS Safari 10+ (native HLS)
-- Chrome, Firefox, Edge (latest versions)
-- Web Audio API required for visualization features
-
-## License
-
-GPLv2 or later
-
-## Contributing
-
-1. Fork repository
-2. Create feature branch
-3. Follow TypeScript and ESLint rules
-4. Test in both standalone and WordPress contexts
-5. Submit pull request
-
-### Coding Standards
-
-- TypeScript for all React code
-- WordPress PHP coding standards for PHP files
-- ESLint configuration in `eslint.config.js`
-- Prettier for code formatting (see `.prettierrc`)
-- Pre-commit hooks enforce standards before commits (see [Pre-commit Hooks](#pre-commit-hooks) section)
+GPLv2 or later.
