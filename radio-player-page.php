@@ -153,6 +153,32 @@ function radplapag_output_clean_page() {
     if ($favicon_url) {
         echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
     }
+
+    // Meta description (SEO + social fallback)
+    $meta_description = sprintf( __( 'Listen to %s live streaming radio', 'radio-player-page' ), $display_title );
+    echo '<meta name="description" content="' . esc_attr( $meta_description ) . '">';
+
+    // Open Graph
+    echo '<meta property="og:title" content="' . esc_attr( $display_title ) . '">';
+    echo '<meta property="og:description" content="' . esc_attr( $meta_description ) . '">';
+    echo '<meta property="og:url" content="' . esc_url( get_permalink( get_queried_object_id() ) ) . '">';
+    echo '<meta property="og:type" content="website">';
+    echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">';
+    echo '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', get_bloginfo( 'language' ) ) ) . '">';
+
+    // Social image: logo first, then background, then favicon
+    $social_image_url = $logo_url ? $logo_url : ( $background_url ? $background_url : ( $favicon_url ? $favicon_url : '' ) );
+    if ( $social_image_url ) {
+        echo '<meta property="og:image" content="' . esc_url( $social_image_url ) . '">';
+        echo '<meta name="twitter:card" content="summary_large_image">';
+        echo '<meta name="twitter:image" content="' . esc_url( $social_image_url ) . '">';
+    } else {
+        echo '<meta name="twitter:card" content="summary">';
+    }
+
+    // Twitter Card (title and description shared with OG)
+    echo '<meta name="twitter:title" content="' . esc_attr( $display_title ) . '">';
+    echo '<meta name="twitter:description" content="' . esc_attr( $meta_description ) . '">';
     
     // Get WordPress timezone object and calculate numeric offset
     // This ensures we always have a numeric value (handles DST automatically)

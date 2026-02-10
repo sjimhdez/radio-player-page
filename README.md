@@ -175,6 +175,10 @@ Optimized for all devices:
 
 Works seamlessly across modern browsers and devices.
 
+### Social Sharing
+
+Player pages include Open Graph and Twitter Card meta tags so shared links display rich previews (title, description, image) on Facebook, Twitter/X, LinkedIn, WhatsApp, and similar platforms.
+
 ---
 
 ## Quick Start

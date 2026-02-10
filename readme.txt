@@ -36,6 +36,7 @@ Radio Player Page creates dedicated, independent pages for your radio stations, 
 
 * **Sleep Timer** – Stop playback automatically after 30 minutes, 1 hour, or 2 hours.
 * **Responsive Design** – Works on desktop, tablet, and mobile.
+* **Social Sharing** – Meta tags for rich previews when sharing player pages on social networks.
 
 **Technical Details**
 
