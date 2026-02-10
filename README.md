@@ -14,7 +14,10 @@
 
 - [What Is This?](#what-is-this)
 - [Who Is It For?](#who-is-it-for)
-- [Features](#features)
+- [Core Features](#core-features)
+- [Professional Broadcasting Features](#professional-broadcasting-features)
+- [Visual Customization](#visual-customization)
+- [User Experience Features](#user-experience-features)
 - [Quick Start](#quick-start)
 - [Frequently Asked Questions](#frequently-asked-questions)
 - [Links](#links)
@@ -24,33 +27,158 @@
 
 ## What Is This?
 
-**Radio Player Page** gives you dedicated standalone pages for your radio streams—Icecast, Shoutcast, HLS, DASH, or plain MP3—without depending on your WordPress theme. Each player lives on its own URL, loads as a clean HTML page with an embedded player, and keeps playing without theme or plugin conflicts.
+**Radio Player Page** creates dedicated, standalone pages for your radio streams that are completely independent of your WordPress theme. Each player lives on its own URL, loads as a clean HTML page, and provides continuous playback without theme or plugin conflicts.
 
-Player pages are fully independent of your active theme: no theme styles or scripts are loaded. You get a focused listening experience and one clear URL per station.
+**The key differentiator:** Player pages are fully independent—no theme styles or scripts are loaded. You get a focused listening experience, optimal performance, and one clear URL per station.
 
 ## Who Is It For?
 
-- **Radio stations and broadcasters** who want a simple, reliable web player on their site.
-- **Podcasts or live streams** that need a dedicated page per stream.
-- **Any WordPress site** that needs a “radio player page” that just works, with optional program schedule and branding.
+- **Radio stations and broadcasters** who need a reliable, professional web player
+- **Podcasts or live streams** requiring dedicated pages per stream
+- **Any WordPress site** that needs a "radio player page" that just works, with optional program schedule and branding
 
-## Features
+---
 
-- **Streaming protocol support** – Automatic handling for Icecast, Shoutcast, MP3, HLS (.m3u8), and DASH (.mpd). iOS Safari uses native HLS; other browsers use the appropriate library when needed.
-- **Four audio visualizers** – Oscilloscope, Bars Spectrum, Amplitude Waterfall, or Spectral Particles, powered by the Web Audio API.
-- **Eight color themes** – Neutral, Blue, Green, Red, Orange, Yellow, Purple, or Pink per station.
-- **Custom branding** – Upload a background image and logo per station; the site favicon is used when no custom logo is set.
-- **Custom station titles** – Set a title per stream or use your site name.
-- **Sleep timer** – Stop playback automatically after 30 minutes, 1 hour, or 2 hours.
-- **Program schedule** – Optional weekly schedule with program names and optional logos; the player shows the current and upcoming program.
-- **Emission timezone clock** – When the stream is playing and your site timezone differs from the listener’s, a small clock shows the station’s time and the difference.
-- **Up to 10 stations** – Each with its own stream URL and WordPress page.
-- **Volume control** – Slider in the player (not available on iOS; system volume is used there).
-- **Media Session API** – Station name and artwork on device lock screens and media controls.
-- **Responsive design** – Works on desktop, tablet, and mobile.
-- **Multilingual player** – Interface translations for several locales (see [Internationalization](#internationalization)).
+## Core Features
 
-Screenshots and more details are on [WordPress.org](https://wordpress.org/plugins/radio-player-page/).
+### Standalone Player Pages
+
+**The foundation:** Each player is served as a completely independent HTML page, bypassing your WordPress theme entirely. This ensures:
+
+- **Zero theme conflicts** – No theme scripts or styles interfere with playback
+- **Optimal performance** – Minimal HTTP requests, fast loading times
+- **Clean URLs** – One dedicated URL per station
+- **Reliable playback** – Continuous streaming without interruptions
+
+### Universal Streaming Protocol Support
+
+Works with virtually any streaming format:
+
+- **Icecast & Shoutcast** – Traditional radio streaming protocols
+- **HLS (.m3u8)** – Adaptive streaming with automatic quality adjustment
+- **DASH (.mpd)** – Modern adaptive streaming standard
+- **MP3 streams** – Standard audio streaming
+
+**Smart protocol detection:** Automatically detects the stream format and uses the appropriate player. iOS Safari uses native HLS support; other browsers load the necessary libraries only when needed.
+
+### Multi-Station Management
+
+Configure up to **10 independent stations**, each with:
+
+- Its own streaming URL
+- A dedicated WordPress page
+- Independent branding and configuration
+- Separate program schedules (optional)
+
+Perfect for radio networks, multi-channel stations, or managing multiple streams from a single WordPress installation.
+
+---
+
+## Professional Broadcasting Features
+
+### Program Schedule System
+
+**Complete weekly programming management:**
+
+- Define programs with names and optional logos
+- Assign programs to time slots across the week
+- Automatic detection of current and upcoming programs
+- Visual display of active program in the player
+- Upcoming program announcements (shows 10 minutes before start)
+
+**Smart scheduling:**
+
+- Validates for time overlaps and conflicts
+- Supports programs that cross midnight
+- Timezone-aware calculations based on your WordPress timezone
+- Relational data structure prevents duplicate program definitions
+
+### Emission Timezone Awareness
+
+When your station's timezone differs from listeners around the world:
+
+- **Timezone clock** displays the station's local time
+- **Time difference indicator** shows the offset from the listener's timezone
+- Only appears when playback is active and timezones differ
+- Helps international audiences understand program timing
+
+### Media Session API Integration
+
+Professional integration with device controls:
+
+- **Lock screen controls** – Station name and artwork on mobile devices
+- **Desktop media controls** – Shows station info in system media controls
+- **Play/pause synchronization** – Controls work seamlessly across devices
+- **Artwork display** – Station logo appears in notifications and controls
+
+---
+
+## Visual Customization
+
+### Eight Color Themes
+
+Choose from eight professionally designed color schemes:
+
+**Neutral, Blue, Green, Red, Orange, Yellow, Purple, Pink**
+
+Each theme is optimized for dark mode viewing and provides a cohesive visual experience. Select a different theme for each station to match your branding.
+
+### Four Audio Visualizers
+
+Real-time audio visualization powered by Web Audio API:
+
+- **Oscilloscope** – Classic waveform display (default)
+- **Bars Spectrum** – Frequency bars visualization
+- **Amplitude Waterfall** – Cascading amplitude display
+- **Spectral Particles** – Dynamic particle effects
+
+Visualizers are lazy-loaded for optimal performance and only activate when audio is playing.
+
+### Custom Branding
+
+Personalize each station:
+
+- **Background images** – Upload custom backgrounds per station
+- **Station logos** – Custom logos displayed in the player
+- **Station titles** – Set unique titles or use your site name
+- **Fallback handling** – Site favicon used when no custom logo is set
+
+---
+
+## User Experience Features
+
+### Sleep Timer
+
+Automatic playback stop for bedtime listening:
+
+- **Three duration options:** 30 minutes, 1 hour, or 2 hours
+- **Visual countdown** – See remaining time at a glance
+- **Auto-cancel** – Timer cancels if you pause playback manually
+- **Easy cancellation** – Stop the timer anytime with one click
+
+### Volume Control
+
+Adjustable volume slider in the player interface. Note: Volume control is not available on iOS devices due to system limitations—iOS uses system volume controls instead.
+
+### Multilingual Interface
+
+Player interface available in **9 languages:**
+
+**en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK**
+
+Automatic language detection based on browser settings, with fallback to English.
+
+### Responsive Design
+
+Optimized for all devices:
+
+- **Desktop** – Full-featured experience with all controls
+- **Tablet** – Touch-optimized interface
+- **Mobile** – Streamlined layout for small screens
+
+Works seamlessly across modern browsers and devices.
+
+---
 
 ## Quick Start
 
@@ -62,10 +190,14 @@ Screenshots and more details are on [WordPress.org](https://wordpress.org/plugin
 4. Add at least one station:
    - Enter the **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3).
    - Select the **WordPress page** where the player should appear.
-   - Optionally set a station title, theme color, visualizer, background image, and logo.
+   - Optionally customize: station title, theme color, visualizer, background image, and logo.
 5. Click **Save Changes** and open the assigned page in your browser.
 
 Each station must have both a valid stream URL and an assigned page. No configuration is needed on the page itself—the plugin serves the player when that page is requested.
+
+**Optional:** Configure program schedules, upload custom branding, and customize visual settings per station.
+
+---
 
 ## Frequently Asked Questions
 
@@ -89,6 +221,14 @@ iOS does not allow in-page volume control for audio; the system volume is used i
 
 **Where is the source code?**  
 On [GitHub](https://github.com/sjimhdez/radio-player-page). You can open issues and contribute there.
+
+**How does the program schedule work?**  
+Define programs with names and optional logos, then assign them to time slots throughout the week. The player automatically detects and displays the current program, and shows upcoming programs 10 minutes before they start.
+
+**Can I use different themes for different stations?**  
+Yes. Each station can have its own theme color, visualizer, background image, and logo.
+
+---
 
 ## Links
 
@@ -127,21 +267,21 @@ WordPress page request
   → Components use useConfig() for config, schedule, and programs
 ```
 
-Asset paths come from Vite’s `manifest.json` (content-hashed filenames) for cache busting.
+Asset paths come from Vite's `manifest.json` (content-hashed filenames) for cache busting.
 
 ### Technology Stack
 
-| Component     | Purpose                                |
-| ------------ | -------------------------------------- |
-| React        | UI framework                           |
-| TypeScript   | Type safety                            |
-| Vite         | Build tool and dev server              |
-| Material-UI  | Component library                      |
-| hls.js       | HLS streaming (non-iOS)                |
-| dashjs       | DASH streaming                         |
-| i18next      | Internationalization                  |
-| date-fns     | Date/time formatting                   |
-| Web Audio API| Audio analysis for visualizers         |
+| Component     | Purpose                        |
+| ------------- | ------------------------------ |
+| React         | UI framework                   |
+| TypeScript    | Type safety                    |
+| Vite          | Build tool and dev server      |
+| Material-UI   | Component library              |
+| hls.js        | HLS streaming (non-iOS)        |
+| dashjs        | DASH streaming                 |
+| i18next       | Internationalization           |
+| date-fns      | Date/time formatting           |
+| Web Audio API | Audio analysis for visualizers |
 
 Node 20.x is used for development (`player/.nvmrc`, `player/package.json`).
 
