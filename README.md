@@ -19,8 +19,6 @@
 - [Visual Customization](#visual-customization)
 - [User Experience Features](#user-experience-features)
 - [Quick Start](#quick-start)
-- [Frequently Asked Questions](#frequently-asked-questions)
-- [Links](#links)
 - [Documentation for Developers](#documentation-for-developers)
 
 ---
