@@ -155,6 +155,7 @@ function radplapag_output_clean_page() {
     }
 
     // Meta description (SEO + social fallback)
+    /* translators: %s: station or page title for meta description */
     $meta_description = sprintf( __( 'Listen to %s live streaming radio', 'radio-player-page' ), $display_title );
     echo '<meta name="description" content="' . esc_attr( $meta_description ) . '">';
 
