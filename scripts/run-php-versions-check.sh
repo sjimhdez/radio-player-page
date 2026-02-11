@@ -104,19 +104,28 @@ echo "========================================="
 echo "  Running syntax tests..."
 echo "========================================="
 echo ""
+echo "Files under test:"
+for php_file in "${PHP_FILES[@]}"; do
+    echo "  - ${php_file#$PLUGIN_DIR/}"
+done
+echo ""
 
 # Test each available version
 for version_info in "${AVAILABLE_VERSIONS[@]}"; do
     IFS='|' read -r version php_binary detected_version <<< "$version_info"
     
-    echo -n "Testing PHP ${version} (${detected_version})... "
+    echo "Testing PHP ${version} (${detected_version}):"
     
     all_passed=true
     failed_files=()
     
     # Test each PHP file
     for php_file in "${PHP_FILES[@]}"; do
-        if ! test_syntax "$php_binary" "$php_file" > /dev/null 2>&1; then
+        rel_path="${php_file#$PLUGIN_DIR/}"
+        if test_syntax "$php_binary" "$php_file" > /dev/null 2>&1; then
+            echo -e "  ${GREEN}✓${NC} $rel_path"
+        else
+            echo -e "  ${RED}✗${NC} $rel_path"
             all_passed=false
             failed_files+=("$(basename "$php_file")")
         fi
@@ -125,14 +134,15 @@ for version_info in "${AVAILABLE_VERSIONS[@]}"; do
     # Save result
     if [ "$all_passed" = true ]; then
         RESULTS+=("${version}:OK")
-        echo -e "${GREEN}✓ OK${NC}"
+        echo -e "  Result: ${GREEN}OK${NC}"
     else
         RESULTS+=("${version}:FAIL")
-        echo -e "${RED}✗ FAIL${NC}"
+        echo -e "  Result: ${RED}FAIL${NC}"
         for failed_file in "${failed_files[@]}"; do
             echo "    - Error in: $failed_file"
         done
     fi
+    echo ""
 done
 
 # If no versions found, warn
