@@ -7,7 +7,7 @@
  * uninstall the plugin (not just deactivate it).
  *
  * @package radio-player-page
- * @since      2.0.3
+ * @since      3.1.0
  *
  * @package    radio-player-page
  */
@@ -24,7 +24,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  * is uninstalled. It handles both single site and multisite installations.
  *
  * @package radio-player-page
- * @since 2.0.3
+ * @since 3.1.0
  *
  * @return void
  */

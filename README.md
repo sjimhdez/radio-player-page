@@ -1,10 +1,12 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-2.0.2-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+
+Dedicated player pages for your radio streams, with program scheduling and continous playback.
 
 [View on WordPress.org](https://wordpress.org/plugins/radio-player-page) · [Report Issues](https://github.com/sjimhdez/radio-player-page/issues) · [Documentation](https://wordpress.org/plugins/radio-player-page/)
 
@@ -12,45 +14,50 @@
 
 ## Table of Contents
 
-- [What Is This?](#what-is-this)
-- [Who Is It For?](#who-is-it-for)
-- [Core Features](#core-features)
-- [Professional Broadcasting Features](#professional-broadcasting-features)
-- [Visual Customization](#visual-customization)
-- [User Experience Features](#user-experience-features)
+- [Description](#description)
+- [Standalone Player Pages](#standalone-player-pages)
+- [Broadcast Management](#broadcast-management)
+- [Listener Experience](#listener-experience)
+- [Built for Modern Web Performance](#built-for-modern-web-performance)
 - [Quick Start](#quick-start)
 - [Documentation for Developers](#documentation-for-developers)
 
 ---
 
-## What Is This?
+## Description
 
-**Radio Player Page** is an official WordPress.org plugin that creates dedicated, standalone pages for your radio streams. Each player lives on its own URL, loads as a clean HTML page, and provides continuous playback without theme or plugin conflicts.
+**Radio Player Page** provides **dedicated, standalone player pages** for your radio streams on WordPress. It lets you create a full weekly program schedule, manage your broadcasts, and present everything on pages that guarantee reliable, theme-independent listening.
 
-**The key differentiator:** Player pages are fully independent—no theme styles or scripts are loaded. You get a focused listening experience, optimal performance, and one clear URL per station.
-
-## Who Is It For?
-
-- **Radio stations and broadcasters** who need a reliable, professional web player
-- **Podcasts or live streams** requiring dedicated pages per stream
-- **Any WordPress site** that needs a "radio player page" that just works, with optional program schedule and branding
+**The key differentiator:** Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
 
 ---
 
-## Core Features
+## Standalone Player Pages
 
 ### Standalone Player Pages
 
-**The foundation:** Each player is served as a completely independent HTML page, bypassing your WordPress theme entirely. This ensures:
+Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures:
 
 - **Zero theme conflicts** – No theme scripts or styles interfere with playback
 - **Optimal performance** – Minimal HTTP requests, fast loading times
 - **Clean URLs** – One dedicated URL per station
 - **Reliable playback** – Continuous streaming without interruptions
 
-### Universal Streaming Protocol Support
+### Full Program Scheduling
 
-Works with virtually any streaming format:
+Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next program, with timezone-aware calculations and overlap prevention.
+
+- Define programs with names and optional logos
+- Assign programs to time slots across the week
+- Automatic detection of current and upcoming programs
+- Visual display of active program in the player
+- Upcoming program announcements (shows 10 minutes before start)
+- Validates for time overlaps and conflicts; supports programs that cross midnight
+- Timezone-aware calculations based on your WordPress timezone
+
+### Universal Stream Compatibility
+
+Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams. Automatic protocol detection with native iOS Safari support for HLS.
 
 - **Icecast & Shoutcast** – Traditional radio streaming protocols
 - **HLS (.m3u8)** – Adaptive streaming with automatic quality adjustment
@@ -59,50 +66,33 @@ Works with virtually any streaming format:
 
 **Smart protocol detection:** Automatically detects the stream format and uses the appropriate player. iOS Safari uses native HLS support; other browsers load the necessary libraries only when needed.
 
-### Multi-Station Management
+---
 
-Configure up to **10 independent stations**, each with:
+## Broadcast Management
+
+### Multi-Station Control
+
+Manage up to **10 independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
 
 - Its own streaming URL
 - A dedicated WordPress page
 - Independent branding and configuration
 - Separate program schedules (optional)
 
-Perfect for radio networks, multi-channel stations, or managing multiple streams from a single WordPress installation.
+Perfect for radio networks, multi-channel stations, or managing multiple streams from one WordPress installation.
 
----
+### Emission Timezone Clock
 
-## Professional Broadcasting Features
-
-### Program Schedule System
-
-**Complete weekly programming management:**
-
-- Define programs with names and optional logos
-- Assign programs to time slots across the week
-- Automatic detection of current and upcoming programs
-- Visual display of active program in the player
-- Upcoming program announcements (shows 10 minutes before start)
-
-**Smart scheduling:**
-
-- Validates for time overlaps and conflicts
-- Supports programs that cross midnight
-- Timezone-aware calculations based on your WordPress timezone
-- Relational data structure prevents duplicate program definitions
-
-### Emission Timezone Awareness
-
-When your station's timezone differs from listeners around the world:
+Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 
 - **Timezone clock** displays the station's local time
 - **Time difference indicator** shows the offset from the listener's timezone
 - Only appears when playback is active and timezones differ
 - Helps international audiences understand program timing
 
-### Media Session API Integration
+### Media Session API
 
-Professional integration with device controls:
+Professional integration with device lock screens and media controls, displaying station art and info.
 
 - **Lock screen controls** – Station name and artwork on mobile devices
 - **Desktop media controls** – Shows station info in system media controls
@@ -111,19 +101,15 @@ Professional integration with device controls:
 
 ---
 
-## Visual Customization
+## Listener Experience
 
-### Eight Color Themes
+### Informed Listening
 
-Choose from eight professionally designed color schemes:
+The player clearly shows **what's on air now and what's coming next**.
 
-**Neutral, Blue, Green, Red, Orange, Yellow, Purple, Pink**
+### Visual Customization
 
-Each theme is optimized for dark mode viewing and provides a cohesive visual experience. Select a different theme for each station to match your branding.
-
-### Four Audio Visualizers
-
-Real-time audio visualization powered by Web Audio API:
+Choose from **8 color themes** (Neutral, Blue, Green, Red, Orange, Yellow, Purple, Pink) and **4 real-time audio visualizers** (powered by Web Audio API) to match your station's brand:
 
 - **Oscilloscope** – Classic waveform display (default)
 - **Bars Spectrum** – Frequency bars visualization
@@ -132,52 +118,26 @@ Real-time audio visualization powered by Web Audio API:
 
 Visualizers are lazy-loaded for optimal performance and only activate when audio is playing.
 
-### Custom Branding
+### Station Branding
 
-Personalize each station:
+Upload custom background images and logos for each station. Personalize each station with unique titles, backgrounds, and logos.
 
-- **Background images** – Upload custom backgrounds per station
-- **Station logos** – Custom logos displayed in the player
-- **Station titles** – Set unique titles or use your site name
+### Convenience Features
 
----
-
-## User Experience Features
-
-### Sleep Timer
-
-Automatic playback stop for bedtime listening:
-
-- **Three duration options:** 30 minutes, 1 hour, or 2 hours
-- **Visual countdown** – See remaining time at a glance
-- **Auto-cancel** – Timer cancels if you pause playback manually
-- **Easy cancellation** – Stop the timer anytime with one click
-
-### Volume Control
-
-Adjustable volume slider in the player interface. Note: Volume control is not available on iOS devices due to system limitations—iOS uses system volume controls instead.
+- **Sleep timer** – Automatic playback stop (30 min, 1 h, 2 h) with visual countdown; cancels if you pause manually
+- **Volume control** – Adjustable slider (not available on iOS due to system limitations)
+- **Responsive design** – Optimized for desktop, tablet, and mobile
+- **Social sharing** – Open Graph and Twitter Card meta tags for rich link previews on Facebook, Twitter/X, LinkedIn, WhatsApp, and similar platforms
 
 ### Multilingual Interface
 
-Player interface available in **9 languages:**
+Player interface available in **9 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish. Automatic language detection based on browser settings, with fallback to English.
 
-**English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish**
+---
 
-Automatic language detection based on browser settings, with fallback to English.
+## Built for Modern Web Performance
 
-### Responsive Design
-
-Optimized for all devices:
-
-- **Desktop** – Full-featured experience with all controls
-- **Tablet** – Touch-optimized interface
-- **Mobile** – Streamlined layout for small screens
-
-Works seamlessly across modern browsers and devices.
-
-### Social Sharing
-
-Player pages include Open Graph and Twitter Card meta tags so shared links display rich previews (title, description, image) on Facebook, Twitter/X, LinkedIn, WhatsApp, and similar platforms.
+The player is a self-contained application built with **React 19, TypeScript, and Vite**, ensuring a fast, accessible, and maintainable experience. It uses manifest-based asset loading for seamless updates.
 
 ---
 
@@ -185,18 +145,16 @@ Player pages include Open Graph and Twitter Card meta tags so shared links displ
 
 **Requirements:** WordPress 5.0+, PHP 5.6+, and a valid streaming URL.
 
-1. Install the plugin into `/wp-content/plugins/radio-player-page/` (or install via the WordPress Plugins screen).
-2. Activate the plugin.
-3. Go to **Settings → Radio Player Page Settings**.
-4. Add at least one station:
-   - Enter the **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3).
+1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
+2. Activate the plugin through the 'Plugins' screen in WordPress.
+3. Navigate to **Settings → Radio Player Page Settings**.
+4. For each station:
+   - Enter your **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3).
    - Select the **WordPress page** where the player should appear.
-   - Optionally customize: station title, theme color, visualizer, background image, and logo.
-5. Click **Save Changes** and open the assigned page in your browser.
+   - Optionally customize: title, theme color, visualizer type, background image, and logo.
+5. Click **Save Changes** and visit the assigned page.
 
-Each station must have both a valid stream URL and an assigned page. No configuration is needed on the page itself—the plugin serves the player when that page is requested.
-
-**Optional:** Configure program schedules, upload custom branding, and customize visual settings per station.
+**Important:** Each station requires both a valid streaming URL and an assigned WordPress page. No configuration is needed on the page itself—the plugin intercepts page requests and serves the player when that page is requested.
 
 ---
 

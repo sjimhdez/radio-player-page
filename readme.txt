@@ -1,6 +1,6 @@
 === Radio Player Page ===
 Contributors: sjimhdez
-Tags: audio, icecast, radio player, shoutcast, streaming
+Tags: audio, icecast, radio player, radio station, streaming
 Requires at least: 5.0
 Tested up to: 6.9
 Stable tag: 2.0.2
@@ -8,39 +8,33 @@ Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Create a dedicated page for your Icecast, Shoutcast, HLS, DASH, or MP3 radio. Continuous playback without interruptions.
+Dedicated player pages for your radio streams, with program scheduling and continuous playback.
 
 == Description ==
 
-Radio Player Page creates dedicated, independent pages for your radio stations, with continuous playback without interruptions. The plugin serves a clean, standalone HTML page with an embedded React application, ensuring complete theme independence and optimal performance.
+Radio Player Page **provides dedicated, standalone player pages** for your radio streams on WordPress. It lets you create a full weekly program schedule, manage your broadcasts, and present everything on pages that guarantee reliable, theme-independent listening.
 
-= Core Features =
+= Standalone Player Pages =
 
-* **Standalone Player Pages** – The plugin serves each player as a completely independent HTML page, bypassing your WordPress theme entirely. No theme scripts or styles are loaded on player URLs. You get a focused listening experience and one clear URL per station.
-* **Streaming Protocol Support** – Automatically detects and handles Icecast, Shoutcast, DASH (.mpd), HLS (.m3u8), and MP3 formats. iOS Safari uses native HLS support; other browsers use the appropriate library when needed.
-* **Multiple Station Management** – Configure up to 10 stations, each with its own streaming URL and dedicated WordPress page.
+* **Standalone Player Pages** – Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
+* **Full Program Scheduling** – Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next program, with timezone-aware calculations and overlap prevention.
+* **Universal Stream Compatibility** – Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams. Automatic protocol detection with native iOS Safari support for HLS.
 
-= Broadcasting Features =
+= Broadcast Management =
 
-* **Program Schedule** – Optional weekly schedule with program names and optional logos. The player shows the current program and the next one when it starts in 10 minutes or less. Prevents time overlaps and supports programs that cross midnight. Uses timezone-aware calculations based on your WordPress timezone.
-* **Emission Timezone Clock** – When the stream is playing and your site timezone differs from the listener's, a small clock shows the station's time and the difference.
-* **Media Session API** – Station name and artwork on device lock screens and media controls.
+* **Multi-Station Control** – Manage up to 10 independent stations from a single WordPress installation, each with its own stream, schedule, and branding.
+* **Emission Timezone Clock** – Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
+* **Media Session API** – Professional integration with device lock screens and media controls, displaying station art and info.
 
-= Visual Customization =
+= Listener Experience =
 
-* **Eight Color Themes** – Neutral, Blue, Green, Red, Orange, Yellow, Purple, or Pink per station.
-* **Four Audio Visualizers** – Oscilloscope, Bars Spectrum, Amplitude Waterfall, or Spectral Particles, powered by the Web Audio API.
-* **Custom Branding** – Upload an optional background image and logo per station.
+* **Informed Listening** – The player clearly shows **what's on air now and what's coming next**.
+* **Visual Customization** – Choose from 8 color themes and 4 real-time audio visualizers (powered by Web Audio API) to match your station's brand.
+* **Station Branding** – Upload custom background images and logos for each station.
+* **Convenience Features** – Sleep timer, responsive design, and social sharing meta tags for rich link previews.
 
-= User Experience Features =
-
-* **Sleep Timer** – Stop playback automatically after 30 minutes, 1 hour, or 2 hours.
-* **Responsive Design** – Works on desktop, tablet, and mobile.
-* **Social Sharing** – Meta tags for rich previews when sharing player pages on social networks.
-
-**Technical Details**
-
-The player interface is built with React 19, TypeScript, and Material-UI, providing a modern, accessible user experience. The plugin uses Vite for asset bundling and includes proper cache busting through manifest-based asset loading.
+**Built for Modern Web Performance**
+The player is a self-contained application built with **React 19, TypeScript, and Vite**, ensuring a fast, accessible, and maintainable experience. It uses manifest-based asset loading for seamless updates.
 
 == Installation ==
 
@@ -84,13 +78,6 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 
 == Changelog ==
 
-= 2.0.2 =
-* Added player interface translations for Swedish, Dutch, Mexican Spanish, and Romanian
-* Fixed the logic determining when to use translation files
-* Ensured code compatibility starting from PHP 5.6
-
-= 2.0.1 =
-* Added player customization options - per-station configuration background images and logos
-* Added theme color selection - choose from eight color themes (Neutral, Blue, Green, Red, Orange, Yellow, Purple, Pink) for each station
-* Added visualizer selection - choose from four audio visualizers (Oscilloscope, Bars Spectrum, Amplitude Waterfall, Spectral Particles) for each stream
-* Added Media Session API integration - displays station information and artwork on device lock screens and media controls
+= 3.1.0 =
+* Added program schedule
+* Added emission timezone clock

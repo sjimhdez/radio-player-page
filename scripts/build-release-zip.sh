@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Zip filename: radio-player-page-{VERSION}.zip (e.g. radio-player-page-2.0.2.zip)
+# Zip filename: radio-player-page-{VERSION}.zip (e.g. radio-player-page-3.1.0.zip)
 VERSION=$(grep "Version:" "$PLUGIN_DIR/radio-player-page.php" | head -1 | sed 's/.*Version:[[:space:]]*\([0-9][0-9.]*\).*/\1/' | tr -d '[:space:]')
 [ -z "$VERSION" ] && VERSION="unknown"
 ZIP_BASENAME="${PLUGIN_SLUG}-${VERSION}.zip"

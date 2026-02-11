@@ -8,7 +8,7 @@
  * It must never control playback: when a program ends or there is no next program,
  * playback must continue unchanged. The user controls play/pause exclusively.
  *
- * @since 2.0.3
+ * @since 3.1.0
  */
 
 import type { Schedule, ScheduleEntry, ProgramDefinition } from 'src/types/global'

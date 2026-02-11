@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Radio Player Page
- * Description: Create a dedicated page for your Icecast, Shoutcast, or MP3 radio. Continuous playback without interruptions.
- * Version: 2.0.2
+ * Description: Dedicated player pages for your radio streams, with program scheduling and continuous playback.
+ * Version: 3.1.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, shoutcast, streaming
