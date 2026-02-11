@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -8,14 +8,62 @@
     <!-- This file will not be rendered. Only use to develop the player. Window vars are available in the html rendered by plugin -->
     <script>
       window.RADPLAPAG_CONFIG = {
-        streamUrl: 'https://example.com/stream.mp3',
+        streamUrl:
+          'https://devstreaming-cdn.apple.com/videos/streaming/examples/img_bipbop_adv_example_fmp4/master.m3u8',
         siteTitle: 'Example Radio Station',
-        backgroundImage: null,
-        logoImage: null,
-        themeColor: 'neutral',
+        backgroundImage: 'https://picsum.photos/1920/1080',
+        logoImage: 'https://picsum.photos/200/200',
+        themeColor: 'blue',
         visualizer: 'oscilloscope',
         timezoneOffset: 0,
-        schedule: undefined
+      }
+      window.RADPLAPAG_PROGRAMS = [
+        { id: 'prog-morning', name: 'Morning Show', logoUrl: 'https://picsum.photos/100/100' },
+        { id: 'prog-music', name: 'Afternoon Music', logoUrl: null },
+        { id: 'prog-evening', name: 'Evening News', logoUrl: 'https://picsum.photos/100/101' },
+        { id: 'prog-night', name: 'Night Owls', logoUrl: null },
+      ]
+      window.RADPLAPAG_SCHEDULE = {
+        monday: [
+          { program_id: 'prog-morning', start: '06:00', end: '10:00' },
+          { program_id: 'prog-music', start: '10:00', end: '14:00' },
+          { program_id: 'prog-evening', start: '14:00', end: '18:00' },
+          { program_id: 'prog-night', start: '22:00', end: '02:00' },
+        ],
+        tuesday: [
+          { program_id: 'prog-morning', start: '06:00', end: '10:00' },
+          { program_id: 'prog-music', start: '10:00', end: '14:00' },
+          { program_id: 'prog-evening', start: '14:00', end: '18:00' },
+          { program_id: 'prog-night', start: '22:00', end: '02:00' },
+        ],
+        wednesday: [
+          { program_id: 'prog-morning', start: '06:00', end: '10:00' },
+          { program_id: 'prog-music', start: '10:00', end: '14:00' },
+          { program_id: 'prog-evening', start: '14:00', end: '18:00' },
+          { program_id: 'prog-night', start: '22:00', end: '02:00' },
+        ],
+        thursday: [
+          { program_id: 'prog-morning', start: '06:00', end: '10:00' },
+          { program_id: 'prog-music', start: '10:00', end: '14:00' },
+          { program_id: 'prog-evening', start: '14:00', end: '18:00' },
+          { program_id: 'prog-night', start: '22:00', end: '02:00' },
+        ],
+        friday: [
+          { program_id: 'prog-morning', start: '06:00', end: '10:00' },
+          { program_id: 'prog-music', start: '10:00', end: '14:00' },
+          { program_id: 'prog-evening', start: '14:00', end: '18:00' },
+          { program_id: 'prog-night', start: '22:00', end: '02:00' },
+        ],
+        saturday: [
+          { program_id: 'prog-music', start: '08:00', end: '12:00' },
+          { program_id: 'prog-evening', start: '12:00', end: '20:00' },
+          { program_id: 'prog-night', start: '22:00', end: '02:00' },
+        ],
+        sunday: [
+          { program_id: 'prog-morning', start: '09:00', end: '12:00' },
+          { program_id: 'prog-music', start: '12:00', end: '18:00' },
+          { program_id: 'prog-night', start: '20:00', end: '00:00' },
+        ],
       }
     </script>
   </head>
