@@ -100,7 +100,7 @@ function radplapag_render_settings_page() {
 
         <div>
             <h2><?php esc_html_e( 'How to Use', 'radio-player-page' ); ?></h2>
-            <p><?php esc_html_e( 'Configure up to ten stations. For each station, enter the streaming URL (Icecast, Shoutcast, or MP3) and select the WordPress page where the player will appear. You can optionally set a station name, logo image, and background image, and choose a theme color and visualizer. Optionally, define a weekly program schedule with time slots; the player will display the current and next program based on your site timezone.', 'radio-player-page' ); ?></p>
+            <p><?php esc_html_e( 'You can configure up to 10 stations. For each station, enter the streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3) and select the WordPress page where the player will appear. Optionally, set a station name, logo image, and background image, and choose a theme color and visualizer. You can also define a weekly program schedule with time slots—the player will display the current and next program based on your site\'s timezone.', 'radio-player-page' ); ?></p>
         </div>
 
         <form method="post" action="options.php" id="radplapag-settings-form">
