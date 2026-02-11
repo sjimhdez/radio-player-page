@@ -4,10 +4,13 @@ import Collapse from '@mui/material/Collapse'
 import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState, useEffect } from 'react'
+import useProgramSchedule from 'src/hooks/use-program-schedule'
 
 interface StreamInfoProps {
   /** Radio station or stream title */
   title: string
+  /** Station logo image URL (optional) */
+  logoImage?: string | null
   /** Whether the stream is currently playing */
   isPlaying: boolean
   /** Whether audio visualization is available */
@@ -24,8 +27,9 @@ interface StreamInfoProps {
  * Dynamically positions itself based on visualization state and playback status
  *
  * Features:
- * - Displays station logo (if LOGO_IMAGE is set)
+ * - Displays station logo (if logoImage prop is provided)
  * - Shows station title
+ * - Shows active program name and time range if schedule is configured
  * - Shows "connecting" message when loading and not playing
  * - Shows animated dot indicator when playing but visualization is not available
  *   (e.g., Safari with cross-origin audio due to CORS restrictions)
@@ -36,6 +40,7 @@ interface StreamInfoProps {
  */
 const StreamInfo = ({
   title,
+  logoImage,
   isPlaying,
   canVisualize,
   loading,
@@ -44,6 +49,7 @@ const StreamInfo = ({
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const [height, setHeight] = useState<number>(0)
+  const { active: currentProgram, incoming: upcomingProgram } = useProgramSchedule()
 
   useEffect(() => {
     const updateHeight = () => {
@@ -62,7 +68,7 @@ const StreamInfo = ({
     return () => {
       resizeObserver.disconnect()
     }
-  }, [title, isPlaying, canVisualize, loading])
+  }, [title, isPlaying, canVisualize, loading, currentProgram, upcomingProgram])
 
   return (
     <Stack
@@ -84,10 +90,10 @@ const StreamInfo = ({
       alignItems="center"
       justifyContent="center"
     >
-      {window.LOGO_IMAGE && (
+      {logoImage && (
         <Box
           component="img"
-          src={window.LOGO_IMAGE}
+          src={logoImage}
           alt="Logo"
           sx={{
             width: 75,
@@ -98,12 +104,57 @@ const StreamInfo = ({
         />
       )}
       <Typography
-        variant="h1"
+        variant="h2"
         component="h1"
         sx={{ textWrap: 'balance', hyphens: 'auto', overflowWrap: 'break-word' }}
       >
         {title}
       </Typography>
+      {/* Show active program if schedule is configured */}
+      {currentProgram && (
+        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+          {currentProgram.programLogoUrl && (
+            <Box
+              component="img"
+              src={currentProgram.programLogoUrl}
+              alt=""
+              aria-hidden
+              sx={{
+                width: 36,
+                height: 36,
+                objectFit: 'contain',
+              }}
+            />
+          )}
+          <Stack direction="row" alignItems="baseline" gap={1}>
+            <Typography variant="h4" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+              {currentProgram.programName}
+            </Typography>
+          </Stack>
+        </Stack>
+      )}
+      {/* Show upcoming program announcement if it starts within 10 minutes */}
+      {upcomingProgram && (
+        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+          <Stack direction="row" alignItems="baseline" gap={0.5}>
+            <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+              {t('dashboard.upcomingPrefix')}:
+            </Typography>
+            <Typography
+              variant="body1"
+              component="p"
+              fontWeight="bold"
+              sx={{ textWrap: 'balance', hyphens: 'auto' }}
+            >
+              {upcomingProgram.programName}{' '}
+            </Typography>
+            <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+              {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
+              {upcomingProgram.timeRange}
+            </Typography>
+          </Stack>
+        </Stack>
+      )}
       {/* Show connecting message when loading but not yet playing */}
       {loading && !isPlaying && (
         <Typography

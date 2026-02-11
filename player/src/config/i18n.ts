@@ -9,6 +9,8 @@ import translationsSV_SE from 'src/locales/sv-SE.json'
 import translationsNL_NL from 'src/locales/nl-NL.json'
 import translationsRO_RO from 'src/locales/ro-RO.json'
 import translationsES_MX from 'src/locales/es-MX.json'
+import translationsGL_ES from 'src/locales/gl-ES.json'
+import translationsDA_DK from 'src/locales/da-DK.json'
 
 /**
  * Internationalization (i18n) configuration
@@ -22,6 +24,8 @@ import translationsES_MX from 'src/locales/es-MX.json'
  * - ro-RO (Romanian - Romania)
  * - nl-NL (Dutch - Netherlands)
  * - sv-SE (Swedish - Sweden)
+ * - gl-ES (Galician - Spain)
+ * - da-DK (Danish - Denmark)
  *
  * Language detection order:
  * 1. HTML lang attribute
@@ -55,6 +59,12 @@ i18n
       },
       'ro-RO': {
         translation: translationsRO_RO,
+      },
+      'gl-ES': {
+        translation: translationsGL_ES,
+      },
+      'da-DK': {
+        translation: translationsDA_DK,
       },
     },
     fallbackLng: 'en-US',

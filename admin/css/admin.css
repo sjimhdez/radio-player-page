@@ -1,0 +1,231 @@
+.radplapag-station-row {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #ccd0d4;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+.radplapag-station-title {
+  margin-top: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+.radplapag-station-row hr {
+  margin: 20px 0 0;
+}
+.radplapag-image-preview {
+  margin-bottom: 10px;
+}
+.radplapag-image-preview img {
+  border: 1px solid #ddd;
+  padding: 4px;
+  background: #fff;
+}
+.radplapag-program-definition-row .radplapag-image-upload-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.radplapag-program-definition-row
+  .radplapag-image-upload-wrapper
+  .radplapag-image-preview {
+  margin-bottom: 0;
+}
+.radplapag-program-definition-row .radplapag-image-preview img {
+  max-width: 30px;
+  max-height: 30px;
+  display: block;
+}
+.radplapag-program-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #ccd0d4;
+  border-radius: 3px;
+  transition: border-color 0.3s ease;
+}
+.radplapag-program-row .radplapag-schedule-remove-cell {
+  margin-left: auto;
+}
+.radplapag-program-row .radplapag-program-error-message {
+  width: 100%;
+}
+.radplapag-program-row.radplapag-error {
+  border-color: #dc3232;
+  background-color: #fff5f5;
+}
+.radplapag-program-row input.radplapag-error {
+  border-color: #dc3232;
+  box-shadow: 0 0 2px rgba(220, 50, 50, 0.3);
+}
+.radplapag-program-error-message {
+  color: #dc3232;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-left: 0;
+  display: none;
+}
+.radplapag-program-error-message.show {
+  display: block;
+}
+.radplapag-station-row td.radplapag-error input,
+.radplapag-station-row td.radplapag-error select {
+  border-color: #dc3232;
+  box-shadow: 0 0 2px rgba(220, 50, 50, 0.3);
+}
+.radplapag-field-error-message {
+  color: #dc3232;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-left: 0;
+  display: none;
+}
+.radplapag-field-error-message.show {
+  display: block;
+}
+.radplapag-schedule-toggle {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2271b1;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 2.15384615;
+  margin-bottom: 10px;
+}
+.radplapag-schedule-toggle:hover {
+  color: #135e96;
+}
+.radplapag-schedule-toggle:focus {
+  color: #135e96;
+  box-shadow: 0 0 0 1px #2271b1;
+  outline: 2px solid transparent;
+}
+.radplapag-schedule-toggle .toggle-indicator {
+  float: left;
+  margin-top: 5px;
+  margin-right: 5px;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  position: relative;
+  color: #50575e;
+}
+.radplapag-schedule-toggle .toggle-indicator:before {
+  content: "\f140"; /* Dashicon for arrow-up-alt2 (collapsed) */
+  font: normal 20px/1 dashicons;
+  speak: never;
+  display: inline-block;
+  padding: 0;
+  top: 0;
+  left: 0;
+  position: relative;
+  vertical-align: top;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-decoration: none !important;
+}
+.radplapag-schedule-toggle[aria-expanded="false"] .toggle-indicator:before {
+  content: "\f140"; /* Dashicon for arrow-up-alt2 (collapsed) */
+}
+.radplapag-schedule-toggle[aria-expanded="true"] .toggle-indicator:before {
+  content: "\f142"; /* Dashicon for arrow-down-alt2 (expanded) */
+}
+.radplapag-schedule-wrapper {
+  transition:
+    max-height 0.3s ease,
+    opacity 0.3s ease,
+    margin 0.3s ease,
+    padding 0.3s ease;
+  overflow: hidden;
+}
+.radplapag-schedule-wrapper.radplapag-schedule-collapsed {
+  max-height: 0;
+  opacity: 0;
+  margin: 0;
+  padding: 0;
+}
+.radplapag-schedule-wrapper:not(.radplapag-schedule-collapsed) {
+  max-height: 5000px;
+  opacity: 1;
+}
+.radplapag-program-definition-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+  padding: 8px;
+  border: 1px solid #ccd0d4;
+  border-radius: 3px;
+  transition: border-color 0.3s ease;
+  background: #fff;
+}
+.radplapag-program-definition-line {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 18px;
+}
+.radplapag-program-definition-name-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.radplapag-program-definition-line .radplapag-program-definition-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+}
+.radplapag-program-definition-remove-cell {
+  display: flex;
+  align-items: flex-start;
+  margin-left: auto;
+}
+.radplapag-program-definition-row.radplapag-error {
+  border-color: #dc3232;
+  background-color: #fff5f5;
+}
+.radplapag-program-definition-row input.radplapag-error {
+  border-color: #dc3232;
+  box-shadow: 0 0 2px rgba(220, 50, 50, 0.3);
+}
+.radplapag-program-definition-row .radplapag-program-error-message {
+  width: 100%;
+  color: #dc3232;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.radplapag-program-definition-row .radplapag-program-error-message.show {
+  display: block !important;
+}
+
+/* Remove Program / Remove Time Slot: visible only on row hover, red on link hover */
+.radplapag-program-row .radplapag-schedule-remove-cell,
+.radplapag-program-definition-row .radplapag-program-definition-remove-cell {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.radplapag-program-row:hover .radplapag-schedule-remove-cell,
+.radplapag-program-definition-row:hover
+  .radplapag-program-definition-remove-cell {
+  opacity: 1;
+  pointer-events: auto;
+}
+.radplapag-program-row .radplapag-remove-program,
+.radplapag-program-definition-row .radplapag-remove-program-definition {
+  transition: color 0.15s ease;
+}
+.radplapag-program-row .radplapag-remove-program:hover,
+.radplapag-program-definition-row .radplapag-remove-program-definition:hover {
+  color: #dc3232;
+}
