@@ -49,7 +49,13 @@ function ProgramCard({ program, activeCardRef }: ProgramCardProps) {
     >
       {program.programLogoUrl && (
         <Stack direction="row" alignItems="start" justifyContent="center">
-          <CardMedia component="img" src={program.programLogoUrl} alt="" />
+          <CardMedia
+            component="img"
+            src={program.programLogoUrl}
+            alt={program.programName}
+            width={128}
+            height={128}
+          />
         </Stack>
       )}
       <CardContent>

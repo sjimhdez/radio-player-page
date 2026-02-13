@@ -84,7 +84,13 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
     >
       {program.programLogoUrl && (
         <Stack direction="row" alignItems="center" justifyContent="center">
-          <CardMedia component="img" src={program.programLogoUrl} alt="" />
+          <CardMedia
+            component="img"
+            src={program.programLogoUrl}
+            alt={program.programName}
+            width={128}
+            height={128}
+          />
         </Stack>
       )}
       <CardContent>

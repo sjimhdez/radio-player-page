@@ -260,10 +260,7 @@ const Dashboard = () => {
 
       {hasSchedule && (
         <>
-          <ScheduleModal
-            open={openScheduleModal}
-            onClose={() => setOpenScheduleModal(false)}
-          />
+          <ScheduleModal open={openScheduleModal} onClose={() => setOpenScheduleModal(false)} />
           <AllProgramsModal
             open={openAllProgramsModal}
             onClose={() => setOpenAllProgramsModal(false)}

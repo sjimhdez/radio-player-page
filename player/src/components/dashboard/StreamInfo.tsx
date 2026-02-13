@@ -83,7 +83,7 @@ const StreamInfo = ({
       }
       textAlign={'center'}
       sx={{ transition: 'all 0.8s ease' }}
-      zIndex={(theme) => theme.zIndex.appBar + 1}
+      zIndex={(theme) => theme.zIndex.appBar}
       gap={1}
       px={2}
       py={1}
