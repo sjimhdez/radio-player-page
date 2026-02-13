@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -6,6 +6,8 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import Collapse from '@mui/material/Collapse'
 import { useTranslation } from 'react-i18next'
 import useConfig from 'src/hooks/use-config'
 import { getCurrentTimeInTimezone } from 'src/utils/timezone'
@@ -27,6 +29,80 @@ const DAY_KEYS = [
   'dashboard.dayFriday',
   'dashboard.daySaturday',
 ] as const
+
+interface ProgramCardProps {
+  program: ProgramWithSlots
+  activeCardRef: React.RefObject<HTMLDivElement | null>
+}
+
+function ProgramCard({ program, activeCardRef }: ProgramCardProps) {
+  const { t } = useTranslation()
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <Card
+      ref={program.isLive ? activeCardRef : undefined}
+      sx={{
+        borderBottom: '1px solid',
+        borderBottomColor: 'divider',
+        display: 'flex',
+      }}
+    >
+      {program.programLogoUrl && (
+        <Stack direction="row" alignItems="start" justifyContent="center">
+          <CardMedia component="img" src={program.programLogoUrl} alt="" />
+        </Stack>
+      )}
+      <CardContent>
+        <Stack px={1} gap={0.5} alignItems="start">
+          <Typography variant="body1" color="primary.main">
+            {program.programName || '—'}
+          </Typography>
+          {program.isLive && (
+            <Chip
+              label={
+                <Typography variant="body2" fontWeight="bold" textTransform="uppercase">
+                  {t('dashboard.scheduleLive')}
+                </Typography>
+              }
+              color="error"
+              size="small"
+              variant="outlined"
+              icon={<CircleIcon color="error" />}
+              sx={{
+                animation: 'scheduleLiveBlink 1.5s ease-in-out infinite',
+                '@keyframes scheduleLiveBlink': {
+                  '0%, 100%': { opacity: 1 },
+                  '50%': { opacity: 0.4 },
+                },
+              }}
+            />
+          )}
+          <Button
+            variant="text"
+            size="small"
+            onClick={() => setExpanded((e) => !e)}
+            aria-expanded={expanded}
+          >
+            {expanded ? t('dashboard.collapse') : t('dashboard.expand')}
+          </Button>
+          <Collapse in={expanded}>
+            <Stack>
+              {program.slots.map((slot, index) => (
+                <Typography
+                  key={`${program.programId}-${index}`}
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  {t(DAY_KEYS[slot.dayOfWeek])} {slot.timeRange}
+                </Typography>
+              ))}
+            </Stack>
+          </Collapse>
+        </Stack>
+      </CardContent>
+    </Card>
+  )
+}
 
 interface AllProgramsModalProps {
   /** Whether the modal is open */
@@ -64,62 +140,6 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
     activeCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [])
 
-  const renderProgramCard = (program: ProgramWithSlots) => (
-    <Card
-      key={program.programId}
-      ref={program.isLive ? activeCardRef : undefined}
-      sx={{
-        borderBottom: '1px solid',
-        borderBottomColor: 'divider',
-        display: 'flex',
-      }}
-    >
-      {program.programLogoUrl && (
-        <Stack direction="row" alignItems="center" justifyContent="center">
-          <CardMedia component="img" src={program.programLogoUrl} alt="" />
-        </Stack>
-      )}
-      <CardContent>
-        <Stack px={1} gap={0.5} alignItems={'start'}>
-          <Typography variant="body1" color="primary.main">
-            {program.programName || '—'}
-          </Typography>
-          {program.isLive && (
-            <Chip
-              label={
-                <Typography variant="body2" fontWeight="bold" textTransform={'uppercase'}>
-                  {t('dashboard.scheduleLive')}
-                </Typography>
-              }
-              color="error"
-              size="small"
-              variant="outlined"
-              icon={<CircleIcon color="error" />}
-              sx={{
-                animation: 'scheduleLiveBlink 1.5s ease-in-out infinite',
-                '@keyframes scheduleLiveBlink': {
-                  '0%, 100%': { opacity: 1 },
-                  '50%': { opacity: 0.4 },
-                },
-              }}
-            />
-          )}
-          <Stack>
-            {program.slots.map((slot, index) => (
-              <Typography
-                key={`${program.programId}-${index}`}
-                variant="body2"
-                color="text.secondary"
-              >
-                {t(DAY_KEYS[slot.dayOfWeek])} {slot.timeRange}
-              </Typography>
-            ))}
-          </Stack>
-        </Stack>
-      </CardContent>
-    </Card>
-  )
-
   return (
     <Dialog
       open={open}
@@ -148,7 +168,9 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
               <Typography>{t('dashboard.allProgramsEmpty')}</Typography>
             ) : (
               programsWithSlots.map((program) => (
-                <Box key={program.programId}>{renderProgramCard(program)}</Box>
+                <Box key={program.programId}>
+                  <ProgramCard program={program} activeCardRef={activeCardRef} />
+                </Box>
               ))
             )}
           </Box>
