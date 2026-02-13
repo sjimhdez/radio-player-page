@@ -17,9 +17,11 @@ import SleepMode from './SleepMode'
 import SleepTimer from './SleepTimer'
 import TimezoneClock from './TimezoneClock'
 import ScheduleModal from './ScheduleModal'
+import AllProgramsModal from './AllProgramsModal'
 import useEmissionTime from 'src/hooks/use-emission-time'
 import IconButton from '@mui/material/IconButton'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'
 
 /**
  * Main dashboard component
@@ -34,6 +36,10 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
  *   program (name, logo, time), live program highlighted and scrolled into view on
  *   open; Back to today button at the end; days without slots are not shown; button
  *   hidden when no schedule is configured
+ * - All programs modal: list button (left of play/pause, next to calendar) opens a
+ *   modal with every program in alphabetical order; each card shows image, name, all
+ *   time slots when it airs, and a Live chip when that program is on air; same
+ *   design as schedule modal; hidden when no schedule is configured
  * - Error handling and user feedback
  *
  * Reads configuration from WordPress via the useConfig() hook, which accesses
@@ -57,6 +63,7 @@ const Dashboard = () => {
   })
   const [openError, setOpenError] = useState(false)
   const [openScheduleModal, setOpenScheduleModal] = useState(false)
+  const [openAllProgramsModal, setOpenAllProgramsModal] = useState(false)
   const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
   const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
 
@@ -220,13 +227,20 @@ const Dashboard = () => {
         )}
         <Box display="grid" gridTemplateColumns="1fr 1fr 1fr" gap={1}>
           {hasSchedule ? (
-            <Stack alignItems="flex-end" justifyContent="center">
+            <Stack direction="row" alignItems="center" justifyContent="flex-end" gap={0}>
               <IconButton
                 onClick={() => setOpenScheduleModal(true)}
                 aria-label={t('dashboard.viewSchedule')}
                 color="primary"
               >
                 <CalendarMonthIcon />
+              </IconButton>
+              <IconButton
+                onClick={() => setOpenAllProgramsModal(true)}
+                aria-label={t('dashboard.viewAllPrograms')}
+                color="primary"
+              >
+                <FormatListBulletedIcon />
               </IconButton>
             </Stack>
           ) : (
@@ -245,10 +259,16 @@ const Dashboard = () => {
       </Stack>
 
       {hasSchedule && (
-        <ScheduleModal
-          open={openScheduleModal}
-          onClose={() => setOpenScheduleModal(false)}
-        />
+        <>
+          <ScheduleModal
+            open={openScheduleModal}
+            onClose={() => setOpenScheduleModal(false)}
+          />
+          <AllProgramsModal
+            open={openAllProgramsModal}
+            onClose={() => setOpenAllProgramsModal(false)}
+          />
+        </>
       )}
 
       <audio ref={audioRef} hidden preload="none" />

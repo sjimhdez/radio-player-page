@@ -2,7 +2,6 @@ import { useCallback, useRef } from 'react'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
-import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -10,11 +9,7 @@ import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import useConfig from 'src/hooks/use-config'
 import { getCurrentTimeInTimezone } from 'src/utils/timezone'
-import {
-  getProgramsForWeekOrdered,
-  type ProgramForDay,
-  type DayWithPrograms,
-} from 'src/utils/program-schedule'
+import { getAllProgramsWithSlots, type ProgramWithSlots } from 'src/utils/program-schedule'
 import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
@@ -33,7 +28,7 @@ const DAY_KEYS = [
   'dashboard.daySaturday',
 ] as const
 
-interface ScheduleModalProps {
+interface AllProgramsModalProps {
   /** Whether the modal is open */
   open: boolean
   /** Callback when the modal is closed */
@@ -41,11 +36,13 @@ interface ScheduleModalProps {
 }
 
 /**
- * Schedule modal component.
- * Shows the full week schedule in a single scrollable column, starting from today.
- * On open, scrolls to the currently active program slot.
+ * All programs modal component.
+ * Shows every program in the schedule in alphabetical order by name. Each card displays
+ * the program image, name, and all time slots when it airs (day + time range). A "Live"
+ * chip is shown when that program is currently on air. Uses the same visual design as
+ * ScheduleModal (Dialog, cards, chip styling).
  */
-const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
+const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
   const { t } = useTranslation()
   const config = useConfig()
   const schedule = config.schedule
@@ -54,7 +51,7 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
 
   const { dayOfWeek: currentDayOfWeek, currentTime } = getCurrentTimeInTimezone(timezoneOffset)
 
-  const weekData: DayWithPrograms[] = getProgramsForWeekOrdered(
+  const programsWithSlots: ProgramWithSlots[] = getAllProgramsWithSlots(
     schedule,
     programs,
     currentDayOfWeek,
@@ -62,20 +59,15 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
   )
 
   const activeCardRef = useRef<HTMLDivElement | null>(null)
-  const contentRef = useRef<HTMLDivElement | null>(null)
-
-  const scrollToTop = useCallback(() => {
-    contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
-  }, [])
 
   const scrollToActiveProgram = useCallback(() => {
     activeCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [])
 
-  const renderProgramCard = (program: ProgramForDay, index: number, dayOfWeek: number) => (
+  const renderProgramCard = (program: ProgramWithSlots) => (
     <Card
-      key={`${dayOfWeek}-${program.programName}-${program.timeRange}-${index}`}
-      ref={program.isActive ? activeCardRef : undefined}
+      key={program.programId}
+      ref={program.isLive ? activeCardRef : undefined}
       sx={{
         borderBottom: '1px solid',
         borderBottomColor: 'divider',
@@ -92,10 +84,7 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
           <Typography variant="body1" color="primary.main">
             {program.programName || '—'}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {program.timeRange}
-          </Typography>
-          {program.isActive && (
+          {program.isLive && (
             <Chip
               label={
                 <Typography variant="body2" fontWeight="bold" textTransform={'uppercase'}>
@@ -115,6 +104,17 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
               }}
             />
           )}
+          <Stack>
+            {program.slots.map((slot, index) => (
+              <Typography
+                key={`${program.programId}-${index}`}
+                variant="body2"
+                color="text.secondary"
+              >
+                {t(DAY_KEYS[slot.dayOfWeek])} {slot.timeRange}
+              </Typography>
+            ))}
+          </Stack>
         </Stack>
       </CardContent>
     </Card>
@@ -135,56 +135,27 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
     >
       <DialogTitle bgcolor={'background.paper'}>
         <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
-          {t('dashboard.viewSchedule')}
-          <IconButton aria-label={t('dashboard.scheduleClose')} onClick={onClose} size="small">
+          {t('dashboard.viewAllPrograms')}
+          <IconButton aria-label={t('dashboard.allProgramsClose')} onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
         </Stack>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 0 }}>
-        <Stack ref={contentRef} maxHeight={'70vh'} overflow={'auto'} bgcolor={'background.paper'}>
+        <Stack maxHeight={'70vh'} overflow={'auto'} bgcolor={'background.paper'}>
           <Box>
-            {weekData.length === 0 ? (
-              <Typography>{t('dashboard.scheduleNoProgramsForDay')}</Typography>
+            {programsWithSlots.length === 0 ? (
+              <Typography>{t('dashboard.allProgramsEmpty')}</Typography>
             ) : (
-              weekData.map(({ dayOfWeek, programs: dayPrograms }) => (
-                <Stack key={dayOfWeek}>
-                  <Stack
-                    position={'sticky'}
-                    top={0}
-                    bgcolor={'background.paper'}
-                    py={1}
-                    px={3}
-                    zIndex={(theme) => theme.zIndex.modal}
-                    sx={{
-                      borderBottom: '1px solid',
-                      borderBottomColor: 'divider',
-                    }}
-                  >
-                    <Typography variant="subtitle2" textTransform={'uppercase'} letterSpacing={1}>
-                      {t(DAY_KEYS[dayOfWeek])}
-                    </Typography>
-                  </Stack>
-                  <Stack>
-                    {dayPrograms.map((program, index) => (
-                      <Box key={`${dayOfWeek}-${index}`}>
-                        {renderProgramCard(program, index, dayOfWeek)}
-                      </Box>
-                    ))}
-                  </Stack>
-                </Stack>
+              programsWithSlots.map((program) => (
+                <Box key={program.programId}>{renderProgramCard(program)}</Box>
               ))
             )}
           </Box>
-          {weekData.length > 0 && (
-            <Button variant="text" onClick={scrollToTop}>
-              {t('dashboard.scheduleBackToTop')}
-            </Button>
-          )}
         </Stack>
       </DialogContent>
     </Dialog>
   )
 }
 
-export default ScheduleModal
+export default AllProgramsModal

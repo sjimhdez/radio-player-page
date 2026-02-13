@@ -272,6 +272,26 @@ export interface DayWithPrograms {
   programs: ProgramForDay[]
 }
 
+/** Single time slot for display (day + time range) */
+export interface ProgramSlotDisplay {
+  dayOfWeek: number
+  timeRange: string
+}
+
+/**
+ * Program with all its weekly slots, for the "all programs" list modal.
+ * Slots are all occurrences of this program in the schedule; isLive when any slot is active now.
+ *
+ * @since 3.2.0
+ */
+export interface ProgramWithSlots {
+  programId: string
+  programName: string
+  programLogoUrl: string | null
+  slots: ProgramSlotDisplay[]
+  isLive: boolean
+}
+
 /**
  * Get programs for all days of the week, ordered with current day first.
  * Used by the schedule modal to show a single scrollable list.
@@ -304,5 +324,74 @@ export function getProgramsForWeekOrdered(
       result.push({ dayOfWeek, programs: programsForDay })
     }
   }
+  return result
+}
+
+/**
+ * Get all programs with every slot they have in the week, sorted alphabetically by name.
+ * Used by the "all programs" modal. Each program includes isLive when any of its slots
+ * is currently active (today or previous day crossing midnight).
+ *
+ * @param schedule - Weekly schedule (relational)
+ * @param programs - Program definitions to resolve name/logo by program_id
+ * @param currentDayOfWeek - Current day in WordPress timezone (0-6)
+ * @param currentTime - Current time as minutes since midnight
+ * @returns Array of programs with their slots and isLive flag, sorted by programName
+ * @since 3.2.0
+ */
+export function getAllProgramsWithSlots(
+  schedule: Schedule | undefined,
+  programs: ProgramDefinition[] | undefined,
+  currentDayOfWeek: number,
+  currentTime: number,
+): ProgramWithSlots[] {
+  if (!schedule) return []
+
+  type Accum = {
+    name: string
+    logoUrl: string | null
+    slots: ProgramSlotDisplay[]
+    entries: Array<{ dayOfWeek: number; entry: ScheduleEntry }>
+  }
+  const byId = new Map<string, Accum>()
+
+  for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+    const dayKey = DAY_MAP[dayOfWeek]
+    const dayEntries = schedule[dayKey]
+    if (!dayEntries || dayEntries.length === 0) continue
+    for (const entry of dayEntries) {
+      const programId = entry.program_id
+      const timeRange = `${entry.start}-${entry.end}`
+      const slot: ProgramSlotDisplay = { dayOfWeek, timeRange }
+      let acc = byId.get(programId)
+      if (!acc) {
+        const { name, logoUrl } = resolveProgram(programs, programId)
+        acc = { name, logoUrl, slots: [], entries: [] }
+        byId.set(programId, acc)
+      }
+      acc.slots.push(slot)
+      acc.entries.push({ dayOfWeek, entry })
+    }
+  }
+
+  const prevDayOfWeek = (currentDayOfWeek - 1 + 7) % 7
+
+  const result: ProgramWithSlots[] = []
+  for (const [programId, acc] of byId.entries()) {
+    const isLive = acc.entries.some(
+      ({ dayOfWeek, entry }) =>
+        (dayOfWeek === currentDayOfWeek && isProgramActive(entry, currentTime, false)) ||
+        (dayOfWeek === prevDayOfWeek && isProgramActive(entry, currentTime, true)),
+    )
+    result.push({
+      programId,
+      programName: acc.name,
+      programLogoUrl: acc.logoUrl,
+      slots: acc.slots,
+      isLive,
+    })
+  }
+
+  result.sort((a, b) => a.programName.localeCompare(b.programName, undefined, { sensitivity: 'base' }))
   return result
 }
