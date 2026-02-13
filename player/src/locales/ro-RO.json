@@ -19,6 +19,18 @@
     "timezoneDifferenceHours_plural": "{{count}} ore",
     "upcomingPrefix": "Următorul",
     "upcomingInMinutes": "(în {{minutes}} min)",
-    "activeProgram": "Acum"
+    "activeProgram": "Acum",
+    "viewSchedule": "Program",
+    "daySunday": "Duminică",
+    "dayMonday": "Luni",
+    "dayTuesday": "Marți",
+    "dayWednesday": "Miercuri",
+    "dayThursday": "Joi",
+    "dayFriday": "Vineri",
+    "daySaturday": "Sâmbătă",
+    "scheduleLive": "Live",
+    "scheduleNoProgramsForDay": "Nu există programe pentru această zi.",
+    "scheduleBackToTop": "Înapoi la azi",
+    "scheduleClose": "Închide"
   }
 }

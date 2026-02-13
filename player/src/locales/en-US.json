@@ -19,6 +19,18 @@
     "timezoneDifferenceHours_plural": "{{count}} hours",
     "upcomingPrefix": "Next",
     "upcomingInMinutes": "(in {{minutes}} min)",
-    "activeProgram": "Now"
+    "activeProgram": "Now",
+    "viewSchedule": "Program schedule",
+    "daySunday": "Sunday",
+    "dayMonday": "Monday",
+    "dayTuesday": "Tuesday",
+    "dayWednesday": "Wednesday",
+    "dayThursday": "Thursday",
+    "dayFriday": "Friday",
+    "daySaturday": "Saturday",
+    "scheduleLive": "Live",
+    "scheduleNoProgramsForDay": "No programs for this day.",
+    "scheduleBackToTop": "Back to today",
+    "scheduleClose": "Close"
   }
 }

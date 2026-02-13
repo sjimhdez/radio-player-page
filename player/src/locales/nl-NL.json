@@ -19,6 +19,18 @@
     "timezoneDifferenceHours_plural": "{{count}} uur",
     "upcomingPrefix": "Volgend",
     "upcomingInMinutes": "(over {{minutes}} min)",
-    "activeProgram": "Nu"
+    "activeProgram": "Nu",
+    "viewSchedule": "Programma",
+    "daySunday": "Zondag",
+    "dayMonday": "Maandag",
+    "dayTuesday": "Dinsdag",
+    "dayWednesday": "Woensdag",
+    "dayThursday": "Donderdag",
+    "dayFriday": "Vrijdag",
+    "daySaturday": "Zaterdag",
+    "scheduleLive": "Live",
+    "scheduleNoProgramsForDay": "Geen programma's voor deze dag.",
+    "scheduleBackToTop": "Terug naar vandaag",
+    "scheduleClose": "Sluiten"
   }
 }

@@ -16,7 +16,10 @@ import VolumeControl from './VolumeControl'
 import SleepMode from './SleepMode'
 import SleepTimer from './SleepTimer'
 import TimezoneClock from './TimezoneClock'
+import ScheduleModal from './ScheduleModal'
 import useEmissionTime from 'src/hooks/use-emission-time'
+import IconButton from '@mui/material/IconButton'
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 
 /**
  * Main dashboard component
@@ -26,6 +29,11 @@ import useEmissionTime from 'src/hooks/use-emission-time'
  * - Media Session API integration for lock screen controls
  * - Sleep timer functionality
  * - Volume control
+ * - Schedule modal: calendar button (left of play/pause) opens a modal with the
+ *   full week schedule in a single scrollable column (current day first); cards per
+ *   program (name, logo, time), live program highlighted and scrolled into view on
+ *   open; Back to today button at the end; days without slots are not shown; button
+ *   hidden when no schedule is configured
  * - Error handling and user feedback
  *
  * Reads configuration from WordPress via the useConfig() hook, which accesses
@@ -48,14 +56,26 @@ const Dashboard = () => {
     height: window.innerHeight,
   })
   const [openError, setOpenError] = useState(false)
+  const [openScheduleModal, setOpenScheduleModal] = useState(false)
   const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
   const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
 
   const { t } = useTranslation()
-  const { audioRef, status, loading, play, pause, volume, handleVolumeChange } =
-    useAudioPlayer(config.streamUrl)
+  const hasSchedule = Boolean(
+    config.schedule &&
+    (config.schedule.monday?.length ||
+      config.schedule.tuesday?.length ||
+      config.schedule.wednesday?.length ||
+      config.schedule.thursday?.length ||
+      config.schedule.friday?.length ||
+      config.schedule.saturday?.length ||
+      config.schedule.sunday?.length),
+  )
+  const { audioRef, status, loading, play, pause, volume, handleVolumeChange } = useAudioPlayer(
+    config.streamUrl,
+  )
   const canVisualize = useCanVisualize(audioRef)
   const emissionTimeData = useEmissionTime()
 
@@ -199,7 +219,19 @@ const Dashboard = () => {
           />
         )}
         <Box display="grid" gridTemplateColumns="1fr 1fr 1fr" gap={1}>
-          <Box />
+          {hasSchedule ? (
+            <Stack alignItems="flex-end" justifyContent="center">
+              <IconButton
+                onClick={() => setOpenScheduleModal(true)}
+                aria-label={t('dashboard.viewSchedule')}
+                color="primary"
+              >
+                <CalendarMonthIcon />
+              </IconButton>
+            </Stack>
+          ) : (
+            <Box />
+          )}
           <PlayerControls status={status} loading={loading} onPlay={play} onPause={pause} />
           <SleepMode
             isPlaying={status === 'playing'}
@@ -211,6 +243,13 @@ const Dashboard = () => {
 
         <VolumeControl volume={volume} onVolumeChange={handleVolumeChange} />
       </Stack>
+
+      {hasSchedule && (
+        <ScheduleModal
+          open={openScheduleModal}
+          onClose={() => setOpenScheduleModal(false)}
+        />
+      )}
 
       <audio ref={audioRef} hidden preload="none" />
 

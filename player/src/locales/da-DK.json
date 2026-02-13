@@ -19,6 +19,18 @@
     "timezoneDifferenceHours_plural": "{{count}} timer",
     "upcomingPrefix": "Næste",
     "upcomingInMinutes": "(om {{minutes}} min)",
-    "activeProgram": "Nu"
+    "activeProgram": "Nu",
+    "viewSchedule": "Programoversigt",
+    "daySunday": "Søndag",
+    "dayMonday": "Mandag",
+    "dayTuesday": "Tirsdag",
+    "dayWednesday": "Onsdag",
+    "dayThursday": "Torsdag",
+    "dayFriday": "Fredag",
+    "daySaturday": "Lørdag",
+    "scheduleLive": "Live",
+    "scheduleNoProgramsForDay": "Ingen programmer for denne dag.",
+    "scheduleBackToTop": "Tilbage til i dag",
+    "scheduleClose": "Luk"
   }
 }

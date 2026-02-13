@@ -19,6 +19,18 @@
     "timezoneDifferenceHours_plural": "{{count}} часа",
     "upcomingPrefix": "Далее",
     "upcomingInMinutes": "(через {{minutes}} мин)",
-    "activeProgram": "Сейчас"
+    "activeProgram": "Сейчас",
+    "viewSchedule": "Расписание",
+    "daySunday": "Воскресенье",
+    "dayMonday": "Понедельник",
+    "dayTuesday": "Вторник",
+    "dayWednesday": "Среда",
+    "dayThursday": "Четверг",
+    "dayFriday": "Пятница",
+    "daySaturday": "Суббота",
+    "scheduleLive": "В эфире",
+    "scheduleNoProgramsForDay": "Нет программ на этот день.",
+    "scheduleBackToTop": "Вернуться к сегодня",
+    "scheduleClose": "Закрыть"
   }
 }

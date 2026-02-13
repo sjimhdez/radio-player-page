@@ -52,7 +52,7 @@ const TimezoneClock = ({ isPlaying, emissionTimeData }: TimezoneClockProps) => {
         position: 'absolute',
         top: 16,
         right: 16,
-        zIndex: (theme) => theme.zIndex.tooltip,
+        zIndex: (theme) => theme.zIndex.appBar,
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
         backdropFilter: 'blur(8px)',
         px: 1.5,

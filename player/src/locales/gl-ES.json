@@ -19,6 +19,18 @@
     "timezoneDifferenceHours_plural": "{{count}} horas",
     "upcomingPrefix": "Seguinte",
     "upcomingInMinutes": "(en {{minutes}} min)",
-    "activeProgram": "Agora"
+    "activeProgram": "Agora",
+    "viewSchedule": "Programación",
+    "daySunday": "Domingo",
+    "dayMonday": "Luns",
+    "dayTuesday": "Martes",
+    "dayWednesday": "Mércores",
+    "dayThursday": "Xoves",
+    "dayFriday": "Venres",
+    "daySaturday": "Sábado",
+    "scheduleLive": "En directo",
+    "scheduleNoProgramsForDay": "Non hai programas para este día.",
+    "scheduleBackToTop": "Volver a hoxe",
+    "scheduleClose": "Pechar"
   }
 }
