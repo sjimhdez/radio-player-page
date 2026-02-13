@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: audio, icecast, radio player, radio station, streaming
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 3.1.0
+Stable tag: 3.2.0
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -77,6 +77,9 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 4. Admin settings for managing stations
 
 == Changelog ==
+
+= 3.2.0 "
+[Pending]
 
 = 3.1.0 =
 * Added program schedule
