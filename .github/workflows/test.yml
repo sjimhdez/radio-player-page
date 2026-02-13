@@ -22,8 +22,9 @@ jobs:
       - name: Run Plugin Check
         uses: wordpress/plugin-check-action@v1
         with:
-          build-dir: './'
-          exclude-directories: 'player'
+          build-dir: "./"
+          slug: "radio-player-page"
+          exclude-directories: "player,scripts,.github"
           ignore-codes: |
             WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
             WordPress.WP.EnqueuedResources.NonEnqueuedScript
@@ -39,7 +40,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         working-directory: ./player
@@ -60,7 +61,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: "20"
 
       - name: Install dependencies
         working-directory: ./player
@@ -69,4 +70,3 @@ jobs:
       - name: Run tests
         working-directory: ./player
         run: npx eslint .
-

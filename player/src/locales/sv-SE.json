@@ -11,6 +11,14 @@
     "sleepOption30": "30 min",
     "sleepOption60": "1 timme",
     "sleepOption120": "2 timmar",
-    "liveRadio": "Direktsändning"
+    "liveRadio": "Direktsändning",
+    "timezoneClock": "Sändningstid",
+    "timezoneClockLabel": "Sändningstidszon",
+    "timezoneWarning": "Din lokala tid: {{browserTime}}, Sändningstid: {{emissionTime}}, Skillnad: {{difference}}",
+    "timezoneDifferenceHours": "{{count}} timme",
+    "timezoneDifferenceHours_plural": "{{count}} timmar",
+    "upcomingPrefix": "Nästa",
+    "upcomingInMinutes": "(om {{minutes}} min)",
+    "activeProgram": "Nu"
   }
 }
