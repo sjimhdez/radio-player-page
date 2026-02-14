@@ -5,6 +5,7 @@ import MenuItem from '@mui/material/MenuItem'
 import BedIcon from '@mui/icons-material/Bed'
 import { useTranslation } from 'react-i18next'
 import Stack from '@mui/material/Stack'
+import Tooltip from '@mui/material/Tooltip'
 
 interface SleepModeProps {
   /** Whether the stream is currently playing */
@@ -142,14 +143,16 @@ const SleepMode = ({
   return (
     <>
       <Stack alignItems="flex-start" justifyContent="center">
-        <IconButton
-          onClick={handleClick}
-          aria-label={t('dashboard.sleepMode')}
-          color="primary"
-          disabled={!isPlaying}
-        >
-          <BedIcon />
-        </IconButton>
+        <Tooltip title={t('dashboard.sleepMode')} placement="top" arrow>
+          <IconButton
+            onClick={handleClick}
+            aria-label={t('dashboard.sleepMode')}
+            color="primary"
+            disabled={!isPlaying}
+          >
+            <BedIcon />
+          </IconButton>
+        </Tooltip>
       </Stack>
       <Menu
         anchorEl={anchorEl}

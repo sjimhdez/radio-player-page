@@ -22,6 +22,7 @@ import useEmissionTime from 'src/hooks/use-emission-time'
 import IconButton from '@mui/material/IconButton'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'
+import Tooltip from '@mui/material/Tooltip'
 
 /**
  * Main dashboard component
@@ -228,20 +229,24 @@ const Dashboard = () => {
         <Box display="grid" gridTemplateColumns="1fr 1fr 1fr" gap={1}>
           {hasSchedule ? (
             <Stack direction="row" alignItems="center" justifyContent="flex-end" gap={0}>
-              <IconButton
-                onClick={() => setOpenScheduleModal(true)}
-                aria-label={t('dashboard.viewSchedule')}
-                color="primary"
-              >
-                <CalendarMonthIcon />
-              </IconButton>
-              <IconButton
-                onClick={() => setOpenAllProgramsModal(true)}
-                aria-label={t('dashboard.viewAllPrograms')}
-                color="primary"
-              >
-                <FormatListBulletedIcon />
-              </IconButton>
+              <Tooltip title={t('dashboard.viewSchedule')} placement="top" arrow>
+                <IconButton
+                  onClick={() => setOpenScheduleModal(true)}
+                  aria-label={t('dashboard.viewSchedule')}
+                  color="primary"
+                >
+                  <CalendarMonthIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('dashboard.viewAllPrograms')} placement="top" arrow>
+                <IconButton
+                  onClick={() => setOpenAllProgramsModal(true)}
+                  aria-label={t('dashboard.viewAllPrograms')}
+                  color="primary"
+                >
+                  <FormatListBulletedIcon />
+                </IconButton>
+              </Tooltip>
             </Stack>
           ) : (
             <Box />
