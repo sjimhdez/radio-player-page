@@ -131,7 +131,7 @@ Upload custom background images and logos for each station. Personalize each sta
 
 ### Multilingual Interface
 
-Player interface available in **10 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German. Automatic language detection based on browser settings, with fallback to English.
+Player interface available in **11 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil). Automatic language detection based on browser settings, with fallback to English.
 
 ---
 
@@ -263,7 +263,7 @@ The project uses [pre-commit](https://pre-commit.com/) for WordPress plugin chec
 
 ### Internationalization
 
-Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE. Detection: HTML `lang` → localStorage → navigator. For German (de_DE), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/) where applicable.
+Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE, pt-BR / pt_BR. Detection: HTML `lang` → localStorage → navigator. For German (de_DE) and Portuguese Brazil (pt_BR), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/) and [WordPress Portuguese Brazil glossary](https://translate.wordpress.org/locale/pt-br/default/glossary/) where applicable.
 
 **Adding a new language:** (1) Add a JSON file in `player/src/locales/` with the same keys as `en-US.json`. (2) Import it and register the locale in `player/src/config/i18n.ts` (use both hyphen and underscore keys if the locale has a region, e.g. `de-DE` and `de_DE`, so WordPress `lang` and browser codes both work). (3) Update this README. Source strings are English (en-US). For locales with an official WordPress glossary (e.g. de_DE), use the [glossary and style guide](https://make.wordpress.org/polyglots/handbook/translating/glossaries-and-style-guides-per-locale/) when translating.
 

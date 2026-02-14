@@ -12,6 +12,7 @@ import translationsES_MX from 'src/locales/es-MX.json'
 import translationsGL_ES from 'src/locales/gl-ES.json'
 import translationsDA_DK from 'src/locales/da-DK.json'
 import translationsDE_DE from 'src/locales/de-DE.json'
+import translationsPT_BR from 'src/locales/pt-BR.json'
 
 /**
  * Internationalization (i18n) configuration
@@ -28,6 +29,7 @@ import translationsDE_DE from 'src/locales/de-DE.json'
  * - gl-ES (Galician - Spain)
  * - da-DK (Danish - Denmark)
  * - de-DE / de_DE (German - Germany)
+ * - pt-BR / pt_BR (Portuguese - Brazil)
  *
  * Language detection order:
  * 1. HTML lang attribute
@@ -73,6 +75,12 @@ i18n
       },
       de_DE: {
         translation: translationsDE_DE,
+      },
+      'pt-BR': {
+        translation: translationsPT_BR,
+      },
+      pt_BR: {
+        translation: translationsPT_BR,
       },
     },
     fallbackLng: 'en-US',
