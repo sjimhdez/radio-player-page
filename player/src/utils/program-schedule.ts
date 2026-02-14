@@ -219,6 +219,7 @@ export function findIncomingProgram(
 /** Resolved program slot for display in the schedule modal (one per day entry) */
 export interface ProgramForDay {
   programName: string
+  programDescription?: string | null
   programLogoUrl: string | null
   start: string
   end: string
@@ -255,10 +256,11 @@ export function getProgramsForDay(
   const isToday = dayOfWeek === currentDayOfWeek
 
   return sorted.map((entry) => {
-    const { name, logoUrl } = resolveProgram(programs, entry.program_id)
+    const { name, description, logoUrl } = resolveProgram(programs, entry.program_id)
     const active = isToday && isProgramActive(entry, currentTime, false)
     return {
       programName: name,
+      programDescription: description,
       programLogoUrl: logoUrl,
       start: entry.start,
       end: entry.end,

@@ -115,9 +115,14 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
               }}
             />
           )}
-          <Typography variant="body1" color="primary.main">
+          <Typography variant="body1" color="primary.light">
             {program.programName || '—'}
           </Typography>
+          {program.programDescription && (
+            <Typography variant="body2" color="text.secondary">
+              {program.programDescription}
+            </Typography>
+          )}
           <Typography variant="body2" color="text.secondary">
             {program.timeRange}
           </Typography>

@@ -83,7 +83,7 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
                 }}
               />
             )}
-            <Typography variant="body1" color="primary.main">
+            <Typography variant="body1" color="primary.light">
               {program.programName || '—'}
             </Typography>
             {program.programDescription && (
@@ -96,6 +96,7 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
               size="small"
               onClick={onToggle}
               aria-expanded={expanded}
+              color="inherit"
             >
               {expanded ? t('dashboard.showLess') : t('dashboard.showMore')}
             </Button>
@@ -105,19 +106,12 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
       <Collapse in={expanded}>
         <Stack gap={3} p={3}>
           {program.programExtendedDescription && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              component="div"
-              sx={{ whiteSpace: 'pre-wrap' }}
-            >
+            <Typography variant="body2" component="div" sx={{ whiteSpace: 'pre-wrap' }}>
               {program.programExtendedDescription}
             </Typography>
           )}
           <Stack gap={1.5}>
-            <Typography variant="h6" color="primary.main">
-              {t('dashboard.emissionTimes')}
-            </Typography>
+            <Typography variant="h5">{t('dashboard.emissionTimes')}</Typography>
             <Stack gap={0.5}>
               {program.slots.map((slot, index) => (
                 <Typography

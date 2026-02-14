@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
-import BedIcon from '@mui/icons-material/Bed';
+import BedIcon from '@mui/icons-material/Bed'
 import { useTranslation } from 'react-i18next'
 import Stack from '@mui/material/Stack'
 
