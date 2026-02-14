@@ -50,8 +50,8 @@ function radplapag_get_admin_strings() {
             'removeTimeSlot'           => __( 'Remove Time Slot', 'radio-player-page' ),
             'showProgramSchedule'      => __( 'Show Program Schedule', 'radio-player-page' ),
             'hideProgramSchedule'      => __( 'Hide Program Schedule', 'radio-player-page' ),
-            'showMoreFields'           => __( 'Show more fields', 'radio-player-page' ),
-            'hideMoreFields'           => __( 'Hide more fields', 'radio-player-page' ),
+            'showMoreFields'           => __( 'Show optional fields', 'radio-player-page' ),
+            'hideMoreFields'           => __( 'Hide optional fields', 'radio-player-page' ),
             'programName'              => __( 'Program name', 'radio-player-page' ),
             'programImageLabel'        => __( 'Program Image', 'radio-player-page' ),
             'programDescription'       => __( 'e.g. Morning news with Howard Mallory and guests', 'radio-player-page' ),
@@ -345,7 +345,7 @@ function radplapag_render_settings_page() {
                                                             <?php
                                                             $has_more_fields = ( '' !== trim( (string) $prog_description ) ) || ( '' !== trim( (string) $prog_extended_description ) ) || $prog_logo_id > 0;
                                                             $more_fields_expanded = $has_more_fields ? 'true' : 'false';
-                                                            $more_fields_toggle_label = $has_more_fields ? esc_html__( 'Hide more fields', 'radio-player-page' ) : esc_html__( 'Show more fields', 'radio-player-page' );
+                                                            $more_fields_toggle_label = $has_more_fields ? esc_html__( 'Hide optional fields', 'radio-player-page' ) : esc_html__( 'Show optional fields', 'radio-player-page' );
                                                             ?>
                                                             <button type="button" class="button-link radplapag-program-more-fields-toggle" aria-expanded="<?php echo esc_attr( $more_fields_expanded ); ?>">
                                                                 <span class="toggle-indicator" aria-hidden="true"></span>

@@ -1197,8 +1197,8 @@
         );
         if (!wrapper) return;
         var isExpanded = toggle.getAttribute("aria-expanded") === "true";
-        var showLabel = s.showMoreFields || "Show more fields";
-        var hideLabel = s.hideMoreFields || "Hide more fields";
+        var showLabel = s.showMoreFields || "Show optional fields";
+        var hideLabel = s.hideMoreFields || "Hide optional fields";
         if (isExpanded) {
           wrapper.classList.add("radplapag-program-more-fields-collapsed");
           toggle.setAttribute("aria-expanded", "false");
@@ -1242,8 +1242,8 @@
         var programExtendedDescriptionPlaceholder =
           s.programExtendedDescription || "e.g. Join us every morning for in-depth interviews, breaking news analysis, and listener calls. Howard Mallory brings decades of experience to the microphone, covering local politics [...]";
         var extendedDescriptionLabel = s.extendedDescriptionLabel || "Extended Description";
-        var showMoreFields = s.showMoreFields || "Show more fields";
-        var hideMoreFields = s.hideMoreFields || "Hide more fields";
+        var showMoreFields = s.showMoreFields || "Show optional fields";
+        var hideMoreFields = s.hideMoreFields || "Hide optional fields";
         var selectImage = s.selectImage || "Select Image";
         var removeImage = s.removeImage || "Remove Image";
         var recommendedProgramImageSize = s.recommendedProgramImageSize || "Recommended size: 256x256 pixels.";
