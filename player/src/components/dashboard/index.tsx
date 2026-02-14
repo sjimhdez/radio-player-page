@@ -41,6 +41,8 @@ import Tooltip from '@mui/material/Tooltip'
  *   modal with every program in alphabetical order; each card shows image, name, all
  *   time slots when it airs, and a Live chip when that program is on air; same
  *   design as schedule modal; hidden when no schedule is configured
+ * - Timezone clock: visible whenever the listener's timezone differs from the
+ *   station's (always visible in that case, independent of playback state)
  * - Error handling and user feedback
  *
  * Reads configuration from WordPress via the useConfig() hook, which accesses
@@ -276,7 +278,7 @@ const Dashboard = () => {
       <audio ref={audioRef} hidden preload="none" />
 
       {/* Timezone clock - positioned discretely in top-right corner */}
-      <TimezoneClock isPlaying={status === 'playing'} emissionTimeData={emissionTimeData} />
+      <TimezoneClock emissionTimeData={emissionTimeData} />
 
       <Snackbar open={openError} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
         <Alert severity="error" variant="filled" sx={{ width: '100%' }}>

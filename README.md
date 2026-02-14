@@ -87,7 +87,7 @@ Keep a global audience informed. When your station's timezone differs from the l
 
 - **Timezone clock** displays the station's local time
 - **Time difference indicator** shows the offset from the listener's timezone
-- Only appears when playback is active and timezones differ
+- Always visible when timezones differ (independent of playback state)
 - Helps international audiences understand program timing
 
 ### Media Session API
