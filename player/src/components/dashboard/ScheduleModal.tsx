@@ -95,29 +95,31 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
       )}
       <CardContent>
         <Stack px={1} gap={0.5} alignItems={'start'}>
-          {program.isActive && (
-            <Chip
-              label={
-                <Typography variant="body2" fontWeight="bold" textTransform={'uppercase'}>
-                  {t('dashboard.scheduleLive')}
-                </Typography>
-              }
-              color="error"
-              size="small"
-              variant="outlined"
-              icon={<CircleIcon color="error" />}
-              sx={{
-                animation: 'scheduleLiveBlink 1.5s ease-in-out infinite',
-                '@keyframes scheduleLiveBlink': {
-                  '0%, 100%': { opacity: 1 },
-                  '50%': { opacity: 0.4 },
-                },
-              }}
-            />
-          )}
-          <Typography variant="body1" color="primary.light">
-            {program.programName || '—'}
-          </Typography>
+          <Stack direction="row" alignItems="center" gap={1}>
+            {program.isActive && (
+              <Chip
+                label={
+                  <Typography variant="body2" fontWeight="bold" textTransform={'uppercase'}>
+                    {t('dashboard.scheduleLive')}
+                  </Typography>
+                }
+                color="error"
+                size="small"
+                variant="outlined"
+                icon={<CircleIcon color="error" />}
+                sx={{
+                  animation: 'scheduleLiveBlink 1.5s ease-in-out infinite',
+                  '@keyframes scheduleLiveBlink': {
+                    '0%, 100%': { opacity: 1 },
+                    '50%': { opacity: 0.4 },
+                  },
+                }}
+              />
+            )}
+            <Typography variant="body1" color="primary.light">
+              {program.programName || '—'}
+            </Typography>
+          </Stack>
           {program.programDescription && (
             <Typography variant="body2" color="text.secondary">
               {program.programDescription}

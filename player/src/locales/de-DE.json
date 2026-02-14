@@ -20,7 +20,7 @@
     "upcomingPrefix": "Als Nächstes",
     "upcomingInMinutes": "(in {{minutes}} Min.)",
     "activeProgram": "Jetzt",
-    "viewSchedule": "Programmübersicht",
+    "viewSchedule": "Programm",
     "daySunday": "Sonntag",
     "dayMonday": "Montag",
     "dayTuesday": "Dienstag",
@@ -32,14 +32,14 @@
     "scheduleNoProgramsForDay": "Keine Programme für diesen Tag.",
     "scheduleBackToTop": "Zurück zu heute",
     "scheduleClose": "Schließen",
-    "viewAllPrograms": "Alle Programme",
+    "viewAllPrograms": "Programme",
     "allProgramsEmpty": "Keine Programme in der Übersicht.",
     "allProgramsClose": "Schließen",
     "programDetails": "Detailansicht",
     "expand": "Erweitern",
     "collapse": "Einklappen",
-    "showMore": "Mehr anzeigen",
-    "showLess": "Weniger anzeigen",
+    "showMore": "Mehr",
+    "showLess": "Weniger",
     "emissionTimes": "Sendezeiten"
   }
 }
