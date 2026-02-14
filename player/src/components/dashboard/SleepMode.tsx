@@ -22,8 +22,8 @@ const SLEEP_OPTIONS = [30, 60, 120]
 
 /**
  * Sleep mode component
- * Provides a button to set a sleep timer that will pause playback after a specified duration
- * Only visible when playback is active
+ * Provides a button to set a sleep timer that will pause playback after a specified duration.
+ * The button is always visible and disabled when playback is not active.
  *
  * State synchronization flow:
  * 1. Internal state (remainingSeconds) tracks countdown locally
@@ -39,7 +39,7 @@ const SLEEP_OPTIONS = [30, 60, 120]
  * - Prevention of stale closures in callbacks
  *
  * @param props - Component props
- * @returns Sleep mode button with duration menu or null if not playing
+ * @returns Sleep mode button with duration menu (disabled when not playing)
  */
 const SleepMode = ({
   isPlaying,
@@ -139,14 +139,15 @@ const SleepMode = ({
     onTimerChange?.(remainingSeconds)
   }, [remainingSeconds, onTimerChange])
 
-  if (!isPlaying) {
-    return null
-  }
-
   return (
     <>
       <Stack alignItems="flex-start" justifyContent="center">
-        <IconButton onClick={handleClick} aria-label={t('dashboard.sleepMode')} color="primary">
+        <IconButton
+          onClick={handleClick}
+          aria-label={t('dashboard.sleepMode')}
+          color="primary"
+          disabled={!isPlaying}
+        >
           <BedIcon />
         </IconButton>
       </Stack>
