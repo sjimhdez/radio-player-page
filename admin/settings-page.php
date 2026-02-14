@@ -50,10 +50,17 @@ function radplapag_get_admin_strings() {
             'removeTimeSlot'           => __( 'Remove Time Slot', 'radio-player-page' ),
             'showProgramSchedule'      => __( 'Show Program Schedule', 'radio-player-page' ),
             'hideProgramSchedule'      => __( 'Hide Program Schedule', 'radio-player-page' ),
+            'showMoreFields'           => __( 'Show more fields', 'radio-player-page' ),
+            'hideMoreFields'           => __( 'Hide more fields', 'radio-player-page' ),
             'programName'              => __( 'Program name', 'radio-player-page' ),
-            'programDescription'       => __( 'Program description (optional)', 'radio-player-page' ),
-            'programExtendedDescription' => __( 'Extended description (optional)', 'radio-player-page' ),
+            'programImageLabel'        => __( 'Program Image', 'radio-player-page' ),
+            'programDescription'       => __( 'e.g. Morning news with Howard Mallory and guests', 'radio-player-page' ),
+            'descriptionLabel'         => __( 'Description', 'radio-player-page' ),
+            'programExtendedDescription' => __( 'e.g. Join us every morning for in-depth interviews, breaking news analysis, and listener calls. Howard Mallory brings decades of experience to the microphone, covering local politics [...]', 'radio-player-page' ),
+            'extendedDescriptionLabel' => __( 'Extended Description', 'radio-player-page' ),
             'removeImage'              => __( 'Remove Image', 'radio-player-page' ),
+            'recommendedImageSize'     => __( 'Recommended size: 512x512 pixels or larger.', 'radio-player-page' ),
+            'recommendedProgramImageSize' => __( 'Recommended size: 256x256 pixels or larger.', 'radio-player-page' ),
             'removeProgram'            => __( 'Remove Program', 'radio-player-page' ),
             'programNameRequired'      => __( 'Program name is required. Enter a name to use this program in the schedule.', 'radio-player-page' ),
         ],
@@ -248,8 +255,10 @@ function radplapag_render_settings_page() {
                                                 <img src="<?php echo esc_url( $logo_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
                                             <?php endif; ?>
                                         </div>
-                                        <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-                                        <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                        <div class="radplapag-image-buttons">
+                                            <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+                                            <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                        </div>
                                         <p class="description">
                                             <?php esc_html_e( 'Recommended size: 512x512 pixels or larger.', 'radio-player-page' ); ?>
                                         </p>
@@ -268,8 +277,10 @@ function radplapag_render_settings_page() {
                                                 <img src="<?php echo esc_url( $background_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
                                             <?php endif; ?>
                                         </div>
-                                        <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-                                        <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $background_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                        <div class="radplapag-image-buttons">
+                                            <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+                                            <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $background_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -331,27 +342,55 @@ function radplapag_render_settings_page() {
                                                     <div class="radplapag-program-definition-line">
                                                         <div class="radplapag-program-definition-name-cell">
                                                             <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][name]" value="<?php echo esc_attr( $prog_name ); ?>" placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>" class="radplapag-program-definition-name" maxlength="64" style="width: 200px;">
-                                                            <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][description]" value="<?php echo esc_attr( $prog_description ); ?>" placeholder="<?php esc_attr_e( 'Program description (optional)', 'radio-player-page' ); ?>" class="radplapag-program-definition-description" maxlength="256" style="width: 200px;">
+                                                            <?php
+                                                            $has_more_fields = ( '' !== trim( (string) $prog_description ) ) || ( '' !== trim( (string) $prog_extended_description ) ) || $prog_logo_id > 0;
+                                                            $more_fields_expanded = $has_more_fields ? 'true' : 'false';
+                                                            $more_fields_toggle_label = $has_more_fields ? esc_html__( 'Hide more fields', 'radio-player-page' ) : esc_html__( 'Show more fields', 'radio-player-page' );
+                                                            ?>
+                                                            <button type="button" class="button-link radplapag-program-more-fields-toggle" aria-expanded="<?php echo esc_attr( $more_fields_expanded ); ?>">
+                                                                <span class="toggle-indicator" aria-hidden="true"></span>
+                                                                <?php echo $more_fields_toggle_label; ?>
+                                                            </button>
                                                             <div class="radplapag-program-error-message" style="display: none;"></div>
-                                                        </div>
-                                                        <div class="radplapag-program-definition-main">
-                                                            <div class="radplapag-image-upload-wrapper">
-                                                                <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][logo_id]" value="<?php echo esc_attr( $prog_logo_id ); ?>" class="radplapag-image-id">
-                                                                <div class="radplapag-image-preview">
-                                                                    <?php if ( $prog_logo_url ) : ?>
-                                                                        <img src="<?php echo esc_url( $prog_logo_url ); ?>" alt="" style="max-width:30px;max-height:30px;display:block;">
-                                                                    <?php endif; ?>
-                                                                </div>
-                                                                <button type="button" class="button radplapag-upload-btn"><?php echo $prog_logo_id ? esc_html__( 'Change Image', 'radio-player-page' ) : esc_html__( 'Add Program Image', 'radio-player-page' ); ?></button>
-                                                                <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $prog_logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove Image', 'radio-player-page' ); ?></button>
-                                                            </div>
                                                         </div>
                                                         <div class="radplapag-program-definition-remove-cell">
                                                             <a href="#" class="submitdelete radplapag-remove-program-definition" data-station-index="<?php echo esc_attr( $index ); ?>" data-program-def-index="<?php echo esc_attr( $prog_idx ); ?>"><?php esc_html_e( 'Remove Program', 'radio-player-page' ); ?></a>
                                                         </div>
                                                     </div>
                                                     <div class="radplapag-program-definition-extended-cell">
-                                                        <textarea name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][extended_description]" rows="3" maxlength="512" placeholder="<?php esc_attr_e( 'Extended description (optional)', 'radio-player-page' ); ?>" class="radplapag-program-definition-extended-description" style="width: 100%; min-width: 200px;"><?php echo $prog_extended_description; ?></textarea>
+                                                        <?php
+                                                        $more_fields_collapsed_class = $has_more_fields ? '' : ' radplapag-program-more-fields-collapsed';
+                                                        ?>
+                                                        <div class="radplapag-program-more-fields-wrapper<?php echo esc_attr( $more_fields_collapsed_class ); ?>">
+                                                            <div class="radplapag-program-more-fields-inner">
+                                                                <div class="radplapag-field-group">
+                                                                    <div class="radplapag-field-label"><?php esc_html_e( 'Program Image', 'radio-player-page' ); ?></div>
+                                                                    <div class="radplapag-image-upload-wrapper">
+                                                                        <input type="hidden" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][logo_id]" value="<?php echo esc_attr( $prog_logo_id ); ?>" class="radplapag-image-id">
+                                                                        <div class="radplapag-image-preview">
+                                                                            <?php if ( $prog_logo_url ) : ?>
+                                                                                <img src="<?php echo esc_url( $prog_logo_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;">
+                                                                            <?php endif; ?>
+                                                                        </div>
+                                                                        <div class="radplapag-image-buttons">
+                                                                            <button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+                                                                            <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $prog_logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+                                                                        </div>
+                                                                        <p class="description">
+                                                                            <?php esc_html_e( 'Recommended size: 256x256 pixels or larger.', 'radio-player-page' ); ?>
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="radplapag-field-group">
+                                                                    <div class="radplapag-field-label"><?php esc_html_e( 'Description', 'radio-player-page' ); ?></div>
+                                                                    <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][description]" value="<?php echo esc_attr( $prog_description ); ?>" placeholder="<?php esc_attr_e( 'e.g. Morning news with Howard Mallory and guests', 'radio-player-page' ); ?>" class="radplapag-program-definition-description" maxlength="256">
+                                                                </div>
+                                                                <div class="radplapag-field-group">
+                                                                    <div class="radplapag-field-label"><?php esc_html_e( 'Extended Description', 'radio-player-page' ); ?></div>
+                                                                    <textarea name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][extended_description]" rows="3" maxlength="512" placeholder="<?php esc_attr_e( 'e.g. Join us every morning for in-depth interviews, breaking news analysis, and listener calls. Howard Mallory brings decades of experience to the microphone, covering local politics [...]', 'radio-player-page' ); ?>" class="radplapag-program-definition-extended-description"><?php echo $prog_extended_description; ?></textarea>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             <?php endforeach; ?>
