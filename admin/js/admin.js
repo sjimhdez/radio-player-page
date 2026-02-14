@@ -1246,7 +1246,7 @@
         var hideMoreFields = s.hideMoreFields || "Hide more fields";
         var selectImage = s.selectImage || "Select Image";
         var removeImage = s.removeImage || "Remove Image";
-        var recommendedProgramImageSize = s.recommendedProgramImageSize || "Recommended size: 256x256 pixels or larger.";
+        var recommendedProgramImageSize = s.recommendedProgramImageSize || "Recommended size: 256x256 pixels.";
         var removeProgram = s.removeProgram || "Remove Program";
         var newRow = document.createElement("div");
         newRow.className = "radplapag-program-definition-row";

@@ -59,8 +59,8 @@ function radplapag_get_admin_strings() {
             'programExtendedDescription' => __( 'e.g. Join us every morning for in-depth interviews, breaking news analysis, and listener calls. Howard Mallory brings decades of experience to the microphone, covering local politics [...]', 'radio-player-page' ),
             'extendedDescriptionLabel' => __( 'Extended Description', 'radio-player-page' ),
             'removeImage'              => __( 'Remove Image', 'radio-player-page' ),
-            'recommendedImageSize'     => __( 'Recommended size: 512x512 pixels or larger.', 'radio-player-page' ),
-            'recommendedProgramImageSize' => __( 'Recommended size: 256x256 pixels or larger.', 'radio-player-page' ),
+            'recommendedImageSize'     => __( 'Recommended size: 512x512 pixels.', 'radio-player-page' ),
+            'recommendedProgramImageSize' => __( 'Recommended size: 256x256 pixels.', 'radio-player-page' ),
             'removeProgram'            => __( 'Remove Program', 'radio-player-page' ),
             'programNameRequired'      => __( 'Program name is required. Enter a name to use this program in the schedule.', 'radio-player-page' ),
         ],
@@ -260,7 +260,7 @@ function radplapag_render_settings_page() {
                                             <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
                                         </div>
                                         <p class="description">
-                                            <?php esc_html_e( 'Recommended size: 512x512 pixels or larger.', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Recommended size: 512x512 pixels.', 'radio-player-page' ); ?>
                                         </p>
                                     </div>
                                 </td>
@@ -326,7 +326,7 @@ function radplapag_render_settings_page() {
                                             <?php esc_html_e( 'Programs', 'radio-player-page' ); ?>
                                         </h3>
                                         <p class="description" style="margin-bottom: 10px;">
-                                            <?php esc_html_e( 'Define programs (name and optional logo). Then assign them to time slots below.', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Add programs with a name. Optionally add an image, description, or extended description—these display in the player\'s program list and schedule. Assign each program to time slots below.', 'radio-player-page' ); ?>
                                         </p>
                                         <div class="radplapag-program-definitions-list">
                                             <?php foreach ( $programs as $prog_idx => $prog_def ) :
@@ -377,7 +377,7 @@ function radplapag_render_settings_page() {
                                                                             <button type="button" class="button radplapag-remove-image-btn" <?php echo empty( $prog_logo_id ) ? 'style="display:none;"' : ''; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
                                                                         </div>
                                                                         <p class="description">
-                                                                            <?php esc_html_e( 'Recommended size: 256x256 pixels or larger.', 'radio-player-page' ); ?>
+                                                                            <?php esc_html_e( 'Recommended size: 256x256 pixels.', 'radio-player-page' ); ?>
                                                                         </p>
                                                                     </div>
                                                                 </div>
@@ -403,7 +403,7 @@ function radplapag_render_settings_page() {
                                             <?php esc_html_e( 'Schedule', 'radio-player-page' ); ?>
                                         </h3>
                                         <p class="description" style="margin-bottom: 20px;">
-                                            <?php esc_html_e( 'Define weekly program schedule. Programs are displayed automatically in the player based on current time.', 'radio-player-page' ); ?>
+                                            <?php esc_html_e( 'Set up the weekly schedule. The player displays the current and upcoming programs based on your site\'s timezone (Settings → General). This information also appears in the schedule view in the player.', 'radio-player-page' ); ?>
                                         </p>
                                         <?php foreach ( $days as $day_key => $day_label ) :
                                             $day_programs = isset( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) ? $schedule[ $day_key ] : [];
@@ -477,7 +477,7 @@ function radplapag_render_settings_page() {
                                         <?php endforeach; ?>
                                     </div>
                                     <p class="description" style="margin-top: 10px;">
-                                        <?php esc_html_e( 'Assign programs to time slots for each day using 24-hour format (HH:MM). Time slots cannot overlap on the same day; programs that cross midnight are supported. The player shows listeners the name and time range of the program currently on air and, when relevant, the next program starting within 10 minutes. The display uses your site timezone and updates automatically at the start of each minute.', 'radio-player-page' ); ?>
+                                        <?php esc_html_e( 'Keep listeners informed: the schedule shows what\'s on air now and what\'s coming up. Assign programs to time slots for each day in 24-hour format (HH:MM). Time slots must not overlap on the same day; programs can cross midnight. Listeners see the current program\'s name and time range, and the next program when it starts within 10 minutes. They can also open the schedule view and the programs list. Times use your site\'s timezone (Settings → General) and update at the start of each minute.', 'radio-player-page' ); ?>
                                     </p>
                                 </td>
                             </tr>
