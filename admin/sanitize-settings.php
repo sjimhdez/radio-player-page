@@ -91,6 +91,8 @@ function radplapag_sanitize_settings( $input ) {
                 }
                 $prog_id = isset( $prog_def['id'] ) ? sanitize_text_field( $prog_def['id'] ) : '';
                 $prog_name = isset( $prog_def['name'] ) ? sanitize_text_field( $prog_def['name'] ) : '';
+                $prog_description = isset( $prog_def['description'] ) ? sanitize_text_field( $prog_def['description'] ) : '';
+                $prog_extended_description = isset( $prog_def['extended_description'] ) ? sanitize_textarea_field( $prog_def['extended_description'] ) : '';
                 $prog_logo_id = isset( $prog_def['logo_id'] ) ? intval( $prog_def['logo_id'] ) : 0;
                 if ( $prog_logo_id > 0 && ! wp_attachment_is_image( $prog_logo_id ) ) {
                     $prog_logo_id = 0;
@@ -101,6 +103,12 @@ function radplapag_sanitize_settings( $input ) {
                 if ( strlen( $prog_name ) > 64 ) {
                     $prog_name = substr( $prog_name, 0, 64 );
                 }
+                if ( strlen( $prog_description ) > 256 ) {
+                    $prog_description = substr( $prog_description, 0, 256 );
+                }
+                if ( strlen( $prog_extended_description ) > 512 ) {
+                    $prog_extended_description = substr( $prog_extended_description, 0, 512 );
+                }
                 // Generate unique ID if not provided
                 if ( empty( $prog_id ) ) {
                     $prog_id = 'prog_' . wp_generate_password( 12, false );
@@ -110,9 +118,11 @@ function radplapag_sanitize_settings( $input ) {
                     $prog_id = 'prog_' . wp_generate_password( 12, false );
                 }
                 $programs_list[] = [
-                    'id'      => $prog_id,
-                    'name'    => $prog_name,
-                    'logo_id' => $prog_logo_id,
+                    'id'                  => $prog_id,
+                    'name'                => $prog_name,
+                    'description'         => $prog_description,
+                    'extended_description' => $prog_extended_description,
+                    'logo_id'             => $prog_logo_id,
                 ];
             }
         }

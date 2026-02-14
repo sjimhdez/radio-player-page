@@ -95,12 +95,6 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
       )}
       <CardContent>
         <Stack px={1} gap={0.5} alignItems={'start'}>
-          <Typography variant="body1" color="primary.main">
-            {program.programName || '—'}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {program.timeRange}
-          </Typography>
           {program.isActive && (
             <Chip
               label={
@@ -121,6 +115,12 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
               }}
             />
           )}
+          <Typography variant="body1" color="primary.main">
+            {program.programName || '—'}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {program.timeRange}
+          </Typography>
         </Stack>
       </CardContent>
     </Card>

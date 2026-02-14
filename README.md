@@ -47,7 +47,7 @@ Each station lives on its own independent HTML page, completely bypassing your W
 
 Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next program, with timezone-aware calculations and overlap prevention.
 
-- Define programs with names and optional logos
+- Define programs with names, optional short and extended descriptions, and optional logos
 - Assign programs to time slots across the week
 - Automatic detection of current and upcoming programs
 - Visual display of active program in the player
@@ -253,7 +253,7 @@ The project uses [pre-commit](https://pre-commit.com/) for WordPress plugin chec
 **JavaScript globals** (set by PHP before React; combined in React via `useConfig()`):
 
 - **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
-- **`window.RADPLAPAG_PROGRAMS`** – Array of `{ name, logoUrl? }`. Optional.
+- **`window.RADPLAPAG_PROGRAMS`** – Array of `{ name, description?, extendedDescription?, logoUrl? }`. Optional.
 - **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end }], ... }`. `program_id` is index into `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour). Optional.
 
 **PHP (public)**

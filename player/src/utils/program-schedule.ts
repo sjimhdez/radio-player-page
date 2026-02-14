@@ -72,18 +72,20 @@ export function isProgramActive(
 }
 
 /**
- * Resolve program name and logo from programs array by program_id (unique string ID).
+ * Resolve program name, description, extended description and logo from programs array by program_id (unique string ID).
  */
 function resolveProgram(
   programs: ProgramDefinition[] | undefined,
   programId: string,
-): { name: string; logoUrl: string | null } {
+): { name: string; description: string | null; extendedDescription: string | null; logoUrl: string | null } {
   if (!programs || !programId) {
-    return { name: '', logoUrl: null }
+    return { name: '', description: null, extendedDescription: null, logoUrl: null }
   }
   const p = programs.find((prog) => prog.id === programId)
   return {
     name: p?.name ?? '',
+    description: p?.description ?? null,
+    extendedDescription: p?.extendedDescription ?? null,
     logoUrl: p?.logoUrl ?? null,
   }
 }
@@ -287,6 +289,8 @@ export interface ProgramSlotDisplay {
 export interface ProgramWithSlots {
   programId: string
   programName: string
+  programDescription?: string | null
+  programExtendedDescription?: string | null
   programLogoUrl: string | null
   slots: ProgramSlotDisplay[]
   isLive: boolean
@@ -349,6 +353,8 @@ export function getAllProgramsWithSlots(
 
   type Accum = {
     name: string
+    description: string | null
+    extendedDescription: string | null
     logoUrl: string | null
     slots: ProgramSlotDisplay[]
     entries: Array<{ dayOfWeek: number; entry: ScheduleEntry }>
@@ -365,8 +371,8 @@ export function getAllProgramsWithSlots(
       const slot: ProgramSlotDisplay = { dayOfWeek, timeRange }
       let acc = byId.get(programId)
       if (!acc) {
-        const { name, logoUrl } = resolveProgram(programs, programId)
-        acc = { name, logoUrl, slots: [], entries: [] }
+        const { name, description, extendedDescription, logoUrl } = resolveProgram(programs, programId)
+        acc = { name, description, extendedDescription, logoUrl, slots: [], entries: [] }
         byId.set(programId, acc)
       }
       acc.slots.push(slot)
@@ -386,6 +392,8 @@ export function getAllProgramsWithSlots(
     result.push({
       programId,
       programName: acc.name,
+      programDescription: acc.description,
+      programExtendedDescription: acc.extendedDescription,
       programLogoUrl: acc.logoUrl,
       slots: acc.slots,
       isLive,

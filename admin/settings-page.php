@@ -51,6 +51,8 @@ function radplapag_get_admin_strings() {
             'showProgramSchedule'      => __( 'Show Program Schedule', 'radio-player-page' ),
             'hideProgramSchedule'      => __( 'Hide Program Schedule', 'radio-player-page' ),
             'programName'              => __( 'Program name', 'radio-player-page' ),
+            'programDescription'       => __( 'Program description (optional)', 'radio-player-page' ),
+            'programExtendedDescription' => __( 'Extended description (optional)', 'radio-player-page' ),
             'removeImage'              => __( 'Remove Image', 'radio-player-page' ),
             'removeProgram'            => __( 'Remove Program', 'radio-player-page' ),
             'programNameRequired'      => __( 'Program name is required. Enter a name to use this program in the schedule.', 'radio-player-page' ),
@@ -319,6 +321,8 @@ function radplapag_render_settings_page() {
                                             <?php foreach ( $programs as $prog_idx => $prog_def ) :
                                                 $prog_id = isset( $prog_def['id'] ) ? esc_attr( $prog_def['id'] ) : '';
                                                 $prog_name = isset( $prog_def['name'] ) ? esc_attr( $prog_def['name'] ) : '';
+                                                $prog_description = isset( $prog_def['description'] ) ? esc_attr( $prog_def['description'] ) : '';
+                                                $prog_extended_description = isset( $prog_def['extended_description'] ) ? esc_textarea( $prog_def['extended_description'] ) : '';
                                                 $prog_logo_id = isset( $prog_def['logo_id'] ) ? intval( $prog_def['logo_id'] ) : 0;
                                                 $prog_logo_url = $prog_logo_id ? wp_get_attachment_image_url( $prog_logo_id, 'medium' ) : '';
                                                 ?>
@@ -327,6 +331,7 @@ function radplapag_render_settings_page() {
                                                     <div class="radplapag-program-definition-line">
                                                         <div class="radplapag-program-definition-name-cell">
                                                             <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][name]" value="<?php echo esc_attr( $prog_name ); ?>" placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>" class="radplapag-program-definition-name" maxlength="64" style="width: 200px;">
+                                                            <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][description]" value="<?php echo esc_attr( $prog_description ); ?>" placeholder="<?php esc_attr_e( 'Program description (optional)', 'radio-player-page' ); ?>" class="radplapag-program-definition-description" maxlength="256" style="width: 200px;">
                                                             <div class="radplapag-program-error-message" style="display: none;"></div>
                                                         </div>
                                                         <div class="radplapag-program-definition-main">
@@ -344,6 +349,9 @@ function radplapag_render_settings_page() {
                                                         <div class="radplapag-program-definition-remove-cell">
                                                             <a href="#" class="submitdelete radplapag-remove-program-definition" data-station-index="<?php echo esc_attr( $index ); ?>" data-program-def-index="<?php echo esc_attr( $prog_idx ); ?>"><?php esc_html_e( 'Remove Program', 'radio-player-page' ); ?></a>
                                                         </div>
+                                                    </div>
+                                                    <div class="radplapag-program-definition-extended-cell">
+                                                        <textarea name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][extended_description]" rows="3" maxlength="512" placeholder="<?php esc_attr_e( 'Extended description (optional)', 'radio-player-page' ); ?>" class="radplapag-program-definition-extended-description" style="width: 100%; min-width: 200px;"><?php echo $prog_extended_description; ?></textarea>
                                                     </div>
                                                 </div>
                                             <?php endforeach; ?>

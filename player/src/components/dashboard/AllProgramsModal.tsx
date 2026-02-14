@@ -33,11 +33,12 @@ const DAY_KEYS = [
 interface ProgramCardProps {
   program: ProgramWithSlots
   activeCardRef: React.RefObject<HTMLDivElement | null>
+  expanded: boolean
+  onToggle: () => void
 }
 
-function ProgramCard({ program, activeCardRef }: ProgramCardProps) {
+function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCardProps) {
   const { t } = useTranslation()
-  const [expanded, setExpanded] = useState(false)
   return (
     <Card
       ref={program.isLive ? activeCardRef : undefined}
@@ -45,54 +46,79 @@ function ProgramCard({ program, activeCardRef }: ProgramCardProps) {
         borderBottom: '1px solid',
         borderBottomColor: 'divider',
         display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      {program.programLogoUrl && (
-        <Stack direction="row" alignItems="start" justifyContent="center">
-          <CardMedia
-            component="img"
-            src={program.programLogoUrl}
-            alt={program.programName}
-            width={128}
-            height={128}
-          />
-        </Stack>
-      )}
-      <CardContent>
-        <Stack px={1} gap={0.5} alignItems="start">
-          <Typography variant="body1" color="primary.main">
-            {program.programName || '—'}
-          </Typography>
-          {program.isLive && (
-            <Chip
-              label={
-                <Typography variant="body2" fontWeight="bold" textTransform="uppercase">
-                  {t('dashboard.scheduleLive')}
-                </Typography>
-              }
-              color="error"
-              size="small"
-              variant="outlined"
-              icon={<CircleIcon color="error" />}
-              sx={{
-                animation: 'scheduleLiveBlink 1.5s ease-in-out infinite',
-                '@keyframes scheduleLiveBlink': {
-                  '0%, 100%': { opacity: 1 },
-                  '50%': { opacity: 0.4 },
-                },
-              }}
+      <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+        {program.programLogoUrl && (
+          <Stack direction="row" alignItems="start" justifyContent="center">
+            <CardMedia
+              component="img"
+              src={program.programLogoUrl}
+              alt={program.programName}
+              width={128}
+              height={128}
             />
+          </Stack>
+        )}
+        <CardContent sx={{ flex: 1 }}>
+          <Stack px={1} gap={0.5} alignItems="start">
+            {program.isLive && (
+              <Chip
+                label={
+                  <Typography variant="body2" fontWeight="bold" textTransform="uppercase">
+                    {t('dashboard.scheduleLive')}
+                  </Typography>
+                }
+                color="error"
+                size="small"
+                variant="outlined"
+                icon={<CircleIcon color="error" />}
+                sx={{
+                  animation: 'scheduleLiveBlink 1.5s ease-in-out infinite',
+                  '@keyframes scheduleLiveBlink': {
+                    '0%, 100%': { opacity: 1 },
+                    '50%': { opacity: 0.4 },
+                  },
+                }}
+              />
+            )}
+            <Typography variant="body1" color="primary.main">
+              {program.programName || '—'}
+            </Typography>
+            {program.programDescription && (
+              <Typography variant="body2" color="text.secondary">
+                {program.programDescription}
+              </Typography>
+            )}
+            <Button
+              variant="text"
+              size="small"
+              onClick={onToggle}
+              aria-expanded={expanded}
+            >
+              {expanded ? t('dashboard.showLess') : t('dashboard.showMore')}
+            </Button>
+          </Stack>
+        </CardContent>
+      </Box>
+      <Collapse in={expanded}>
+        <Stack gap={3} p={3}>
+          {program.programExtendedDescription && (
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              component="div"
+              sx={{ whiteSpace: 'pre-wrap' }}
+            >
+              {program.programExtendedDescription}
+            </Typography>
           )}
-          <Button
-            variant="text"
-            size="small"
-            onClick={() => setExpanded((e) => !e)}
-            aria-expanded={expanded}
-          >
-            {expanded ? t('dashboard.collapse') : t('dashboard.expand')}
-          </Button>
-          <Collapse in={expanded}>
-            <Stack>
+          <Stack gap={1.5}>
+            <Typography variant="h6" color="primary.main">
+              {t('dashboard.emissionTimes')}
+            </Typography>
+            <Stack gap={0.5}>
               {program.slots.map((slot, index) => (
                 <Typography
                   key={`${program.programId}-${index}`}
@@ -103,9 +129,9 @@ function ProgramCard({ program, activeCardRef }: ProgramCardProps) {
                 </Typography>
               ))}
             </Stack>
-          </Collapse>
+          </Stack>
         </Stack>
-      </CardContent>
+      </Collapse>
     </Card>
   )
 }
@@ -141,6 +167,11 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
   )
 
   const activeCardRef = useRef<HTMLDivElement | null>(null)
+  const [expandedProgramId, setExpandedProgramId] = useState<string | null>(null)
+
+  const handleToggleExpand = useCallback((programId: string) => {
+    setExpandedProgramId((prev) => (prev === programId ? null : programId))
+  }, [])
 
   const scrollToActiveProgram = useCallback(() => {
     activeCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -150,7 +181,7 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="xs"
+      maxWidth="sm"
       fullWidth
       disableRestoreFocus
       slotProps={{
@@ -175,7 +206,12 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
             ) : (
               programsWithSlots.map((program) => (
                 <Box key={program.programId}>
-                  <ProgramCard program={program} activeCardRef={activeCardRef} />
+                  <ProgramCard
+                    program={program}
+                    activeCardRef={activeCardRef}
+                    expanded={expandedProgramId === program.programId}
+                    onToggle={() => handleToggleExpand(program.programId)}
+                  />
                 </Box>
               ))
             )}

@@ -1,4 +1,7 @@
 {"dashboard": {"volume": "Volume", "connecting": "Connecting", "playStreamError": "Unable to play the stream. Try again later.", "audioVisualizer": "Audio Visualizer", "play": "Play", "pause": "Pause", "sleepMode": "Sleep mode", "cancelSleepMode": "Cancel sleep mode", "sleepOption30": "30 mins", "sleepOption60": "1 hour", "sleepOption120": "2 hours", "liveRadio": "Live Radio", "timezoneClock": "Emission time", "timezoneClockLabel": "Emission timezone", "timezoneWarning": "Your local time: {{browserTime}}, Emission time: {{emissionTime}}, Difference: {{difference}}", "timezoneDifferenceHours": "{{count}} hour", "timezoneDifferenceHours_plural": "{{count}} hours", "upcomingPrefix": "Next", "upcomingInMinutes": "(in {{minutes}} min)", "activeProgram": "Now", "viewSchedule": "Program schedule", "daySunday": "Sunday", "dayMonday": "Monday", "dayTuesday": "Tuesday", "dayWednesday": "Wednesday", "dayThursday": "Thursday", "dayFriday": "Friday", "daySaturday": "Saturday", "scheduleLive": "Live", "scheduleNoProgramsForDay": "No programs for this day.", "scheduleBackToTop": "Back to today", "scheduleClose": "Close", "viewAllPrograms": "All programs", "allProgramsEmpty": "No programs in the schedule.", "allProgramsClose": "Close",
     "programDetails": "Details",
     "expand": "Expand",
-    "collapse": "Collapse"}}
+    "collapse": "Collapse",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "emissionTimes": "Emission times"}}

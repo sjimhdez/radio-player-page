@@ -176,8 +176,10 @@
 }
 .radplapag-program-definition-name-cell {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   align-items: flex-start;
+  gap: 12px;
 }
 .radplapag-program-definition-line .radplapag-program-definition-main {
   display: flex;
@@ -189,6 +191,14 @@
   display: flex;
   align-items: flex-start;
   margin-left: auto;
+}
+.radplapag-program-definition-extended-cell {
+  width: 100%;
+  margin-top: 8px;
+}
+.radplapag-program-definition-extended-cell textarea {
+  resize: vertical;
+  min-height: 60px;
 }
 .radplapag-program-definition-row.radplapag-error {
   border-color: #dc3232;

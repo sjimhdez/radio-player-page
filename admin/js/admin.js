@@ -1228,6 +1228,9 @@
           "_" +
           Math.random().toString(36).substr(2, 9);
         var programNamePlaceholder = s.programName || "Program name";
+        var programDescriptionPlaceholder = s.programDescription || "Program description (optional)";
+        var programExtendedDescriptionPlaceholder =
+          s.programExtendedDescription || "Extended description (optional)";
         var addProgramImage = s.addProgramImage || "Add Program Image";
         var removeImage = s.removeImage || "Remove Image";
         var removeProgram = s.removeProgram || "Remove Program";
@@ -1252,6 +1255,13 @@
           '][name]" value="" placeholder="' +
           programNamePlaceholder +
           '" class="radplapag-program-definition-name" maxlength="64" style="width: 200px;">' +
+          '<input type="text" name="radplapag_settings[stations][' +
+          stationIndex +
+          "][programs][" +
+          nextIndex +
+          '][description]" value="" placeholder="' +
+          programDescriptionPlaceholder +
+          '" class="radplapag-program-definition-description" maxlength="256" style="width: 200px;">' +
           '<div class="radplapag-program-error-message" style="display: none;"></div>' +
           "</div>" +
           '<div class="radplapag-program-definition-main">' +
@@ -1279,6 +1289,15 @@
           removeProgram +
           "</a>" +
           "</div>" +
+          "</div>" +
+          '<div class="radplapag-program-definition-extended-cell">' +
+          '<textarea name="radplapag_settings[stations][' +
+          stationIndex +
+          "][programs][" +
+          nextIndex +
+          '][extended_description]" rows="3" maxlength="512" placeholder="' +
+          programExtendedDescriptionPlaceholder +
+          '" class="radplapag-program-definition-extended-description" style="width: 100%; min-width: 200px;"></textarea>' +
           "</div>";
         list.appendChild(newRow);
         setupProgramDefinitionGroupValidation(newRow);
@@ -1308,6 +1327,12 @@
             ".radplapag-image-upload-wrapper input.radplapag-image-id",
           );
           var nameInput = r.querySelector(".radplapag-program-definition-name");
+          var descInput = r.querySelector(
+            ".radplapag-program-definition-description",
+          );
+          var extendedDescInput = r.querySelector(
+            ".radplapag-program-definition-extended-description",
+          );
           var idField = r.querySelector(".radplapag-program-id-field");
           var removeBtn = r.querySelector(
             ".radplapag-remove-program-definition",
@@ -1326,6 +1351,20 @@
               "][programs][" +
               idx +
               "][name]";
+          if (descInput)
+            descInput.name =
+              "radplapag_settings[stations][" +
+              stationIndex +
+              "][programs][" +
+              idx +
+              "][description]";
+          if (extendedDescInput)
+            extendedDescInput.name =
+              "radplapag_settings[stations][" +
+              stationIndex +
+              "][programs][" +
+              idx +
+              "][extended_description]";
           if (idField)
             idField.name =
               "radplapag_settings[stations][" +
