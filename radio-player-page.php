@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: Dedicated player pages for your radio streams, with program scheduling and continuous playback.
- * Version: 3.1.0
+ * Version: 3.2.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, shoutcast, streaming
