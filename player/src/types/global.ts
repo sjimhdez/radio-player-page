@@ -22,6 +22,10 @@ export interface ProgramDefinition {
   id: string
   /** Program name */
   name: string
+  /** Program description (optional) */
+  description?: string | null
+  /** Extended description (optional, plain text + line breaks) */
+  extendedDescription?: string | null
   /** Program logo image URL (optional) */
   logoUrl?: string | null
 }

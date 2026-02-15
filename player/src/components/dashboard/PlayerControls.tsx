@@ -4,6 +4,7 @@ import PauseCircleIcon from '@mui/icons-material/PauseCircle'
 import CircularProgress from '@mui/material/CircularProgress'
 import { useTranslation } from 'react-i18next'
 import type { PlayerStatus } from 'src/types/player'
+import Tooltip from '@mui/material/Tooltip'
 
 interface PlayerControlsProps {
   /** Current playback status */
@@ -37,16 +38,20 @@ const PlayerControls = ({ status, loading, onPlay, onPause }: PlayerControlsProp
 
   if (status !== 'playing') {
     return (
-      <IconButton onClick={onPlay} size="large" aria-label={t('dashboard.play')} color="primary">
-        <PlayCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
-      </IconButton>
+      <Tooltip title={t('dashboard.play')} placement="top" arrow>
+        <IconButton onClick={onPlay} size="large" aria-label={t('dashboard.play')} color="primary">
+          <PlayCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
+        </IconButton>
+      </Tooltip>
     )
   }
 
   return (
-    <IconButton onClick={onPause} size="large" aria-label={t('dashboard.pause')} color="primary">
-      <PauseCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
-    </IconButton>
+    <Tooltip title={t('dashboard.pause')} placement="top" arrow>
+      <IconButton onClick={onPause} size="large" aria-label={t('dashboard.pause')} color="primary">
+        <PauseCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
+      </IconButton>
+    </Tooltip>
   )
 }
 

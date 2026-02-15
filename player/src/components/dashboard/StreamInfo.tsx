@@ -83,7 +83,7 @@ const StreamInfo = ({
       }
       textAlign={'center'}
       sx={{ transition: 'all 0.8s ease' }}
-      zIndex={(theme) => theme.zIndex.tooltip}
+      zIndex={(theme) => theme.zIndex.appBar}
       gap={1}
       px={2}
       py={1}
@@ -113,6 +113,9 @@ const StreamInfo = ({
       {/* Show active program if schedule is configured */}
       {currentProgram && (
         <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+          <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+            {t('dashboard.activeProgram')}:
+          </Typography>
           {currentProgram.programLogoUrl && (
             <Box
               component="img"

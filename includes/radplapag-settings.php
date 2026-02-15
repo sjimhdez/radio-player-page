@@ -19,7 +19,9 @@ defined( 'ABSPATH' ) || exit;
  * @return array Settings array with structure: ['stations' => [['stream_url' => string,
  *                     'player_page' => int, 'station_title' => string, 'background_id' => int,
  *                     'logo_id' => int, 'theme_color' => string, 'visualizer' => string,
- *                     'schedule' => array (optional, weekly schedule with programs by day)], ...]]
+ *                     'programs' => array (optional, program definitions with id, name, description,
+ *                     extended_description, logo_id per program), 'schedule' => array (optional,
+ *                     weekly schedule: day => array of entries with program_id (string), start, end)], ...]]
  */
 function radplapag_get_settings() {
     return get_option( 'radplapag_settings', [ 'stations' => [] ] );

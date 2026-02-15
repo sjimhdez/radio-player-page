@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: audio, icecast, radio player, radio station, streaming
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 3.1.0
+Stable tag: 3.2.0
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -71,12 +71,21 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 
 == Screenshots ==
 
-1. Player page example with blue theme color and Oscilloscope visualizer
-2. Player page example with yellow theme color and Amplitude Waterfall visualizer
-3. Player page example with green theme color and Bars Spectrum visualizer
-4. Admin settings for managing stations
+1. Player page with blue theme and Oscilloscope visualizer.
+2. Player page with yellow theme, Bars Spectrum visualizer, and timezone clock.
+3. Player page with green theme, Amplitude Waterfall visualizer, and sleep mode active.
+4. Player page with pink theme and Schedule modal open.
+5. Player page with orange theme and All Programs modal open.
+6. Settings screen with minimal configuration.
+7. Settings screen showing program configuration.
+8. Settings screen showing schedule configuration.
 
 == Changelog ==
+
+= 3.2.0 =
+* Added Schedule modal
+* Added Programs modal
+* Added optional program descriptions
 
 = 3.1.0 =
 * Added program schedule
