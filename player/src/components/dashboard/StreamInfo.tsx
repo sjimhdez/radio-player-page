@@ -113,6 +113,9 @@ const StreamInfo = ({
       {/* Show active program if schedule is configured */}
       {currentProgram && (
         <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+          <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+            {t('dashboard.activeProgram')}:
+          </Typography>
           {currentProgram.programLogoUrl && (
             <Box
               component="img"
