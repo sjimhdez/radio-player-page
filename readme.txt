@@ -79,8 +79,9 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 == Changelog ==
 
 = 3.2.0 =
-* Added optional program description (short, 256 chars) and extended description (plain text + line breaks, 512 chars) fields
-* Extended description displayed in the All Programs modal expandable section
+* Added Schedule modal
+* Added Programs modal
+* Added optional program descriptions
 
 = 3.1.0 =
 * Added program schedule
