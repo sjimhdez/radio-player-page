@@ -7,8 +7,6 @@ import { formatTimezoneDifference } from 'src/utils/timezone'
 import type { EmissionTime } from 'src/hooks/use-emission-time'
 
 interface TimezoneClockProps {
-  /** Whether the stream is currently playing */
-  isPlaying: boolean
   /** Emission time data from useEmissionTime hook */
   emissionTimeData: EmissionTime
 }
@@ -19,9 +17,8 @@ interface TimezoneClockProps {
  * Displays a discrete, stylized real-time clock showing the emission timezone (WordPress)
  * with a subtle time difference indicator. Positioned in the top-right corner.
  *
- * Only displays when:
- * - The stream is playing (isPlaying === true)
- * - There is a timezone difference (hasDifference === true)
+ * Only displays when there is a timezone difference (hasDifference === true). When that
+ * condition is met, the clock is always visible, independent of playback state.
  *
  * Features:
  * - Compact clock showing emission timezone in "HH:MM" format
@@ -31,14 +28,14 @@ interface TimezoneClockProps {
  * - Minimal, elegant design using Material-UI components
  *
  * @param props - Component props
- * @returns Timezone clock, or null if conditions not met
+ * @returns Timezone clock, or null when there is no timezone difference
  */
-const TimezoneClock = ({ isPlaying, emissionTimeData }: TimezoneClockProps) => {
+const TimezoneClock = ({ emissionTimeData }: TimezoneClockProps) => {
   const { t } = useTranslation()
   const { emissionTime, timeDifference, hasDifference } = emissionTimeData
 
-  // Only show when playing and there's a timezone difference
-  if (!isPlaying || !hasDifference) {
+  // Only show when there is a timezone difference (always visible then, regardless of playback)
+  if (!hasDifference) {
     return null
   }
 
@@ -52,7 +49,7 @@ const TimezoneClock = ({ isPlaying, emissionTimeData }: TimezoneClockProps) => {
         position: 'absolute',
         top: 16,
         right: 16,
-        zIndex: (theme) => theme.zIndex.tooltip,
+        zIndex: (theme) => theme.zIndex.appBar,
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
         backdropFilter: 'blur(8px)',
         px: 1.5,

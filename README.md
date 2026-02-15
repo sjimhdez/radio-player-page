@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-3.1.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-3.2.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue)](https://www.php.net/)
@@ -47,7 +47,7 @@ Each station lives on its own independent HTML page, completely bypassing your W
 
 Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next program, with timezone-aware calculations and overlap prevention.
 
-- Define programs with names and optional logos
+- Define programs with names, optional short and extended descriptions, and optional logos
 - Assign programs to time slots across the week
 - Automatic detection of current and upcoming programs
 - Visual display of active program in the player
@@ -87,7 +87,7 @@ Keep a global audience informed. When your station's timezone differs from the l
 
 - **Timezone clock** displays the station's local time
 - **Time difference indicator** shows the offset from the listener's timezone
-- Only appears when playback is active and timezones differ
+- Always visible when timezones differ (independent of playback state)
 - Helps international audiences understand program timing
 
 ### Media Session API
@@ -131,7 +131,7 @@ Upload custom background images and logos for each station. Personalize each sta
 
 ### Multilingual Interface
 
-Player interface available in **9 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish. Automatic language detection based on browser settings, with fallback to English.
+Player interface available in **11 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil). Automatic language detection based on browser settings, with fallback to English.
 
 ---
 
@@ -253,7 +253,7 @@ The project uses [pre-commit](https://pre-commit.com/) for WordPress plugin chec
 **JavaScript globals** (set by PHP before React; combined in React via `useConfig()`):
 
 - **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
-- **`window.RADPLAPAG_PROGRAMS`** – Array of `{ name, logoUrl? }`. Optional.
+- **`window.RADPLAPAG_PROGRAMS`** – Array of `{ name, description?, extendedDescription?, logoUrl? }`. Optional.
 - **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end }], ... }`. `program_id` is index into `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour). Optional.
 
 **PHP (public)**
@@ -263,7 +263,9 @@ The project uses [pre-commit](https://pre-commit.com/) for WordPress plugin chec
 
 ### Internationalization
 
-Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK. Detection: HTML `lang` → localStorage → navigator. To add a language: add a JSON file in `player/src/locales/` and register it in `player/src/config/i18n.ts`.
+Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE, pt-BR / pt_BR. Detection: HTML `lang` → localStorage → navigator. For German (de_DE) and Portuguese Brazil (pt_BR), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/) and [WordPress Portuguese Brazil glossary](https://translate.wordpress.org/locale/pt-br/default/glossary/) where applicable.
+
+**Adding a new language:** (1) Add a JSON file in `player/src/locales/` with the same keys as `en-US.json`. (2) Import it and register the locale in `player/src/config/i18n.ts` (use both hyphen and underscore keys if the locale has a region, e.g. `de-DE` and `de_DE`, so WordPress `lang` and browser codes both work). (3) Update this README. Source strings are English (en-US). For locales with an official WordPress glossary (e.g. de_DE), use the [glossary and style guide](https://make.wordpress.org/polyglots/handbook/translating/glossaries-and-style-guides-per-locale/) when translating.
 
 ### Security and Browser Support
 

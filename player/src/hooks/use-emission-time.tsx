@@ -33,6 +33,8 @@ export interface EmissionTime {
  *
  * The hook uses the WordPress timezone offset from configuration, which handles DST automatically.
  * The browser timezone is detected automatically from the user's system settings.
+ * The emission time clock that consumes this data is shown whenever hasDifference is true,
+ * independent of playback state.
  *
  * Updates at the start of each system minute for alignment with the user's clock, following the
  * same pattern as the program schedule hook (use-program-schedule).

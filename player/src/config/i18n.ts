@@ -11,6 +11,9 @@ import translationsRO_RO from 'src/locales/ro-RO.json'
 import translationsES_MX from 'src/locales/es-MX.json'
 import translationsGL_ES from 'src/locales/gl-ES.json'
 import translationsDA_DK from 'src/locales/da-DK.json'
+import translationsDE_DE from 'src/locales/de-DE.json'
+import translationsPT_BR from 'src/locales/pt-BR.json'
+import translationsIT_IT from 'src/locales/it-IT.json'
 
 /**
  * Internationalization (i18n) configuration
@@ -26,6 +29,9 @@ import translationsDA_DK from 'src/locales/da-DK.json'
  * - sv-SE (Swedish - Sweden)
  * - gl-ES (Galician - Spain)
  * - da-DK (Danish - Denmark)
+ * - de-DE / de_DE (German - Germany)
+ * - pt-BR / pt_BR (Portuguese - Brazil)
+ * - it-IT / it_IT (Italian - Italy)
  *
  * Language detection order:
  * 1. HTML lang attribute
@@ -65,6 +71,24 @@ i18n
       },
       'da-DK': {
         translation: translationsDA_DK,
+      },
+      'de-DE': {
+        translation: translationsDE_DE,
+      },
+      de_DE: {
+        translation: translationsDE_DE,
+      },
+      'pt-BR': {
+        translation: translationsPT_BR,
+      },
+      pt_BR: {
+        translation: translationsPT_BR,
+      },
+      'it-IT': {
+        translation: translationsIT_IT,
+      },
+      it_IT: {
+        translation: translationsIT_IT,
       },
     },
     fallbackLng: 'en-US',

@@ -141,14 +141,8 @@
           return;
         }
 
-        var isProgramDefFrame =
-          wrapper.closest(".radplapag-program-definition-row") !== null;
-        var frameTitle = isProgramDefFrame
-          ? s.addProgramImage || "Add Program Image"
-          : s.selectImage || "Select Image";
-        var frameButtonText = isProgramDefFrame
-          ? s.addProgramImage || "Add Program Image"
-          : s.selectImage || "Select Image";
+        var frameTitle = s.selectImage || "Select Image";
+        var frameButtonText = s.selectImage || "Select Image";
         file_frame = wp.media.frames.file_frame = wp.media({
           title: frameTitle,
           button: { text: frameButtonText },
@@ -158,23 +152,11 @@
         file_frame.on("select", function () {
           var attachment = file_frame.state().get("selection").first().toJSON();
           inputId.value = attachment.id;
-          var isProgramDef =
-            wrapper.closest(".radplapag-program-definition-row") !== null;
-          var sizeStyle = isProgramDef
-            ? "max-width:30px;max-height:30px;display:block;"
-            : "max-width:150px;max-height:150px;display:block;";
           preview.innerHTML =
             '<img src="' +
             attachment.url +
-            '" alt="" style="' +
-            sizeStyle +
-            '">';
+            '" alt="" style="max-width:150px;max-height:150px;display:block;">';
           removeBtn.style.display = "inline-block";
-          if (isProgramDef) {
-            var uploadBtn = wrapper.querySelector(".radplapag-upload-btn");
-            if (uploadBtn)
-              uploadBtn.textContent = s.changeImage || "Change Image";
-          }
           file_frame = null;
         });
 
@@ -189,11 +171,6 @@
         if (idEl) idEl.value = "";
         if (previewEl) previewEl.innerHTML = "";
         e.target.style.display = "none";
-        if (wrapper.closest(".radplapag-program-definition-row")) {
-          var uploadBtn = wrapper.querySelector(".radplapag-upload-btn");
-          if (uploadBtn)
-            uploadBtn.textContent = s.addProgramImage || "Add Program Image";
-        }
       }
     });
   }
@@ -1206,6 +1183,37 @@
   function initProgramsManagement() {
     if (!container) return;
     container.addEventListener("click", function (e) {
+      if (e.target.closest(".radplapag-program-more-fields-toggle")) {
+        e.preventDefault();
+        var toggle = e.target.closest(".radplapag-program-more-fields-toggle");
+        var programRow = toggle.closest(".radplapag-program-definition-row");
+        if (!programRow) return;
+        var extendedCell = programRow.querySelector(
+          ".radplapag-program-definition-extended-cell",
+        );
+        if (!extendedCell) return;
+        var wrapper = extendedCell.querySelector(
+          ".radplapag-program-more-fields-wrapper",
+        );
+        if (!wrapper) return;
+        var isExpanded = toggle.getAttribute("aria-expanded") === "true";
+        var showLabel = s.showMoreFields || "Show optional fields";
+        var hideLabel = s.hideMoreFields || "Hide optional fields";
+        if (isExpanded) {
+          wrapper.classList.add("radplapag-program-more-fields-collapsed");
+          toggle.setAttribute("aria-expanded", "false");
+          toggle.innerHTML =
+            '<span class="toggle-indicator" aria-hidden="true"></span>' +
+            showLabel;
+        } else {
+          wrapper.classList.remove("radplapag-program-more-fields-collapsed");
+          toggle.setAttribute("aria-expanded", "true");
+          toggle.innerHTML =
+            '<span class="toggle-indicator" aria-hidden="true"></span>' +
+            hideLabel;
+        }
+        return;
+      }
       if (e.target.classList.contains("radplapag-add-program-definition")) {
         e.preventDefault();
         var stationIndex = e.target.getAttribute("data-station-index");
@@ -1228,8 +1236,17 @@
           "_" +
           Math.random().toString(36).substr(2, 9);
         var programNamePlaceholder = s.programName || "Program name";
-        var addProgramImage = s.addProgramImage || "Add Program Image";
+        var programImageLabel = s.programImageLabel || "Program Image";
+        var programDescriptionPlaceholder = s.programDescription || "e.g. Morning news with Howard Mallory and guests";
+        var descriptionLabel = s.descriptionLabel || "Description";
+        var programExtendedDescriptionPlaceholder =
+          s.programExtendedDescription || "e.g. Join us every morning for in-depth interviews, breaking news analysis, and listener calls. Howard Mallory brings decades of experience to the microphone, covering local politics [...]";
+        var extendedDescriptionLabel = s.extendedDescriptionLabel || "Extended Description";
+        var showMoreFields = s.showMoreFields || "Show optional fields";
+        var hideMoreFields = s.hideMoreFields || "Hide optional fields";
+        var selectImage = s.selectImage || "Select Image";
         var removeImage = s.removeImage || "Remove Image";
+        var recommendedProgramImageSize = s.recommendedProgramImageSize || "Recommended size: 256x256 pixels.";
         var removeProgram = s.removeProgram || "Remove Program";
         var newRow = document.createElement("div");
         newRow.className = "radplapag-program-definition-row";
@@ -1252,23 +1269,11 @@
           '][name]" value="" placeholder="' +
           programNamePlaceholder +
           '" class="radplapag-program-definition-name" maxlength="64" style="width: 200px;">' +
+          '<button type="button" class="button-link radplapag-program-more-fields-toggle" aria-expanded="false">' +
+          '<span class="toggle-indicator" aria-hidden="true"></span>' +
+          showMoreFields +
+          "</button>" +
           '<div class="radplapag-program-error-message" style="display: none;"></div>' +
-          "</div>" +
-          '<div class="radplapag-program-definition-main">' +
-          '<div class="radplapag-image-upload-wrapper">' +
-          '<input type="hidden" name="radplapag_settings[stations][' +
-          stationIndex +
-          "][programs][" +
-          nextIndex +
-          '][logo_id]" value="0" class="radplapag-image-id">' +
-          '<div class="radplapag-image-preview"></div>' +
-          '<button type="button" class="button radplapag-upload-btn">' +
-          addProgramImage +
-          "</button>" +
-          '<button type="button" class="button radplapag-remove-image-btn" style="display:none;">' +
-          removeImage +
-          "</button>" +
-          "</div>" +
           "</div>" +
           '<div class="radplapag-program-definition-remove-cell">' +
           '<a href="#" class="submitdelete radplapag-remove-program-definition" data-station-index="' +
@@ -1278,6 +1283,60 @@
           '">' +
           removeProgram +
           "</a>" +
+          "</div>" +
+          "</div>" +
+          '<div class="radplapag-program-definition-extended-cell">' +
+          '<div class="radplapag-program-more-fields-wrapper radplapag-program-more-fields-collapsed">' +
+          '<div class="radplapag-program-more-fields-inner">' +
+          '<div class="radplapag-field-group">' +
+          '<div class="radplapag-field-label">' +
+          programImageLabel +
+          "</div>" +
+          '<div class="radplapag-image-upload-wrapper">' +
+          '<input type="hidden" name="radplapag_settings[stations][' +
+          stationIndex +
+          "][programs][" +
+          nextIndex +
+          '][logo_id]" value="0" class="radplapag-image-id">' +
+          '<div class="radplapag-image-preview"></div>' +
+          '<div class="radplapag-image-buttons">' +
+          '<button type="button" class="button radplapag-upload-btn">' +
+          selectImage +
+          "</button>" +
+          '<button type="button" class="button radplapag-remove-image-btn" style="display:none;">' +
+          removeImage +
+          "</button>" +
+          "</div>" +
+          '<p class="description">' +
+          recommendedProgramImageSize +
+          "</p>" +
+          "</div>" +
+          "</div>" +
+          '<div class="radplapag-field-group">' +
+          '<div class="radplapag-field-label">' +
+          descriptionLabel +
+          "</div>" +
+          '<input type="text" name="radplapag_settings[stations][' +
+          stationIndex +
+          "][programs][" +
+          nextIndex +
+          '][description]" value="" placeholder="' +
+          programDescriptionPlaceholder +
+          '" class="radplapag-program-definition-description" maxlength="256">' +
+          "</div>" +
+          '<div class="radplapag-field-group">' +
+          '<div class="radplapag-field-label">' +
+          extendedDescriptionLabel +
+          "</div>" +
+          '<textarea name="radplapag_settings[stations][' +
+          stationIndex +
+          "][programs][" +
+          nextIndex +
+          '][extended_description]" rows="3" maxlength="512" placeholder="' +
+          programExtendedDescriptionPlaceholder +
+          '" class="radplapag-program-definition-extended-description"></textarea>' +
+          "</div>" +
+          "</div>" +
           "</div>" +
           "</div>";
         list.appendChild(newRow);
@@ -1308,6 +1367,12 @@
             ".radplapag-image-upload-wrapper input.radplapag-image-id",
           );
           var nameInput = r.querySelector(".radplapag-program-definition-name");
+          var descInput = r.querySelector(
+            ".radplapag-program-definition-description",
+          );
+          var extendedDescInput = r.querySelector(
+            ".radplapag-program-definition-extended-description",
+          );
           var idField = r.querySelector(".radplapag-program-id-field");
           var removeBtn = r.querySelector(
             ".radplapag-remove-program-definition",
@@ -1326,6 +1391,20 @@
               "][programs][" +
               idx +
               "][name]";
+          if (descInput)
+            descInput.name =
+              "radplapag_settings[stations][" +
+              stationIndex +
+              "][programs][" +
+              idx +
+              "][description]";
+          if (extendedDescInput)
+            extendedDescInput.name =
+              "radplapag_settings[stations][" +
+              stationIndex +
+              "][programs][" +
+              idx +
+              "][extended_description]";
           if (idField)
             idField.name =
               "radplapag_settings[stations][" +
