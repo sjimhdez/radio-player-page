@@ -342,14 +342,9 @@ function radplapag_render_settings_page() {
                                                     <div class="radplapag-program-definition-line">
                                                         <div class="radplapag-program-definition-name-cell">
                                                             <input type="text" name="radplapag_settings[stations][<?php echo esc_attr( $index ); ?>][programs][<?php echo esc_attr( $prog_idx ); ?>][name]" value="<?php echo esc_attr( $prog_name ); ?>" placeholder="<?php esc_attr_e( 'Program name', 'radio-player-page' ); ?>" class="radplapag-program-definition-name" maxlength="64" style="width: 200px;">
-                                                            <?php
-                                                            $has_more_fields = ( '' !== trim( (string) $prog_description ) ) || ( '' !== trim( (string) $prog_extended_description ) ) || $prog_logo_id > 0;
-                                                            $more_fields_expanded = $has_more_fields ? 'true' : 'false';
-                                                            $more_fields_toggle_label = $has_more_fields ? esc_html__( 'Hide optional fields', 'radio-player-page' ) : esc_html__( 'Show optional fields', 'radio-player-page' );
-                                                            ?>
-                                                            <button type="button" class="button-link radplapag-program-more-fields-toggle" aria-expanded="<?php echo esc_attr( $more_fields_expanded ); ?>">
+                                                            <button type="button" class="button-link radplapag-program-more-fields-toggle" aria-expanded="false">
                                                                 <span class="toggle-indicator" aria-hidden="true"></span>
-                                                                <?php echo $more_fields_toggle_label; ?>
+                                                                <?php esc_html_e( 'Show optional fields', 'radio-player-page' ); ?>
                                                             </button>
                                                             <div class="radplapag-program-error-message" style="display: none;"></div>
                                                         </div>
@@ -358,10 +353,7 @@ function radplapag_render_settings_page() {
                                                         </div>
                                                     </div>
                                                     <div class="radplapag-program-definition-extended-cell">
-                                                        <?php
-                                                        $more_fields_collapsed_class = $has_more_fields ? '' : ' radplapag-program-more-fields-collapsed';
-                                                        ?>
-                                                        <div class="radplapag-program-more-fields-wrapper<?php echo esc_attr( $more_fields_collapsed_class ); ?>">
+                                                        <div class="radplapag-program-more-fields-wrapper radplapag-program-more-fields-collapsed">
                                                             <div class="radplapag-program-more-fields-inner">
                                                                 <div class="radplapag-field-group">
                                                                     <div class="radplapag-field-label"><?php esc_html_e( 'Program Image', 'radio-player-page' ); ?></div>
