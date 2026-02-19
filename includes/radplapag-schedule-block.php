@@ -70,6 +70,28 @@ function radplapag_is_slot_active( $start, $end, $current_minutes, $is_prev_day_
 }
 
 /**
+ * Returns day keys in order (Monday to Sunday) and translated labels for schedule display.
+ *
+ * Shared by the schedule block and the programs list block so day labels are not duplicated.
+ *
+ * @since 3.3.0
+ * @return array Associative array with 'day_keys_order' (array of day keys) and 'day_labels' (day_key => translated label).
+ */
+function radplapag_get_schedule_day_keys_and_labels() {
+	$day_keys_order = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
+	$day_labels     = [
+		'monday'    => __( 'Monday', 'radio-player-page' ),
+		'tuesday'   => __( 'Tuesday', 'radio-player-page' ),
+		'wednesday' => __( 'Wednesday', 'radio-player-page' ),
+		'thursday'  => __( 'Thursday', 'radio-player-page' ),
+		'friday'    => __( 'Friday', 'radio-player-page' ),
+		'saturday'  => __( 'Saturday', 'radio-player-page' ),
+		'sunday'    => __( 'Sunday', 'radio-player-page' ),
+	];
+	return [ 'day_keys_order' => $day_keys_order, 'day_labels' => $day_labels ];
+}
+
+/**
  * Builds resolved programs array (id => name, description, logo_url) from station raw programs.
  *
  * @since 3.3.0
@@ -130,16 +152,9 @@ function radplapag_get_schedule_for_station( $station_index, $day_order = 'curre
 	$day_of_week = (int) $now->format( 'w' );
 	$current_minutes = (int) $now->format( 'G' ) * 60 + (int) $now->format( 'i' );
 
-	$day_keys_order = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
-	$day_labels = [
-		'monday'    => __( 'Monday', 'radio-player-page' ),
-		'tuesday'   => __( 'Tuesday', 'radio-player-page' ),
-		'wednesday' => __( 'Wednesday', 'radio-player-page' ),
-		'thursday'  => __( 'Thursday', 'radio-player-page' ),
-		'friday'    => __( 'Friday', 'radio-player-page' ),
-		'saturday'  => __( 'Saturday', 'radio-player-page' ),
-		'sunday'    => __( 'Sunday', 'radio-player-page' ),
-	];
+	$day_data   = radplapag_get_schedule_day_keys_and_labels();
+	$day_keys_order = $day_data['day_keys_order'];
+	$day_labels = $day_data['day_labels'];
 
 	$days_out = [];
 	foreach ( $day_keys_order as $day_key ) {

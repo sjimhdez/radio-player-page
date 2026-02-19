@@ -28,14 +28,18 @@ defined( 'ABSPATH' ) || exit;
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-settings.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-schedule-block.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-programs-list-block.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/schedule/render.php';
+require_once plugin_dir_path( __FILE__ ) . 'blocks/programs-list/render.php';
 
 if ( is_admin() ) {
     require_once plugin_dir_path( __FILE__ ) . 'admin/admin.php';
 }
 
 add_action( 'init', 'radplapag_register_schedule_block' );
+add_action( 'init', 'radplapag_register_programs_list_block' );
 add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_schedule_block_editor_assets' );
+add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_programs_list_block_editor_assets' );
 
 /**
  * Registers the Program Schedule Gutenberg block.
@@ -81,6 +85,52 @@ function radplapag_enqueue_schedule_block_editor_assets() {
         );
     }
     wp_localize_script( 'radplapag-schedule-block-editor', 'radplapagScheduleBlock', array( 'stations' => $station_labels ) );
+}
+
+/**
+ * Registers the Programs List Gutenberg block.
+ *
+ * @since 3.3.0
+ */
+function radplapag_register_programs_list_block() {
+    register_block_type(
+        plugin_dir_path( __FILE__ ) . 'blocks/programs-list',
+        array(
+            'render_callback' => 'radplapag_render_programs_list_block',
+        )
+    );
+}
+
+/**
+ * Enqueues the Programs List block editor script and localizes station list.
+ *
+ * @since 3.3.0
+ */
+function radplapag_enqueue_programs_list_block_editor_assets() {
+    $block_dir  = plugin_dir_path( __FILE__ ) . 'blocks/programs-list/';
+    $asset_file = $block_dir . 'build/index.asset.php';
+    if ( ! file_exists( $asset_file ) ) {
+        return;
+    }
+    $asset = include $asset_file;
+    wp_enqueue_script(
+        'radplapag-programs-list-block-editor',
+        plugin_dir_url( __FILE__ ) . 'blocks/programs-list/build/index.js',
+        $asset['dependencies'],
+        $asset['version'],
+        true
+    );
+    wp_set_script_translations( 'radplapag-programs-list-block-editor', 'radio-player-page' );
+    $options        = radplapag_get_settings();
+    $stations       = isset( $options['stations'] ) && is_array( $options['stations'] ) ? $options['stations'] : array();
+    $station_labels = array();
+    foreach ( $stations as $index => $station ) {
+        $title = isset( $station['station_title'] ) ? $station['station_title'] : '';
+        $station_labels[] = array(
+            'label' => $title !== '' ? $title : ( __( 'Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+        );
+    }
+    wp_localize_script( 'radplapag-programs-list-block-editor', 'radplapagProgramsListBlock', array( 'stations' => $station_labels ) );
 }
 
 /**
