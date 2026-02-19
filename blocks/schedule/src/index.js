@@ -10,7 +10,7 @@
 
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { SelectControl, PanelBody } from '@wordpress/components';
+import { SelectControl, PanelBody, ToggleControl } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import ServerSideRender from '@wordpress/server-side-render';
 
@@ -19,7 +19,7 @@ import metadata from '../block.json';
 const blockName = metadata.name;
 
 function Edit( { attributes, setAttributes } ) {
-	const { stationIndex, dayOrder } = attributes;
+	const { stationIndex, dayOrder, showDescription } = attributes;
 	const blockProps = useBlockProps();
 	const stations = window.radplapagScheduleBlock?.stations || [];
 	const options =
@@ -31,6 +31,7 @@ function Edit( { attributes, setAttributes } ) {
 			  } ) );
 	const safeIndex = Math.max( 0, Math.min( stationIndex, stations.length ? stations.length - 1 : 0 ) );
 	const dayOrderValue = dayOrder === 'natural' ? 'natural' : 'current_first';
+	const showDescriptionValue = showDescription !== false;
 
 	return (
 		<>
@@ -51,12 +52,17 @@ function Edit( { attributes, setAttributes } ) {
 						] }
 						onChange={ ( value ) => setAttributes( { dayOrder: value } ) }
 					/>
+					<ToggleControl
+						label={ __( 'Show program description', 'radio-player-page' ) }
+						checked={ showDescriptionValue }
+						onChange={ ( value ) => setAttributes( { showDescription: value } ) }
+					/>
 				</PanelBody>
 			</InspectorControls>
 			<div { ...blockProps }>
 				<ServerSideRender
 					block={ blockName }
-					attributes={ { stationIndex: safeIndex, dayOrder: dayOrderValue } }
+					attributes={ { stationIndex: safeIndex, dayOrder: dayOrderValue, showDescription: showDescriptionValue } }
 				/>
 			</div>
 		</>

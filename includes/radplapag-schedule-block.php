@@ -107,8 +107,7 @@ function radplapag_build_programs_map( $station ) {
  * @since 3.3.0
  * @param int    $station_index Zero-based index into radplapag_settings['stations'].
  * @param string $day_order     Optional. 'current_first' (default) = start with today; 'natural' = Monday to Sunday.
- * @return array|null Associative array with 'programs' (id => name, description, logo_url),
- *                    'days' (array of [ 'day_key' => string, 'label' => string, 'slots' => [...] ]),
+ * @return array|null Associative array with 'programs', 'days', 'station_page_url' (permalink for station's player page, or empty string),
  *                    or null if station invalid or index out of range.
  */
 function radplapag_get_schedule_for_station( $station_index, $day_order = 'current_first' ) {
@@ -169,12 +168,13 @@ function radplapag_get_schedule_for_station( $station_index, $day_order = 'curre
 				$is_live = radplapag_is_slot_active( $start, $end, $current_minutes, true );
 			}
 			$slots[] = [
-				'program_id'   => $program_id,
-				'program_name' => $prog['name'],
-				'start'        => $start,
-				'end'          => $end,
-				'time_range'   => $start . '-' . $end,
-				'is_live'      => $is_live,
+				'program_id'           => $program_id,
+				'program_name'         => $prog['name'],
+				'program_description'  => isset( $prog['description'] ) && is_string( $prog['description'] ) ? $prog['description'] : '',
+				'start'                => $start,
+				'end'                  => $end,
+				'time_range'           => $start . '-' . $end,
+				'is_live'              => $is_live,
 			];
 		}
 		// Sort by start time.
@@ -199,8 +199,18 @@ function radplapag_get_schedule_for_station( $station_index, $day_order = 'curre
 		$days_out = $reordered;
 	}
 
+	$station_page_url = '';
+	if ( isset( $station['player_page'] ) && $station['player_page'] ) {
+		$page_id = (int) $station['player_page'];
+		if ( $page_id > 0 ) {
+			$station_page_url = get_permalink( $page_id );
+			$station_page_url = is_string( $station_page_url ) ? $station_page_url : '';
+		}
+	}
+
 	return [
-		'programs' => $programs_map,
-		'days'     => $days_out,
+		'programs'         => $programs_map,
+		'days'             => $days_out,
+		'station_page_url' => $station_page_url,
 	];
 }

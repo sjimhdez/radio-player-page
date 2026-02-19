@@ -15,6 +15,10 @@
 		"dayOrder": {
 			"type": "string",
 			"default": "current_first"
+		},
+		"showDescription": {
+			"type": "boolean",
+			"default": true
 		}
 	},
 	"supports": {

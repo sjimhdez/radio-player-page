@@ -13,9 +13,10 @@
  * @return string HTML output.
  */
 function radplapag_render_schedule_block( $attributes, $content, $block ) {
-	$station_index = isset( $attributes['stationIndex'] ) ? (int) $attributes['stationIndex'] : 0;
-	$day_order     = isset( $attributes['dayOrder'] ) && $attributes['dayOrder'] === 'natural' ? 'natural' : 'current_first';
-	$data          = radplapag_get_schedule_for_station( $station_index, $day_order );
+	$station_index    = isset( $attributes['stationIndex'] ) ? (int) $attributes['stationIndex'] : 0;
+	$day_order        = isset( $attributes['dayOrder'] ) && $attributes['dayOrder'] === 'natural' ? 'natural' : 'current_first';
+	$show_description = isset( $attributes['showDescription'] ) ? (bool) $attributes['showDescription'] : true;
+	$data             = radplapag_get_schedule_for_station( $station_index, $day_order );
 
 	if ( $data === null ) {
 		return '<div class="wp-block-radplapag-schedule radplapag-schedule--empty">' .
@@ -37,6 +38,9 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			'<p class="radplapag-schedule__notice">' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p>' .
 			'</div>';
 	}
+
+	$station_page_url = isset( $data['station_page_url'] ) ? $data['station_page_url'] : '';
+	$station_page_url = ( is_string( $station_page_url ) && $station_page_url !== '' ) ? $station_page_url : '';
 
 	$html = '<div class="wp-block-radplapag-schedule">';
 
@@ -60,8 +64,24 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 				$slot_class .= ' radplapag-schedule-slot--live';
 			}
 			$html .= '<li class="' . esc_attr( $slot_class ) . '"' . ( $is_live ? ' data-is-live="true"' : '' ) . '>';
-			$html .= '<span class="radplapag-schedule-slot__name">' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
-			$html .= ' <span class="radplapag-schedule-slot__time">' . esc_html( $time_range ) . '</span>';
+			$slot_content = '<span class="radplapag-schedule-slot__name">' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
+			$slot_content .= ' - <span class="radplapag-schedule-slot__time">' . esc_html( $time_range ) . '</span>';
+			if ( $is_live ) {
+				$slot_content = '<span class="radplapag-schedule-slot__live-label">' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . $slot_content;
+			}
+			$html .= '<p class="radplapag-schedule-slot__line">';
+			if ( $is_live && $station_page_url !== '' ) {
+				$html .= '<a href="' . esc_url( $station_page_url ) . '" class="radplapag-schedule-slot__link" target="_blank" rel="noopener noreferrer">' . $slot_content . '</a>';
+			} else {
+				$html .= $slot_content;
+			}
+			$html .= '</p>';
+			if ( $show_description ) {
+				$program_description = isset( $slot['program_description'] ) ? $slot['program_description'] : '';
+				if ( $program_description !== '' ) {
+					$html .= '<p class="radplapag-schedule-slot__description">' . esc_html( $program_description ) . '</p>';
+				}
+			}
 			$html .= '</li>';
 		}
 
