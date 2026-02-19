@@ -13,9 +13,10 @@
  * @return string HTML output.
  */
 function radplapag_render_programs_list_block( $attributes, $content, $block ) {
-	$station_index            = isset( $attributes['stationIndex'] ) ? (int) $attributes['stationIndex'] : 0;
-	$show_image               = isset( $attributes['showImage'] ) ? (bool) $attributes['showImage'] : true;
+	$station_index             = isset( $attributes['stationIndex'] ) ? (int) $attributes['stationIndex'] : 0;
+	$show_image                = isset( $attributes['showImage'] ) ? (bool) $attributes['showImage'] : true;
 	$show_extended_description = isset( $attributes['showExtendedDescription'] ) ? (bool) $attributes['showExtendedDescription'] : true;
+	$show_schedule             = isset( $attributes['showSchedule'] ) ? (bool) $attributes['showSchedule'] : true;
 
 	$programs = radplapag_get_programs_list_for_station( $station_index );
 
@@ -55,7 +56,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 			$html .= '<div class="radplapag-programs-list__description">' . esc_html( $ext_desc ) . '</div>';
 		}
 
-		if ( ! empty( $slots ) ) {
+		if ( $show_schedule && ! empty( $slots ) ) {
 			$html .= '<ul class="radplapag-programs-list__schedule">';
 			foreach ( $slots as $slot ) {
 				$day_label  = isset( $slot['day_label'] ) ? $slot['day_label'] : '';
