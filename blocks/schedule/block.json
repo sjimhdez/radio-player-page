@@ -1,0 +1,31 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "radplapag/schedule",
+	"version": "1.0.0",
+	"title": "Program Schedule",
+	"category": "widgets",
+	"description": "Display the weekly program schedule for a selected radio station.",
+	"textdomain": "radio-player-page",
+	"attributes": {
+		"stationIndex": {
+			"type": "number",
+			"default": 0
+		}
+	},
+	"supports": {
+		"typography": {
+			"fontSize": true,
+			"lineHeight": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true
+		},
+		"color": {
+			"text": true,
+			"background": true
+		},
+		"html": false
+	}
+}

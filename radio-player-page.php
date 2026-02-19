@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: Dedicated player pages for your radio streams, with program scheduling and continuous playback.
- * Version: 3.2.0
+ * Version: 3.3.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, shoutcast, streaming
@@ -27,9 +27,60 @@ defined( 'ABSPATH' ) || exit;
  */
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-schedule-block.php';
+require_once plugin_dir_path( __FILE__ ) . 'blocks/schedule/render.php';
 
 if ( is_admin() ) {
     require_once plugin_dir_path( __FILE__ ) . 'admin/admin.php';
+}
+
+add_action( 'init', 'radplapag_register_schedule_block' );
+add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_schedule_block_editor_assets' );
+
+/**
+ * Registers the Program Schedule Gutenberg block.
+ *
+ * @since 3.3.0
+ */
+function radplapag_register_schedule_block() {
+    register_block_type(
+        plugin_dir_path( __FILE__ ) . 'blocks/schedule',
+        array(
+            'render_callback' => 'radplapag_render_schedule_block',
+        )
+    );
+}
+
+/**
+ * Enqueues the Schedule block editor script and localizes station list.
+ *
+ * @since 3.3.0
+ */
+function radplapag_enqueue_schedule_block_editor_assets() {
+    $block_dir = plugin_dir_path( __FILE__ ) . 'blocks/schedule/';
+    $asset_file = $block_dir . 'build/index.asset.php';
+    if ( ! file_exists( $asset_file ) ) {
+        return;
+    }
+    $asset = include $asset_file;
+    wp_enqueue_script(
+        'radplapag-schedule-block-editor',
+        plugin_dir_url( __FILE__ ) . 'blocks/schedule/build/index.js',
+        $asset['dependencies'],
+        $asset['version'],
+        true
+    );
+    wp_set_script_translations( 'radplapag-schedule-block-editor', 'radio-player-page' );
+    $options = radplapag_get_settings();
+    $stations = isset( $options['stations'] ) && is_array( $options['stations'] ) ? $options['stations'] : array();
+    $station_labels = array();
+    foreach ( $stations as $index => $station ) {
+        $title = isset( $station['station_title'] ) ? $station['station_title'] : '';
+        $station_labels[] = array(
+            'label' => $title !== '' ? $title : ( __( 'Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+        );
+    }
+    wp_localize_script( 'radplapag-schedule-block-editor', 'radplapagScheduleBlock', array( 'stations' => $station_labels ) );
 }
 
 /**

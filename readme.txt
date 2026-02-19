@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: audio, icecast, radio player, radio station, streaming
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 3.2.0
+Stable tag: 3.3.0
 Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -25,6 +25,7 @@ Radio Player Page **provides dedicated, standalone player pages** for your radio
 * **Multi-Station Control** – Manage up to 10 independent stations from a single WordPress installation, each with its own stream, schedule, and branding.
 * **Emission Timezone Clock** – Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 * **Media Session API** – Professional integration with device lock screens and media controls, displaying station art and info.
+* **Program Schedule Block** – Add a Gutenberg block (Block Editor) to any post or page to display the full weekly program schedule for a selected station. Design is controlled by the editor and theme (Block Supports, theme.json).
 
 = Listener Experience =
 
@@ -81,6 +82,9 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 8. Settings screen showing schedule configuration.
 
 == Changelog ==
+
+= 3.3.0 =
+* Added Program Schedule block (radplapag/schedule) for the Block Editor. Displays the weekly program schedule for a selected station on any post or page. Design is left to the editor and theme.
 
 = 3.2.0 =
 * Added Schedule modal
