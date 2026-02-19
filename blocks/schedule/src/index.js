@@ -19,7 +19,7 @@ import metadata from '../block.json';
 const blockName = metadata.name;
 
 function Edit( { attributes, setAttributes } ) {
-	const { stationIndex } = attributes;
+	const { stationIndex, dayOrder } = attributes;
 	const blockProps = useBlockProps();
 	const stations = window.radplapagScheduleBlock?.stations || [];
 	const options =
@@ -30,6 +30,7 @@ function Edit( { attributes, setAttributes } ) {
 					value: index,
 			  } ) );
 	const safeIndex = Math.max( 0, Math.min( stationIndex, stations.length ? stations.length - 1 : 0 ) );
+	const dayOrderValue = dayOrder === 'natural' ? 'natural' : 'current_first';
 
 	return (
 		<>
@@ -41,10 +42,22 @@ function Edit( { attributes, setAttributes } ) {
 						options={ options }
 						onChange={ ( value ) => setAttributes( { stationIndex: parseInt( value, 10 ) } ) }
 					/>
+					<SelectControl
+						label={ __( 'Day order', 'radio-player-page' ) }
+						value={ dayOrderValue }
+						options={ [
+							{ label: __( 'Current day first', 'radio-player-page' ), value: 'current_first' },
+							{ label: __( 'Monday to Sunday', 'radio-player-page' ), value: 'natural' },
+						] }
+						onChange={ ( value ) => setAttributes( { dayOrder: value } ) }
+					/>
 				</PanelBody>
 			</InspectorControls>
 			<div { ...blockProps }>
-				<ServerSideRender block={ blockName } attributes={ { stationIndex: safeIndex } } />
+				<ServerSideRender
+					block={ blockName }
+					attributes={ { stationIndex: safeIndex, dayOrder: dayOrderValue } }
+				/>
 			</div>
 		</>
 	);

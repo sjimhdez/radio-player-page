@@ -105,12 +105,13 @@ function radplapag_build_programs_map( $station ) {
  * Uses WordPress timezone for "current" time.
  *
  * @since 3.3.0
- * @param int $station_index Zero-based index into radplapag_settings['stations'].
+ * @param int    $station_index Zero-based index into radplapag_settings['stations'].
+ * @param string $day_order     Optional. 'current_first' (default) = start with today; 'natural' = Monday to Sunday.
  * @return array|null Associative array with 'programs' (id => name, description, logo_url),
  *                    'days' (array of [ 'day_key' => string, 'label' => string, 'slots' => [...] ]),
  *                    or null if station invalid or index out of range.
  */
-function radplapag_get_schedule_for_station( $station_index ) {
+function radplapag_get_schedule_for_station( $station_index, $day_order = 'current_first' ) {
 	$options = radplapag_get_settings();
 	if ( ! isset( $options['stations'] ) || ! is_array( $options['stations'] ) ) {
 		return null;
@@ -185,6 +186,17 @@ function radplapag_get_schedule_for_station( $station_index ) {
 			'label'   => isset( $day_labels[ $day_key ] ) ? $day_labels[ $day_key ] : $day_key,
 			'slots'   => $slots,
 		];
+	}
+
+	// Reorder days: current day first (default) or keep Monday–Sunday.
+	if ( $day_order === 'current_first' && count( $days_out ) === 7 ) {
+		// WordPress day_of_week: 0=Sunday, 1=Monday, ..., 6=Saturday. days_out: 0=Monday, ..., 6=Sunday.
+		$start_index = ( $day_of_week === 0 ) ? 6 : ( $day_of_week - 1 );
+		$reordered = array();
+		for ( $i = 0; $i < 7; $i++ ) {
+			$reordered[] = $days_out[ ( $start_index + $i ) % 7 ];
+		}
+		$days_out = $reordered;
 	}
 
 	return [

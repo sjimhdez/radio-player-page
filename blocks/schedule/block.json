@@ -11,6 +11,10 @@
 		"stationIndex": {
 			"type": "number",
 			"default": 0
+		},
+		"dayOrder": {
+			"type": "string",
+			"default": "current_first"
 		}
 	},
 	"supports": {

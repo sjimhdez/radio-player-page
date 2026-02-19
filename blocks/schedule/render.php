@@ -14,7 +14,8 @@
  */
 function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	$station_index = isset( $attributes['stationIndex'] ) ? (int) $attributes['stationIndex'] : 0;
-	$data = radplapag_get_schedule_for_station( $station_index );
+	$day_order     = isset( $attributes['dayOrder'] ) && $attributes['dayOrder'] === 'natural' ? 'natural' : 'current_first';
+	$data          = radplapag_get_schedule_for_station( $station_index, $day_order );
 
 	if ( $data === null ) {
 		return '<div class="wp-block-radplapag-schedule radplapag-schedule--empty">' .
