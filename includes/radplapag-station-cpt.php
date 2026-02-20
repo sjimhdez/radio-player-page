@@ -498,37 +498,37 @@ function radplapag_render_station_details_meta_box( $post ) {
 		'pink'    => __( 'Pink', 'radio-player-page' ),
 	);
 	?>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label for="radplapag_station_player_page"><strong><?php esc_html_e( 'Player Page', 'radio-player-page' ); ?></strong></label><br>
-		<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-player-page">
+		<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-field-select radplapag-player-page">
 			<option value=""><?php esc_html_e( 'Select a Page', 'radio-player-page' ); ?></option>
 			<?php foreach ( $pages as $page ) : ?>
 				<option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $player_page, $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option>
 			<?php endforeach; ?>
 		</select>
 	</p>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label for="radplapag_station_stream_url"><strong><?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?></strong></label><br>
-		<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>">
+		<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>">
 	</p>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label for="radplapag_station_theme_color"><strong><?php esc_html_e( 'Theme Color', 'radio-player-page' ); ?></strong></label><br>
-		<select name="radplapag_station_theme_color" id="radplapag_station_theme_color">
+		<select name="radplapag_station_theme_color" id="radplapag_station_theme_color" class="radplapag-field-select">
 			<?php foreach ( $colors as $value => $label ) : ?>
 				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $theme, $value ); ?>><?php echo esc_html( $label ); ?></option>
 			<?php endforeach; ?>
 		</select>
 	</p>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label for="radplapag_station_visualizer"><strong><?php esc_html_e( 'Visualizer', 'radio-player-page' ); ?></strong></label><br>
-		<select name="radplapag_station_visualizer" id="radplapag_station_visualizer">
+		<select name="radplapag_station_visualizer" id="radplapag_station_visualizer" class="radplapag-field-select">
 			<option value="oscilloscope" <?php selected( $visualizer, 'oscilloscope' ); ?>><?php esc_html_e( 'Oscilloscope', 'radio-player-page' ); ?></option>
 			<option value="bars" <?php selected( $visualizer, 'bars' ); ?>><?php esc_html_e( 'Bars Spectrum', 'radio-player-page' ); ?></option>
 			<option value="waterfall" <?php selected( $visualizer, 'waterfall' ); ?>><?php esc_html_e( 'Amplitude Waterfall', 'radio-player-page' ); ?></option>
 			<option value="particles" <?php selected( $visualizer, 'particles' ); ?>><?php esc_html_e( 'Spectral Particles', 'radio-player-page' ); ?></option>
 		</select>
 	</p>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label><strong><?php esc_html_e( 'Logo Image (Optional)', 'radio-player-page' ); ?></strong></label><br>
 		<div class="radplapag-program-logo-wrapper">
 			<input type="hidden" name="radplapag_station_logo_id" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-program-logo-id">
@@ -541,7 +541,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 			<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
 		</div>
 	</p>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label><strong><?php esc_html_e( 'Background Image (Optional)', 'radio-player-page' ); ?></strong></label><br>
 		<div class="radplapag-program-logo-wrapper">
 			<input type="hidden" name="radplapag_station_background_id" value="<?php echo esc_attr( $background_id ); ?>" class="radplapag-program-logo-id">

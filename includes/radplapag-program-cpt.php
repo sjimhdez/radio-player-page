@@ -240,17 +240,17 @@ function radplapag_render_program_meta_boxes( $post ) {
 	$ext_desc_value    = is_string( $extended_description ) ? $extended_description : '';
 	$logo_url          = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
 	?>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label for="radplapag_program_description"><strong><?php esc_html_e( 'Description', 'radio-player-page' ); ?></strong></label><br>
-		<input type="text" id="radplapag_program_description" name="radplapag_program_description" value="<?php echo esc_attr( $desc_value ); ?>" class="large-text" maxlength="256">
+		<input type="text" id="radplapag_program_description" name="radplapag_program_description" value="<?php echo esc_attr( $desc_value ); ?>" class="large-text radplapag-field-input" maxlength="256">
 		<br><span class="description"><?php esc_html_e( 'Short description (e.g. Morning news with Howard Mallory and guests).', 'radio-player-page' ); ?></span>
 	</p>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label for="radplapag_program_extended_description"><strong><?php esc_html_e( 'Extended Description', 'radio-player-page' ); ?></strong></label><br>
-		<textarea id="radplapag_program_extended_description" name="radplapag_program_extended_description" rows="4" class="large-text" maxlength="512"><?php echo esc_textarea( $ext_desc_value ); ?></textarea>
+		<textarea id="radplapag_program_extended_description" name="radplapag_program_extended_description" rows="4" class="large-text radplapag-field-textarea" maxlength="512"><?php echo esc_textarea( $ext_desc_value ); ?></textarea>
 		<br><span class="description"><?php esc_html_e( 'Longer description for the program list.', 'radio-player-page' ); ?></span>
 	</p>
-	<p>
+	<p class="radplapag-field-wrap">
 		<label><strong><?php esc_html_e( 'Program Image', 'radio-player-page' ); ?></strong></label><br>
 		<div class="radplapag-program-logo-wrapper">
 			<input type="hidden" id="radplapag_program_logo_id" name="radplapag_program_logo_id" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-program-logo-id">

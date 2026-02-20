@@ -1,3 +1,20 @@
+/* Shared field layout (Program and Station meta boxes; excludes time slots) */
+.radplapag-field-wrap {
+  margin-bottom: 15px;
+}
+.radplapag-field-wrap:last-child {
+  margin-bottom: 0;
+}
+.radplapag-field-wrap label strong {
+  display: inline-block;
+  margin-bottom: 4px;
+}
+.radplapag-field-input,
+.radplapag-field-textarea,
+.radplapag-field-select {
+  max-width: 100%;
+}
+
 /* Shared logo/image block (Program Image, Station Logo, Station Background) */
 .radplapag-program-logo-wrapper {
   display: block;
