@@ -92,28 +92,44 @@ function radplapag_get_schedule_day_keys_and_labels() {
 }
 
 /**
- * Builds resolved programs array (id => name, description, logo_url) from station raw programs.
+ * Builds resolved programs array (id => name, description, logo_url) from station schedule.
+ *
+ * Collects program_id (post IDs) from station['schedule'] and loads each from radplapag_program CPT.
  *
  * @since 3.3.0
- * @param array $station Station array with 'programs' key.
- * @return array Associative array program_id => [ 'name' => string, 'description' => string|null, 'logo_url' => string|null ].
+ * @param array $station Station array with 'schedule' key.
+ * @return array Associative array program_id (string) => [ 'name' => string, 'description' => string|null, 'logo_url' => string|null ].
  */
 function radplapag_build_programs_map( $station ) {
 	$map = [];
-	if ( ! isset( $station['programs'] ) || ! is_array( $station['programs'] ) ) {
-		return $map;
+	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
+	$program_ids  = [];
+	foreach ( $schedule_raw as $day_entries ) {
+		if ( ! is_array( $day_entries ) ) {
+			continue;
+		}
+		foreach ( $day_entries as $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+			$pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
+			if ( $pid === null || $pid === '' ) {
+				continue;
+			}
+			$pid_int = is_numeric( $pid ) ? (int) $pid : 0;
+			if ( $pid_int > 0 ) {
+				$program_ids[ $pid_int ] = true;
+			}
+		}
 	}
-	foreach ( $station['programs'] as $prog ) {
-		$prog_id   = isset( $prog['id'] ) ? sanitize_text_field( $prog['id'] ) : '';
-		$name      = isset( $prog['name'] ) ? $prog['name'] : '';
-		$desc      = isset( $prog['description'] ) ? $prog['description'] : '';
-		$logo_id   = isset( $prog['logo_id'] ) ? intval( $prog['logo_id'] ) : 0;
-		$logo_url  = ( $logo_id > 0 ) ? wp_get_attachment_image_url( $logo_id, 'full' ) : null;
-		if ( $prog_id !== '' ) {
-			$map[ $prog_id ] = [
-				'name'        => $name,
-				'description' => $desc ? $desc : null,
-				'logo_url'    => $logo_url ? $logo_url : null,
+	foreach ( array_keys( $program_ids ) as $post_id ) {
+		$data = radplapag_get_program_data( $post_id );
+		if ( $data ) {
+			$key = (string) $post_id;
+			$map[ $key ] = [
+				'name'        => $data['name'],
+				'description' => $data['description'] !== '' ? $data['description'] : null,
+				'logo_url'    => $data['logo_url'],
 			];
 		}
 	}
@@ -127,17 +143,17 @@ function radplapag_build_programs_map( $station ) {
  * Uses WordPress timezone for "current" time.
  *
  * @since 3.3.0
- * @param int    $station_index Zero-based index into radplapag_settings['stations'].
+ * @param int    $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
  * @param string $day_order     Optional. 'current_first' (default) = start with today; 'natural' = Monday to Sunday.
  * @return array|null Associative array with 'programs', 'days', 'station_page_url' (permalink for station's player page, or empty string),
  *                    or null if station invalid or index out of range.
  */
 function radplapag_get_schedule_for_station( $station_index, $day_order = 'current_first' ) {
-	$options = radplapag_get_settings();
-	if ( ! isset( $options['stations'] ) || ! is_array( $options['stations'] ) ) {
+	$config  = radplapag_get_config();
+	if ( ! isset( $config['stations'] ) || ! is_array( $config['stations'] ) ) {
 		return null;
 	}
-	$stations = $options['stations'];
+	$stations = $config['stations'];
 	$idx      = (int) $station_index;
 	if ( $idx < 0 || $idx >= count( $stations ) ) {
 		return null;

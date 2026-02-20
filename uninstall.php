@@ -18,32 +18,67 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 /**
+ * Deletes all radplapag_program posts (and their meta) for the current blog.
+ *
+ * @since 3.3.0
+ *
+ * @return void
+ */
+function radplapag_uninstall_delete_programs() {
+	$posts = get_posts( array(
+		'post_type'      => 'radplapag_program',
+		'post_status'    => 'any',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+	) );
+	foreach ( $posts as $post_id ) {
+		wp_delete_post( (int) $post_id, true );
+	}
+}
+
+/**
+ * Deletes all radplapag_station posts (and their meta) for the current blog.
+ *
+ * @since 3.3.0
+ *
+ * @return void
+ */
+function radplapag_uninstall_delete_stations() {
+	$posts = get_posts( array(
+		'post_type'      => 'radplapag_station',
+		'post_status'    => 'any',
+		'posts_per_page' => -1,
+		'fields'         => 'ids',
+	) );
+	foreach ( $posts as $post_id ) {
+		wp_delete_post( (int) $post_id, true );
+	}
+}
+
+/**
  * Remove plugin data from database.
  *
- * This function removes all plugin options and settings when the plugin
- * is uninstalled. It handles both single site and multisite installations.
+ * Deletes all station and program CPT posts (and their meta) and flushes cache.
+ * Handles both single site and multisite installations.
  *
  * @package radio-player-page
  * @since 3.1.0
+ * @since 3.3.0 Deletes radplapag_program and radplapag_station posts.
  *
  * @return void
  */
 function radplapag_uninstall_plugin() {
-	// Delete plugin settings option
-	delete_option( 'radplapag_settings' );
-
-	// Clear any cached data related to the plugin
-	// (WordPress object cache, if any plugin-specific cache exists)
+	radplapag_uninstall_delete_stations();
+	radplapag_uninstall_delete_programs();
 	wp_cache_flush();
 
-	// For multisite installations, delete from all sites
 	if ( is_multisite() ) {
-		// Get all sites using WordPress API (recommended over direct database queries)
-		$sites = get_sites( [ 'number' => 0 ] );
-		
+		$sites = get_sites( array( 'number' => 0 ) );
 		foreach ( $sites as $site ) {
-			// Delete option for each site
-			delete_blog_option( $site->blog_id, 'radplapag_settings' );
+			switch_to_blog( $site->blog_id );
+			radplapag_uninstall_delete_stations();
+			radplapag_uninstall_delete_programs();
+			restore_current_blog();
 		}
 	}
 }

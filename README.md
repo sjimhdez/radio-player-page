@@ -166,7 +166,7 @@ The player is a self-contained application built with **React 19, TypeScript, an
 - **PHP** 5.6+
 - **Node.js** 20.x (development only; see `player/.nvmrc`)
 
-**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes the option `radplapag_settings` from the database (and from each site on multisite) and flushes the object cache. Data is not removed on deactivation.
+**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and program CPT posts and flushes the object cache. Data is not removed on deactivation.
 
 ### Architecture and Data Flow
 
@@ -209,13 +209,12 @@ Node 20.x is used for development (`player/.nvmrc`, `player/package.json`).
 ```
 radio-player-page/
 ├── radio-player-page.php      # Main plugin file, template redirect
-├── uninstall.php              # Removes radplapag_settings on uninstall (multisite-aware)
+├── uninstall.php              # Removes CPT posts on uninstall (multisite-aware)
 ├── includes/
-│   └── radplapag-settings.php # Shared settings (radplapag_get_settings)
+│   └── radplapag-stations.php # Stations data (radplapag_get_stations, radplapag_get_config)
 ├── admin/                      # Loaded when is_admin()
-│   ├── admin.php               # Bootstrap, hooks
-│   ├── sanitize-settings.php   # Sanitization and validation
-│   ├── settings-page.php       # Settings UI and JS strings
+│   ├── admin.php               # Bootstrap, hooks, menu
+│   ├── admin-strings.php       # JS localization (radplapag_get_admin_strings)
 │   ├── css/, js/               # Admin styles and form logic
 ├── player/                     # React frontend
 │   ├── src/                    # Components, hooks, config, locales, types, utils
@@ -258,7 +257,7 @@ The project uses [pre-commit](https://pre-commit.com/) for WordPress plugin chec
 
 **PHP (public)**
 
-- `radplapag_get_settings()` – Returns the full plugin settings array (stations, each with optional `programs` and `schedule`).
+- `radplapag_get_config()` – Returns config array with key `stations` (ordered list from CPT).
 - `radplapag_get_station_for_current_page()` – Returns the station config for the current page, or `false`.
 
 ### Internationalization
@@ -269,7 +268,7 @@ Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, d
 
 ### Security and Browser Support
 
-- Stream URLs validated with `esc_url_raw()`; visualizer and theme values whitelisted; settings sanitized via the WordPress Settings API; attachment IDs validated as integers; output escaped with WordPress escaping functions.
+- Stream URLs validated with `esc_url_raw()`; visualizer and theme values whitelisted; station meta saved in CPT with `radplapag_sanitize_station_schedule()`; attachment IDs validated as integers; output escaped with WordPress escaping functions.
 - Modern browsers with Web Audio API support; iOS Safari 10+ (native HLS); Chrome, Firefox, Edge (recent versions). Visualization requires Web Audio API.
 
 ### License

@@ -89,7 +89,7 @@ echo "Including production files..."
 # Plugin PHP
 cp "$PLUGIN_DIR/radio-player-page.php" "$RELEASE_ROOT/"
 mkdir -p "$RELEASE_ROOT/includes"
-cp "$PLUGIN_DIR/includes/radplapag-settings.php" "$RELEASE_ROOT/includes/"
+cp "$PLUGIN_DIR/includes/radplapag-stations.php" "$RELEASE_ROOT/includes/"
 mkdir -p "$RELEASE_ROOT/admin"
 cp "$PLUGIN_DIR/admin/admin.php" "$RELEASE_ROOT/admin/"
 cp "$PLUGIN_DIR/admin/sanitize-settings.php" "$RELEASE_ROOT/admin/"

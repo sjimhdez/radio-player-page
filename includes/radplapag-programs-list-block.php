@@ -14,25 +14,26 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Retrieves the list of programs with name, logo, extended description and schedule slots for a station.
  *
+ * Builds from schedule program_id (post IDs) by loading radplapag_program CPT, in order of first appearance in schedule.
+ *
  * Uses WordPress timezone for "current" time when marking is_live on slots.
  *
  * @since 3.3.0
- * @param int $station_index Zero-based index into radplapag_settings['stations'].
- * @return array|null List of programs, each with 'id', 'name', 'logo_id' (attachment ID or 0), 'extended_description', 'slots' (array of day_label, time_range, is_live). Null if station invalid or index out of range.
+ * @param int $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
+ * @return array|null List of programs, each with 'id', 'name', 'logo_id' (attachment ID or 0), 'extended_description', 'slots'. Null if station invalid or index out of range.
  */
 function radplapag_get_programs_list_for_station( $station_index ) {
-	$options = radplapag_get_settings();
-	if ( ! isset( $options['stations'] ) || ! is_array( $options['stations'] ) ) {
+	$config  = radplapag_get_config();
+	if ( ! isset( $config['stations'] ) || ! is_array( $config['stations'] ) ) {
 		return null;
 	}
-	$stations = $options['stations'];
+	$stations = $config['stations'];
 	$idx      = (int) $station_index;
 	if ( $idx < 0 || $idx >= count( $stations ) ) {
 		return null;
 	}
 	$station = $stations[ $idx ];
 
-	$programs_raw = isset( $station['programs'] ) && is_array( $station['programs'] ) ? $station['programs'] : [];
 	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
 
 	$day_data   = radplapag_get_schedule_day_keys_and_labels();
@@ -58,10 +59,14 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
-			$program_id = isset( $entry['program_id'] ) ? sanitize_text_field( $entry['program_id'] ) : '';
-			$start      = isset( $entry['start'] ) ? $entry['start'] : '';
-			$end        = isset( $entry['end'] ) ? $entry['end'] : '';
-			if ( $program_id === '' || $start === '' || $end === '' ) {
+			$program_id = isset( $entry['program_id'] ) ? $entry['program_id'] : '';
+			if ( $program_id === '' ) {
+				continue;
+			}
+			$program_id_key = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
+			$start          = isset( $entry['start'] ) ? $entry['start'] : '';
+			$end            = isset( $entry['end'] ) ? $entry['end'] : '';
+			if ( $start === '' || $end === '' ) {
 				continue;
 			}
 			$is_live = false;
@@ -71,10 +76,10 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 				$is_live = radplapag_is_slot_active( $start, $end, $current_minutes, true );
 			}
 			$time_range = $start . '-' . $end;
-			if ( ! isset( $slots_by_program[ $program_id ] ) ) {
-				$slots_by_program[ $program_id ] = [];
+			if ( ! isset( $slots_by_program[ $program_id_key ] ) ) {
+				$slots_by_program[ $program_id_key ] = [];
 			}
-			$slots_by_program[ $program_id ][] = [
+			$slots_by_program[ $program_id_key ][] = [
 				'day_key'    => $day_key,
 				'day_label'  => $label,
 				'time_range' => $time_range,
@@ -97,25 +102,39 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 		} );
 	}
 
-	// Build output list in the same order as station['programs'].
+	// Get unique program IDs in order of first appearance in schedule (Monday–Sunday).
+	$program_ids_ordered = [];
+	foreach ( $day_keys as $day_key ) {
+		$day_entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : [];
+		foreach ( $day_entries as $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+			$pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
+			if ( $pid !== null && $pid !== '' && is_numeric( $pid ) ) {
+				$pid_int = (int) $pid;
+				if ( $pid_int > 0 && ! in_array( $pid_int, $program_ids_ordered, true ) ) {
+					$program_ids_ordered[] = $pid_int;
+				}
+			}
+		}
+	}
+
 	$out = [];
-	foreach ( $programs_raw as $prog ) {
-		$prog_id   = isset( $prog['id'] ) ? sanitize_text_field( $prog['id'] ) : '';
-		$name      = isset( $prog['name'] ) ? $prog['name'] : '';
-		$ext_desc  = isset( $prog['extended_description'] ) ? $prog['extended_description'] : '';
-		$logo_id = isset( $prog['logo_id'] ) ? intval( $prog['logo_id'] ) : 0;
-		if ( $prog_id === '' ) {
+	foreach ( $program_ids_ordered as $post_id ) {
+		$data = radplapag_get_program_data( $post_id );
+		if ( ! $data ) {
 			continue;
 		}
-		$slots = isset( $slots_by_program[ $prog_id ] ) ? $slots_by_program[ $prog_id ] : [];
+		$key  = (string) $post_id;
+		$slots = isset( $slots_by_program[ $key ] ) ? $slots_by_program[ $key ] : [];
 		$out[] = [
-			'id'                   => $prog_id,
-			'name'                 => $name,
-			'logo_id'              => $logo_id > 0 ? $logo_id : 0,
-			'extended_description' => $ext_desc ? $ext_desc : null,
+			'id'                   => $key,
+			'name'                 => $data['name'],
+			'logo_id'              => $data['logo_id'] > 0 ? $data['logo_id'] : 0,
+			'extended_description' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
 			'slots'                => $slots,
 		];
 	}
-
 	return $out;
 }
