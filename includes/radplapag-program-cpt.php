@@ -250,8 +250,8 @@ function radplapag_render_program_meta_boxes( $post ) {
 		<textarea id="radplapag_program_extended_description" name="radplapag_program_extended_description" rows="4" class="large-text radplapag-field-textarea" maxlength="512"><?php echo esc_textarea( $ext_desc_value ); ?></textarea>
 		<br><span class="description"><?php esc_html_e( 'Longer description for the program list.', 'radio-player-page' ); ?></span>
 	</p>
-	<p class="radplapag-field-wrap">
-		<label><strong><?php esc_html_e( 'Program Image', 'radio-player-page' ); ?></strong></label><br>
+	<div class="radplapag-field-wrap">
+		<label><strong><?php esc_html_e( 'Program Image', 'radio-player-page' ); ?></strong></label>
 		<div class="radplapag-program-logo-wrapper">
 			<input type="hidden" id="radplapag_program_logo_id" name="radplapag_program_logo_id" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-program-logo-id">
 			<div class="radplapag-program-logo-preview">
@@ -262,7 +262,7 @@ function radplapag_render_program_meta_boxes( $post ) {
 			<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
 			<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
 		</div>
-	</p>
+	</div>
 	<?php
 }
 

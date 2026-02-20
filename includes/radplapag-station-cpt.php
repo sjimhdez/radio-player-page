@@ -528,8 +528,8 @@ function radplapag_render_station_details_meta_box( $post ) {
 			<option value="particles" <?php selected( $visualizer, 'particles' ); ?>><?php esc_html_e( 'Spectral Particles', 'radio-player-page' ); ?></option>
 		</select>
 	</p>
-	<p class="radplapag-field-wrap">
-		<label><strong><?php esc_html_e( 'Logo Image (Optional)', 'radio-player-page' ); ?></strong></label><br>
+	<div class="radplapag-field-wrap">
+		<label><strong><?php esc_html_e( 'Logo Image (Optional)', 'radio-player-page' ); ?></strong></label>
 		<div class="radplapag-program-logo-wrapper">
 			<input type="hidden" name="radplapag_station_logo_id" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-program-logo-id">
 			<div class="radplapag-program-logo-preview">
@@ -540,9 +540,9 @@ function radplapag_render_station_details_meta_box( $post ) {
 			<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
 			<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
 		</div>
-	</p>
-	<p class="radplapag-field-wrap">
-		<label><strong><?php esc_html_e( 'Background Image (Optional)', 'radio-player-page' ); ?></strong></label><br>
+	</div>
+	<div class="radplapag-field-wrap">
+		<label><strong><?php esc_html_e( 'Background Image (Optional)', 'radio-player-page' ); ?></strong></label>
 		<div class="radplapag-program-logo-wrapper">
 			<input type="hidden" name="radplapag_station_background_id" value="<?php echo esc_attr( $background_id ); ?>" class="radplapag-program-logo-id">
 			<div class="radplapag-program-logo-preview">
@@ -553,7 +553,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 			<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
 			<button type="button" class="button radplapag-program-logo-remove" <?php echo $background_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
 		</div>
-	</p>
+	</div>
 	<?php
 }
 
