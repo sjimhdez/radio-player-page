@@ -13,14 +13,13 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 1.0.0
  *
- * @return array Array with 'maxStations', 'programs' (list for schedule dropdowns), and 'strings' (translated strings for admin.js).
+ * @return array Array with 'programs' (list for schedule dropdowns) and 'strings' (translated strings for admin.js).
  */
 function radplapag_get_admin_strings() {
 	$programs = function_exists( 'radplapag_get_all_programs_for_select' ) ? radplapag_get_all_programs_for_select() : array();
 	return array(
-		'maxStations' => 10,
-		'programs'    => $programs,
-		'strings'     => array(
+		'programs' => $programs,
+		'strings'  => array(
 			/* translators: %d: station number (1-based). */
 			'stationNumberFormat'      => __( 'Station %d', 'radio-player-page' ),
 			'addProgramImage'          => __( 'Add Program Image', 'radio-player-page' ),

@@ -30,57 +30,6 @@
       });
   }
 
-  function initImageUpload() {
-    var file_frame;
-    if (!container) return;
-
-    container.addEventListener("click", function (e) {
-      if (e.target.classList.contains("radplapag-upload-btn")) {
-        e.preventDefault();
-        var wrapper = e.target.closest(".radplapag-image-upload-wrapper");
-        var inputId = wrapper.querySelector(".radplapag-image-id");
-        var preview = wrapper.querySelector(".radplapag-image-preview");
-        var removeBtn = wrapper.querySelector(".radplapag-remove-image-btn");
-
-        if (file_frame) {
-          file_frame.open();
-          return;
-        }
-
-        var frameTitle = s.selectImage || "Select Image";
-        var frameButtonText = s.selectImage || "Select Image";
-        file_frame = wp.media.frames.file_frame = wp.media({
-          title: frameTitle,
-          button: { text: frameButtonText },
-          multiple: false,
-        });
-
-        file_frame.on("select", function () {
-          var attachment = file_frame.state().get("selection").first().toJSON();
-          inputId.value = attachment.id;
-          preview.innerHTML =
-            '<img src="' +
-            attachment.url +
-            '" alt="" style="max-width:150px;max-height:150px;display:block;">';
-          removeBtn.style.display = "inline-block";
-          file_frame = null;
-        });
-
-        file_frame.open();
-      }
-
-      if (e.target.classList.contains("radplapag-remove-image-btn")) {
-        e.preventDefault();
-        var wrapper = e.target.closest(".radplapag-image-upload-wrapper");
-        var idEl = wrapper.querySelector(".radplapag-image-id");
-        var previewEl = wrapper.querySelector(".radplapag-image-preview");
-        if (idEl) idEl.value = "";
-        if (previewEl) previewEl.innerHTML = "";
-        e.target.style.display = "none";
-      }
-    });
-  }
-
   if (container) {
     container
       .querySelectorAll(".radplapag-player-page")
@@ -1040,7 +989,6 @@
   }
 
   updatePageOptions();
-  initImageUpload();
   initScheduleManagement();
   initScheduleToggle();
   initProgramsManagement();

@@ -28,13 +28,13 @@ function radplapag_admin_scripts( $hook_suffix ) {
         'radplapag-admin',
         $admin_url . 'css/admin.css',
         array(),
-        '3.2.0'
+        '3.3.0'
     );
     wp_enqueue_script(
         'radplapag-admin',
         $admin_url . 'js/admin.js',
-        array( 'jquery' ),
-        '3.2.0',
+        array( 'jquery', 'media-editor' ),
+        '3.3.0',
         true
     );
     $l10n = radplapag_get_admin_strings();
