@@ -21,62 +21,66 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 	$programs = radplapag_get_programs_list_for_station( $station_index );
 
 	if ( $programs === null || ! is_array( $programs ) || count( $programs ) === 0 ) {
-		return '<div class="wp-block-radplapag-programs-list radplapag-programs-list--empty">' .
-			'<p class="radplapag-programs-list__notice">' . esc_html__( 'No programs defined for this station.', 'radio-player-page' ) . '</p>' .
+		return '<div class="wp-block-radplapag-programs-list is-empty">' .
+			'<div class="wp-block-group"><p>' . esc_html__( 'No programs defined for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
-	$html = '<div class="wp-block-radplapag-programs-list">';
+	$html   = '<div class="wp-block-radplapag-programs-list">';
+	$total  = count( $programs );
+	$index  = 0;
 
 	foreach ( $programs as $prog ) {
+		$index++;
 		$id       = isset( $prog['id'] ) ? $prog['id'] : '';
 		$name     = isset( $prog['name'] ) ? $prog['name'] : '';
 		$logo_id  = isset( $prog['logo_id'] ) ? (int) $prog['logo_id'] : 0;
 		$ext_desc = isset( $prog['extended_description'] ) ? $prog['extended_description'] : null;
 		$slots    = isset( $prog['slots'] ) && is_array( $prog['slots'] ) ? $prog['slots'] : [];
 
-		$html .= '<article class="radplapag-programs-list__item"' . ( $id !== '' ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
+		$html .= '<article class="wp-block-group"' . ( $id !== '' ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
 
-		$html .= '<h3 class="radplapag-programs-list__name">' . esc_html( $name !== '' ? $name : '—' ) . '</h3>';
+		$html .= '<h3 class="wp-block-title">' . esc_html( $name !== '' ? $name : '—' ) . '</h3>';
 
 		if ( $show_image && $logo_id > 0 ) {
 			$img_alt = $name !== '' ? $name : __( 'Program image', 'radio-player-page' );
-			$html   .= wp_get_attachment_image(
+			$html   .= '<figure class="wp-block-image has-small-padding-bottom">' . wp_get_attachment_image(
 				$logo_id,
 				'medium',
 				false,
-				array(
-					'class' => 'radplapag-programs-list__image',
-					'alt'   => esc_attr( $img_alt ),
-				)
-			);
+				array( 'alt' => esc_attr( $img_alt ) )
+			) . '</figure>';
 		}
 
 		if ( $show_extended_description && $ext_desc !== null && $ext_desc !== '' ) {
-			$html .= '<div class="radplapag-programs-list__description">' . esc_html( $ext_desc ) . '</div>';
+			$html .= '<div class="wp-block-group"><p class="wp-block-paragraph">' . esc_html( $ext_desc ) . '</p></div>';
 		}
 
 		if ( $show_schedule && ! empty( $slots ) ) {
-			$html .= '<ul class="radplapag-programs-list__schedule">';
+			$html .= '<ul class="wp-block-list">';
 			foreach ( $slots as $slot ) {
 				$day_label  = isset( $slot['day_label'] ) ? $slot['day_label'] : '';
 				$time_range = isset( $slot['time_range'] ) ? $slot['time_range'] : '';
 				$is_live    = ! empty( $slot['is_live'] );
-				$slot_class = 'radplapag-programs-list__slot';
+				$slot_class = 'wp-block-list-item';
 				if ( $is_live ) {
-					$slot_class .= ' radplapag-programs-list__slot--live';
+					$slot_class .= ' is-live';
 				}
 				$slot_text = $day_label . ' ' . $time_range;
 				if ( $is_live ) {
-					$html .= '<li class="' . esc_attr( $slot_class ) . '"><span class="radplapag-programs-list__live-label">' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . esc_html( $slot_text ) . '</li>';
+					$html .= '<li class="has-small-font-size ' . esc_attr( $slot_class ) . '"><span>' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . esc_html( $slot_text ) . '</li>';
 				} else {
-					$html .= '<li class="' . esc_attr( $slot_class ) . '">' . esc_html( $slot_text ) . '</li>';
+					$html .= '<li class="has-small-font-size ' . esc_attr( $slot_class ) . '">' . esc_html( $slot_text ) . '</li>';
 				}
 			}
 			$html .= '</ul>';
 		}
 
 		$html .= '</article>';
+
+		if ( $index < $total ) {
+			$html .= '<hr class="wp-block-separator" />';
+		}
 	}
 
 	$html .= '</div>';

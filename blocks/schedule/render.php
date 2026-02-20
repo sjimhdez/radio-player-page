@@ -19,8 +19,8 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	$data             = radplapag_get_schedule_for_station( $station_index, $day_order );
 
 	if ( $data === null ) {
-		return '<div class="wp-block-radplapag-schedule radplapag-schedule--empty">' .
-			'<p class="radplapag-schedule__notice">' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p>' .
+		return '<div class="wp-block-radplapag-schedule is-empty">' .
+			'<div class="wp-block-group"><p>' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
@@ -34,8 +34,8 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	}
 
 	if ( ! $has_any_slots ) {
-		return '<div class="wp-block-radplapag-schedule radplapag-schedule--empty">' .
-			'<p class="radplapag-schedule__notice">' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p>' .
+		return '<div class="wp-block-radplapag-schedule is-empty">' .
+			'<div class="wp-block-group"><p>' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
@@ -51,27 +51,27 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 		}
 		$day_key  = isset( $day_data['day_key'] ) ? $day_data['day_key'] : '';
 		$label    = isset( $day_data['label'] ) ? $day_data['label'] : $day_key;
-		$html    .= '<section class="radplapag-schedule-day" data-day="' . esc_attr( $day_key ) . '">';
-		$html    .= '<h3 class="radplapag-schedule-day__title">' . esc_html( $label ) . '</h3>';
-		$html    .= '<ul class="radplapag-schedule-day__slots">';
+		$html    .= '<section class="wp-block-group" data-day="' . esc_attr( $day_key ) . '">';
+		$html    .= '<h3 class="wp-block-title">' . esc_html( $label ) . '</h3>';
+		$html    .= '<ul class="wp-block-list">';
 
 		foreach ( $slots as $slot ) {
 			$program_name = isset( $slot['program_name'] ) ? $slot['program_name'] : '';
 			$time_range   = isset( $slot['time_range'] ) ? $slot['time_range'] : '';
 			$is_live      = ! empty( $slot['is_live'] );
-			$slot_class   = 'radplapag-schedule-slot';
+			$slot_class   = 'wp-block-list-item';
 			if ( $is_live ) {
-				$slot_class .= ' radplapag-schedule-slot--live';
+				$slot_class .= ' is-live';
 			}
 			$html .= '<li class="' . esc_attr( $slot_class ) . '"' . ( $is_live ? ' data-is-live="true"' : '' ) . '>';
-			$slot_content = '<span class="radplapag-schedule-slot__name">' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
-			$slot_content .= ' - <span class="radplapag-schedule-slot__time">' . esc_html( $time_range ) . '</span>';
+			$slot_content = '<span>' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
+			$slot_content .= ' - <span>' . esc_html( $time_range ) . '</span>';
 			if ( $is_live ) {
-				$slot_content = '<span class="radplapag-schedule-slot__live-label">' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . $slot_content;
+				$slot_content = '<span>' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . $slot_content;
 			}
-			$html .= '<p class="radplapag-schedule-slot__line">';
+			$html .= '<p class="wp-block-paragraph">';
 			if ( $is_live && $station_page_url !== '' ) {
-				$html .= '<a href="' . esc_url( $station_page_url ) . '" class="radplapag-schedule-slot__link" target="_blank" rel="noopener noreferrer">' . $slot_content . '</a>';
+				$html .= '<a href="' . esc_url( $station_page_url ) . '" target="_blank" rel="noopener noreferrer">' . $slot_content . '</a>';
 			} else {
 				$html .= $slot_content;
 			}
@@ -79,7 +79,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			if ( $show_description ) {
 				$program_description = isset( $slot['program_description'] ) ? $slot['program_description'] : '';
 				if ( $program_description !== '' ) {
-					$html .= '<p class="radplapag-schedule-slot__description">' . esc_html( $program_description ) . '</p>';
+					$html .= '<div class="wp-block-group"><p class="has-small-font-size">' . esc_html( $program_description ) . '</p></div>';
 				}
 			}
 			$html .= '</li>';
