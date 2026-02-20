@@ -446,14 +446,14 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 function radplapag_add_station_meta_boxes() {
 	add_meta_box(
 		'radplapag_station_details',
-		__( 'Station Details', 'radio-player-page' ),
+		__( 'Details', 'radio-player-page' ),
 		'radplapag_render_station_details_meta_box',
 		'radplapag_station',
 		'normal'
 	);
 	add_meta_box(
 		'radplapag_station_schedule',
-		__( 'Program Schedule', 'radio-player-page' ),
+		__( 'Schedule', 'radio-player-page' ),
 		'radplapag_render_station_schedule_meta_box',
 		'radplapag_station',
 		'normal'
@@ -498,7 +498,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 		'pink'    => __( 'Pink', 'radio-player-page' ),
 	);
 	?>
-	<p class="radplapag-field-wrap">
+	<p class="radplapag-field-wrap" data-field="player_page">
 		<label for="radplapag_station_player_page"><strong><?php esc_html_e( 'Player Page', 'radio-player-page' ); ?></strong></label><br>
 		<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-field-select radplapag-player-page">
 			<option value=""><?php esc_html_e( 'Select a Page', 'radio-player-page' ); ?></option>
@@ -506,10 +506,12 @@ function radplapag_render_station_details_meta_box( $post ) {
 				<option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $player_page, $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option>
 			<?php endforeach; ?>
 		</select>
+		<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
 	</p>
-	<p class="radplapag-field-wrap">
+	<p class="radplapag-field-wrap" data-field="stream_url">
 		<label for="radplapag_station_stream_url"><strong><?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?></strong></label><br>
 		<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>">
+		<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
 	</p>
 	<p class="radplapag-field-wrap">
 		<label for="radplapag_station_theme_color"><strong><?php esc_html_e( 'Theme Color', 'radio-player-page' ); ?></strong></label><br>
@@ -587,10 +589,7 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 	$cpt_programs = radplapag_get_all_programs_for_select();
 	?>
 	<div id="radplapag-station-cpt-container">
-		<div class="radplapag-schedule-wrapper" data-station-index="0">
-			<p class="description" style="margin-bottom: 15px;">
-				<?php esc_html_e( 'Assign programs (from RPP → Programs) to time slots for each day. The player displays the current and upcoming programs based on your site\'s timezone.', 'radio-player-page' ); ?>
-			</p>
+		<div class="radplapag-schedule-wrapper">
 			<?php foreach ( $days as $day_key => $day_label ) :
 				$day_programs = isset( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) ? $schedule[ $day_key ] : array();
 				uasort( $day_programs, function( $a, $b ) {
@@ -690,8 +689,21 @@ function radplapag_save_station_meta( $post_id ) {
 		$logo_id = 0;
 	}
 
-	update_post_meta( $post_id, 'radplapag_station_stream_url', $stream_url );
-	update_post_meta( $post_id, 'radplapag_station_player_page', $player_page );
+	$field_errors = array();
+	if ( $stream_url === '' ) {
+		$field_errors[] = __( 'Streaming URL is required.', 'radio-player-page' );
+	}
+	if ( $player_page <= 0 ) {
+		$field_errors[] = __( 'Player Page is required. Please select a page.', 'radio-player-page' );
+	}
+	if ( ! empty( $field_errors ) ) {
+		set_transient( 'radplapag_station_field_errors_' . $post_id, implode( ' ', $field_errors ), 45 );
+	} else {
+		delete_transient( 'radplapag_station_field_errors_' . $post_id );
+		update_post_meta( $post_id, 'radplapag_station_stream_url', $stream_url );
+		update_post_meta( $post_id, 'radplapag_station_player_page', $player_page );
+	}
+
 	update_post_meta( $post_id, 'radplapag_station_background_id', $background_id );
 	update_post_meta( $post_id, 'radplapag_station_logo_id', $logo_id );
 	update_post_meta( $post_id, 'radplapag_station_theme_color', $theme );
@@ -723,6 +735,15 @@ function radplapag_station_schedule_errors_notice() {
 	$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
 	if ( $post_id <= 0 ) {
 		return;
+	}
+	$field_message = get_transient( 'radplapag_station_field_errors_' . $post_id );
+	if ( is_string( $field_message ) && $field_message !== '' ) {
+		delete_transient( 'radplapag_station_field_errors_' . $post_id );
+		?>
+		<div class="notice notice-error is-dismissible">
+			<p><strong><?php esc_html_e( 'Validation failed:', 'radio-player-page' ); ?></strong> <?php echo esc_html( $field_message ); ?></p>
+		</div>
+		<?php
 	}
 	$message = get_transient( 'radplapag_station_schedule_errors_' . $post_id );
 	if ( ! is_string( $message ) || $message === '' ) {

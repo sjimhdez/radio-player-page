@@ -1,10 +1,8 @@
 /**
  * Station CPT edit screen: single-station UI only.
- * This script assumes the Station CPT edit screen. The DOM does not include
- * .radplapag-station-row, tr[data-field], .radplapag-program-definitions-list,
- * or .radplapag-program-definition-row. The container #radplapag-station-cpt-container
- * wraps only the Program schedule meta box; the Player Page select and other
- * station details are in a separate meta box (outside the container).
+ * Station details (Player Page, Streaming URL, etc.) live in a separate meta box
+ * with .radplapag-field-wrap[data-field="player_page"] and [data-field="stream_url"].
+ * The container #radplapag-station-cpt-container wraps only the Program schedule meta box.
  */
 (function () {
   var l10n = window.radplapagAdmin || {};
@@ -38,6 +36,34 @@
     document.querySelectorAll(".radplapag-player-page").forEach(function (select) {
       select.addEventListener("change", updatePageOptions);
     });
+  }
+  if (form) {
+    var playerPageWrap = form.querySelector('[data-field="player_page"]');
+    var streamUrlWrap = form.querySelector('[data-field="stream_url"]');
+    if (playerPageWrap) {
+      var playerPageSelectEl = form.querySelector("#radplapag_station_player_page");
+      if (playerPageSelectEl) {
+        playerPageSelectEl.addEventListener("change", function () {
+          if (playerPageSelectEl.value) clearFieldError(playerPageWrap);
+        });
+      }
+    }
+    if (streamUrlWrap) {
+      var streamUrlInputEl = form.querySelector("#radplapag_station_stream_url");
+      if (streamUrlInputEl) {
+        streamUrlInputEl.addEventListener("input", function () {
+          var val = streamUrlInputEl.value.trim();
+          if (!val) {
+            clearFieldError(streamUrlWrap);
+            return;
+          }
+          try {
+            new URL(val);
+            clearFieldError(streamUrlWrap);
+          } catch (err) {}
+        });
+      }
+    }
   }
 
   var dayLabels = {
@@ -425,6 +451,52 @@
     if (errorMsg) errorMsg.remove();
   }
 
+  function showFieldError(fieldWrap, message) {
+    if (!fieldWrap) return;
+    fieldWrap.classList.add("radplapag-error");
+    var input = fieldWrap.querySelector("input, select");
+    if (input) input.classList.add("radplapag-error");
+    var msgEl = fieldWrap.querySelector(".radplapag-field-error-message");
+    if (msgEl) {
+      msgEl.textContent = message;
+    }
+  }
+
+  function clearFieldError(fieldWrap) {
+    if (!fieldWrap) return;
+    fieldWrap.classList.remove("radplapag-error");
+    var input = fieldWrap.querySelector("input, select");
+    if (input) input.classList.remove("radplapag-error");
+    var msgEl = fieldWrap.querySelector(".radplapag-field-error-message");
+    if (msgEl) msgEl.textContent = "";
+  }
+
+  function validateStationFields() {
+    var playerPageWrap = form ? form.querySelector('[data-field="player_page"]') : null;
+    var streamUrlWrap = form ? form.querySelector('[data-field="stream_url"]') : null;
+    if (playerPageWrap) clearFieldError(playerPageWrap);
+    if (streamUrlWrap) clearFieldError(streamUrlWrap);
+    var playerPageSelect = form ? form.querySelector("#radplapag_station_player_page") : null;
+    var streamUrlInput = form ? form.querySelector("#radplapag_station_stream_url") : null;
+    var playerPageVal = playerPageSelect ? playerPageSelect.value : "";
+    var streamUrlVal = streamUrlInput ? streamUrlInput.value.trim() : "";
+    if (!playerPageVal) {
+      if (playerPageWrap) showFieldError(playerPageWrap, s.playerPageRequired || "This field is required.");
+      return { valid: false, firstErrorElement: playerPageWrap };
+    }
+    if (!streamUrlVal) {
+      if (streamUrlWrap) showFieldError(streamUrlWrap, s.streamUrlRequired || "This field is required.");
+      return { valid: false, firstErrorElement: streamUrlWrap };
+    }
+    try {
+      new URL(streamUrlVal);
+    } catch (err) {
+      if (streamUrlWrap) showFieldError(streamUrlWrap, s.streamUrlInvalid || "Please enter a valid URL.");
+      return { valid: false, firstErrorElement: streamUrlWrap };
+    }
+    return { valid: true };
+  }
+
   function revalidateAdjacentDays(programRow, scheduleWrapper, dayWrapper) {
     if (!scheduleWrapper || !dayWrapper) return;
     var currentDay = dayWrapper.getAttribute("data-day");
@@ -576,9 +648,6 @@
             ? dayWrapper.querySelector(".radplapag-programs-list")
             : null;
           if (!dayWrapper || !programsList) return;
-          var stationIndex = e.target
-            .closest(".radplapag-schedule-wrapper")
-            .getAttribute("data-station-index");
           var existingPrograms = programsList.querySelectorAll(
             ".radplapag-program-row",
           );
@@ -667,13 +736,19 @@
     }
   }
 
-  if (form && container) {
+  if (form) {
     form.addEventListener("submit", function (e) {
       var hasErrors = false;
       var firstErrorElement = null;
-      container
-        .querySelectorAll(".radplapag-program-row")
-        .forEach(function (row) {
+      if (form.querySelector('[data-field="player_page"]')) {
+        var stationResult = validateStationFields();
+        if (!stationResult.valid) {
+          hasErrors = true;
+          firstErrorElement = stationResult.firstErrorElement;
+        }
+      }
+      if (container && !hasErrors) {
+        container.querySelectorAll(".radplapag-program-row").forEach(function (row) {
           if (window.getComputedStyle(row).display === "none") return;
           var validation = validateProgramRow(row);
           if (!validation.valid) {
@@ -681,13 +756,15 @@
             if (!firstErrorElement) firstErrorElement = row;
           }
         });
+      }
       if (hasErrors) {
         e.preventDefault();
-        if (firstErrorElement)
+        if (firstErrorElement) {
           firstErrorElement.scrollIntoView({
             behavior: "smooth",
             block: "center",
           });
+        }
         return false;
       }
     });

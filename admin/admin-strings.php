@@ -20,8 +20,6 @@ function radplapag_get_admin_strings() {
 	return array(
 		'programs' => $programs,
 		'strings'  => array(
-			/* translators: %d: station number (1-based). */
-			'stationNumberFormat'      => __( 'Station %d', 'radio-player-page' ),
 			'addProgramImage'          => __( 'Add Program Image', 'radio-player-page' ),
 			'selectImage'              => __( 'Select Image', 'radio-player-page' ),
 			'changeImage'              => __( 'Change Image', 'radio-player-page' ),
