@@ -1,19 +1,15 @@
-.radplapag-image-upload-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+/* Shared logo/image block (Program Image, Station Logo, Station Background) */
+.radplapag-program-logo-wrapper {
+  display: block;
 }
-.radplapag-image-preview {
-  margin-bottom: 0;
+.radplapag-program-logo-preview {
+  margin: 8px 0;
 }
-.radplapag-image-buttons {
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  align-items: center;
-}
-.radplapag-image-preview img {
+.radplapag-program-logo-preview img {
+  display: block;
+  height: 128px;
+  width: auto;
+  object-fit: contain;
   border: 1px solid #ddd;
   padding: 4px;
   background: #fff;
@@ -60,72 +56,8 @@
 .radplapag-program-error-message.show {
   display: block;
 }
-.radplapag-schedule-toggle {
-  padding: 0;
-  border: none;
-  background: none;
-  color: #2271b1;
-  text-decoration: none;
-  cursor: pointer;
-  font-size: 13px;
-  line-height: 2.15384615;
-  margin-bottom: 10px;
-}
-.radplapag-schedule-toggle:hover {
-  color: #135e96;
-}
-.radplapag-schedule-toggle:focus {
-  color: #135e96;
-  box-shadow: 0 0 0 1px #2271b1;
-  outline: 2px solid transparent;
-}
-.radplapag-schedule-toggle .toggle-indicator {
-  float: left;
-  margin-top: 5px;
-  margin-right: 5px;
-  width: 20px;
-  height: 20px;
-  display: inline-block;
-  position: relative;
-  color: #50575e;
-}
-.radplapag-schedule-toggle .toggle-indicator:before {
-  content: "\f140"; /* Dashicon for arrow-up-alt2 (collapsed) */
-  font: normal 20px/1 dashicons;
-  speak: never;
-  display: inline-block;
-  padding: 0;
-  top: 0;
-  left: 0;
-  position: relative;
-  vertical-align: top;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-decoration: none !important;
-}
-.radplapag-schedule-toggle[aria-expanded="false"] .toggle-indicator:before {
-  content: "\f140"; /* Dashicon for arrow-up-alt2 (collapsed) */
-}
-.radplapag-schedule-toggle[aria-expanded="true"] .toggle-indicator:before {
-  content: "\f142"; /* Dashicon for arrow-down-alt2 (expanded) */
-}
 .radplapag-schedule-wrapper {
-  transition:
-    max-height 0.3s ease,
-    opacity 0.3s ease,
-    margin 0.3s ease,
-    padding 0.3s ease;
-  overflow: hidden;
-}
-.radplapag-schedule-wrapper.radplapag-schedule-collapsed {
-  max-height: 0;
-  opacity: 0;
-  margin: 0;
-  padding: 0;
-}
-.radplapag-schedule-wrapper:not(.radplapag-schedule-collapsed) {
-  max-height: 5000px;
-  opacity: 1;
+  display: block;
 }
 
 /* Remove Time Slot: red on link hover */

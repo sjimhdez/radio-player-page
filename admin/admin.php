@@ -46,6 +46,13 @@ function radplapag_admin_scripts( $hook_suffix ) {
             true
         );
         wp_localize_script( 'radplapag-station-admin', 'radplapagAdmin', radplapag_get_admin_strings() );
+        wp_enqueue_script(
+            'radplapag-program-admin',
+            $admin_url . 'js/program-admin.js',
+            array( 'jquery', 'media-editor' ),
+            '3.3.0',
+            true
+        );
     }
 }
 add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts', 10, 1 );

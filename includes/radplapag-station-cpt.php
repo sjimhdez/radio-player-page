@@ -530,20 +530,28 @@ function radplapag_render_station_details_meta_box( $post ) {
 	</p>
 	<p>
 		<label><strong><?php esc_html_e( 'Logo Image (Optional)', 'radio-player-page' ); ?></strong></label><br>
-		<div class="radplapag-image-upload-wrapper">
-			<input type="hidden" name="radplapag_station_logo_id" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-image-id">
-			<div class="radplapag-image-preview"><?php if ( $logo_url ) : ?><img src="<?php echo esc_url( $logo_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;"><?php endif; ?></div>
-			<button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-			<button type="button" class="button radplapag-remove-image-btn" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+		<div class="radplapag-program-logo-wrapper">
+			<input type="hidden" name="radplapag_station_logo_id" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-program-logo-id">
+			<div class="radplapag-program-logo-preview">
+				<?php if ( $logo_url ) : ?>
+					<img src="<?php echo esc_url( $logo_url ); ?>" alt="">
+				<?php endif; ?>
+			</div>
+			<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+			<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
 		</div>
 	</p>
 	<p>
 		<label><strong><?php esc_html_e( 'Background Image (Optional)', 'radio-player-page' ); ?></strong></label><br>
-		<div class="radplapag-image-upload-wrapper">
-			<input type="hidden" name="radplapag_station_background_id" value="<?php echo esc_attr( $background_id ); ?>" class="radplapag-image-id">
-			<div class="radplapag-image-preview"><?php if ( $bg_url ) : ?><img src="<?php echo esc_url( $bg_url ); ?>" alt="" style="max-width:150px;max-height:150px;display:block;"><?php endif; ?></div>
-			<button type="button" class="button radplapag-upload-btn"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-			<button type="button" class="button radplapag-remove-image-btn" <?php echo $background_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+		<div class="radplapag-program-logo-wrapper">
+			<input type="hidden" name="radplapag_station_background_id" value="<?php echo esc_attr( $background_id ); ?>" class="radplapag-program-logo-id">
+			<div class="radplapag-program-logo-preview">
+				<?php if ( $bg_url ) : ?>
+					<img src="<?php echo esc_url( $bg_url ); ?>" alt="">
+				<?php endif; ?>
+			</div>
+			<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+			<button type="button" class="button radplapag-program-logo-remove" <?php echo $background_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
 		</div>
 	</p>
 	<?php
@@ -576,22 +584,10 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 		'sunday'    => __( 'Sunday', 'radio-player-page' ),
 	);
 
-	$has_schedule = false;
-	foreach ( $days as $day_key => $day_label ) {
-		if ( ! empty( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) ) {
-			$has_schedule = true;
-			break;
-		}
-	}
-	$schedule_collapsed_class = $has_schedule ? '' : 'radplapag-schedule-collapsed';
 	$cpt_programs = radplapag_get_all_programs_for_select();
 	?>
 	<div id="radplapag-station-cpt-container">
-		<button type="button" class="button-link radplapag-schedule-toggle" data-station-index="0" aria-expanded="<?php echo $has_schedule ? 'true' : 'false'; ?>">
-			<span class="toggle-indicator" aria-hidden="true"></span>
-			<?php echo $has_schedule ? esc_html__( 'Hide Program Schedule', 'radio-player-page' ) : esc_html__( 'Show Program Schedule', 'radio-player-page' ); ?>
-		</button>
-		<div class="radplapag-schedule-wrapper <?php echo esc_attr( $schedule_collapsed_class ); ?>" data-station-index="0">
+		<div class="radplapag-schedule-wrapper" data-station-index="0">
 			<p class="description" style="margin-bottom: 15px;">
 				<?php esc_html_e( 'Assign programs (from RPP → Programs) to time slots for each day. The player displays the current and upcoming programs based on your site\'s timezone.', 'radio-player-page' ); ?>
 			</p>

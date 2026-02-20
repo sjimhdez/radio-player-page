@@ -238,7 +238,7 @@ function radplapag_render_program_meta_boxes( $post ) {
 
 	$desc_value        = is_string( $description ) ? $description : '';
 	$ext_desc_value    = is_string( $extended_description ) ? $extended_description : '';
-	$logo_url          = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'thumbnail' ) : '';
+	$logo_url          = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
 	?>
 	<p>
 		<label for="radplapag_program_description"><strong><?php esc_html_e( 'Description', 'radio-player-page' ); ?></strong></label><br>
@@ -252,14 +252,16 @@ function radplapag_render_program_meta_boxes( $post ) {
 	</p>
 	<p>
 		<label><strong><?php esc_html_e( 'Program Image', 'radio-player-page' ); ?></strong></label><br>
-		<input type="hidden" id="radplapag_program_logo_id" name="radplapag_program_logo_id" value="<?php echo esc_attr( $logo_id ); ?>">
-		<div class="radplapag-program-logo-preview" style="margin: 8px 0;">
-			<?php if ( $logo_url ) : ?>
-				<img src="<?php echo esc_url( $logo_url ); ?>" alt="" style="max-width: 128px; height: auto;">
-			<?php endif; ?>
+		<div class="radplapag-program-logo-wrapper">
+			<input type="hidden" id="radplapag_program_logo_id" name="radplapag_program_logo_id" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-program-logo-id">
+			<div class="radplapag-program-logo-preview">
+				<?php if ( $logo_url ) : ?>
+					<img src="<?php echo esc_url( $logo_url ); ?>" alt="">
+				<?php endif; ?>
+			</div>
+			<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
+			<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
 		</div>
-		<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-		<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
 	</p>
 	<?php
 }
