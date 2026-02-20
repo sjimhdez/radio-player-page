@@ -992,4 +992,46 @@
   initScheduleManagement();
   initScheduleToggle();
   initProgramsManagement();
+
+  // Station logo/background image selectors (same pattern as Programs).
+  if (typeof window.jQuery !== "undefined" && window.wp && window.wp.media) {
+    window.jQuery(function ($) {
+      var frame;
+      var currentWrapper;
+      $("body").on("click", ".radplapag-upload-btn", function (e) {
+        e.preventDefault();
+        currentWrapper = $(this).closest(".radplapag-image-upload-wrapper");
+        if (!currentWrapper.length) return;
+        if (frame) {
+          frame.open();
+          return;
+        }
+        frame = wp.media({ library: { type: "image" }, multiple: false });
+        frame.on("select", function () {
+          var att = frame.state().get("selection").first().toJSON();
+          var url =
+            att.sizes && att.sizes.thumbnail
+              ? att.sizes.thumbnail.url
+              : att.url;
+          currentWrapper.find(".radplapag-image-id").val(att.id);
+          currentWrapper
+            .find(".radplapag-image-preview")
+            .html(
+              '<img src="' +
+                url +
+                '" alt="" style="max-width:150px;max-height:150px;display:block;">'
+            );
+          currentWrapper.find(".radplapag-remove-image-btn").show();
+        });
+        frame.open();
+      });
+      $("body").on("click", ".radplapag-remove-image-btn", function (e) {
+        e.preventDefault();
+        var w = $(this).closest(".radplapag-image-upload-wrapper");
+        w.find(".radplapag-image-id").val("");
+        w.find(".radplapag-image-preview").empty();
+        $(this).hide();
+      });
+    });
+  }
 })();

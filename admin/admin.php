@@ -9,20 +9,25 @@ defined( 'ABSPATH' ) || exit;
  */
 
 /**
- * Enqueues scripts and styles for the plugin admin (always).
+ * Enqueues styles and station script only on station/program CPT screens.
  *
- * admin.js runs on every admin page; it only attaches behavior when the matching
- * container exists (station CPT or settings). Localized data sets stationCpt when
- * on post-new.php/post.php for radplapag_station.
+ * station-admin.js loads only on radplapag_station (new/edit). program-admin.js
+ * loads only on radplapag_program (see radplapag-program-cpt.php).
  *
  * @since 2.0.1
- * @since 3.3.0 Enqueue always; stationCpt set by hook suffix and post type.
+ * @since 3.3.0 Split: station-admin.js on station screen only; CSS on station + program.
  *
  * @param string $hook_suffix Current admin page (e.g. post-new.php, post.php).
  * @return void
  */
 function radplapag_admin_scripts( $hook_suffix ) {
-    wp_enqueue_media();
+    $screen = get_current_screen();
+    $is_station = $screen && isset( $screen->id ) && $screen->id === 'radplapag_station';
+    $is_program = $screen && isset( $screen->id ) && $screen->id === 'radplapag_program';
+    if ( ! $is_station && ! $is_program ) {
+        return;
+    }
+
     $admin_url = plugin_dir_url( __FILE__ );
     wp_enqueue_style(
         'radplapag-admin',
@@ -30,24 +35,18 @@ function radplapag_admin_scripts( $hook_suffix ) {
         array(),
         '3.3.0'
     );
-    wp_enqueue_script(
-        'radplapag-admin',
-        $admin_url . 'js/admin.js',
-        array( 'jquery', 'media-editor' ),
-        '3.3.0',
-        true
-    );
-    $l10n = radplapag_get_admin_strings();
-    $l10n['stationCpt'] = false;
-    if ( $hook_suffix === 'post-new.php' && isset( $_GET['post_type'] ) && sanitize_key( wp_unslash( $_GET['post_type'] ) ) === 'radplapag_station' ) {
-        $l10n['stationCpt'] = true;
-    } elseif ( $hook_suffix === 'post.php' && isset( $_GET['post'] ) ) {
-        $post_id = absint( $_GET['post'] );
-        if ( $post_id > 0 && get_post_type( $post_id ) === 'radplapag_station' ) {
-            $l10n['stationCpt'] = true;
-        }
+
+    if ( $is_station ) {
+        wp_enqueue_media();
+        wp_enqueue_script(
+            'radplapag-station-admin',
+            $admin_url . 'js/station-admin.js',
+            array( 'jquery', 'media-editor' ),
+            '3.3.0',
+            true
+        );
+        wp_localize_script( 'radplapag-station-admin', 'radplapagAdmin', radplapag_get_admin_strings() );
     }
-    wp_localize_script( 'radplapag-admin', 'radplapagAdmin', $l10n );
 }
 add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts', 10, 1 );
 

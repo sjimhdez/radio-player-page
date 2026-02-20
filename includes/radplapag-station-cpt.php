@@ -55,7 +55,7 @@ function radplapag_register_station_post_type() {
 add_action( 'init', 'radplapag_register_station_post_type' );
 
 /**
- * Uses the classic editor for stations so meta boxes (schedule, details) are in the page and admin.js works.
+ * Uses the classic editor for stations so meta boxes (schedule, details) are in the page and station-admin.js works.
  *
  * @since 3.3.0
  * @param bool   $use_block_editor Whether the block editor is used for this post type.
@@ -741,7 +741,7 @@ function radplapag_station_schedule_errors_notice() {
 }
 
 /**
- * Enqueues media and inline script for station logo/background image selectors (same pattern as Programs).
+ * Enqueues media for station edit screen. Logo/background image logic is in station-admin.js.
  *
  * @since 3.3.0
  * @return void
@@ -752,34 +752,6 @@ function radplapag_station_edit_scripts() {
 		return;
 	}
 	wp_enqueue_media();
-	wp_add_inline_script( 'jquery', "
-		jQuery(function($) {
-			var frame;
-			var currentWrapper;
-			$('body').on('click', '.radplapag-upload-btn', function(e) {
-				e.preventDefault();
-				currentWrapper = $(this).closest('.radplapag-image-upload-wrapper');
-				if (!currentWrapper.length) return;
-				if (frame) { frame.open(); return; }
-				frame = wp.media({ library: { type: 'image' }, multiple: false });
-				frame.on('select', function() {
-					var att = frame.state().get('selection').first().toJSON();
-					var url = (att.sizes && att.sizes.thumbnail) ? att.sizes.thumbnail.url : att.url;
-					currentWrapper.find('.radplapag-image-id').val(att.id);
-					currentWrapper.find('.radplapag-image-preview').html('<img src=\"' + url + '\" alt=\"\" style=\"max-width:150px;max-height:150px;display:block;\">');
-					currentWrapper.find('.radplapag-remove-image-btn').show();
-				});
-				frame.open();
-			});
-			$('body').on('click', '.radplapag-remove-image-btn', function(e) {
-				e.preventDefault();
-				var w = $(this).closest('.radplapag-image-upload-wrapper');
-				w.find('.radplapag-image-id').val('');
-				w.find('.radplapag-image-preview').empty();
-				$(this).hide();
-			});
-		});
-	" );
 }
 
 if ( is_admin() ) {

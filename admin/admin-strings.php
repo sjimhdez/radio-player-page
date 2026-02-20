@@ -2,7 +2,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Admin strings and config for JavaScript localization (admin.js).
+ * Admin strings and config for JavaScript localization (station-admin.js).
  *
  * @package radio-player-page
  * @since 3.3.0
@@ -13,7 +13,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 1.0.0
  *
- * @return array Array with 'programs' (list for schedule dropdowns) and 'strings' (translated strings for admin.js).
+ * @return array Array with 'programs' (list for schedule dropdowns) and 'strings' (translated strings for station-admin.js).
  */
 function radplapag_get_admin_strings() {
 	$programs = function_exists( 'radplapag_get_all_programs_for_select' ) ? radplapag_get_all_programs_for_select() : array();

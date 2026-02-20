@@ -306,10 +306,9 @@ function radplapag_save_program_meta( $post_id ) {
 }
 
 /**
- * Enqueues media and script for program logo selector on CPT edit screen.
+ * Enqueues media and program-admin.js for program logo selector on CPT edit screen.
  *
  * @since 3.3.0
- *
  * @return void
  */
 function radplapag_program_edit_scripts() {
@@ -318,29 +317,14 @@ function radplapag_program_edit_scripts() {
 		return;
 	}
 	wp_enqueue_media();
-	wp_add_inline_script( 'jquery', "
-		jQuery(function($) {
-			var frame;
-			$('body').on('click', '.radplapag-program-logo-select', function(e) {
-				e.preventDefault();
-				if (frame) { frame.open(); return; }
-				frame = wp.media({ library: { type: 'image' }, multiple: false });
-				frame.on('select', function() {
-					var att = frame.state().get('selection').first().toJSON();
-					$('#radplapag_program_logo_id').val(att.id);
-					$('.radplapag-program-logo-preview').html('<img src=\"' + (att.sizes && att.sizes.thumbnail ? att.sizes.thumbnail.url : att.url) + '\" style=\"max-width:128px;height:auto;\">');
-					$('.radplapag-program-logo-remove').show();
-				});
-				frame.open();
-			});
-			$('body').on('click', '.radplapag-program-logo-remove', function(e) {
-				e.preventDefault();
-				$('#radplapag_program_logo_id').val('0');
-				$('.radplapag-program-logo-preview').empty();
-				$('.radplapag-program-logo-remove').hide();
-			});
-		});
-	" );
+	$admin_url = plugin_dir_url( dirname( __FILE__ ) ) . 'admin/';
+	wp_enqueue_script(
+		'radplapag-program-admin',
+		$admin_url . 'js/program-admin.js',
+		array( 'jquery', 'media-editor' ),
+		'3.3.0',
+		true
+	);
 }
 
 if ( is_admin() ) {

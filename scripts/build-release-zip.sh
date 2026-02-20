@@ -97,7 +97,8 @@ cp "$PLUGIN_DIR/admin/settings-page.php" "$RELEASE_ROOT/admin/"
 mkdir -p "$RELEASE_ROOT/admin/css"
 cp "$PLUGIN_DIR/admin/css/admin.css" "$RELEASE_ROOT/admin/css/"
 mkdir -p "$RELEASE_ROOT/admin/js"
-cp "$PLUGIN_DIR/admin/js/admin.js" "$RELEASE_ROOT/admin/js/"
+cp "$PLUGIN_DIR/admin/js/station-admin.js" "$RELEASE_ROOT/admin/js/"
+cp "$PLUGIN_DIR/admin/js/program-admin.js" "$RELEASE_ROOT/admin/js/"
 cp "$PLUGIN_DIR/uninstall.php"      "$RELEASE_ROOT/"
 
 # readme.txt (WordPress)
