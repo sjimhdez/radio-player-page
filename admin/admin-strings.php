@@ -26,7 +26,6 @@ function radplapag_get_admin_strings() {
 			'streamUrlRequired'        => __( 'This field is required.', 'radio-player-page' ),
 			'streamUrlInvalid'         => __( 'Please enter a valid URL.', 'radio-player-page' ),
 			'playerPageRequired'       => __( 'This field is required.', 'radio-player-page' ),
-			'stationTitleMax'          => __( 'Station name must be 64 characters or less.', 'radio-player-page' ),
 			'monday'                   => __( 'Monday', 'radio-player-page' ),
 			'tuesday'                  => __( 'Tuesday', 'radio-player-page' ),
 			'wednesday'                => __( 'Wednesday', 'radio-player-page' ),

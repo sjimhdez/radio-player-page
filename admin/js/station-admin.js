@@ -1,8 +1,8 @@
 /**
- * Station CPT edit screen: single-station UI only.
- * Station details (Player Page, Streaming URL, etc.) live in a separate meta box
- * with .radplapag-field-wrap[data-field="player_page"] and [data-field="stream_url"].
- * The container #radplapag-station-cpt-container wraps only the Program schedule meta box.
+ * Station CPT edit screen.
+ * Station details (Player Page, Streaming URL, etc.) in a meta box with
+ * .radplapag-field-wrap[data-field="player_page"] and [data-field="stream_url"].
+ * Schedule meta box is inside #radplapag-station-cpt-container.
  */
 (function () {
   var l10n = window.radplapagAdmin || {};
@@ -11,32 +11,6 @@
   var container = document.getElementById("radplapag-station-cpt-container");
   var form = document.getElementById("post");
 
-  function updatePageOptions() {
-    if (!container) return;
-    var playerPageSelects = document.querySelectorAll(".radplapag-player-page");
-    var selectedPages = [];
-    playerPageSelects.forEach(function (select) {
-      if (select.value) {
-        selectedPages.push(select.value);
-      }
-    });
-    playerPageSelects.forEach(function (select) {
-      var currentValue = select.value;
-      Array.from(select.options).forEach(function (option) {
-        if (option.value && option.value !== currentValue) {
-          option.disabled = selectedPages.indexOf(option.value) !== -1;
-        } else {
-          option.disabled = false;
-        }
-      });
-    });
-  }
-
-  if (container) {
-    document.querySelectorAll(".radplapag-player-page").forEach(function (select) {
-      select.addEventListener("change", updatePageOptions);
-    });
-  }
   if (form) {
     var playerPageWrap = form.querySelector('[data-field="player_page"]');
     var streamUrlWrap = form.querySelector('[data-field="stream_url"]');
@@ -770,7 +744,6 @@
     });
   }
 
-  updatePageOptions();
   initScheduleManagement();
   // Logo and background image handling: same markup/classes as Programs; program-admin.js handles it (loaded on station screen).
 })();
