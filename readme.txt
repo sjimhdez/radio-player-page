@@ -22,7 +22,7 @@ Radio Player Page **provides dedicated, standalone player pages** for your radio
 
 = Broadcast Management =
 
-* **Multi-Station Control** – Manage up to 10 independent stations from a single WordPress installation, each with its own stream, schedule, and branding.
+* **Multi-Station Control** – Manage multiple independent stations from a single WordPress installation, each with its own stream, schedule, and branding.
 * **Emission Timezone Clock** – Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 * **Media Session API** – Professional integration with device lock screens and media controls, displaying station art and info.
 * **Program Schedule Block** – Add a Gutenberg block (Block Editor) to any post or page to display the full weekly program schedule for a selected station. Design is controlled by the editor and theme (Block Supports, theme.json).
@@ -41,12 +41,12 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
-3. Navigate to **Settings → Radio Player Page Settings**.
+3. Go to **RPP → Stations** in the admin menu. Click **Add New** to create a station.
 4. For each station:
    * Enter your streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
    * Select the WordPress page where the player should appear
    * Optionally customize: title, theme color, visualizer type, background image, and logo
-5. Click **Save Changes** and visit the assigned page
+5. Publish or update the station and visit the assigned page. Optionally use **RPP → Programs** to create programs and build the weekly schedule on each station.
 
 **Important Notes**
 
@@ -77,14 +77,16 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 3. Player page with green theme, Amplitude Waterfall visualizer, and sleep mode active.
 4. Player page with pink theme and Schedule modal open.
 5. Player page with orange theme and All Programs modal open.
-6. Settings screen with minimal configuration.
-7. Settings screen showing program configuration.
-8. Settings screen showing schedule configuration.
+6. RPP Stations list.
+7. Station edit screen with streaming URL and player page.
+8. Station edit screen with program schedule.
 
 == Changelog ==
 
 = 3.3.0 =
 * Added Program Schedule block (radplapag/schedule) for the Block Editor. Displays the weekly program schedule for a selected station on any post or page. Design is left to the editor and theme.
+* Added Programs List block (radplapag/programs-list) for the Block Editor. Lists all programs for a selected station with optional image, extended description, and broadcast schedule.
+* Station and program CPTs now use map_meta_cap so only users with manage_options can create, edit, delete, or publish stations and programs.
 
 = 3.2.0 =
 * Added Schedule modal

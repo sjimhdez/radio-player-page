@@ -26,6 +26,7 @@ function radplapag_get_admin_strings() {
 			'streamUrlRequired'        => __( 'This field is required.', 'radio-player-page' ),
 			'streamUrlInvalid'         => __( 'Please enter a valid URL.', 'radio-player-page' ),
 			'playerPageRequired'       => __( 'This field is required.', 'radio-player-page' ),
+			'playerPageAlreadyAssigned' => __( 'This Player Page is already assigned to another station. Please choose a different page.', 'radio-player-page' ),
 			'monday'                   => __( 'Monday', 'radio-player-page' ),
 			'tuesday'                  => __( 'Tuesday', 'radio-player-page' ),
 			'wednesday'                => __( 'Wednesday', 'radio-player-page' ),

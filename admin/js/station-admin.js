@@ -8,19 +8,34 @@
   var l10n = window.radplapagAdmin || {};
   var programsList = l10n.programs || [];
   var s = l10n.strings || {};
+  var assignedPlayerPages = Array.isArray(l10n.assignedPlayerPages) ? l10n.assignedPlayerPages : [];
   var container = document.getElementById("radplapag-station-cpt-container");
   var form = document.getElementById("post");
+
+  function applyDisabledPlayerPages(selectEl) {
+    if (!selectEl || !assignedPlayerPages.length) return;
+    var assignedSet = {};
+    assignedPlayerPages.forEach(function (id) {
+      assignedSet[String(id)] = true;
+    });
+    Array.from(selectEl.options).forEach(function (option) {
+      if (option.value && assignedSet[option.value]) {
+        option.disabled = true;
+      }
+    });
+  }
 
   if (form) {
     var playerPageWrap = form.querySelector('[data-field="player_page"]');
     var streamUrlWrap = form.querySelector('[data-field="stream_url"]');
-    if (playerPageWrap) {
-      var playerPageSelectEl = form.querySelector("#radplapag_station_player_page");
-      if (playerPageSelectEl) {
-        playerPageSelectEl.addEventListener("change", function () {
-          if (playerPageSelectEl.value) clearFieldError(playerPageWrap);
-        });
-      }
+    var playerPageSelectEl = form.querySelector("#radplapag_station_player_page");
+    if (playerPageSelectEl) {
+      applyDisabledPlayerPages(playerPageSelectEl);
+    }
+    if (playerPageWrap && playerPageSelectEl) {
+      playerPageSelectEl.addEventListener("change", function () {
+        if (playerPageSelectEl.value) clearFieldError(playerPageWrap);
+      });
     }
     if (streamUrlWrap) {
       var streamUrlInputEl = form.querySelector("#radplapag_station_stream_url");
@@ -456,6 +471,11 @@
     var streamUrlVal = streamUrlInput ? streamUrlInput.value.trim() : "";
     if (!playerPageVal) {
       if (playerPageWrap) showFieldError(playerPageWrap, s.playerPageRequired || "This field is required.");
+      return { valid: false, firstErrorElement: playerPageWrap };
+    }
+    var playerPageNum = Number(playerPageVal);
+    if (assignedPlayerPages.indexOf(playerPageNum) !== -1) {
+      if (playerPageWrap) showFieldError(playerPageWrap, s.playerPageAlreadyAssigned || "This Player Page is already assigned to another station. Please choose a different page.");
       return { valid: false, firstErrorElement: playerPageWrap };
     }
     if (!streamUrlVal) {

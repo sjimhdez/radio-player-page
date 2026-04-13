@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-3.2.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-3.3.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue)](https://www.php.net/)
@@ -72,7 +72,7 @@ Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 stre
 
 ### Multi-Station Control
 
-Manage up to **10 independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
+Manage **multiple independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
 
 - Its own streaming URL
 - A dedicated WordPress page
@@ -147,12 +147,12 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
-3. Navigate to **Settings → Radio Player Page Settings**.
+3. Go to **RPP → Stations** in the admin menu. Click **Add New** to create a station.
 4. For each station:
    - Enter your **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3).
    - Select the **WordPress page** where the player should appear.
    - Optionally customize: title, theme color, visualizer type, background image, and logo.
-5. Click **Save Changes** and visit the assigned page.
+5. Publish or update the station and visit the assigned page. Optionally use **RPP → Programs** to create programs and build the weekly schedule on each station.
 
 **Important:** Each station requires both a valid streaming URL and an assigned WordPress page. No configuration is needed on the page itself—the plugin intercepts page requests and serves the player when that page is requested.
 
