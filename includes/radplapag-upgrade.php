@@ -1,6 +1,6 @@
 <?php
 /**
- * Schema version and legacy migration bootstrap (3.2 option → 3.3 CPT).
+ * Schema version and legacy migration bootstrap (pre-3.3.0 single option → 3.3.0+ CPT).
  *
  * @package radio-player-page
  * @since 3.3.0
@@ -14,6 +14,11 @@ if ( ! defined( 'RADPLAPAG_DB_VERSION' ) ) {
 
 /**
  * Whether legacy radplapag_settings contains at least one station to migrate.
+ *
+ * WordPress does not persist the previously installed plugin semver. Any site that
+ * still has this option with a non-empty `stations` list is treated as having used
+ * Radio Player Page **before 3.3.0** (same storage model as 3.2.x and earlier releases
+ * that used `radplapag_settings`, not only 3.2.0).
  *
  * @since 3.3.0
  * @return bool
@@ -124,9 +129,9 @@ function radplapag_run_legacy_migration_if_needed() {
 	$prev_user  = get_current_user_id();
 	wp_set_current_user( $author_id );
 
-	require_once dirname( __FILE__ ) . '/migration/class-radplapag-migrator-320-to-330.php';
+	require_once dirname( __FILE__ ) . '/migration/class-radplapag-migrator-settings-to-cpt.php';
 
-	$result = Radplapag_Migrator_320_To_330::run( $author_id );
+	$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
 
 	wp_set_current_user( $prev_user );
 	delete_transient( 'radplapag_migrating' );

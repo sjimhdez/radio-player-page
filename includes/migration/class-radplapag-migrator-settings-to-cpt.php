@@ -1,6 +1,9 @@
 <?php
 /**
- * One-time migration from radplapag_settings (3.2) to station/program CPTs (3.3).
+ * One-time migration: radplapag_settings (single option) → radplapag_station / radplapag_program CPTs.
+ *
+ * Applies to any Radio Player Page release **before 3.3.0** that used this storage model
+ * (e.g. 3.2.x, 3.1.x, 3.0.x with the same `stations` array shape—not tied to a specific prior semver).
  *
  * @package radio-player-page
  * @since 3.3.0
@@ -13,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 3.3.0
  */
-class Radplapag_Migrator_320_To_330 {
+class Radplapag_Migrator_Settings_To_Cpt {
 
 	/**
 	 * Runs migration when legacy settings exist and preconditions are met.
@@ -94,7 +97,7 @@ class Radplapag_Migrator_320_To_330 {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 					error_log( 'Radio Player Page migration: duplicate legacy program id "' . $old_id . '" with differing data; using the last occurrence.' );
 				}
-				$prog['_fp']         = $fingerprint;
+				$prog['_fp']       = $fingerprint;
 				$unique[ $old_id ] = $prog;
 			}
 		}
@@ -241,8 +244,8 @@ class Radplapag_Migrator_320_To_330 {
 					continue;
 				}
 				$legacy_pid = isset( $slot['program_id'] ) ? (string) $slot['program_id'] : '';
-				$start       = isset( $slot['start'] ) ? trim( (string) $slot['start'] ) : '';
-				$end         = isset( $slot['end'] ) ? trim( (string) $slot['end'] ) : '';
+				$start      = isset( $slot['start'] ) ? trim( (string) $slot['start'] ) : '';
+				$end        = isset( $slot['end'] ) ? trim( (string) $slot['end'] ) : '';
 				if ( $legacy_pid === '' || $start === '' || $end === '' ) {
 					continue;
 				}
