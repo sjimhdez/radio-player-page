@@ -68,6 +68,8 @@ function radplapag_uninstall_delete_stations() {
  * @return void
  */
 function radplapag_uninstall_plugin() {
+	delete_option( 'radplapag_db_version' );
+	delete_option( 'radplapag_migration_skipped_cpt_conflict' );
 	radplapag_uninstall_delete_stations();
 	radplapag_uninstall_delete_programs();
 	wp_cache_flush();
@@ -76,6 +78,8 @@ function radplapag_uninstall_plugin() {
 		$sites = get_sites( array( 'number' => 0 ) );
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site->blog_id );
+			delete_option( 'radplapag_db_version' );
+			delete_option( 'radplapag_migration_skipped_cpt_conflict' );
 			radplapag_uninstall_delete_stations();
 			radplapag_uninstall_delete_programs();
 			restore_current_blog();

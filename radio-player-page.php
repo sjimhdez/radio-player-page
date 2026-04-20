@@ -15,6 +15,10 @@
 
 defined( 'ABSPATH' ) || exit;
 
+if ( ! defined( 'RADPLAPAG_PLUGIN_FILE' ) ) {
+	define( 'RADPLAPAG_PLUGIN_FILE', __FILE__ );
+}
+
 /**
  * Main plugin file.
  *
@@ -29,6 +33,8 @@ defined( 'ABSPATH' ) || exit;
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-stations.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-station-cpt.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-program-cpt.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/data/class-radplapag-program-config.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-upgrade.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-schedule-block.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-programs-list-block.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/schedule/render.php';

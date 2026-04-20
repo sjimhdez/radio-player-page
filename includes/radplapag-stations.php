@@ -1,6 +1,8 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+require_once dirname( __FILE__ ) . '/data/class-radplapag-station-config.php';
+
 /**
  * Stations data: list of stations from CPT (used by blocks, player page, config).
  *
@@ -29,36 +31,10 @@ function radplapag_get_stations() {
 	) );
 	$out = array();
 	foreach ( $posts as $post ) {
-		$schedule_json = get_post_meta( $post->ID, 'radplapag_station_schedule', true );
-		$schedule      = array();
-		if ( is_string( $schedule_json ) && $schedule_json !== '' ) {
-			$decoded = json_decode( $schedule_json, true );
-			if ( is_array( $decoded ) ) {
-				$schedule = $decoded;
-			}
+		$config = Radplapag_Station_Config::from_post( $post );
+		if ( $config ) {
+			$out[] = $config->to_array();
 		}
-		$theme = get_post_meta( $post->ID, 'radplapag_station_theme_color', true );
-		$visualizer = get_post_meta( $post->ID, 'radplapag_station_visualizer', true );
-		$valid_themes = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
-		$valid_visualizers = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
-		if ( ! is_string( $theme ) || ! in_array( $theme, $valid_themes, true ) ) {
-			$theme = 'neutral';
-		}
-		if ( ! is_string( $visualizer ) || ! in_array( $visualizer, $valid_visualizers, true ) ) {
-			$visualizer = 'oscilloscope';
-		}
-		$stream_url = get_post_meta( $post->ID, 'radplapag_station_stream_url', true );
-		$out[] = array(
-			'id'             => (int) $post->ID,
-			'stream_url'     => is_string( $stream_url ) ? $stream_url : '',
-			'player_page'    => (int) get_post_meta( $post->ID, 'radplapag_station_player_page', true ),
-			'station_title'  => $post->post_title,
-			'background_id'  => (int) get_post_meta( $post->ID, 'radplapag_station_background_id', true ),
-			'logo_id'        => (int) get_post_meta( $post->ID, 'radplapag_station_logo_id', true ),
-			'theme_color'    => $theme,
-			'visualizer'     => $visualizer,
-			'schedule'       => $schedule,
-		);
 	}
 	return $out;
 }

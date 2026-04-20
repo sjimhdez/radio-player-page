@@ -87,6 +87,7 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 * Added Program Schedule block (radplapag/schedule) for the Block Editor. Displays the weekly program schedule for a selected station on any post or page. Design is left to the editor and theme.
 * Added Programs List block (radplapag/programs-list) for the Block Editor. Lists all programs for a selected station with optional image, extended description, and broadcast schedule.
 * Station and program CPTs now use map_meta_cap so only users with manage_options can create, edit, delete, or publish stations and programs.
+* **Data storage change:** Stations and programs are stored as custom post types instead of a single settings option. When you update from 3.2.x, the plugin migrates your existing stations, programs, and schedules automatically on the next admin load (or right after a dashboard plugin update). On success, the legacy `radplapag_settings` option is removed. If published stations already exist so a safe automatic import is not possible, the plugin shows an admin notice and keeps the legacy option until you resolve the conflict.
 
 = 3.2.0 =
 * Added Schedule modal
