@@ -500,7 +500,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 	?>
 	<div class="radplapag-form-row">
 		<p class="radplapag-field-wrap" data-field="player_page">
-			<label for="radplapag_station_player_page"><strong><?php esc_html_e( 'Player Page', 'radio-player-page' ); ?></strong></label><br>
+			<label for="radplapag_station_player_page"><strong><?php esc_html_e( 'Player Page', 'radio-player-page' ); ?> <span class="required">*</span></strong></label><br>
 			<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-field-select radplapag-player-page">
 				<option value=""><?php esc_html_e( 'Select a Page', 'radio-player-page' ); ?></option>
 				<?php foreach ( $pages as $page ) : ?>
@@ -510,7 +510,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
 		</p>
 		<p class="radplapag-field-wrap" data-field="stream_url">
-			<label for="radplapag_station_stream_url"><strong><?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?></strong></label><br>
+			<label for="radplapag_station_stream_url"><strong><?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?> <span class="required">*</span></strong></label><br>
 			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>">
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
 		</p>

@@ -247,12 +247,10 @@ function radplapag_render_program_meta_boxes( $post ) {
 	<p class="radplapag-field-wrap">
 		<label for="radplapag_program_description"><strong><?php esc_html_e( 'Description', 'radio-player-page' ); ?></strong></label><br>
 		<input type="text" id="radplapag_program_description" name="radplapag_program_description" value="<?php echo esc_attr( $desc_value ); ?>" class="large-text radplapag-field-input" maxlength="256">
-		<br><span class="description"><?php esc_html_e( 'Short description (e.g. Morning news with Howard Mallory and guests).', 'radio-player-page' ); ?></span>
 	</p>
 	<p class="radplapag-field-wrap">
 		<label for="radplapag_program_extended_description"><strong><?php esc_html_e( 'Extended Description', 'radio-player-page' ); ?></strong></label><br>
 		<textarea id="radplapag_program_extended_description" name="radplapag_program_extended_description" rows="4" class="large-text radplapag-field-textarea" maxlength="512"><?php echo esc_textarea( $ext_desc_value ); ?></textarea>
-		<br><span class="description"><?php esc_html_e( 'Longer description for the Radio Shows list.', 'radio-player-page' ); ?></span>
 	</p>
 	<div class="radplapag-field-wrap">
 		<label><strong><?php esc_html_e( 'Radio Show Image', 'radio-player-page' ); ?></strong></label>
