@@ -3,9 +3,9 @@
   "apiVersion": 3,
   "name": "radplapag/programs-list",
   "version": "1.0.0",
-  "title": "Programs List",
+  "title": "Radio Shows List",
   "category": "widgets",
-  "description": "Display all programs for a selected radio station with name, image, extended description, and broadcast schedule.",
+  "description": "Display all Radio Shows for a selected Radio Station with name, image, extended description, and broadcast schedule.",
   "textdomain": "radio-player-page",
   "attributes": {
     "stationIndex": {

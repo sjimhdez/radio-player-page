@@ -3,9 +3,9 @@
 	"apiVersion": 3,
 	"name": "radplapag/schedule",
 	"version": "1.0.0",
-	"title": "Program Schedule",
+	"title": "Radio Schedule",
 	"category": "widgets",
-	"description": "Display the weekly program schedule for a selected radio station.",
+	"description": "Display the weekly Radio Schedule for a selected Radio Station.",
 	"textdomain": "radio-player-page",
 	"attributes": {
 		"stationIndex": {

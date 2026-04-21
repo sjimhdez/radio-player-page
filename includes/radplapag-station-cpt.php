@@ -19,18 +19,18 @@ defined( 'ABSPATH' ) || exit;
  */
 function radplapag_register_station_post_type() {
 	$labels = array(
-		'name'               => _x( 'Stations', 'post type general name', 'radio-player-page' ),
-		'singular_name'      => _x( 'Station', 'post type singular name', 'radio-player-page' ),
-		'menu_name'          => __( 'Stations', 'radio-player-page' ),
+		'name'               => _x( 'Radio Stations', 'post type general name', 'radio-player-page' ),
+		'singular_name'      => _x( 'Radio Station', 'post type singular name', 'radio-player-page' ),
+		'menu_name'          => __( 'Radio Stations', 'radio-player-page' ),
 		'add_new'            => __( 'Add New', 'radio-player-page' ),
-		'add_new_item'       => __( 'Add New Station', 'radio-player-page' ),
-		'edit_item'          => __( 'Edit Station', 'radio-player-page' ),
-		'new_item'           => __( 'New Station', 'radio-player-page' ),
-		'view_item'          => __( 'View Station', 'radio-player-page' ),
-		'search_items'       => __( 'Search Stations', 'radio-player-page' ),
-		'not_found'          => __( 'No stations found.', 'radio-player-page' ),
-		'not_found_in_trash' => __( 'No stations found in Trash.', 'radio-player-page' ),
-		'all_items'          => __( 'Stations', 'radio-player-page' ),
+		'add_new_item'       => __( 'Add Radio Station', 'radio-player-page' ),
+		'edit_item'          => __( 'Edit Radio Station', 'radio-player-page' ),
+		'new_item'           => __( 'New Radio Station', 'radio-player-page' ),
+		'view_item'          => __( 'View Radio Station', 'radio-player-page' ),
+		'search_items'       => __( 'Search Radio Stations', 'radio-player-page' ),
+		'not_found'          => __( 'No Radio stations found.', 'radio-player-page' ),
+		'not_found_in_trash' => __( 'No Radio stations found in Trash.', 'radio-player-page' ),
+		'all_items'          => __( 'Radio Stations', 'radio-player-page' ),
 	);
 
 	$args = array(

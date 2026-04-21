@@ -30,7 +30,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 
 	if ( $programs === null || ! is_array( $programs ) || count( $programs ) === 0 ) {
 		return '<div ' . $wrapper_attributes . '>' .
-			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No programs defined for this station.', 'radio-player-page' ) . '</p></div>' .
+			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No Radio Shows defined for this Radio Station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
@@ -52,7 +52,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 		$html .= '<header class="wp-block-title" style="font-size:1.5em;">' . esc_html( $name !== '' ? $name : '—' ) . '</header>';
 
 		if ( $show_image && $logo_id > 0 ) {
-			$img_alt = $name !== '' ? $name : __( 'Program image', 'radio-player-page' );
+			$img_alt = $name !== '' ? $name : __( 'Radio Show image', 'radio-player-page' );
 			$html   .= '<figure class="wp-block-image has-small-padding-bottom">' . wp_get_attachment_image(
 				$logo_id,
 				'medium',

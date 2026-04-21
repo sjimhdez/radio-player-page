@@ -24,9 +24,9 @@ function Edit( { attributes, setAttributes } ) {
 	const stations = window.radplapagScheduleBlock?.stations || [];
 	const options =
 		stations.length === 0
-			? [ { label: __( 'No stations configured', 'radio-player-page' ), value: 0 } ]
+			? [ { label: __( 'No Radio Stations configured', 'radio-player-page' ), value: 0 } ]
 			: stations.map( ( station, index ) => ( {
-					label: station.label || __( 'Station', 'radio-player-page' ) + ' ' + ( index + 1 ),
+					label: station.label || __( 'Radio Station', 'radio-player-page' ) + ' ' + ( index + 1 ),
 					value: index,
 			  } ) );
 	const safeIndex = Math.max( 0, Math.min( stationIndex, stations.length ? stations.length - 1 : 0 ) );
@@ -37,9 +37,9 @@ function Edit( { attributes, setAttributes } ) {
 	return (
 		<>
 			<InspectorControls>
-				<PanelBody title={ __( 'Schedule settings', 'radio-player-page' ) } initialOpen={ true }>
+				<PanelBody title={ __( 'Radio Schedule Settings', 'radio-player-page' ) } initialOpen={ true }>
 					<SelectControl
-						label={ __( 'Station', 'radio-player-page' ) }
+						label={ __( 'Radio Station', 'radio-player-page' ) }
 						value={ safeIndex }
 						options={ options }
 						onChange={ ( value ) => setAttributes( { stationIndex: parseInt( value, 10 ) } ) }
@@ -54,12 +54,12 @@ function Edit( { attributes, setAttributes } ) {
 						onChange={ ( value ) => setAttributes( { dayOrder: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Show program description', 'radio-player-page' ) }
+						label={ __( 'Show Radio Show Description', 'radio-player-page' ) }
 						checked={ showDescriptionValue }
 						onChange={ ( value ) => setAttributes( { showDescription: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Show extended program description', 'radio-player-page' ) }
+						label={ __( 'Show Extended Radio Show Description', 'radio-player-page' ) }
 						checked={ showExtendedDescriptionValue }
 						onChange={ ( value ) => setAttributes( { showExtendedDescription: value } ) }
 					/>

@@ -19,18 +19,18 @@ defined( 'ABSPATH' ) || exit;
  */
 function radplapag_register_program_post_type() {
 	$labels = array(
-		'name'               => _x( 'Programs', 'post type general name', 'radio-player-page' ),
-		'singular_name'      => _x( 'Program', 'post type singular name', 'radio-player-page' ),
-		'menu_name'          => __( 'Programs', 'radio-player-page' ),
+		'name'               => _x( 'Radio Shows', 'post type general name', 'radio-player-page' ),
+		'singular_name'      => _x( 'Radio Show', 'post type singular name', 'radio-player-page' ),
+		'menu_name'          => __( 'Radio Shows', 'radio-player-page' ),
 		'add_new'            => __( 'Add New', 'radio-player-page' ),
-		'add_new_item'       => __( 'Add New Program', 'radio-player-page' ),
-		'edit_item'          => __( 'Edit Program', 'radio-player-page' ),
-		'new_item'           => __( 'New Program', 'radio-player-page' ),
-		'view_item'          => __( 'View Program', 'radio-player-page' ),
-		'search_items'       => __( 'Search Programs', 'radio-player-page' ),
-		'not_found'          => __( 'No programs found.', 'radio-player-page' ),
-		'not_found_in_trash' => __( 'No programs found in Trash.', 'radio-player-page' ),
-		'all_items'          => __( 'Programs', 'radio-player-page' ),
+		'add_new_item'       => __( 'Add Radio Show', 'radio-player-page' ),
+		'edit_item'          => __( 'Edit Radio Show', 'radio-player-page' ),
+		'new_item'           => __( 'New Radio Show', 'radio-player-page' ),
+		'view_item'          => __( 'View Radio Show', 'radio-player-page' ),
+		'search_items'       => __( 'Search Radio Show', 'radio-player-page' ),
+		'not_found'          => __( 'No Radio Shows found.', 'radio-player-page' ),
+		'not_found_in_trash' => __( 'No Radio Shows found in Trash.', 'radio-player-page' ),
+		'all_items'          => __( 'Radio Shows', 'radio-player-page' ),
 	);
 
 	// Use custom capability type so we grant caps only via user_has_cap (manage_options).
@@ -218,7 +218,7 @@ function radplapag_get_all_programs_for_select() {
 function radplapag_add_program_meta_boxes() {
 	add_meta_box(
 		'radplapag_program_details',
-		__( 'Program Details', 'radio-player-page' ),
+		__( 'Details', 'radio-player-page' ),
 		'radplapag_render_program_meta_boxes',
 		'radplapag_program',
 		'normal'
@@ -252,10 +252,10 @@ function radplapag_render_program_meta_boxes( $post ) {
 	<p class="radplapag-field-wrap">
 		<label for="radplapag_program_extended_description"><strong><?php esc_html_e( 'Extended Description', 'radio-player-page' ); ?></strong></label><br>
 		<textarea id="radplapag_program_extended_description" name="radplapag_program_extended_description" rows="4" class="large-text radplapag-field-textarea" maxlength="512"><?php echo esc_textarea( $ext_desc_value ); ?></textarea>
-		<br><span class="description"><?php esc_html_e( 'Longer description for the program list.', 'radio-player-page' ); ?></span>
+		<br><span class="description"><?php esc_html_e( 'Longer description for the Radio Shows list.', 'radio-player-page' ); ?></span>
 	</p>
 	<div class="radplapag-field-wrap">
-		<label><strong><?php esc_html_e( 'Program Image', 'radio-player-page' ); ?></strong></label>
+		<label><strong><?php esc_html_e( 'Radio Show Image', 'radio-player-page' ); ?></strong></label>
 		<div class="radplapag-program-logo-wrapper">
 			<input type="hidden" id="radplapag_program_logo_id" name="radplapag_program_logo_id" value="<?php echo esc_attr( $logo_id ); ?>" class="radplapag-program-logo-id">
 			<div class="radplapag-program-logo-preview">
