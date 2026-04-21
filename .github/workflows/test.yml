@@ -106,9 +106,17 @@ jobs:
     name: PHP Syntax (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         php-version:
           - "5.6"
+          - "7.0"
+          - "7.1"
+          - "7.2"
+          - "7.3"
+          - "7.4"
+          - "8.0"
+          - "8.1"
           - "8.2"
     steps:
       - name: Checkout code
