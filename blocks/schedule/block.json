@@ -19,6 +19,10 @@
 		"showDescription": {
 			"type": "boolean",
 			"default": true
+		},
+		"showExtendedDescription": {
+			"type": "boolean",
+			"default": false
 		}
 	},
 	"supports": {

@@ -16,6 +16,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	$station_index    = isset( $attributes['stationIndex'] ) ? (int) $attributes['stationIndex'] : 0;
 	$day_order        = isset( $attributes['dayOrder'] ) && $attributes['dayOrder'] === 'natural' ? 'natural' : 'current_first';
 	$show_description = isset( $attributes['showDescription'] ) ? (bool) $attributes['showDescription'] : true;
+	$show_extended_description = isset( $attributes['showExtendedDescription'] ) ? (bool) $attributes['showExtendedDescription'] : false;
 	$data             = radplapag_get_schedule_for_station( $station_index, $day_order );
 	$wrapper_attributes = get_block_wrapper_attributes(
 		array(
@@ -87,6 +88,12 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 				$program_description = isset( $slot['program_description'] ) ? $slot['program_description'] : '';
 				if ( $program_description !== '' ) {
 					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_description ) . '</p></div>';
+				}
+			}
+			if ( $show_extended_description ) {
+				$program_extended_description = isset( $slot['program_extended_description'] ) ? $slot['program_extended_description'] : '';
+				if ( $program_extended_description !== '' ) {
+					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_extended_description ) . '</p></div>';
 				}
 			}
 			$html .= '</li>';

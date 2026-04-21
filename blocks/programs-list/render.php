@@ -15,6 +15,7 @@
 function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 	$station_index             = isset( $attributes['stationIndex'] ) ? (int) $attributes['stationIndex'] : 0;
 	$show_image                = isset( $attributes['showImage'] ) ? (bool) $attributes['showImage'] : true;
+	$show_description          = isset( $attributes['showDescription'] ) ? (bool) $attributes['showDescription'] : true;
 	$show_extended_description = isset( $attributes['showExtendedDescription'] ) ? (bool) $attributes['showExtendedDescription'] : true;
 	$show_schedule             = isset( $attributes['showSchedule'] ) ? (bool) $attributes['showSchedule'] : true;
 	$wrapper_attributes        = get_block_wrapper_attributes(
@@ -40,6 +41,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 		$id       = isset( $prog['id'] ) ? $prog['id'] : '';
 		$name     = isset( $prog['name'] ) ? $prog['name'] : '';
 		$logo_id  = isset( $prog['logo_id'] ) ? (int) $prog['logo_id'] : 0;
+		$description = isset( $prog['description'] ) ? $prog['description'] : null;
 		$ext_desc = isset( $prog['extended_description'] ) ? $prog['extended_description'] : null;
 		$slots    = isset( $prog['slots'] ) && is_array( $prog['slots'] ) ? $prog['slots'] : [];
 
@@ -55,6 +57,10 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 				false,
 				array( 'alt' => esc_attr( $img_alt ) )
 			) . '</figure>';
+		}
+
+		if ( $show_description && $description !== null && $description !== '' ) {
+			$html .= '<div class="wp-block-group"><p class="wp-block-paragraph">' . esc_html( $description ) . '</p></div>';
 		}
 
 		if ( $show_extended_description && $ext_desc !== null && $ext_desc !== '' ) {
@@ -73,7 +79,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 				}
 				$slot_text = $day_label . ' ' . $time_range;
 				if ( $is_live ) {
-					$html .= '<li class="' . esc_attr( $slot_class ) . '" style="font-size:0.875em;">' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . esc_html( $slot_text ) . '</li>';
+					$html .= '<li class="' . esc_attr( $slot_class ) . '" style="font-size:0.875em;"><span>' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . esc_html( $slot_text ) . '</li>';
 				} else {
 					$html .= '<li class="' . esc_attr( $slot_class ) . '" style="font-size:0.875em;">' . esc_html( $slot_text ) . '</li>';
 				}

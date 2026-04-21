@@ -98,7 +98,7 @@ function radplapag_get_schedule_day_keys_and_labels() {
  *
  * @since 3.3.0
  * @param array $station Station array with 'schedule' key.
- * @return array Associative array program_id (string) => [ 'name' => string, 'description' => string|null, 'logo_url' => string|null ].
+ * @return array Associative array program_id (string) => [ 'name' => string, 'description' => string|null, 'extended_description' => string|null, 'logo_url' => string|null ].
  */
 function radplapag_build_programs_map( $station ) {
 	$map = [];
@@ -127,9 +127,10 @@ function radplapag_build_programs_map( $station ) {
 		if ( $data ) {
 			$key = (string) $post_id;
 			$map[ $key ] = [
-				'name'        => $data['name'],
-				'description' => $data['description'] !== '' ? $data['description'] : null,
-				'logo_url'    => $data['logo_url'],
+				'name'                 => $data['name'],
+				'description'          => $data['description'] !== '' ? $data['description'] : null,
+				'extended_description' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
+				'logo_url'             => $data['logo_url'],
 			];
 		}
 	}
@@ -186,7 +187,7 @@ function radplapag_get_schedule_for_station( $station_index, $day_order = 'curre
 			if ( $program_id === '' || $start === '' || $end === '' ) {
 				continue;
 			}
-			$prog  = isset( $programs_map[ $program_id ] ) ? $programs_map[ $program_id ] : [ 'name' => '', 'description' => null, 'logo_url' => null ];
+			$prog  = isset( $programs_map[ $program_id ] ) ? $programs_map[ $program_id ] : [ 'name' => '', 'description' => null, 'extended_description' => null, 'logo_url' => null ];
 			$day_num = array_search( $day_key, $day_keys_order, true );
 			// day_num: monday=0 .. sunday=6. WordPress day_of_week: sunday=0, monday=1, ...
 			$wp_day = $day_num === 6 ? 0 : $day_num + 1;
@@ -202,6 +203,7 @@ function radplapag_get_schedule_for_station( $station_index, $day_order = 'curre
 				'program_id'           => $program_id,
 				'program_name'         => $prog['name'],
 				'program_description'  => isset( $prog['description'] ) && is_string( $prog['description'] ) ? $prog['description'] : '',
+				'program_extended_description' => isset( $prog['extended_description'] ) && is_string( $prog['extended_description'] ) ? $prog['extended_description'] : '',
 				'start'                => $start,
 				'end'                  => $end,
 				'time_range'           => $start . '-' . $end,

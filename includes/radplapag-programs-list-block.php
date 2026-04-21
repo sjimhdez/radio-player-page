@@ -12,7 +12,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Retrieves the list of programs with name, logo, extended description and schedule slots for a station.
+ * Retrieves the list of programs with name, descriptions, logo, and schedule slots for a station.
  *
  * Builds from schedule program_id (post IDs) by loading radplapag_program CPT, in order of first appearance in schedule.
  *
@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 3.3.0
  * @param int $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
- * @return array|null List of programs, each with 'id', 'name', 'logo_id' (attachment ID or 0), 'extended_description', 'slots'. Null if station invalid or index out of range.
+ * @return array|null List of programs, each with 'id', 'name', 'logo_id' (attachment ID or 0), 'description', 'extended_description', 'slots'. Null if station invalid or index out of range.
  */
 function radplapag_get_programs_list_for_station( $station_index ) {
 	$config  = radplapag_get_config();
@@ -132,6 +132,7 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 			'id'                   => $key,
 			'name'                 => $data['name'],
 			'logo_id'              => $data['logo_id'] > 0 ? $data['logo_id'] : 0,
+			'description'          => $data['description'] !== '' ? $data['description'] : null,
 			'extended_description' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
 			'slots'                => $slots,
 		];

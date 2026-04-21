@@ -19,7 +19,7 @@ import metadata from '../block.json';
 const blockName = metadata.name;
 
 function Edit( { attributes, setAttributes } ) {
-	const { stationIndex, showImage, showExtendedDescription, showSchedule } = attributes;
+	const { stationIndex, showImage, showDescription, showExtendedDescription, showSchedule } = attributes;
 	const blockProps = useBlockProps();
 	const stations = window.radplapagProgramsListBlock?.stations || [];
 	const options =
@@ -31,6 +31,7 @@ function Edit( { attributes, setAttributes } ) {
 			  } ) );
 	const safeIndex = Math.max( 0, Math.min( stationIndex, stations.length ? stations.length - 1 : 0 ) );
 	const showImageValue = showImage !== false;
+	const showDescriptionValue = showDescription !== false;
 	const showExtendedDescriptionValue = showExtendedDescription !== false;
 	const showScheduleValue = showSchedule !== false;
 
@@ -50,6 +51,11 @@ function Edit( { attributes, setAttributes } ) {
 						onChange={ ( value ) => setAttributes( { showImage: value } ) }
 					/>
 					<ToggleControl
+						label={ __( 'Show Description', 'radio-player-page' ) }
+						checked={ showDescriptionValue }
+						onChange={ ( value ) => setAttributes( { showDescription: value } ) }
+					/>
+					<ToggleControl
 						label={ __( 'Show Extended Description', 'radio-player-page' ) }
 						checked={ showExtendedDescriptionValue }
 						onChange={ ( value ) => setAttributes( { showExtendedDescription: value } ) }
@@ -67,6 +73,7 @@ function Edit( { attributes, setAttributes } ) {
 					attributes={ {
 						stationIndex: safeIndex,
 						showImage: showImageValue,
+						showDescription: showDescriptionValue,
 						showExtendedDescription: showExtendedDescriptionValue,
 						showSchedule: showScheduleValue,
 					} }

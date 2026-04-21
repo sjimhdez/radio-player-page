@@ -19,7 +19,7 @@ import metadata from '../block.json';
 const blockName = metadata.name;
 
 function Edit( { attributes, setAttributes } ) {
-	const { stationIndex, dayOrder, showDescription } = attributes;
+	const { stationIndex, dayOrder, showDescription, showExtendedDescription } = attributes;
 	const blockProps = useBlockProps();
 	const stations = window.radplapagScheduleBlock?.stations || [];
 	const options =
@@ -32,6 +32,7 @@ function Edit( { attributes, setAttributes } ) {
 	const safeIndex = Math.max( 0, Math.min( stationIndex, stations.length ? stations.length - 1 : 0 ) );
 	const dayOrderValue = dayOrder === 'natural' ? 'natural' : 'current_first';
 	const showDescriptionValue = showDescription !== false;
+	const showExtendedDescriptionValue = showExtendedDescription === true;
 
 	return (
 		<>
@@ -57,12 +58,22 @@ function Edit( { attributes, setAttributes } ) {
 						checked={ showDescriptionValue }
 						onChange={ ( value ) => setAttributes( { showDescription: value } ) }
 					/>
+					<ToggleControl
+						label={ __( 'Show extended program description', 'radio-player-page' ) }
+						checked={ showExtendedDescriptionValue }
+						onChange={ ( value ) => setAttributes( { showExtendedDescription: value } ) }
+					/>
 				</PanelBody>
 			</InspectorControls>
 			<div { ...blockProps }>
 				<ServerSideRender
 					block={ blockName }
-					attributes={ { stationIndex: safeIndex, dayOrder: dayOrderValue, showDescription: showDescriptionValue } }
+					attributes={ {
+						stationIndex: safeIndex,
+						dayOrder: dayOrderValue,
+						showDescription: showDescriptionValue,
+						showExtendedDescription: showExtendedDescriptionValue,
+					} }
 				/>
 			</div>
 		</>
