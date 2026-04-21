@@ -17,16 +17,21 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 	$show_image                = isset( $attributes['showImage'] ) ? (bool) $attributes['showImage'] : true;
 	$show_extended_description = isset( $attributes['showExtendedDescription'] ) ? (bool) $attributes['showExtendedDescription'] : true;
 	$show_schedule             = isset( $attributes['showSchedule'] ) ? (bool) $attributes['showSchedule'] : true;
+	$wrapper_attributes        = get_block_wrapper_attributes(
+		array(
+			'class' => 'wp-block-radplapag-programs-list',
+		)
+	);
 
 	$programs = radplapag_get_programs_list_for_station( $station_index );
 
 	if ( $programs === null || ! is_array( $programs ) || count( $programs ) === 0 ) {
-		return '<div class="wp-block-radplapag-programs-list is-empty">' .
-			'<div class="wp-block-group"><p>' . esc_html__( 'No programs defined for this station.', 'radio-player-page' ) . '</p></div>' .
+		return '<div ' . $wrapper_attributes . '>' .
+			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No programs defined for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
-	$html   = '<div class="wp-block-radplapag-programs-list">';
+	$html   = '<div ' . $wrapper_attributes . '>';
 	$total  = count( $programs );
 	$index  = 0;
 

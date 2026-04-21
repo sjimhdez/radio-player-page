@@ -17,10 +17,17 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	$day_order        = isset( $attributes['dayOrder'] ) && $attributes['dayOrder'] === 'natural' ? 'natural' : 'current_first';
 	$show_description = isset( $attributes['showDescription'] ) ? (bool) $attributes['showDescription'] : true;
 	$data             = radplapag_get_schedule_for_station( $station_index, $day_order );
+	$wrapper_attributes = get_block_wrapper_attributes(
+		array(
+			'class' => 'wp-block-radplapag-schedule',
+		)
+	);
 
 	if ( $data === null ) {
-		return '<div class="wp-block-radplapag-schedule is-empty">' .
-			'<div class="wp-block-group"><p>' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p></div>' .
+		return '<div ' . $wrapper_attributes . '>' .
+			'<div class="wp-block-group is-empty">' .
+			'<p>' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p>' .
+			'</div>' .
 			'</div>';
 	}
 
@@ -34,15 +41,15 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	}
 
 	if ( ! $has_any_slots ) {
-		return '<div class="wp-block-radplapag-schedule is-empty">' .
-			'<div class="wp-block-group"><p>' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p></div>' .
+		return '<div ' . $wrapper_attributes . '>' .
+			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No schedule defined for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
 	$station_page_url = isset( $data['station_page_url'] ) ? $data['station_page_url'] : '';
 	$station_page_url = ( is_string( $station_page_url ) && $station_page_url !== '' ) ? $station_page_url : '';
 
-	$html = '<div class="wp-block-radplapag-schedule">';
+	$html = '<div ' . $wrapper_attributes . '>';
 
 	foreach ( $days as $day_data ) {
 		$slots = isset( $day_data['slots'] ) ? $day_data['slots'] : [];

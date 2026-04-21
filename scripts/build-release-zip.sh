@@ -86,27 +86,55 @@ mkdir -p "$RELEASE_ROOT"
 # Copy only production files
 echo "Including production files..."
 
-# Plugin PHP
-cp "$PLUGIN_DIR/radio-player-page.php" "$RELEASE_ROOT/"
-mkdir -p "$RELEASE_ROOT/includes"
-cp "$PLUGIN_DIR/includes/radplapag-stations.php" "$RELEASE_ROOT/includes/"
-mkdir -p "$RELEASE_ROOT/admin"
-cp "$PLUGIN_DIR/admin/admin.php" "$RELEASE_ROOT/admin/"
-cp "$PLUGIN_DIR/admin/sanitize-settings.php" "$RELEASE_ROOT/admin/"
-cp "$PLUGIN_DIR/admin/settings-page.php" "$RELEASE_ROOT/admin/"
-mkdir -p "$RELEASE_ROOT/admin/css"
-cp "$PLUGIN_DIR/admin/css/admin.css" "$RELEASE_ROOT/admin/css/"
-mkdir -p "$RELEASE_ROOT/admin/js"
-cp "$PLUGIN_DIR/admin/js/station-admin.js" "$RELEASE_ROOT/admin/js/"
-cp "$PLUGIN_DIR/admin/js/program-admin.js" "$RELEASE_ROOT/admin/js/"
-cp "$PLUGIN_DIR/uninstall.php"      "$RELEASE_ROOT/"
+copy_file() {
+	local src="$1"
+	local dest="$2"
+	if [ ! -f "$src" ]; then
+		echo -e "${RED}Error: required file not found: $src${NC}"
+		exit 1
+	fi
+	cp "$src" "$dest"
+}
 
-# readme.txt (WordPress)
-cp "$PLUGIN_DIR/readme.txt"         "$RELEASE_ROOT/"
+copy_dir() {
+	local src="$1"
+	local dest="$2"
+	if [ ! -d "$src" ]; then
+		echo -e "${RED}Error: required directory not found: $src${NC}"
+		exit 1
+	fi
+	cp -R "$src" "$dest"
+}
 
-# Built player assets (manifest + JS/CSS/chunks)
+# Root plugin files used by WordPress/plugin bootstrap.
+copy_file "$PLUGIN_DIR/radio-player-page.php" "$RELEASE_ROOT/"
+copy_file "$PLUGIN_DIR/readme.txt" "$RELEASE_ROOT/"
+copy_file "$PLUGIN_DIR/uninstall.php" "$RELEASE_ROOT/"
+
+# Runtime PHP (core logic + admin + migrations + data classes).
+copy_dir "$PLUGIN_DIR/includes" "$RELEASE_ROOT/"
+copy_dir "$PLUGIN_DIR/admin" "$RELEASE_ROOT/"
+
+# Dynamic Gutenberg blocks and their compiled editor assets.
+mkdir -p "$RELEASE_ROOT/blocks"
+for block in schedule programs-list; do
+	BLOCK_SOURCE="$PLUGIN_DIR/blocks/$block"
+	BLOCK_TARGET="$RELEASE_ROOT/blocks/$block"
+
+	if [ ! -d "$BLOCK_SOURCE" ]; then
+		echo -e "${RED}Error: required block directory not found: $BLOCK_SOURCE${NC}"
+		exit 1
+	fi
+
+	mkdir -p "$BLOCK_TARGET"
+	copy_file "$BLOCK_SOURCE/block.json" "$BLOCK_TARGET/"
+	copy_file "$BLOCK_SOURCE/render.php" "$BLOCK_TARGET/"
+	copy_dir "$BLOCK_SOURCE/build" "$BLOCK_TARGET/"
+done
+
+# Built player assets (manifest + JS/CSS/chunks).
 mkdir -p "$RELEASE_ROOT/player"
-cp -r "$DIST_SOURCE" "$RELEASE_ROOT/player/"
+copy_dir "$DIST_SOURCE" "$RELEASE_ROOT/player/"
 
 # Create zip (root directory = plugin name)
 (cd "$STAGING_DIR" && zip -r -q "$OUTPUT_ZIP" "$PLUGIN_SLUG")
