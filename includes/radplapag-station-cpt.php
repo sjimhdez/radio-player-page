@@ -673,7 +673,12 @@ function radplapag_save_station_meta( $post_id ) {
 		return;
 	}
 
-	$stream_url   = isset( $_POST['radplapag_station_stream_url'] ) ? esc_url_raw( trim( wp_unslash( $_POST['radplapag_station_stream_url'] ) ) ) : '';
+	$stream_url_input = filter_input( INPUT_POST, 'radplapag_station_stream_url', FILTER_UNSAFE_RAW );
+	$stream_url_input = is_string( $stream_url_input ) ? wp_unslash( $stream_url_input ) : '';
+	$stream_url = '';
+	if ( is_string( $stream_url_input ) ) {
+		$stream_url = esc_url_raw( trim( $stream_url_input ) );
+	}
 	$player_page  = isset( $_POST['radplapag_station_player_page'] ) ? absint( $_POST['radplapag_station_player_page'] ) : 0;
 	$background_id = isset( $_POST['radplapag_station_background_id'] ) ? absint( $_POST['radplapag_station_background_id'] ) : 0;
 	$logo_id      = isset( $_POST['radplapag_station_logo_id'] ) ? absint( $_POST['radplapag_station_logo_id'] ) : 0;
@@ -703,22 +708,8 @@ function radplapag_save_station_meta( $post_id ) {
 		$field_errors[] = __( 'Player Page is required. Please select a page.', 'radio-player-page' );
 	}
 	if ( $player_page > 0 ) {
-		$other_station = get_posts(
-			array(
-				'post_type'      => 'radplapag_station',
-				'post__not_in'   => array( $post_id ),
-				'posts_per_page' => 1,
-				'fields'         => 'ids',
-				'meta_query'     => array(
-					array(
-						'key'   => 'radplapag_station_player_page',
-						'value' => $player_page,
-						'type'  => 'NUMERIC',
-					),
-				),
-			)
-		);
-		if ( ! empty( $other_station ) ) {
+		$assigned_player_pages = radplapag_get_player_pages_assigned_to_other_stations( $post_id );
+		if ( in_array( $player_page, $assigned_player_pages, true ) ) {
 			$field_errors[] = __( 'This Player Page is already assigned to another station. Please choose a different page.', 'radio-player-page' );
 		}
 	}
@@ -735,7 +726,14 @@ function radplapag_save_station_meta( $post_id ) {
 	update_post_meta( $post_id, 'radplapag_station_theme_color', $theme );
 	update_post_meta( $post_id, 'radplapag_station_visualizer', $visualizer );
 
-	$schedule_input = isset( $_POST['radplapag_station_schedule'] ) && is_array( $_POST['radplapag_station_schedule'] ) ? wp_unslash( $_POST['radplapag_station_schedule'] ) : array();
+	$schedule_input = array();
+	if ( isset( $_POST['radplapag_station_schedule'] ) ) {
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized by radplapag_sanitize_station_schedule().
+		$schedule_raw = wp_unslash( $_POST['radplapag_station_schedule'] );
+		if ( is_array( $schedule_raw ) ) {
+			$schedule_input = $schedule_raw;
+		}
+	}
 	$schedule_sanitized = radplapag_sanitize_station_schedule( $schedule_input );
 	if ( is_wp_error( $schedule_sanitized ) ) {
 		set_transient( 'radplapag_station_schedule_errors_' . $post_id, $schedule_sanitized->get_error_message(), 45 );
@@ -758,7 +756,8 @@ function radplapag_station_schedule_errors_notice() {
 	if ( ! $screen || $screen->id !== 'radplapag_station' ) {
 		return;
 	}
-	$post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+	$post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
+	$post_id = $post_id ? absint( $post_id ) : 0;
 	if ( $post_id <= 0 ) {
 		return;
 	}
@@ -800,11 +799,13 @@ function radplapag_get_player_pages_assigned_to_other_stations( $exclude_post_id
 			'post_status'    => 'any',
 			'posts_per_page' => -1,
 			'fields'         => 'ids',
-			'post__not_in'   => $exclude_post_id ? array( $exclude_post_id ) : array(),
 		)
 	);
 	$page_ids = array();
 	foreach ( $stations as $station_id ) {
+		if ( $exclude_post_id > 0 && (int) $station_id === $exclude_post_id ) {
+			continue;
+		}
 		$page_id = (int) get_post_meta( $station_id, 'radplapag_station_player_page', true );
 		if ( $page_id > 0 ) {
 			$page_ids[] = $page_id;

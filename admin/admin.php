@@ -45,7 +45,8 @@ function radplapag_admin_scripts( $hook_suffix ) {
             '3.3.0',
             true
         );
-        $post_id = isset( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+        $post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
+        $post_id = $post_id ? absint( $post_id ) : 0;
         wp_localize_script(
             'radplapag-station-admin',
             'radplapagAdmin',
