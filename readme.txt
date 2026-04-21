@@ -8,7 +8,7 @@ Requires PHP: 5.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Dedicated player pages for your radio broadcasts, with radio scheduling and continuous playback.
+Dedicated player pages for your radio stations, with scheduling and continuous playback.
 
 == Description ==
 
@@ -83,7 +83,7 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 3. Player page with green theme, Amplitude Waterfall visualizer, and sleep mode active.
 4. Player page with pink theme and Schedule modal open.
 5. Player page with orange theme and All Radio Shows modal open.
-6. RPP Stations list.
+6. Radio Stations list.
 7. Radio Station edit screen with streaming URL and player page.
 8. Radio Station edit screen with radio schedule.
 
