@@ -47,12 +47,12 @@ Each station lives on its own independent HTML page, completely bypassing your W
 
 Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next program, with timezone-aware calculations and overlap prevention.
 
-- Define programs with names, optional short and extended descriptions, and optional logos
-- Assign programs to time slots across the week
-- Automatic detection of current and upcoming programs
+- Define radio shows with names, optional short and extended descriptions, and optional logos
+- Assign radio shows to time slots across the week
+- Automatic detection of current and upcoming radio shows
 - Visual display of active program in the player
 - Upcoming program announcements (shows 10 minutes before start)
-- Validates for time overlaps and conflicts; supports programs that cross midnight
+- Validates for time overlaps and conflicts; supports radio shows that cross midnight
 - Timezone-aware calculations based on your WordPress timezone
 
 ### Universal Stream Compatibility
@@ -152,7 +152,7 @@ The player is a self-contained application built with **React 19, TypeScript, an
    - Enter your **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3).
    - Select the **WordPress page** where the player should appear.
    - Optionally customize: title, theme color, visualizer type, background image, and logo.
-5. Publish or update the station and visit the assigned page. Optionally use **RPP → Programs** to create programs and build the weekly schedule on each station.
+5. Publish or update the station and visit the assigned page. Optionally use **RPP → Radio Shows** to create radio shows and build the weekly schedule on each station.
 
 **Important:** Each station requires both a valid streaming URL and an assigned WordPress page. No configuration is needed on the page itself—the plugin intercepts page requests and serves the player when that page is requested.
 
@@ -179,11 +179,11 @@ WordPress page request
   → radplapag_output_clean_page()
   → Reads manifest.json, loads fingerprinted assets
   → Outputs HTML with:
-      window.RADPLAPAG_CONFIG   (streamUrl, theme, visualizer, timezoneOffset; no schedule/programs)
+      window.RADPLAPAG_CONFIG   (streamUrl, theme, visualizer, timezoneOffset; no schedule/radio shows)
       window.RADPLAPAG_PROGRAMS (array of { name, logoUrl? })
       window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end }, ...])
   → React: useConfig() → ResolvedConfig
-  → Components use useConfig() for config, schedule, and programs
+  → Components use useConfig() for config, schedule, and radio shows
 ```
 
 Asset paths come from Vite's `manifest.json` (content-hashed filenames) for cache busting.
