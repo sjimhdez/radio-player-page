@@ -155,16 +155,20 @@ add_action( 'init', 'radplapag_register_program_meta', 20 );
  * Gets program data (name, description, extended_description, logo_id, logo_url) from CPT by post ID.
  *
  * @since 3.3.0
- * @param int $post_id Post ID of radplapag_program.
+ * @param int  $post_id          Post ID of radplapag_program.
+ * @param bool $require_published Optional. Whether to require published status. Default false.
  * @return array|null Associative array with 'name', 'description', 'extended_description', 'logo_id', 'logo_url'; null if invalid or not found.
  */
-function radplapag_get_program_data( $post_id ) {
+function radplapag_get_program_data( $post_id, $require_published = false ) {
 	$post_id = (int) $post_id;
 	if ( $post_id <= 0 ) {
 		return null;
 	}
 	$post = get_post( $post_id );
 	if ( ! $post || $post->post_type !== 'radplapag_program' ) {
+		return null;
+	}
+	if ( $require_published && $post->post_status !== 'publish' ) {
 		return null;
 	}
 	$description         = get_post_meta( $post_id, 'radplapag_program_description', true );

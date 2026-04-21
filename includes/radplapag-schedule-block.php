@@ -123,7 +123,7 @@ function radplapag_build_programs_map( $station ) {
 		}
 	}
 	foreach ( array_keys( $program_ids ) as $post_id ) {
-		$data = radplapag_get_program_data( $post_id );
+		$data = radplapag_get_program_data( $post_id, true );
 		if ( $data ) {
 			$key = (string) $post_id;
 			$map[ $key ] = [

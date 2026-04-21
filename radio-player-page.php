@@ -227,6 +227,19 @@ function radplapag_output_clean_page() {
         return;
     }
 
+    $page_id = get_queried_object_id();
+    if ( $page_id <= 0 ) {
+        return;
+    }
+
+    $page = get_post( $page_id );
+    if ( ! $page || $page->post_type !== 'page' ) {
+        return;
+    }
+    if ( $page->post_status !== 'publish' || post_password_required( $page ) ) {
+        return;
+    }
+
     $station = radplapag_get_station_for_current_page();
 
     if ( ! $station ) {
@@ -297,7 +310,7 @@ function radplapag_output_clean_page() {
     // Open Graph
     echo '<meta property="og:title" content="' . esc_attr( $display_title ) . '">';
     echo '<meta property="og:description" content="' . esc_attr( $meta_description ) . '">';
-    echo '<meta property="og:url" content="' . esc_url( get_permalink( get_queried_object_id() ) ) . '">';
+    echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . '">';
     echo '<meta property="og:type" content="website">';
     echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">';
     echo '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', get_bloginfo( 'language' ) ) ) . '">';
@@ -359,7 +372,7 @@ function radplapag_output_clean_page() {
         }
     }
     foreach ( array_keys( $program_ids_seen ) as $post_id ) {
-        $data = radplapag_get_program_data( $post_id );
+        $data = radplapag_get_program_data( $post_id, true );
         if ( $data ) {
             $programs_for_player[] = [
                 'id'                 => (string) $post_id,

@@ -105,6 +105,10 @@ function radplapag_maybe_clear_migration_conflict_flag() {
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed() {
+	if ( ! is_admin() || ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
 	if ( get_option( 'radplapag_db_version' ) === RADPLAPAG_DB_VERSION ) {
 		return;
 	}

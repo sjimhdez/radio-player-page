@@ -122,7 +122,7 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 
 	$out = [];
 	foreach ( $program_ids_ordered as $post_id ) {
-		$data = radplapag_get_program_data( $post_id );
+		$data = radplapag_get_program_data( $post_id, true );
 		if ( ! $data ) {
 			continue;
 		}
