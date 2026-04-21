@@ -1,12 +1,12 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-3.2.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-3.3.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-Dedicated player pages for your radio streams, with program scheduling and continous playback.
+Dedicated player pages for your radio stations, with program scheduling and continous playback.
 
 [View on WordPress.org](https://wordpress.org/plugins/radio-player-page) · [Report Issues](https://github.com/sjimhdez/radio-player-page/issues) · [Documentation](https://wordpress.org/plugins/radio-player-page/)
 
@@ -47,12 +47,12 @@ Each station lives on its own independent HTML page, completely bypassing your W
 
 Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next program, with timezone-aware calculations and overlap prevention.
 
-- Define programs with names, optional short and extended descriptions, and optional logos
-- Assign programs to time slots across the week
-- Automatic detection of current and upcoming programs
+- Define radio shows with names, optional short and extended descriptions, and optional logos
+- Assign radio shows to time slots across the week
+- Automatic detection of current and upcoming radio shows
 - Visual display of active program in the player
 - Upcoming program announcements (shows 10 minutes before start)
-- Validates for time overlaps and conflicts; supports programs that cross midnight
+- Validates for time overlaps and conflicts; supports radio shows that cross midnight
 - Timezone-aware calculations based on your WordPress timezone
 
 ### Universal Stream Compatibility
@@ -72,7 +72,7 @@ Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 stre
 
 ### Multi-Station Control
 
-Manage up to **10 independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
+Manage **multiple independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
 
 - Its own streaming URL
 - A dedicated WordPress page
@@ -147,12 +147,12 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
-3. Navigate to **Settings → Radio Player Page Settings**.
+3. Go to **RPP → Stations** in the admin menu. Click **Add New** to create a station.
 4. For each station:
    - Enter your **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3).
    - Select the **WordPress page** where the player should appear.
    - Optionally customize: title, theme color, visualizer type, background image, and logo.
-5. Click **Save Changes** and visit the assigned page.
+5. Publish or update the station and visit the assigned page. Optionally use **RPP → Radio Shows** to create radio shows and build the weekly schedule on each station.
 
 **Important:** Each station requires both a valid streaming URL and an assigned WordPress page. No configuration is needed on the page itself—the plugin intercepts page requests and serves the player when that page is requested.
 
@@ -166,7 +166,7 @@ The player is a self-contained application built with **React 19, TypeScript, an
 - **PHP** 5.6+
 - **Node.js** 20.x (development only; see `player/.nvmrc`)
 
-**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes the option `radplapag_settings` from the database (and from each site on multisite) and flushes the object cache. Data is not removed on deactivation.
+**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and program CPT posts and flushes the object cache. Data is not removed on deactivation.
 
 ### Architecture and Data Flow
 
@@ -179,11 +179,11 @@ WordPress page request
   → radplapag_output_clean_page()
   → Reads manifest.json, loads fingerprinted assets
   → Outputs HTML with:
-      window.RADPLAPAG_CONFIG   (streamUrl, theme, visualizer, timezoneOffset; no schedule/programs)
+      window.RADPLAPAG_CONFIG   (streamUrl, theme, visualizer, timezoneOffset; no schedule/radio shows)
       window.RADPLAPAG_PROGRAMS (array of { name, logoUrl? })
       window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end }, ...])
   → React: useConfig() → ResolvedConfig
-  → Components use useConfig() for config, schedule, and programs
+  → Components use useConfig() for config, schedule, and radio shows
 ```
 
 Asset paths come from Vite's `manifest.json` (content-hashed filenames) for cache busting.
@@ -209,13 +209,12 @@ Node 20.x is used for development (`player/.nvmrc`, `player/package.json`).
 ```
 radio-player-page/
 ├── radio-player-page.php      # Main plugin file, template redirect
-├── uninstall.php              # Removes radplapag_settings on uninstall (multisite-aware)
+├── uninstall.php              # Removes CPT posts on uninstall (multisite-aware)
 ├── includes/
-│   └── radplapag-settings.php # Shared settings (radplapag_get_settings)
+│   └── radplapag-stations.php # Stations data (radplapag_get_stations, radplapag_get_config)
 ├── admin/                      # Loaded when is_admin()
-│   ├── admin.php               # Bootstrap, hooks
-│   ├── sanitize-settings.php   # Sanitization and validation
-│   ├── settings-page.php       # Settings UI and JS strings
+│   ├── admin.php               # Bootstrap, hooks, menu
+│   ├── admin-strings.php       # JS localization (radplapag_get_admin_strings)
 │   ├── css/, js/               # Admin styles and form logic
 ├── player/                     # React frontend
 │   ├── src/                    # Components, hooks, config, locales, types, utils
@@ -258,7 +257,7 @@ The project uses [pre-commit](https://pre-commit.com/) for WordPress plugin chec
 
 **PHP (public)**
 
-- `radplapag_get_settings()` – Returns the full plugin settings array (stations, each with optional `programs` and `schedule`).
+- `radplapag_get_config()` – Returns config array with key `stations` (ordered list from CPT).
 - `radplapag_get_station_for_current_page()` – Returns the station config for the current page, or `false`.
 
 ### Internationalization
@@ -269,7 +268,7 @@ Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, d
 
 ### Security and Browser Support
 
-- Stream URLs validated with `esc_url_raw()`; visualizer and theme values whitelisted; settings sanitized via the WordPress Settings API; attachment IDs validated as integers; output escaped with WordPress escaping functions.
+- Stream URLs validated with `esc_url_raw()`; visualizer and theme values whitelisted; station meta saved in CPT with `radplapag_sanitize_station_schedule()`; attachment IDs validated as integers; output escaped with WordPress escaping functions.
 - Modern browsers with Web Audio API support; iOS Safari 10+ (native HLS); Chrome, Firefox, Edge (recent versions). Visualization requires Web Audio API.
 
 ### License

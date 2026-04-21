@@ -9,75 +9,115 @@ defined( 'ABSPATH' ) || exit;
  */
 
 /**
- * Registers the plugin settings with WordPress Settings API.
+ * Enqueues styles and station script only on station/program CPT screens.
  *
- * @since 1.0.0
- *
- * @return void
- */
-function radplapag_register_settings() {
-    register_setting(
-        'radplapag_settings_group',
-        'radplapag_settings',
-        [
-            'sanitize_callback' => 'radplapag_sanitize_settings',
-        ]
-    );
-}
-add_action( 'admin_init', 'radplapag_register_settings' );
-
-/**
- * Enqueues scripts and styles for the plugin admin page.
- *
- * Loads WordPress media uploader, plugin admin CSS/JS and localized strings
- * only on the plugin's settings page.
+ * station-admin.js loads only on radplapag_station (new/edit). program-admin.js
+ * loads only on radplapag_program (see radplapag-program-cpt.php).
  *
  * @since 2.0.1
+ * @since 3.3.0 Split: station-admin.js on station screen only; CSS on station + program.
  *
+ * @param string $hook_suffix Current admin page (e.g. post-new.php, post.php).
  * @return void
  */
-function radplapag_admin_scripts() {
+function radplapag_admin_scripts( $hook_suffix ) {
     $screen = get_current_screen();
-    if ( ! $screen || 'settings_page_radplapag' !== $screen->id ) {
+    $is_station = $screen && isset( $screen->id ) && $screen->id === 'radplapag_station';
+    $is_program = $screen && isset( $screen->id ) && $screen->id === 'radplapag_program';
+    if ( ! $is_station && ! $is_program ) {
         return;
     }
-    wp_enqueue_media();
+
     $admin_url = plugin_dir_url( __FILE__ );
     wp_enqueue_style(
         'radplapag-admin',
         $admin_url . 'css/admin.css',
-        [],
-        '3.2.0'
+        array(),
+        '3.3.0'
     );
-    wp_enqueue_script(
-        'radplapag-admin',
-        $admin_url . 'js/admin.js',
-        [],
-        '3.2.0',
-        true
-    );
-    wp_localize_script( 'radplapag-admin', 'radplapagAdmin', radplapag_get_admin_strings() );
+
+    if ( $is_station ) {
+        wp_enqueue_media();
+        wp_enqueue_script(
+            'radplapag-station-admin',
+            $admin_url . 'js/station-admin.js',
+            array( 'jquery', 'media-editor' ),
+            '3.3.0',
+            true
+        );
+        $post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
+        $post_id = $post_id ? absint( $post_id ) : 0;
+        wp_localize_script(
+            'radplapag-station-admin',
+            'radplapagAdmin',
+            array_merge(
+                radplapag_get_admin_strings(),
+                array(
+                    'assignedPlayerPages' => function_exists( 'radplapag_get_player_pages_assigned_to_other_stations' )
+                        ? radplapag_get_player_pages_assigned_to_other_stations( $post_id )
+                        : array(),
+                )
+            )
+        );
+        wp_enqueue_script(
+            'radplapag-program-admin',
+            $admin_url . 'js/program-admin.js',
+            array( 'jquery', 'media-editor' ),
+            '3.3.0',
+            true
+        );
+    }
 }
-add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts' );
+add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts', 10, 1 );
 
 /**
- * Adds the plugin settings page to the WordPress Settings menu.
+ * Adds the RPP top-level menu; Stations and Programs CPTs attach under it.
+ *
+ * Parent slug is 'radplapag'. WordPress replaces the parent link with the first submenu
+ * (Stations list) so clicking RPP goes to the stations list. Duplicate first submenu
+ * removed. Two submenus: Stations and Programs.
  *
  * @since 1.0.0
+ * @since 3.3.0 RPP menu only; Settings → Radio Player Page removed (CPT-only).
  *
  * @return void
  */
-function radplapag_settings_menu() {
-    add_options_page(
-        __( 'Radio Player Page Settings', 'radio-player-page' ),
-        __( 'Radio Player Page Settings', 'radio-player-page' ),
+function radplapag_admin_menu() {
+    add_menu_page(
+        __( 'Stations', 'radio-player-page' ),
+        __( 'RPP', 'radio-player-page' ),
         'manage_options',
         'radplapag',
-        'radplapag_render_settings_page'
+        'radplapag_menu_redirect_to_stations',
+        'dashicons-microphone',
+        30
     );
 }
-add_action( 'admin_menu', 'radplapag_settings_menu' );
+add_action( 'admin_menu', 'radplapag_admin_menu', 5 );
+
+/**
+ * Removes the duplicate first submenu "RPP" (admin.php?page=radplapag) so only Stations and Programs remain.
+ *
+ * Runs at priority 99 so it runs after CPTs have added their submenus under radplapag.
+ *
+ * @since 3.3.0
+ * @return void
+ */
+function radplapag_remove_duplicate_rpp_submenu() {
+    remove_submenu_page( 'radplapag', 'radplapag' );
+}
+add_action( 'admin_menu', 'radplapag_remove_duplicate_rpp_submenu', 99 );
+
+/**
+ * Redirects to the Stations list when opening admin.php?page=radplapag directly (e.g. bookmark).
+ *
+ * @since 3.3.0
+ * @return void
+ */
+function radplapag_menu_redirect_to_stations() {
+    wp_safe_redirect( admin_url( 'edit.php?post_type=radplapag_station' ) );
+    exit;
+}
 
 $radplapag_admin_dir = plugin_dir_path( __FILE__ );
-require_once $radplapag_admin_dir . 'sanitize-settings.php';
-require_once $radplapag_admin_dir . 'settings-page.php';
+require_once $radplapag_admin_dir . 'admin-strings.php';

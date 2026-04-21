@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Radio Player Page
- * Description: Dedicated player pages for your radio streams, with program scheduling and continuous playback.
- * Version: 3.2.0
+ * Description: Dedicated player pages for your radio stations, with scheduling and continuous playback.
+ * Version: 3.3.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
- * Tags: audio, icecast, radio player, shoutcast, streaming
+ * Tags: audio, icecast, radio player, radio station, streaming
  * Requires at least: 5.0
  * Requires PHP: 5.6
  * License: GPLv2 or later
@@ -14,6 +14,10 @@
  */
 
 defined( 'ABSPATH' ) || exit;
+
+if ( ! defined( 'RADPLAPAG_PLUGIN_FILE' ) ) {
+	define( 'RADPLAPAG_PLUGIN_FILE', __FILE__ );
+}
 
 /**
  * Main plugin file.
@@ -26,10 +30,142 @@ defined( 'ABSPATH' ) || exit;
  * @since 1.2.0
  */
 
-require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-stations.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-station-cpt.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-program-cpt.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/data/class-radplapag-program-config.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-upgrade.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-schedule-block.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-programs-list-block.php';
+require_once plugin_dir_path( __FILE__ ) . 'blocks/schedule/render.php';
+require_once plugin_dir_path( __FILE__ ) . 'blocks/programs-list/render.php';
 
 if ( is_admin() ) {
     require_once plugin_dir_path( __FILE__ ) . 'admin/admin.php';
+}
+
+/**
+ * Maps meta capabilities for station/program CPTs to manage_options so admins can create, edit, delete, and move to draft.
+ *
+ * @since 3.3.0
+ * @param array  $caps    Required capabilities (returned by map_meta_cap).
+ * @param string $cap     Meta capability being checked (e.g. edit_post, delete_post).
+ * @param int    $user_id User ID.
+ * @param array  $args    Optional args; [0] is post ID for post meta caps.
+ * @return array Mapped capabilities.
+ */
+function radplapag_map_cpt_meta_cap( $caps, $cap, $user_id, $args ) {
+	$post_meta_caps = array( 'edit_post', 'delete_post', 'read_post', 'publish_post' );
+	if ( ! in_array( $cap, $post_meta_caps, true ) ) {
+		return $caps;
+	}
+	$post_id = isset( $args[0] ) ? (int) $args[0] : 0;
+	if ( $post_id <= 0 ) {
+		return $caps;
+	}
+	$post_type = get_post_type( $post_id );
+	if ( $post_type !== 'radplapag_station' && $post_type !== 'radplapag_program' ) {
+		return $caps;
+	}
+	return array( 'manage_options' );
+}
+add_filter( 'map_meta_cap', 'radplapag_map_cpt_meta_cap', 10, 4 );
+
+add_action( 'init', 'radplapag_register_schedule_block' );
+add_action( 'init', 'radplapag_register_programs_list_block' );
+add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_schedule_block_editor_assets' );
+add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_programs_list_block_editor_assets' );
+
+/**
+ * Registers the Program Schedule Gutenberg block.
+ *
+ * @since 3.3.0
+ */
+function radplapag_register_schedule_block() {
+    register_block_type(
+        plugin_dir_path( __FILE__ ) . 'blocks/schedule',
+        array(
+            'render_callback' => 'radplapag_render_schedule_block',
+        )
+    );
+}
+
+/**
+ * Enqueues the Schedule block editor script and localizes station list.
+ *
+ * @since 3.3.0
+ */
+function radplapag_enqueue_schedule_block_editor_assets() {
+    $block_dir = plugin_dir_path( __FILE__ ) . 'blocks/schedule/';
+    $asset_file = $block_dir . 'build/index.asset.php';
+    if ( ! file_exists( $asset_file ) ) {
+        return;
+    }
+    $asset = include $asset_file;
+    wp_enqueue_script(
+        'radplapag-schedule-block-editor',
+        plugin_dir_url( __FILE__ ) . 'blocks/schedule/build/index.js',
+        $asset['dependencies'],
+        $asset['version'],
+        true
+    );
+    wp_set_script_translations( 'radplapag-schedule-block-editor', 'radio-player-page' );
+    $config  = radplapag_get_config();
+    $stations = isset( $config['stations'] ) && is_array( $config['stations'] ) ? $config['stations'] : array();
+    $station_labels = array();
+    foreach ( $stations as $index => $station ) {
+        $title = isset( $station['station_title'] ) ? $station['station_title'] : '';
+        $station_labels[] = array(
+            'label' => $title !== '' ? $title : ( __( 'Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+        );
+    }
+    wp_localize_script( 'radplapag-schedule-block-editor', 'radplapagScheduleBlock', array( 'stations' => $station_labels ) );
+}
+
+/**
+ * Registers the Programs List Gutenberg block.
+ *
+ * @since 3.3.0
+ */
+function radplapag_register_programs_list_block() {
+    register_block_type(
+        plugin_dir_path( __FILE__ ) . 'blocks/programs-list',
+        array(
+            'render_callback' => 'radplapag_render_programs_list_block',
+        )
+    );
+}
+
+/**
+ * Enqueues the Programs List block editor script and localizes station list.
+ *
+ * @since 3.3.0
+ */
+function radplapag_enqueue_programs_list_block_editor_assets() {
+    $block_dir  = plugin_dir_path( __FILE__ ) . 'blocks/programs-list/';
+    $asset_file = $block_dir . 'build/index.asset.php';
+    if ( ! file_exists( $asset_file ) ) {
+        return;
+    }
+    $asset = include $asset_file;
+    wp_enqueue_script(
+        'radplapag-programs-list-block-editor',
+        plugin_dir_url( __FILE__ ) . 'blocks/programs-list/build/index.js',
+        $asset['dependencies'],
+        $asset['version'],
+        true
+    );
+    wp_set_script_translations( 'radplapag-programs-list-block-editor', 'radio-player-page' );
+    $config         = radplapag_get_config();
+    $stations       = isset( $config['stations'] ) && is_array( $config['stations'] ) ? $config['stations'] : array();
+    $station_labels = array();
+    foreach ( $stations as $index => $station ) {
+        $title = isset( $station['station_title'] ) ? $station['station_title'] : '';
+        $station_labels[] = array(
+            'label' => $title !== '' ? $title : ( __( 'Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+        );
+    }
+    wp_localize_script( 'radplapag-programs-list-block-editor', 'radplapagProgramsListBlock', array( 'stations' => $station_labels ) );
 }
 
 /**
@@ -46,12 +182,11 @@ if ( is_admin() ) {
  *                     Returns false if no matching station is found for the current page.
  */
 function radplapag_get_station_for_current_page() {
-    $options = radplapag_get_settings();
+    $config = radplapag_get_config();
     $current_page_id = get_queried_object_id();
 
-    // New format: multiple streamings
-    if ( isset( $options['stations'] ) && is_array( $options['stations'] ) ) {
-        foreach ( $options['stations'] as $station ) {
+    if ( isset( $config['stations'] ) && is_array( $config['stations'] ) ) {
+        foreach ( $config['stations'] as $station ) {
             if (
                 isset( $station['player_page'] ) &&
                 isset( $station['stream_url'] ) &&
@@ -89,6 +224,19 @@ function radplapag_get_station_for_current_page() {
  */
 function radplapag_output_clean_page() {
     if ( ! is_page() ) {
+        return;
+    }
+
+    $page_id = get_queried_object_id();
+    if ( $page_id <= 0 ) {
+        return;
+    }
+
+    $page = get_post( $page_id );
+    if ( ! $page || $page->post_type !== 'page' ) {
+        return;
+    }
+    if ( $page->post_status !== 'publish' || post_password_required( $page ) ) {
         return;
     }
 
@@ -162,7 +310,7 @@ function radplapag_output_clean_page() {
     // Open Graph
     echo '<meta property="og:title" content="' . esc_attr( $display_title ) . '">';
     echo '<meta property="og:description" content="' . esc_attr( $meta_description ) . '">';
-    echo '<meta property="og:url" content="' . esc_url( get_permalink( get_queried_object_id() ) ) . '">';
+    echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . '">';
     echo '<meta property="og:type" content="website">';
     echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">';
     echo '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', get_bloginfo( 'language' ) ) ) . '">';
@@ -202,31 +350,41 @@ function radplapag_output_clean_page() {
         'timezoneOffset' => $timezone_offset, // Numeric offset in hours from UTC
     ];
 
-    // Programs list: id + name + logoUrl (relational, no duplication in schedule)
+    // Programs list: id + name + logoUrl (same format for frontend). Built from CPT via schedule program_id.
     $programs_for_player = [];
-    if ( isset( $station['programs'] ) && is_array( $station['programs'] ) ) {
-        foreach ( $station['programs'] as $prog ) {
-            $prog_id = isset( $prog['id'] ) ? sanitize_text_field( $prog['id'] ) : '';
-            $name = isset( $prog['name'] ) ? $prog['name'] : '';
-            $description = isset( $prog['description'] ) ? $prog['description'] : '';
-            $extended_description = isset( $prog['extended_description'] ) ? $prog['extended_description'] : '';
-            $prog_logo_id = isset( $prog['logo_id'] ) ? intval( $prog['logo_id'] ) : 0;
-            $prog_logo_url = ( $prog_logo_id > 0 ) ? wp_get_attachment_image_url( $prog_logo_id, 'full' ) : '';
-            // Generate ID if missing (should not happen after sanitization, but safety check)
-            if ( empty( $prog_id ) ) {
-                $prog_id = 'prog_' . wp_generate_password( 12, false );
+    $schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
+    $program_ids_seen = [];
+    foreach ( $schedule_raw as $day_entries ) {
+        if ( ! is_array( $day_entries ) ) {
+            continue;
+        }
+        foreach ( $day_entries as $entry ) {
+            if ( ! is_array( $entry ) ) {
+                continue;
             }
+            $pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
+            if ( $pid !== null && $pid !== '' && is_numeric( $pid ) ) {
+                $pid_int = (int) $pid;
+                if ( $pid_int > 0 && ! isset( $program_ids_seen[ $pid_int ] ) ) {
+                    $program_ids_seen[ $pid_int ] = true;
+                }
+            }
+        }
+    }
+    foreach ( array_keys( $program_ids_seen ) as $post_id ) {
+        $data = radplapag_get_program_data( $post_id, true );
+        if ( $data ) {
             $programs_for_player[] = [
-                'id'                 => $prog_id,
-                'name'               => $name,
-                'description'        => $description ? $description : null,
-                'extendedDescription' => $extended_description ? $extended_description : null,
-                'logoUrl'            => $prog_logo_url ? $prog_logo_url : null,
+                'id'                 => (string) $post_id,
+                'name'               => $data['name'],
+                'description'        => $data['description'] !== '' ? $data['description'] : null,
+                'extendedDescription' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
+                'logoUrl'            => $data['logo_url'] ? $data['logo_url'] : null,
             ];
         }
     }
 
-    // Schedule: relational entries (program_id, start, end) — resolve name/logo in React via programs
+    // Schedule: program_id as string for frontend resolution in RADPLAPAG_PROGRAMS
     $schedule_for_player = [];
     if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
         foreach ( $station['schedule'] as $day => $day_programs ) {
@@ -238,10 +396,11 @@ function radplapag_output_clean_page() {
                 if ( ! is_array( $entry ) ) {
                     continue;
                 }
-                $program_id = isset( $entry['program_id'] ) ? sanitize_text_field( $entry['program_id'] ) : '';
+                $program_id = isset( $entry['program_id'] ) ? $entry['program_id'] : '';
+                $program_id = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
                 $start = isset( $entry['start'] ) ? $entry['start'] : '';
                 $end = isset( $entry['end'] ) ? $entry['end'] : '';
-                if ( empty( $program_id ) || empty( $start ) || empty( $end ) ) {
+                if ( $program_id === '' || empty( $start ) || empty( $end ) ) {
                     continue;
                 }
                 $day_entries[] = [

@@ -3,7 +3,7 @@
 # WordPress Plugin Check Script
 # Replicates the checks from .github/workflows/test.yml
 # Matches: wordpress/plugin-check-action@v1 with:
-#   - exclude-directories: 'player'
+#   - exclude-directories: 'player,scripts,.github'
 #   - ignore-codes: WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet, NonEnqueuedScript
 #   - exclude-files: .gitignore
 
@@ -17,45 +17,43 @@ echo -e "${YELLOW}Running WordPress Plugin Check...${NC}"
 
 # Get the plugin directory (parent of scripts/)
 PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+TMP_OUTPUT_FILE="$(mktemp "${TMPDIR:-/tmp}/radplapag-plugin-check.XXXXXX")"
+trap 'rm -f "$TMP_OUTPUT_FILE"' EXIT
 
 # Check if wp-cli is available and WordPress is installed
 if command -v wp &> /dev/null; then
-    # Check if WordPress is available (wp core version will fail if WP not installed)
-    if wp core version --allow-root 2>/dev/null >/dev/null; then
+    # Use WP-CLI plugin check only when command exists and WordPress is available.
+    if wp help plugin check --allow-root >/dev/null 2>&1 && wp core version --allow-root 2>/dev/null >/dev/null; then
         echo "Using WP-CLI plugin check..."
         
         # Run wp plugin check
-        # Note: wp plugin check doesn't support all the exclusion options directly,
-        # but it will check the plugin according to WordPress standards
-        if wp plugin check "$PLUGIN_DIR" --allow-root 2>&1 | grep -v "player/" > /tmp/wp-plugin-check-output.txt; then
-            # Check if there are any real errors (not just warnings about player directory)
-            if grep -q "ERROR" /tmp/wp-plugin-check-output.txt 2>/dev/null; then
+        # Note: wp plugin check doesn't support all exclusion options directly.
+        # We post-filter to match CI excludes: player/, scripts/, .github/.
+        if wp plugin check "$PLUGIN_DIR" --allow-root 2>&1 | grep -Ev "(^|[[:space:]])(player|scripts|\\.github)/" > "$TMP_OUTPUT_FILE"; then
+            # Check if there are any real errors (after exclusions).
+            if grep -q "ERROR" "$TMP_OUTPUT_FILE" 2>/dev/null; then
                 echo -e "${RED}WordPress Plugin Check failed!${NC}"
-                cat /tmp/wp-plugin-check-output.txt
-                rm -f /tmp/wp-plugin-check-output.txt
+                cat "$TMP_OUTPUT_FILE"
                 exit 1
             else
                 echo -e "${GREEN}WordPress Plugin Check passed!${NC}"
-                rm -f /tmp/wp-plugin-check-output.txt
                 exit 0
             fi
         else
             # If command failed, check output
-            if [ -f /tmp/wp-plugin-check-output.txt ]; then
-                ERRORS=$(cat /tmp/wp-plugin-check-output.txt | grep -v "player/" | grep -i "error" || true)
+            if [ -f "$TMP_OUTPUT_FILE" ]; then
+                ERRORS=$(grep -Ei "error" "$TMP_OUTPUT_FILE" || true)
                 if [ -n "$ERRORS" ]; then
                     echo -e "${RED}WordPress Plugin Check failed!${NC}"
-                    cat /tmp/wp-plugin-check-output.txt
-                    rm -f /tmp/wp-plugin-check-output.txt
+                    cat "$TMP_OUTPUT_FILE"
                     exit 1
                 fi
             fi
-            rm -f /tmp/wp-plugin-check-output.txt
             echo -e "${YELLOW}WP-CLI plugin check completed with warnings.${NC}"
             echo -e "${YELLOW}Trying PHPCS as additional check...${NC}"
         fi
     else
-        echo -e "${YELLOW}WordPress not found. Trying PHPCS...${NC}"
+        echo -e "${YELLOW}WP-CLI plugin check command unavailable or WordPress not found. Trying PHPCS...${NC}"
     fi
 fi
 
@@ -78,8 +76,10 @@ if [ -n "$PHPCS_CMD" ]; then
 <ruleset name="WordPress Plugin Check">
     <description>WordPress Plugin Check matching CI workflow</description>
     <rule ref="WordPress">
-        <!-- Exclude player directory -->
+        <!-- Exclude directories matching CI workflow -->
         <exclude-pattern>player/*</exclude-pattern>
+        <exclude-pattern>scripts/*</exclude-pattern>
+        <exclude-pattern>.github/*</exclude-pattern>
         <!-- Exclude .gitignore file -->
         <exclude-pattern>*.gitignore</exclude-pattern>
         <!-- Ignore specific codes matching CI workflow -->
