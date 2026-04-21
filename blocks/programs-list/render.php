@@ -45,7 +45,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 
 		$html .= '<article class="wp-block-group"' . ( $id !== '' ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
 
-		$html .= '<h3 class="wp-block-title">' . esc_html( $name !== '' ? $name : '—' ) . '</h3>';
+		$html .= '<header class="wp-block-title" style="font-size:1.5em;">' . esc_html( $name !== '' ? $name : '—' ) . '</header>';
 
 		if ( $show_image && $logo_id > 0 ) {
 			$img_alt = $name !== '' ? $name : __( 'Program image', 'radio-player-page' );
@@ -73,9 +73,9 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 				}
 				$slot_text = $day_label . ' ' . $time_range;
 				if ( $is_live ) {
-					$html .= '<li class="has-small-font-size ' . esc_attr( $slot_class ) . '"><span>' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . esc_html( $slot_text ) . '</li>';
+					$html .= '<li class="' . esc_attr( $slot_class ) . '" style="font-size:0.875em;">' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . esc_html( $slot_text ) . '</li>';
 				} else {
-					$html .= '<li class="has-small-font-size ' . esc_attr( $slot_class ) . '">' . esc_html( $slot_text ) . '</li>';
+					$html .= '<li class="' . esc_attr( $slot_class ) . '" style="font-size:0.875em;">' . esc_html( $slot_text ) . '</li>';
 				}
 			}
 			$html .= '</ul>';

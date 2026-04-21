@@ -59,7 +59,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 		$day_key  = isset( $day_data['day_key'] ) ? $day_data['day_key'] : '';
 		$label    = isset( $day_data['label'] ) ? $day_data['label'] : $day_key;
 		$html    .= '<section class="wp-block-group" data-day="' . esc_attr( $day_key ) . '">';
-		$html    .= '<h3 class="wp-block-title">' . esc_html( $label ) . '</h3>';
+		$html    .= '<header class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</header>';
 		$html    .= '<ul class="wp-block-list">';
 
 		foreach ( $slots as $slot ) {
@@ -86,7 +86,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			if ( $show_description ) {
 				$program_description = isset( $slot['program_description'] ) ? $slot['program_description'] : '';
 				if ( $program_description !== '' ) {
-					$html .= '<div class="wp-block-group"><p class="has-small-font-size">' . esc_html( $program_description ) . '</p></div>';
+					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_description ) . '</p></div>';
 				}
 			}
 			$html .= '</li>';
