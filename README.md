@@ -6,7 +6,7 @@
 [![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-Dedicated player pages for your radio stations, with program scheduling and continous playback.
+Dedicated player pages for your radio stations, with program scheduling and continuous playback.
 
 [View on WordPress.org](https://wordpress.org/plugins/radio-player-page) · [Report Issues](https://github.com/sjimhdez/radio-player-page/issues) · [Documentation](https://wordpress.org/plugins/radio-player-page/)
 
@@ -26,7 +26,7 @@ Dedicated player pages for your radio stations, with program scheduling and cont
 
 ## Description
 
-**Radio Player Page** provides **dedicated, standalone player pages** for your radio streams on WordPress. It lets you create a full weekly program schedule, manage your broadcasts, and present everything on pages that guarantee reliable, theme-independent listening.
+**Radio Player Page** provides **dedicated, standalone player pages** for your radio streams on WordPress. It lets you create a full weekly program schedule, manage your broadcasts, and present everything on pages designed for reliable playback without theme conflicts.
 
 **The key differentiator:** Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
 
@@ -43,9 +43,9 @@ Each station lives on its own independent HTML page, completely bypassing your W
 - **Clean URLs** – One dedicated URL per station
 - **Reliable playback** – Continuous streaming without interruptions
 
-### Full Program Scheduling
+### Full Radio Schedule
 
-Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next program, with timezone-aware calculations and overlap prevention.
+Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
 
 - Define radio shows with names, optional short and extended descriptions, and optional logos
 - Assign radio shows to time slots across the week
@@ -74,14 +74,14 @@ Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 stre
 
 Manage **multiple independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
 
-- Its own streaming URL
+- Each station has its own streaming URL
 - A dedicated WordPress page
 - Independent branding and configuration
 - Separate program schedules (optional)
 
 Perfect for radio networks, multi-channel stations, or managing multiple streams from one WordPress installation.
 
-### Transmission Timezone Clock
+### Station Timezone Clock
 
 Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 
