@@ -2,7 +2,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Render callback for the Program Schedule block.
+ * Render callback for the Radio Schedule block.
  *
  * Outputs semantic HTML (no plugin CSS) so the editor/theme controls design.
  *
@@ -29,7 +29,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	if ( $data === null ) {
 		return '<div ' . $wrapper_attributes . '>' .
 			'<div class="wp-block-group is-empty">' .
-			'<p>' . esc_html__( 'No Radio Schedule defined for this Radio Station.', 'radio-player-page' ) . '</p>' .
+			'<p>' . esc_html__( 'No radio schedule available for this station.', 'radio-player-page' ) . '</p>' .
 			'</div>' .
 			'</div>';
 	}
@@ -45,7 +45,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 
 	if ( ! $has_any_slots ) {
 		return '<div ' . $wrapper_attributes . '>' .
-			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No Radio Schedule defined for this Radio Station.', 'radio-player-page' ) . '</p></div>' .
+			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No radio schedule available for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
@@ -77,7 +77,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			$slot_content = '<span>' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
 			$slot_content .= ' - <span>' . esc_html( $time_range ) . '</span>';
 			if ( $is_live ) {
-				$slot_content = '<span>' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . $slot_content;
+				$slot_content = '<span>' . esc_html__( 'On Air', 'radio-player-page' ) . '</span>: ' . $slot_content;
 			}
 			$html .= '<p class="wp-block-paragraph">';
 			if ( $is_live && $station_page_url !== '' ) {

@@ -30,7 +30,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 
 	if ( $programs === null || ! is_array( $programs ) || count( $programs ) === 0 ) {
 		return '<div ' . $wrapper_attributes . '>' .
-			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No Radio Shows defined for this Radio Station.', 'radio-player-page' ) . '</p></div>' .
+			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No radio shows available for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
@@ -81,7 +81,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 				}
 				$slot_text = $day_label . ' ' . $time_range;
 				if ( $is_live ) {
-					$html .= '<li class="' . esc_attr( $slot_class ) . '" style="font-size:0.875em;"><span>' . esc_html__( 'On air', 'radio-player-page' ) . '</span>: ' . esc_html( $slot_text ) . '</li>';
+					$html .= '<li class="' . esc_attr( $slot_class ) . '" style="font-size:0.875em;"><span>' . esc_html__( 'On Air', 'radio-player-page' ) . '</span>: ' . esc_html( $slot_text ) . '</li>';
 				} else {
 					$html .= '<li class="' . esc_attr( $slot_class ) . '" style="font-size:0.875em;">' . esc_html( $slot_text ) . '</li>';
 				}

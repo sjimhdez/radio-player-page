@@ -51,17 +51,17 @@ function Edit( { attributes, setAttributes } ) {
 						onChange={ ( value ) => setAttributes( { showImage: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Show Radio Show Description', 'radio-player-page' ) }
+						label={ __( 'Show Description', 'radio-player-page' ) }
 						checked={ showDescriptionValue }
 						onChange={ ( value ) => setAttributes( { showDescription: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Show Extended Radio Show Description', 'radio-player-page' ) }
+						label={ __( 'Show Extended Description', 'radio-player-page' ) }
 						checked={ showExtendedDescriptionValue }
 						onChange={ ( value ) => setAttributes( { showExtendedDescription: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Show Schedule', 'radio-player-page' ) }
+						label={ __( 'Show Radio Schedule', 'radio-player-page' ) }
 						checked={ showScheduleValue }
 						onChange={ ( value ) => setAttributes( { showSchedule: value } ) }
 					/>

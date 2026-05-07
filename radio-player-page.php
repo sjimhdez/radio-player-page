@@ -77,7 +77,7 @@ add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_schedule_block_edi
 add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_programs_list_block_editor_assets' );
 
 /**
- * Registers the Program Schedule Gutenberg block.
+ * Registers the Radio Schedule Gutenberg block.
  *
  * @since 3.3.0
  */
@@ -91,7 +91,7 @@ function radplapag_register_schedule_block() {
 }
 
 /**
- * Enqueues the Schedule block editor script and localizes station list.
+ * Enqueues the Radio Schedule block editor script and localizes station list.
  *
  * @since 3.3.0
  */

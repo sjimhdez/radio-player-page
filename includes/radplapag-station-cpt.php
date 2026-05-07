@@ -284,7 +284,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 				if ( ! $has_program || ! $has_start || ! $has_end ) {
 					$errors[] = sprintf(
 						/* translators: 1: Day name */
-						__( 'Program on %1$s: All fields (program, start time, end time) are required.', 'radio-player-page' ),
+						__( 'Radio Show on %1$s: All fields (radio show, start time, end time) are required.', 'radio-player-page' ),
 						$day_labels[ $day ]
 					);
 					continue;
@@ -295,7 +295,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			if ( ! $program_data ) {
 				$errors[] = sprintf(
 					/* translators: 1: Day name */
-					__( 'Program on %1$s: Please select a valid program.', 'radio-player-page' ),
+					__( 'Radio Show on %1$s: Please select a valid radio show.', 'radio-player-page' ),
 					$day_labels[ $day ]
 				);
 				continue;
@@ -305,7 +305,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			if ( ! preg_match( $time_regex, $program_start ) || ! preg_match( $time_regex, $program_end ) ) {
 				$errors[] = sprintf(
 					/* translators: 1: Program name, 2: Day name */
-					__( 'Program "%1$s" on %2$s: Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
+					__( 'Radio Show "%1$s" on %2$s: Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
 					$program_name,
 					$day_labels[ $day ]
 				);
@@ -321,7 +321,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			if ( $start_time >= $end_time_for_validation ) {
 				$errors[] = sprintf(
 					/* translators: 1: Program name, 2: Day name */
-					__( 'Program "%1$s" on %2$s: End time must be after start time.', 'radio-player-page' ),
+					__( 'Radio Show "%1$s" on %2$s: End time must be after start time.', 'radio-player-page' ),
 					$program_name,
 					$day_labels[ $day ]
 				);
@@ -359,7 +359,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			if ( $has_overlap ) {
 				$errors[] = sprintf(
 					/* translators: 1: Program name, 2: Day name, 3: Overlapping program name */
-					__( 'Program "%1$s" on %2$s: Time slot overlaps with "%3$s".', 'radio-player-page' ),
+					__( 'Radio Show "%1$s" on %2$s: Time slot overlaps with "%3$s".', 'radio-player-page' ),
 					$prog_data['name'],
 					$day_labels[ $day ],
 					$overlapping
@@ -416,7 +416,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 						if ( $end_time > $next_start_time ) {
 							$errors[] = sprintf(
 								/* translators: 1: Program name, 2: Day name, 3: Overlapping program name, 4: Next day name */
-								__( 'Program "%1$s" on %2$s (crosses midnight) overlaps with "%3$s" on %4$s.', 'radio-player-page' ),
+								__( 'Radio Show "%1$s" on %2$s (crosses midnight) overlaps with "%3$s" on %4$s.', 'radio-player-page' ),
 								$program_name,
 								$day_labels[ $day ],
 								$next_program_name,
@@ -453,7 +453,7 @@ function radplapag_add_station_meta_boxes() {
 	);
 	add_meta_box(
 		'radplapag_station_schedule',
-		__( 'Schedule', 'radio-player-page' ),
+		__( 'Radio Schedule', 'radio-player-page' ),
 		'radplapag_render_station_schedule_meta_box',
 		'radplapag_station',
 		'normal'
@@ -624,7 +624,7 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 							?>
 							<div class="radplapag-program-row" data-program-index="<?php echo esc_attr( $prog_index ); ?>">
 								<select name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">
-									<option value=""><?php esc_html_e( 'Select Program', 'radio-player-page' ); ?></option>
+									<option value=""><?php esc_html_e( 'Select Radio Show', 'radio-player-page' ); ?></option>
 									<?php foreach ( $cpt_programs as $p ) :
 										$p_id   = (int) $p['id'];
 										$pname  = isset( $p['name'] ) ? $p['name'] : '';
@@ -777,7 +777,7 @@ function radplapag_station_schedule_errors_notice() {
 	delete_transient( 'radplapag_station_schedule_errors_' . $post_id );
 	?>
 	<div class="notice notice-error is-dismissible">
-		<p><strong><?php esc_html_e( 'Schedule validation failed:', 'radio-player-page' ); ?></strong> <?php echo esc_html( $message ); ?></p>
+		<p><strong><?php esc_html_e( 'Radio Schedule validation failed:', 'radio-player-page' ); ?></strong> <?php echo esc_html( $message ); ?></p>
 	</div>
 	<?php
 }
