@@ -14,7 +14,7 @@
     "liveRadio": "Live-Radio",
     "timezoneClock": "Sendezeit",
     "timezoneClockLabel": "Sendezeitzone",
-    "timezoneWarning": "Ihre Ortszeit: {{browserTime}}, Sendezeit: {{emissionTime}}, Differenz: {{difference}}",
+    "timezoneWarning": "Ihre Ortszeit: {{browserTime}}, Sendezeit: {{transmissionTime}}, Differenz: {{difference}}",
     "timezoneDifferenceHours": "{{count}} Stunde",
     "timezoneDifferenceHours_plural": "{{count}} Stunden",
     "upcomingPrefix": "Als Nächstes",
@@ -40,6 +40,6 @@
     "collapse": "Einklappen",
     "showMore": "Mehr anzeigen",
     "showLess": "Weniger anzeigen",
-    "emissionTimes": "Sendezeiten"
+    "transmissionTimes": "Sendezeiten"
   }
 }

@@ -7,11 +7,11 @@ import {
 } from 'src/utils/timezone'
 
 /**
- * Result of the emission time calculation
+ * Result of the station transmission time calculation (WordPress timezone)
  */
-export interface EmissionTime {
-  /** Formatted time string in "HH:MM" format for emission timezone (WordPress) */
-  emissionTime: string
+export interface TransmissionTime {
+  /** Formatted time string in "HH:MM" format for WordPress / station timezone */
+  transmissionTime: string
   /** Formatted time string in "HH:MM" format for browser timezone */
   browserTime: string
   /** Time difference in hours (positive if WordPress is ahead, negative if behind) */
@@ -21,10 +21,10 @@ export interface EmissionTime {
 }
 
 /**
- * Hook to calculate and update emission time
+ * Hook to calculate and update station transmission time (WordPress timezone)
  *
  * This hook:
- * - Calculates the current time in WordPress timezone (emission timezone)
+ * - Calculates the current time in WordPress timezone (station timezone)
  * - Calculates the current time in browser timezone
  * - Calculates the timezone difference between them
  * - Updates at the start of each system minute (at :00 seconds) to show the clock
@@ -33,26 +33,26 @@ export interface EmissionTime {
  *
  * The hook uses the WordPress timezone offset from configuration, which handles DST automatically.
  * The browser timezone is detected automatically from the user's system settings.
- * The emission time clock that consumes this data is shown whenever hasDifference is true,
+ * The timezone clock that consumes this data is shown whenever hasDifference is true,
  * independent of playback state.
  *
  * Updates at the start of each system minute for alignment with the user's clock, following the
  * same pattern as the program schedule hook (use-program-schedule).
  *
- * @returns EmissionTime object with emissionTime, browserTime, timeDifference, and hasDifference
+ * @returns TransmissionTime object with transmissionTime, browserTime, timeDifference, and hasDifference
  *
  * @example
  * ```tsx
- * const { emissionTime, browserTime, timeDifference, hasDifference } = useEmissionTime()
+ * const { transmissionTime, browserTime, timeDifference, hasDifference } = useTransmissionTime()
  *
  * if (hasDifference) {
- *   console.log(`Emission: ${emissionTime}, Browser: ${browserTime}, Diff: ${timeDifference}`)
+ *   console.log(`Station: ${transmissionTime}, Browser: ${browserTime}, Diff: ${timeDifference}`)
  * }
  * ```
  */
-function useEmissionTime(): EmissionTime {
+function useTransmissionTime(): TransmissionTime {
   const config = useConfig()
-  const [emissionTime, setEmissionTime] = useState<string>('')
+  const [transmissionTime, setTransmissionTime] = useState<string>('')
   const [browserTime, setBrowserTime] = useState<string>('')
   const [timeDifference, setTimeDifference] = useState<number>(0)
   const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -78,7 +78,7 @@ function useEmissionTime(): EmissionTime {
       const difference = getTimezoneDifference(wordPressOffset, browserOffset)
 
       // Format time without seconds for better performance (HH:MM instead of HH:MM:SS)
-      setEmissionTime(formatTimeInTimezone(wordPressOffset, false))
+      setTransmissionTime(formatTimeInTimezone(wordPressOffset, false))
       setBrowserTime(formatTimeInTimezone(browserOffset, false))
       setTimeDifference(difference)
     }
@@ -109,11 +109,11 @@ function useEmissionTime(): EmissionTime {
   const hasDifference = Math.abs(timeDifference) > 0.01 // Use small threshold to handle floating point precision
 
   return {
-    emissionTime,
+    transmissionTime,
     browserTime,
     timeDifference,
     hasDifference,
   }
 }
 
-export default useEmissionTime
+export default useTransmissionTime

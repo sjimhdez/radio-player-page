@@ -18,7 +18,7 @@ import SleepTimer from './SleepTimer'
 import TimezoneClock from './TimezoneClock'
 import ScheduleModal from './ScheduleModal'
 import AllProgramsModal from './AllProgramsModal'
-import useEmissionTime from 'src/hooks/use-emission-time'
+import useTransmissionTime from 'src/hooks/use-transmission-time'
 import IconButton from '@mui/material/IconButton'
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth'
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted'
@@ -87,7 +87,7 @@ const Dashboard = () => {
     config.streamUrl,
   )
   const canVisualize = useCanVisualize(audioRef)
-  const emissionTimeData = useEmissionTime()
+  const transmissionTimeData = useTransmissionTime()
 
   // Configure Media Session API for lock screen
   useMediaSession(config.siteTitle, config.logoImage || '', play, pause, status)
@@ -278,7 +278,7 @@ const Dashboard = () => {
       <audio ref={audioRef} hidden preload="none" />
 
       {/* Timezone clock - positioned discretely in top-right corner */}
-      <TimezoneClock emissionTimeData={emissionTimeData} />
+      <TimezoneClock transmissionTimeData={transmissionTimeData} />
 
       <Snackbar open={openError} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
         <Alert severity="error" variant="filled" sx={{ width: '100%' }}>

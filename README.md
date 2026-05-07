@@ -81,7 +81,7 @@ Manage **multiple independent stations** from a single WordPress installation, e
 
 Perfect for radio networks, multi-channel stations, or managing multiple streams from one WordPress installation.
 
-### Emission Timezone Clock
+### Transmission Timezone Clock
 
 Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 
