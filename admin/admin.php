@@ -33,7 +33,7 @@ function radplapag_admin_scripts( $hook_suffix ) {
         'radplapag-admin',
         $admin_url . 'css/admin.css',
         array(),
-        '3.3.0'
+        '3.3.1'
     );
 
     if ( $is_station ) {
@@ -42,7 +42,7 @@ function radplapag_admin_scripts( $hook_suffix ) {
             'radplapag-station-admin',
             $admin_url . 'js/station-admin.js',
             array( 'jquery', 'media-editor' ),
-            '3.3.0',
+            '3.3.1',
             true
         );
         $post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
@@ -63,7 +63,7 @@ function radplapag_admin_scripts( $hook_suffix ) {
             'radplapag-program-admin',
             $admin_url . 'js/program-admin.js',
             array( 'jquery', 'media-editor' ),
-            '3.3.0',
+            '3.3.1',
             true
         );
     }
