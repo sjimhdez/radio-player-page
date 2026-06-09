@@ -12,9 +12,9 @@
     "sleepOption60": "1 hour",
     "sleepOption120": "2 hours",
     "liveRadio": "Live Radio",
-    "timezoneClock": "Station Time",
-    "timezoneClockLabel": "Station Timezone",
-    "timezoneWarning": "Your local time: {{browserTime}}, Station time: {{transmissionTime}}, Difference: {{difference}}",
+    "timezoneClock": "Broadcast Time",
+    "timezoneClockLabel": "Broadcast Timezone",
+    "timezoneWarning": "Your local time: {{browserTime}}, Broadcast time: {{transmissionTime}}, Difference: {{difference}}",
     "timezoneDifferenceHours": "{{count}} hour",
     "timezoneDifferenceHours_plural": "{{count}} hours",
     "upcomingPrefix": "Next",
@@ -40,6 +40,6 @@
     "collapse": "Collapse",
     "showMore": "Show more",
     "showLess": "Show less",
-    "transmissionTimes": "Transmission Times"
+    "transmissionTimes": "Broadcast Times"
   }
 }
