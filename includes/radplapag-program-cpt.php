@@ -27,7 +27,7 @@ function radplapag_register_program_post_type() {
 		'edit_item'          => __( 'Edit Radio Show', 'radio-player-page' ),
 		'new_item'           => __( 'New Radio Show', 'radio-player-page' ),
 		'view_item'          => __( 'View Radio Show', 'radio-player-page' ),
-		'search_items'       => __( 'Search Radio Show', 'radio-player-page' ),
+		'search_items'       => __( 'Search Radio Shows', 'radio-player-page' ),
 		'not_found'          => __( 'No Radio Shows found.', 'radio-player-page' ),
 		'not_found_in_trash' => __( 'No Radio Shows found in Trash.', 'radio-player-page' ),
 		'all_items'          => __( 'Radio Shows', 'radio-player-page' ),
@@ -103,7 +103,7 @@ function radplapag_register_program_meta() {
 		'radplapag_program_description',
 		array(
 			'type'              => 'string',
-			'description'       => __( 'Short program description.', 'radio-player-page' ),
+			'description'       => __( 'Short radio show description.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => 'sanitize_text_field',
 			'auth_callback'     => function() {
@@ -118,7 +118,7 @@ function radplapag_register_program_meta() {
 		'radplapag_program_extended_description',
 		array(
 			'type'              => 'string',
-			'description'       => __( 'Extended program description.', 'radio-player-page' ),
+			'description'       => __( 'Extended radio show description.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => 'sanitize_textarea_field',
 			'auth_callback'     => function() {
@@ -133,7 +133,7 @@ function radplapag_register_program_meta() {
 		'radplapag_program_logo_id',
 		array(
 			'type'              => 'integer',
-			'description'       => __( 'Attachment ID for program logo image.', 'radio-player-page' ),
+			'description'       => __( 'Attachment ID for radio show logo image.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => function( $value ) {
 				$id = absint( $value );
@@ -262,7 +262,7 @@ function radplapag_render_program_meta_boxes( $post ) {
 				<?php endif; ?>
 			</div>
 			<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-			<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+			<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove Image', 'radio-player-page' ); ?></button>
 		</div>
 	</div>
 	<?php

@@ -29,7 +29,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	if ( $data === null ) {
 		return '<div ' . $wrapper_attributes . '>' .
 			'<div class="wp-block-group is-empty">' .
-			'<p>' . esc_html__( 'No radio schedule available for this station.', 'radio-player-page' ) . '</p>' .
+			'<p>' . esc_html__( 'No radio schedule for this station.', 'radio-player-page' ) . '</p>' .
 			'</div>' .
 			'</div>';
 	}
@@ -45,7 +45,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 
 	if ( ! $has_any_slots ) {
 		return '<div ' . $wrapper_attributes . '>' .
-			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No radio schedule available for this station.', 'radio-player-page' ) . '</p></div>' .
+			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No radio schedule for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 

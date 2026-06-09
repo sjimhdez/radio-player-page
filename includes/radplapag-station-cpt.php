@@ -28,8 +28,8 @@ function radplapag_register_station_post_type() {
 		'new_item'           => __( 'New Radio Station', 'radio-player-page' ),
 		'view_item'          => __( 'View Radio Station', 'radio-player-page' ),
 		'search_items'       => __( 'Search Radio Stations', 'radio-player-page' ),
-		'not_found'          => __( 'No Radio stations found.', 'radio-player-page' ),
-		'not_found_in_trash' => __( 'No Radio stations found in Trash.', 'radio-player-page' ),
+		'not_found'          => __( 'No radio stations found.', 'radio-player-page' ),
+		'not_found_in_trash' => __( 'No radio stations found in Trash.', 'radio-player-page' ),
 		'all_items'          => __( 'Radio Stations', 'radio-player-page' ),
 	);
 
@@ -284,7 +284,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 				if ( ! $has_program || ! $has_start || ! $has_end ) {
 					$errors[] = sprintf(
 						/* translators: 1: Day name */
-						__( 'Radio Show on %1$s: All fields (radio show, start time, end time) are required.', 'radio-player-page' ),
+						__( 'Radio show on %1$s: All fields (radio show, start time, end time) are required.', 'radio-player-page' ),
 						$day_labels[ $day ]
 					);
 					continue;
@@ -295,7 +295,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			if ( ! $program_data ) {
 				$errors[] = sprintf(
 					/* translators: 1: Day name */
-					__( 'Radio Show on %1$s: Please select a valid radio show.', 'radio-player-page' ),
+					__( 'Radio show on %1$s: Please select a valid radio show.', 'radio-player-page' ),
 					$day_labels[ $day ]
 				);
 				continue;
@@ -305,7 +305,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			if ( ! preg_match( $time_regex, $program_start ) || ! preg_match( $time_regex, $program_end ) ) {
 				$errors[] = sprintf(
 					/* translators: 1: Program name, 2: Day name */
-					__( 'Radio Show "%1$s" on %2$s: Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
+					__( 'Radio show "%1$s" on %2$s: Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
 					$program_name,
 					$day_labels[ $day ]
 				);
@@ -321,7 +321,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			if ( $start_time >= $end_time_for_validation ) {
 				$errors[] = sprintf(
 					/* translators: 1: Program name, 2: Day name */
-					__( 'Radio Show "%1$s" on %2$s: End time must be after start time.', 'radio-player-page' ),
+					__( 'Radio show "%1$s" on %2$s: End time must be after start time.', 'radio-player-page' ),
 					$program_name,
 					$day_labels[ $day ]
 				);
@@ -359,7 +359,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			if ( $has_overlap ) {
 				$errors[] = sprintf(
 					/* translators: 1: Program name, 2: Day name, 3: Overlapping program name */
-					__( 'Radio Show "%1$s" on %2$s: Time slot overlaps with "%3$s".', 'radio-player-page' ),
+					__( 'Radio show "%1$s" on %2$s: Time slot overlaps with "%3$s".', 'radio-player-page' ),
 					$prog_data['name'],
 					$day_labels[ $day ],
 					$overlapping
@@ -416,7 +416,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 						if ( $end_time > $next_start_time ) {
 							$errors[] = sprintf(
 								/* translators: 1: Program name, 2: Day name, 3: Overlapping program name, 4: Next day name */
-								__( 'Radio Show "%1$s" on %2$s (crosses midnight) overlaps with "%3$s" on %4$s.', 'radio-player-page' ),
+								__( 'Radio show "%1$s" on %2$s (crosses midnight) overlaps with "%3$s" on %4$s.', 'radio-player-page' ),
 								$program_name,
 								$day_labels[ $day ],
 								$next_program_name,
@@ -545,7 +545,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 					<?php endif; ?>
 				</div>
 				<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-				<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+				<button type="button" class="button radplapag-program-logo-remove" <?php echo $logo_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove Image', 'radio-player-page' ); ?></button>
 			</div>
 		</div>
 		<div class="radplapag-field-wrap">
@@ -558,7 +558,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 					<?php endif; ?>
 				</div>
 				<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
-				<button type="button" class="button radplapag-program-logo-remove" <?php echo $background_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove', 'radio-player-page' ); ?></button>
+				<button type="button" class="button radplapag-program-logo-remove" <?php echo $background_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove Image', 'radio-player-page' ); ?></button>
 			</div>
 		</div>
 	</div>

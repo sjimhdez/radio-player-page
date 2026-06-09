@@ -84,7 +84,7 @@ add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts', 10, 1 );
  */
 function radplapag_admin_menu() {
     add_menu_page(
-        __( 'Stations', 'radio-player-page' ),
+        __( 'Radio Stations', 'radio-player-page' ),
         __( 'RPP', 'radio-player-page' ),
         'manage_options',
         'radplapag',

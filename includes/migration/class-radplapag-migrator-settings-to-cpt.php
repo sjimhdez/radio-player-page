@@ -162,7 +162,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	private static function insert_station_post( $station, $menu_order, $program_posts, $author_user_id ) {
 		$title = isset( $station['station_title'] ) ? sanitize_text_field( $station['station_title'] ) : '';
 		if ( $title === '' ) {
-			$title = __( 'Station', 'radio-player-page' );
+			$title = __( 'Radio Station', 'radio-player-page' );
 		}
 		$stream_url    = isset( $station['stream_url'] ) ? esc_url_raw( trim( $station['stream_url'] ) ) : '';
 		$player_page   = isset( $station['player_page'] ) ? absint( $station['player_page'] ) : 0;

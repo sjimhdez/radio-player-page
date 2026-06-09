@@ -229,7 +229,7 @@ function radplapag_migration_admin_notices() {
 	$success = get_transient( 'radplapag_migration_success_notice' );
 	if ( $success ) {
 		delete_transient( 'radplapag_migration_success_notice' );
-		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Radio Player Page: Your stations and programs were migrated from the previous storage format to the new editor. The old settings entry was removed.', 'radio-player-page' ) . '</p></div>';
+		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Radio Player Page: Your radio stations and radio shows were migrated from the previous storage format to the new editor. The old settings entry was removed.', 'radio-player-page' ) . '</p></div>';
 	}
 
 	$error = get_transient( 'radplapag_migration_error_notice' );
@@ -243,7 +243,7 @@ function radplapag_migration_admin_notices() {
 			add_query_arg( 'radplapag_dismiss', 'migration_conflict' ),
 			'radplapag_dismiss_migration_conflict'
 		);
-		echo '<div class="notice notice-warning"><p>' . esc_html__( 'Radio Player Page: Legacy settings were found, but there are already published stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra stations if you want to import legacy data, or dismiss this message.', 'radio-player-page' ) . '</p><p><a href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Dismiss This Notice', 'radio-player-page' ) . '</a></p></div>';
+		echo '<div class="notice notice-warning"><p>' . esc_html__( 'Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.', 'radio-player-page' ) . '</p><p><a href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Dismiss This Notice', 'radio-player-page' ) . '</a></p></div>';
 	}
 }
 

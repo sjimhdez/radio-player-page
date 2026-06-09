@@ -116,7 +116,7 @@ function radplapag_enqueue_schedule_block_editor_assets() {
     foreach ( $stations as $index => $station ) {
         $title = isset( $station['station_title'] ) ? $station['station_title'] : '';
         $station_labels[] = array(
-            'label' => $title !== '' ? $title : ( __( 'Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+            'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
         );
     }
     wp_localize_script( 'radplapag-schedule-block-editor', 'radplapagScheduleBlock', array( 'stations' => $station_labels ) );
@@ -162,7 +162,7 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
     foreach ( $stations as $index => $station ) {
         $title = isset( $station['station_title'] ) ? $station['station_title'] : '';
         $station_labels[] = array(
-            'label' => $title !== '' ? $title : ( __( 'Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+            'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
         );
     }
     wp_localize_script( 'radplapag-programs-list-block-editor', 'radplapagProgramsListBlock', array( 'stations' => $station_labels ) );
@@ -304,7 +304,7 @@ function radplapag_output_clean_page() {
 
     // Meta description (SEO + social fallback)
     /* translators: %s: station or page title for meta description */
-    $meta_description = sprintf( __( 'Listen to %s live streaming radio', 'radio-player-page' ), $display_title );
+    $meta_description = sprintf( __( 'Listen to %s live', 'radio-player-page' ), $display_title );
     echo '<meta name="description" content="' . esc_attr( $meta_description ) . '">';
 
     // Open Graph

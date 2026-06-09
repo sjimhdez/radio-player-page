@@ -30,7 +30,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 
 	if ( $programs === null || ! is_array( $programs ) || count( $programs ) === 0 ) {
 		return '<div ' . $wrapper_attributes . '>' .
-			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No radio shows available for this station.', 'radio-player-page' ) . '</p></div>' .
+			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No radio shows for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 

@@ -46,17 +46,17 @@ function Edit( { attributes, setAttributes } ) {
 						onChange={ ( value ) => setAttributes( { stationIndex: parseInt( value, 10 ) } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Show Image', 'radio-player-page' ) }
+						label={ __( 'Show Radio Show Image', 'radio-player-page' ) }
 						checked={ showImageValue }
 						onChange={ ( value ) => setAttributes( { showImage: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Show Description', 'radio-player-page' ) }
+						label={ __( 'Show Radio Show Description', 'radio-player-page' ) }
 						checked={ showDescriptionValue }
 						onChange={ ( value ) => setAttributes( { showDescription: value } ) }
 					/>
 					<ToggleControl
-						label={ __( 'Show Extended Description', 'radio-player-page' ) }
+						label={ __( 'Show Extended Radio Show Description', 'radio-player-page' ) }
 						checked={ showExtendedDescriptionValue }
 						onChange={ ( value ) => setAttributes( { showExtendedDescription: value } ) }
 					/>

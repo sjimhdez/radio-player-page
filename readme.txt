@@ -17,13 +17,13 @@ Radio Player Page **provides dedicated, standalone player pages** for your radio
 = The Power of Standalone Player Pages =
 
 * **Standalone Player Pages** – Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
-* **Full Radio Scheduling** – Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
+* **Full Radio Scheduling** – Create a weekly lineup with named radio shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
 * **Universal Stream Compatibility** – Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams. Automatic protocol detection with native iOS Safari support for HLS.
 
 = Broadcast Management =
 
 * **Multi-Station Control** – Manage multiple independent stations from a single WordPress installation, each with its own stream, schedule, and branding.
-* **Station Timezone Clock** – Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
+* **Broadcast Timezone Clock** – Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 * **Media Session API** – Professional integration with device lock screens and media controls, displaying station art and info.
 * **Radio Schedule Block** – Add a Gutenberg block (Block Editor) to any post or page to display the full weekly radio schedule for a selected station. Design is controlled by the editor and theme (Block Supports, theme.json).
 * **Radio Shows List Block** – Add a Gutenberg block to list all radio shows for a selected station, with optional image, extended description, and broadcast schedule.
