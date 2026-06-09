@@ -56,8 +56,12 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
               component="img"
               src={program.programLogoUrl}
               alt={program.programName}
-              width={128}
-              height={128}
+              sx={{
+                width: 128,
+                height: 128,
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
             />
           </Stack>
         )}
