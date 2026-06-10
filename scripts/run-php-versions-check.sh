@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Script to test plugin compatibility with different PHP versions
-# From PHP 7.4 to the latest available version
+# Mirrors the php-syntax job in .github/workflows/test.yml (PHP 7.4–8.4).
+# Uses git ls-files '*.php' so the file list stays in sync with CI.
 
 # Colors for output
 RED='\033[0;31m'
@@ -11,23 +12,17 @@ NC='\033[0m' # No Color
 
 # Plugin directory (parent of scripts/)
 PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PHP_FILES=(
-    "$PLUGIN_DIR/radio-player-page.php"
-    "$PLUGIN_DIR/includes/radplapag-stations.php"
-    "$PLUGIN_DIR/includes/radplapag-station-cpt.php"
-    "$PLUGIN_DIR/includes/radplapag-program-cpt.php"
-    "$PLUGIN_DIR/includes/radplapag-upgrade.php"
-    "$PLUGIN_DIR/includes/radplapag-schedule-block.php"
-    "$PLUGIN_DIR/includes/radplapag-programs-list-block.php"
-    "$PLUGIN_DIR/includes/data/class-radplapag-station-config.php"
-    "$PLUGIN_DIR/includes/data/class-radplapag-program-config.php"
-    "$PLUGIN_DIR/includes/migration/class-radplapag-migrator-settings-to-cpt.php"
-    "$PLUGIN_DIR/admin/admin.php"
-    "$PLUGIN_DIR/admin/admin-strings.php"
-    "$PLUGIN_DIR/blocks/schedule/render.php"
-    "$PLUGIN_DIR/blocks/programs-list/render.php"
-    "$PLUGIN_DIR/uninstall.php"
-)
+cd "$PLUGIN_DIR"
+
+PHP_FILES=()
+while IFS= read -r file; do
+    PHP_FILES+=("$file")
+done < <(git ls-files '*.php')
+
+if [ "${#PHP_FILES[@]}" -eq 0 ]; then
+    echo -e "${RED}No PHP files found via git ls-files.${NC}"
+    exit 1
+fi
 
 # PHP versions to test (from 7.4 to 8.4)
 PHP_VERSIONS=("7.4" "8.0" "8.1" "8.2" "8.3" "8.4")
@@ -115,7 +110,7 @@ echo "========================================="
 echo ""
 echo "Files under test:"
 for php_file in "${PHP_FILES[@]}"; do
-    echo "  - ${php_file#$PLUGIN_DIR/}"
+    echo "  - $php_file"
 done
 echo ""
 
@@ -130,11 +125,10 @@ for version_info in "${AVAILABLE_VERSIONS[@]}"; do
     
     # Test each PHP file
     for php_file in "${PHP_FILES[@]}"; do
-        rel_path="${php_file#$PLUGIN_DIR/}"
         if test_syntax "$php_binary" "$php_file" > /dev/null 2>&1; then
-            echo -e "  ${GREEN}✓${NC} $rel_path"
+            echo -e "  ${GREEN}✓${NC} $php_file"
         else
-            echo -e "  ${RED}✗${NC} $rel_path"
+            echo -e "  ${RED}✗${NC} $php_file"
             all_passed=false
             failed_files+=("$(basename "$php_file")")
         fi

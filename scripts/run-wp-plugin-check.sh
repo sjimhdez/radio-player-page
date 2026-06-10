@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # WordPress Plugin Check Script
-# Replicates the checks from .github/workflows/test.yml
-# Matches: wordpress/plugin-check-action@v1 with:
-#   - exclude-directories: 'player,scripts,.github'
+# Replicates the plugin-check job from .github/workflows/test.yml
+# Matches: wordpress/plugin-check-action@v1 (wp-env is handled by the action in CI) with:
+#   - exclude-directories: player, scripts, .github
 #   - ignore-codes: WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet, NonEnqueuedScript
 #   - exclude-files: .gitignore
+#   - include-experimental: false
 
 # Colors for output
 RED='\033[0;31m'
