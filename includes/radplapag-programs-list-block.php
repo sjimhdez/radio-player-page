@@ -49,7 +49,7 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 	$slots_by_program = [];
 	foreach ( $day_keys as $day_key ) {
 		$day_entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : [];
-		$label       = isset( $day_labels[ $day_key ] ) ? $day_labels[ $day_key ] : $day_key;
+		$label       = $day_labels[ $day_key ] ?? $day_key;
 		$day_num     = array_search( $day_key, $day_keys, true );
 		$wp_day      = $day_num === 6 ? 0 : $day_num + 1;
 		$is_today    = ( $wp_day === $day_of_week );
@@ -59,13 +59,13 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
-			$program_id = isset( $entry['program_id'] ) ? $entry['program_id'] : '';
+			$program_id = $entry['program_id'] ?? '';
 			if ( $program_id === '' ) {
 				continue;
 			}
 			$program_id_key = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
-			$start          = isset( $entry['start'] ) ? $entry['start'] : '';
-			$end            = isset( $entry['end'] ) ? $entry['end'] : '';
+			$start          = (string) ( $entry['start'] ?? '' );
+			$end            = (string) ( $entry['end'] ?? '' );
 			if ( $start === '' || $end === '' ) {
 				continue;
 			}
@@ -110,7 +110,7 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
-			$pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
+			$pid = $entry['program_id'] ?? null;
 			if ( $pid !== null && $pid !== '' && is_numeric( $pid ) ) {
 				$pid_int = (int) $pid;
 				if ( $pid_int > 0 && ! in_array( $pid_int, $program_ids_ordered, true ) ) {
@@ -127,7 +127,7 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 			continue;
 		}
 		$key  = (string) $post_id;
-		$slots = isset( $slots_by_program[ $key ] ) ? $slots_by_program[ $key ] : [];
+		$slots = $slots_by_program[ $key ] ?? [];
 		$out[] = [
 			'id'                   => $key,
 			'name'                 => $data['name'],

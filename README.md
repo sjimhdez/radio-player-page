@@ -2,8 +2,8 @@
 
 [![Version](https://img.shields.io/badge/version-3.3.1-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
-[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
-[![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue)](https://www.php.net/)
+[![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
+[![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
 Dedicated player pages for your radio stations, with program scheduling and continuous playback.
@@ -143,7 +143,7 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 ## Quick Start
 
-**Requirements:** WordPress 5.0+, PHP 5.6+, and a valid streaming URL.
+**Requirements:** WordPress 6.6+, PHP 7.4+, and a valid streaming URL.
 
 1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
@@ -162,8 +162,8 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 ### Requirements
 
-- **WordPress** 5.0+
-- **PHP** 5.6+
+- **WordPress** 6.6+
+- **PHP** 7.4+
 - **Node.js** 20.x (development only; see `player/.nvmrc`)
 
 **Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and program CPT posts and flushes the object cache. Data is not removed on deactivation.

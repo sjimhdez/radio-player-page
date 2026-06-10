@@ -32,7 +32,7 @@ function radplapag_admin_scripts( $hook_suffix ) {
     wp_enqueue_style(
         'radplapag-admin',
         $admin_url . 'css/admin.css',
-        array(),
+        [],
         '3.3.1'
     );
 
@@ -41,7 +41,7 @@ function radplapag_admin_scripts( $hook_suffix ) {
         wp_enqueue_script(
             'radplapag-station-admin',
             $admin_url . 'js/station-admin.js',
-            array( 'jquery', 'media-editor' ),
+            [ 'jquery', 'media-editor' ],
             '3.3.1',
             true
         );
@@ -52,17 +52,17 @@ function radplapag_admin_scripts( $hook_suffix ) {
             'radplapagAdmin',
             array_merge(
                 radplapag_get_admin_strings(),
-                array(
+                [
                     'assignedPlayerPages' => function_exists( 'radplapag_get_player_pages_assigned_to_other_stations' )
                         ? radplapag_get_player_pages_assigned_to_other_stations( $post_id )
-                        : array(),
-                )
+                        : [],
+                ]
             )
         );
         wp_enqueue_script(
             'radplapag-program-admin',
             $admin_url . 'js/program-admin.js',
-            array( 'jquery', 'media-editor' ),
+            [ 'jquery', 'media-editor' ],
             '3.3.1',
             true
         );

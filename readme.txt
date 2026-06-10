@@ -1,10 +1,10 @@
 === Radio Player Page ===
 Contributors: sjimhdez
 Tags: audio, icecast, radio player, radio station, streaming
-Requires at least: 5.0
+Requires at least: 6.6
 Tested up to: 7.0
 Stable tag: 3.3.1
-Requires PHP: 5.6
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,8 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 == Changelog ==
 
 = 3.3.1 =
+* Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for Gutenberg blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.
+* Modernized PHP codebase for PHP 7.4+ (typed classes, short array syntax, null coalescing).
 
 = 3.3.0 =
 * Added Radio Schedule block.

@@ -20,22 +20,22 @@ class Radplapag_Program_Config {
 	 *
 	 * @var int
 	 */
-	private $post_id;
+	private int $post_id;
 
 	/**
 	 * Data from radplapag_get_program_data().
 	 *
 	 * @var array
 	 */
-	private $data;
+	private array $data;
 
 	/**
 	 * @since 3.3.0
 	 * @param int   $post_id Program post ID.
 	 * @param array $data    Associative array from radplapag_get_program_data().
 	 */
-	private function __construct( $post_id, $data ) {
-		$this->post_id = (int) $post_id;
+	private function __construct( int $post_id, array $data ) {
+		$this->post_id = $post_id;
 		$this->data    = $data;
 	}
 
@@ -44,11 +44,10 @@ class Radplapag_Program_Config {
 	 * @param int $post_id radplapag_program post ID.
 	 * @return Radplapag_Program_Config|null
 	 */
-	public static function from_post_id( $post_id ) {
+	public static function from_post_id( int $post_id ): ?Radplapag_Program_Config {
 		if ( ! function_exists( 'radplapag_get_program_data' ) ) {
 			return null;
 		}
-		$post_id = (int) $post_id;
 		if ( $post_id <= 0 ) {
 			return null;
 		}
@@ -63,7 +62,7 @@ class Radplapag_Program_Config {
 	 * @since 3.3.0
 	 * @return int
 	 */
-	public function get_post_id() {
+	public function get_post_id(): int {
 		return $this->post_id;
 	}
 
@@ -73,9 +72,9 @@ class Radplapag_Program_Config {
 	 * @since 3.3.0
 	 * @return array
 	 */
-	public function to_array() {
+	public function to_array(): array {
 		return array_merge(
-			array( 'id' => $this->post_id ),
+			[ 'id' => $this->post_id ],
 			$this->data
 		);
 	}

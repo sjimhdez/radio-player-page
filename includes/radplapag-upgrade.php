@@ -23,7 +23,7 @@ if ( ! defined( 'RADPLAPAG_DB_VERSION' ) ) {
  * @since 3.3.0
  * @return bool
  */
-function radplapag_legacy_has_migratable_stations() {
+function radplapag_legacy_has_migratable_stations(): bool {
 	$raw = get_option( 'radplapag_settings', null );
 	if ( ! is_array( $raw ) || ! isset( $raw['stations'] ) || ! is_array( $raw['stations'] ) ) {
 		return false;
@@ -37,7 +37,7 @@ function radplapag_legacy_has_migratable_stations() {
  * @since 3.3.0
  * @return int
  */
-function radplapag_count_published_stations() {
+function radplapag_count_published_stations(): int {
 	$counts = wp_count_posts( 'radplapag_station' );
 	if ( ! $counts || ! isset( $counts->publish ) ) {
 		return 0;
@@ -51,7 +51,7 @@ function radplapag_count_published_stations() {
  * @since 3.3.0
  * @return void
  */
-function radplapag_ensure_schema_version_option() {
+function radplapag_ensure_schema_version_option(): void {
 	if ( get_option( 'radplapag_db_version' ) === RADPLAPAG_DB_VERSION ) {
 		return;
 	}
@@ -66,14 +66,14 @@ function radplapag_ensure_schema_version_option() {
  * @since 3.3.0
  * @return int
  */
-function radplapag_migration_resolve_author_user_id() {
+function radplapag_migration_resolve_author_user_id(): int {
 	$users = get_users(
-		array(
+		[
 			'role'    => 'administrator',
 			'number'  => 20,
 			'orderby' => 'ID',
 			'order'   => 'ASC',
-		)
+		]
 	);
 	foreach ( $users as $user ) {
 		if ( $user instanceof WP_User && user_can( $user, 'manage_options' ) ) {
@@ -89,7 +89,7 @@ function radplapag_migration_resolve_author_user_id() {
  * @since 3.3.0
  * @return void
  */
-function radplapag_maybe_clear_migration_conflict_flag() {
+function radplapag_maybe_clear_migration_conflict_flag(): void {
 	if ( ! get_option( 'radplapag_migration_skipped_cpt_conflict' ) ) {
 		return;
 	}
@@ -104,7 +104,7 @@ function radplapag_maybe_clear_migration_conflict_flag() {
  * @since 3.3.0
  * @return void
  */
-function radplapag_run_legacy_migration_if_needed() {
+function radplapag_run_legacy_migration_if_needed(): void {
 	if ( ! is_admin() || ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
@@ -159,7 +159,7 @@ function radplapag_run_legacy_migration_if_needed() {
  * @since 3.3.0
  * @return void
  */
-function radplapag_schedule_legacy_migration() {
+function radplapag_schedule_legacy_migration(): void {
 	if ( ! post_type_exists( 'radplapag_station' ) ) {
 		add_action( 'init', 'radplapag_run_legacy_migration_if_needed', 100 );
 		return;
@@ -175,7 +175,7 @@ function radplapag_schedule_legacy_migration() {
  * @param array       $options  Hook arguments.
  * @return void
  */
-function radplapag_on_upgrader_process_complete( $upgrader, $options ) {
+function radplapag_on_upgrader_process_complete( $upgrader, array $options ): void {
 	if ( ! isset( $options['action'], $options['type'] ) || $options['action'] !== 'update' || $options['type'] !== 'plugin' ) {
 		return;
 	}
@@ -197,7 +197,7 @@ function radplapag_on_upgrader_process_complete( $upgrader, $options ) {
  * @since 3.3.0
  * @return void
  */
-function radplapag_handle_migration_notice_dismiss() {
+function radplapag_handle_migration_notice_dismiss(): void {
 	if ( ! is_admin() || ! current_user_can( 'manage_options' ) ) {
 		return;
 	}
@@ -211,7 +211,7 @@ function radplapag_handle_migration_notice_dismiss() {
 	if ( $dismiss === 'migration_conflict' ) {
 		delete_option( 'radplapag_migration_skipped_cpt_conflict' );
 	}
-	wp_safe_redirect( remove_query_arg( array( 'radplapag_dismiss', '_wpnonce' ) ) );
+	wp_safe_redirect( remove_query_arg( [ 'radplapag_dismiss', '_wpnonce' ] ) );
 	exit;
 }
 
@@ -221,7 +221,7 @@ function radplapag_handle_migration_notice_dismiss() {
  * @since 3.3.0
  * @return void
  */
-function radplapag_migration_admin_notices() {
+function radplapag_migration_admin_notices(): void {
 	if ( ! current_user_can( 'manage_options' ) ) {
 		return;
 	}

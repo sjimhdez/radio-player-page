@@ -15,11 +15,11 @@ defined( 'ABSPATH' ) || exit;
  *
  * @return array Array with 'programs' (list for schedule dropdowns) and 'strings' (translated strings for station-admin.js).
  */
-function radplapag_get_admin_strings() {
-	$programs = function_exists( 'radplapag_get_all_programs_for_select' ) ? radplapag_get_all_programs_for_select() : array();
-	return array(
+function radplapag_get_admin_strings(): array {
+	$programs = function_exists( 'radplapag_get_all_programs_for_select' ) ? radplapag_get_all_programs_for_select() : [];
+	return [
 		'programs' => $programs,
-		'strings'  => array(
+		'strings'  => [
 			'addProgramImage'          => __( 'Add Radio Show Image', 'radio-player-page' ),
 			'selectImage'              => __( 'Select Image', 'radio-player-page' ),
 			'changeImage'              => __( 'Change Image', 'radio-player-page' ),
@@ -60,6 +60,6 @@ function radplapag_get_admin_strings() {
 			'recommendedProgramImageSize' => __( 'Recommended size: 256x256 pixels.', 'radio-player-page' ),
 			'removeProgram'            => __( 'Remove Radio Show', 'radio-player-page' ),
 			'programNameRequired'      => __( 'Radio Show Name is required. Enter a name to use this Radio Show in the schedule.', 'radio-player-page' ),
-		),
-	);
+		],
+	];
 }

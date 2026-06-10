@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script to test plugin compatibility with different PHP versions
-# From PHP 5.6 to the latest available version
+# From PHP 7.4 to the latest available version
 
 # Colors for output
 RED='\033[0;31m'
@@ -14,14 +14,23 @@ PLUGIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PHP_FILES=(
     "$PLUGIN_DIR/radio-player-page.php"
     "$PLUGIN_DIR/includes/radplapag-stations.php"
+    "$PLUGIN_DIR/includes/radplapag-station-cpt.php"
+    "$PLUGIN_DIR/includes/radplapag-program-cpt.php"
+    "$PLUGIN_DIR/includes/radplapag-upgrade.php"
+    "$PLUGIN_DIR/includes/radplapag-schedule-block.php"
+    "$PLUGIN_DIR/includes/radplapag-programs-list-block.php"
+    "$PLUGIN_DIR/includes/data/class-radplapag-station-config.php"
+    "$PLUGIN_DIR/includes/data/class-radplapag-program-config.php"
+    "$PLUGIN_DIR/includes/migration/class-radplapag-migrator-settings-to-cpt.php"
     "$PLUGIN_DIR/admin/admin.php"
-    "$PLUGIN_DIR/admin/sanitize-settings.php"
-    "$PLUGIN_DIR/admin/settings-page.php"
+    "$PLUGIN_DIR/admin/admin-strings.php"
+    "$PLUGIN_DIR/blocks/schedule/render.php"
+    "$PLUGIN_DIR/blocks/programs-list/render.php"
     "$PLUGIN_DIR/uninstall.php"
 )
 
-# PHP versions to test (from 5.6 to 8.4)
-PHP_VERSIONS=("5.6" "7.0" "7.1" "7.2" "7.3" "7.4" "8.0" "8.1" "8.2" "8.3" "8.4")
+# PHP versions to test (from 7.4 to 8.4)
+PHP_VERSIONS=("7.4" "8.0" "8.1" "8.2" "8.3" "8.4")
 
 # Array to store results (bash 3.2 compatible)
 RESULTS=()
@@ -38,13 +47,13 @@ find_php_binary() {
     local binary=""
     
     # Try different common formats
-    # Homebrew on macOS: php@5.6, php@7.0, etc.
+    # Homebrew on macOS: php@7.4, php@8.0, etc.
     if command -v "php@${version}" &> /dev/null; then
         binary="php@${version}"
-    # Direct binary: php5.6, php7.0, etc.
+    # Direct binary: php7.4, php8.0, etc.
     elif command -v "php${version}" &> /dev/null; then
         binary="php${version}"
-    # In some installations: php-5.6, php-7.0, etc.
+    # In some installations: php-7.4, php-8.0, etc.
     elif command -v "php-${version}" &> /dev/null; then
         binary="php-${version}"
     # Typical Homebrew path
@@ -150,8 +159,8 @@ if [ ${#AVAILABLE_VERSIONS[@]} -eq 0 ]; then
     echo -e "${YELLOW}⚠ No installed PHP versions found${NC}"
     echo ""
     echo "To install PHP versions on macOS with Homebrew:"
-    echo "  brew install php@5.6"
-    echo "  brew install php@7.0"
+    echo "  brew install php@7.4"
+    echo "  brew install php@8.2"
     echo "  # etc..."
     echo ""
     echo "Or use a version manager like:"

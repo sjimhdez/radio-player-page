@@ -6,8 +6,8 @@
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, radio station, streaming
- * Requires at least: 5.0
- * Requires PHP: 5.6
+ * Requires at least: 6.6
+ * Requires PHP: 7.4
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: radio-player-page
@@ -54,12 +54,12 @@ if ( is_admin() ) {
  * @param array  $args    Optional args; [0] is post ID for post meta caps.
  * @return array Mapped capabilities.
  */
-function radplapag_map_cpt_meta_cap( $caps, $cap, $user_id, $args ) {
-	$post_meta_caps = array( 'edit_post', 'delete_post', 'read_post', 'publish_post' );
+function radplapag_map_cpt_meta_cap( array $caps, string $cap, int $user_id, array $args ): array {
+	$post_meta_caps = [ 'edit_post', 'delete_post', 'read_post', 'publish_post' ];
 	if ( ! in_array( $cap, $post_meta_caps, true ) ) {
 		return $caps;
 	}
-	$post_id = isset( $args[0] ) ? (int) $args[0] : 0;
+	$post_id = (int) ( $args[0] ?? 0 );
 	if ( $post_id <= 0 ) {
 		return $caps;
 	}
@@ -67,7 +67,7 @@ function radplapag_map_cpt_meta_cap( $caps, $cap, $user_id, $args ) {
 	if ( $post_type !== 'radplapag_station' && $post_type !== 'radplapag_program' ) {
 		return $caps;
 	}
-	return array( 'manage_options' );
+	return [ 'manage_options' ];
 }
 add_filter( 'map_meta_cap', 'radplapag_map_cpt_meta_cap', 10, 4 );
 
@@ -84,9 +84,9 @@ add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_programs_list_bloc
 function radplapag_register_schedule_block() {
     register_block_type(
         plugin_dir_path( __FILE__ ) . 'blocks/schedule',
-        array(
+        [
             'render_callback' => 'radplapag_render_schedule_block',
-        )
+        ]
     );
 }
 
@@ -111,15 +111,15 @@ function radplapag_enqueue_schedule_block_editor_assets() {
     );
     wp_set_script_translations( 'radplapag-schedule-block-editor', 'radio-player-page' );
     $config  = radplapag_get_config();
-    $stations = isset( $config['stations'] ) && is_array( $config['stations'] ) ? $config['stations'] : array();
-    $station_labels = array();
+    $stations = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
+    $station_labels = [];
     foreach ( $stations as $index => $station ) {
-        $title = isset( $station['station_title'] ) ? $station['station_title'] : '';
-        $station_labels[] = array(
+        $title = (string) ( $station['station_title'] ?? '' );
+        $station_labels[] = [
             'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
-        );
+        ];
     }
-    wp_localize_script( 'radplapag-schedule-block-editor', 'radplapagScheduleBlock', array( 'stations' => $station_labels ) );
+    wp_localize_script( 'radplapag-schedule-block-editor', 'radplapagScheduleBlock', [ 'stations' => $station_labels ] );
 }
 
 /**
@@ -130,9 +130,9 @@ function radplapag_enqueue_schedule_block_editor_assets() {
 function radplapag_register_programs_list_block() {
     register_block_type(
         plugin_dir_path( __FILE__ ) . 'blocks/programs-list',
-        array(
+        [
             'render_callback' => 'radplapag_render_programs_list_block',
-        )
+        ]
     );
 }
 
@@ -157,15 +157,15 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
     );
     wp_set_script_translations( 'radplapag-programs-list-block-editor', 'radio-player-page' );
     $config         = radplapag_get_config();
-    $stations       = isset( $config['stations'] ) && is_array( $config['stations'] ) ? $config['stations'] : array();
-    $station_labels = array();
+    $stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
+    $station_labels = [];
     foreach ( $stations as $index => $station ) {
-        $title = isset( $station['station_title'] ) ? $station['station_title'] : '';
-        $station_labels[] = array(
+        $title = (string) ( $station['station_title'] ?? '' );
+        $station_labels[] = [
             'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
-        );
+        ];
     }
-    wp_localize_script( 'radplapag-programs-list-block-editor', 'radplapagProgramsListBlock', array( 'stations' => $station_labels ) );
+    wp_localize_script( 'radplapag-programs-list-block-editor', 'radplapagProgramsListBlock', [ 'stations' => $station_labels ] );
 }
 
 /**
