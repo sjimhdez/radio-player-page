@@ -91,7 +91,12 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 
 = 3.3.1 =
 * Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for Gutenberg blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.
+* Tested up to WordPress 7.0.
 * Modernized PHP codebase for PHP 7.4+ (typed classes, short array syntax, null coalescing).
+* Aligned admin, player, and Gutenberg block copy around consistent terminology (Radio Station, Radio Show, Broadcast Time, On Air).
+* Updated player translations across all supported languages.
+* Improved empty states and block editor settings labels for the Radio Schedule and Radio Shows List blocks.
+* Improved radio show image layout in the player schedule and radio shows modals.
 
 = 3.3.0 =
 * Added Radio Schedule block.
