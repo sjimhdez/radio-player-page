@@ -240,7 +240,7 @@ npm run lint           # ESLint
 **Standalone:** `npm run dev` uses mock `window.*` globals from `player/index.html` and hot reload.  
 **WordPress:** Use `npm run dev:build` and load the player via the assigned page; manifest and assets are read from `dist/`.
 
-CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/test.yml) (Plugin Check, PHP syntax, player lint/build, and Gutenberg block builds). Scripts in `scripts/` mirror those checks locally (e.g. `./scripts/run-eslint.sh`, `./scripts/run-wp-plugin-check.sh`, `./scripts/run-php-versions-check.sh`, `./scripts/build-release-zip.sh --build`).
+CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/test.yml): PHP syntax (7.4 and 8.4), player lint/build, Gutenberg block builds, and Plugin Check (on push to `main` or PRs that touch PHP/admin/readme). Scripts in `scripts/` mirror those checks locally (e.g. `./scripts/run-eslint.sh`, `./scripts/run-wp-plugin-check.sh`, `./scripts/run-php-versions-check.sh`, `./scripts/build-release-zip.sh --build`).
 
 ### API Reference
 

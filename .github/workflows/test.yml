@@ -14,6 +14,43 @@ permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      plugin-check: ${{ steps.plugin-check.outputs.result }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Filter relevant paths for Plugin Check
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            plugin-check:
+              - '**/*.php'
+              - 'readme.txt'
+              - 'radio-player-page.php'
+              - 'uninstall.php'
+              - 'admin/**'
+              - 'includes/**'
+              - 'blocks/**/render.php'
+              - 'blocks/**/block.json'
+              - '.github/workflows/test.yml'
+
+      - name: Set Plugin Check run flag
+        id: plugin-check
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "result=true" >> "$GITHUB_OUTPUT"
+          elif [ "${{ steps.filter.outputs.plugin-check }}" == "true" ]; then
+            echo "result=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=false" >> "$GITHUB_OUTPUT"
+          fi
+
   php-syntax:
     name: PHP Syntax (PHP ${{ matrix.php-version }})
     runs-on: ubuntu-latest
@@ -22,10 +59,6 @@ jobs:
       matrix:
         php-version:
           - "7.4"
-          - "8.0"
-          - "8.1"
-          - "8.2"
-          - "8.3"
           - "8.4"
     steps:
       - name: Checkout code
@@ -91,14 +124,8 @@ jobs:
           fi
 
   gutenberg-blocks:
-    name: Gutenberg Blocks (${{ matrix.block-dir }})
+    name: Gutenberg Blocks
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        block-dir:
-          - blocks/schedule
-          - blocks/programs-list
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -107,43 +134,74 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: ${{ matrix.block-dir }}/package-lock.json
 
-      - name: Install dependencies
-        working-directory: ./${{ matrix.block-dir }}
-        run: npm ci
-
-      - name: Build block
-        working-directory: ./${{ matrix.block-dir }}
-        run: npm run build
-
-      - name: Verify committed build is up to date
+      - name: Build and verify blocks
+        shell: bash
         run: |
-          if ! git diff --exit-code -- "${{ matrix.block-dir }}/build/"; then
-            echo "${{ matrix.block-dir }}/build is out of date; run npm run build and commit."
-            exit 1
-          fi
+          set -euo pipefail
+
+          for block_dir in blocks/schedule blocks/programs-list; do
+            echo "Building ${block_dir}..."
+            (cd "$block_dir" && npm ci && npm run build)
+
+            if ! git diff --exit-code -- "${block_dir}/build/"; then
+              echo "${block_dir}/build is out of date; run npm run build and commit."
+              exit 1
+            fi
+          done
 
   plugin-check:
     name: Plugin Check
+    needs: changes
+    if: needs.changes.outputs.plugin-check == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Plugin Check
-        uses: wordpress/plugin-check-action@v1
+      # Workaround for wordpress/plugin-check-action#579 and WordPress/gutenberg#78762:
+      # plugin-check-action embeds plugin-check.zip in .wp-env.json; on Node 24.16+ wp-env
+      # can exit 0 without starting Docker. Install Plugin Check via WP-CLI after boot.
+      # Revert to wordpress/plugin-check-action@v1 once upstream is fixed.
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          slug: radio-player-page
-          exclude-directories: |
-            player
-            scripts
-            .github
-          exclude-files: |
-            .gitignore
-          ignore-codes: |
-            WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet
-            WordPress.WP.EnqueuedResources.NonEnqueuedScript
-          include-experimental: false
+          node-version: "20"
+
+      - name: Configure wp-env
+        run: |
+          cat > .wp-env.json <<'EOF'
+          {
+            "core": null,
+            "port": 8880,
+            "testsEnvironment": false,
+            "plugins": [],
+            "mappings": {
+              "wp-content/plugins/radio-player-page": "."
+            }
+          }
+          EOF
+          npm install -g @wordpress/env
+
+      - name: Start wp-env
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: wp-env start --update
+
+      - name: Verify wp-env is running
+        run: wp-env run cli wp cli info
+
+      - name: Run Plugin Check
+        run: |
+          wp-env run cli wp plugin install plugin-check --activate
+          wp-env run cli wp plugin activate radio-player-page
+          wp-env run cli wp plugin check radio-player-page \
+            --slug=radio-player-page \
+            --exclude-directories=player,scripts,.github \
+            --exclude-files=.gitignore,.wp-env.json \
+            --ignore-codes=WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet,WordPress.WP.EnqueuedResources.NonEnqueuedScript \
+            --require=./wp-content/plugins/plugin-check/cli.php
