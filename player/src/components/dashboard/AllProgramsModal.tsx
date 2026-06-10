@@ -56,8 +56,12 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
               component="img"
               src={program.programLogoUrl}
               alt={program.programName}
-              width={128}
-              height={128}
+              sx={{
+                width: 128,
+                height: 128,
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
             />
           </Stack>
         )}
@@ -113,7 +117,7 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
             </Typography>
           )}
           <Stack gap={1.5}>
-            <Typography variant="h5">{t('dashboard.emissionTimes')}</Typography>
+            <Typography variant="h5">{t('dashboard.transmissionTimes')}</Typography>
             <Stack gap={0.5}>
               {program.slots.map((slot, index) => (
                 <Typography

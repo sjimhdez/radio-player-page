@@ -20,7 +20,7 @@ class Radplapag_Station_Config {
 	 *
 	 * @var WP_Post
 	 */
-	private $post;
+	private WP_Post $post;
 
 	/**
 	 * Creates an instance from a station post.
@@ -28,7 +28,7 @@ class Radplapag_Station_Config {
 	 * @since 3.3.0
 	 * @param WP_Post $post Post object (radplapag_station).
 	 */
-	private function __construct( $post ) {
+	private function __construct( WP_Post $post ) {
 		$this->post = $post;
 	}
 
@@ -39,7 +39,7 @@ class Radplapag_Station_Config {
 	 * @param WP_Post|null $post Post object.
 	 * @return Radplapag_Station_Config|null
 	 */
-	public static function from_post( $post ) {
+	public static function from_post( $post ): ?Radplapag_Station_Config {
 		if ( ! $post instanceof WP_Post || $post->post_type !== 'radplapag_station' ) {
 			return null;
 		}
@@ -52,11 +52,11 @@ class Radplapag_Station_Config {
 	 * @since 3.3.0
 	 * @return array Keys: id, stream_url, player_page, station_title, background_id, logo_id, theme_color, visualizer, schedule.
 	 */
-	public function to_array() {
+	public function to_array(): array {
 		$post_id = (int) $this->post->ID;
 
 		$schedule_json = get_post_meta( $post_id, 'radplapag_station_schedule', true );
-		$schedule      = array();
+		$schedule      = [];
 		if ( is_string( $schedule_json ) && $schedule_json !== '' ) {
 			$decoded = json_decode( $schedule_json, true );
 			if ( is_array( $decoded ) ) {
@@ -66,8 +66,8 @@ class Radplapag_Station_Config {
 
 		$theme             = get_post_meta( $post_id, 'radplapag_station_theme_color', true );
 		$visualizer        = get_post_meta( $post_id, 'radplapag_station_visualizer', true );
-		$valid_themes      = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
-		$valid_visualizers = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
+		$valid_themes      = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
+		$valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
 		if ( ! is_string( $theme ) || ! in_array( $theme, $valid_themes, true ) ) {
 			$theme = 'neutral';
 		}
@@ -77,16 +77,16 @@ class Radplapag_Station_Config {
 
 		$stream_url = get_post_meta( $post_id, 'radplapag_station_stream_url', true );
 
-		return array(
-			'id'              => $post_id,
-			'stream_url'      => is_string( $stream_url ) ? $stream_url : '',
-			'player_page'     => (int) get_post_meta( $post_id, 'radplapag_station_player_page', true ),
-			'station_title'   => $this->post->post_title,
-			'background_id'   => (int) get_post_meta( $post_id, 'radplapag_station_background_id', true ),
-			'logo_id'         => (int) get_post_meta( $post_id, 'radplapag_station_logo_id', true ),
-			'theme_color'     => $theme,
-			'visualizer'      => $visualizer,
-			'schedule'        => $schedule,
-		);
+		return [
+			'id'            => $post_id,
+			'stream_url'    => is_string( $stream_url ) ? $stream_url : '',
+			'player_page'   => (int) get_post_meta( $post_id, 'radplapag_station_player_page', true ),
+			'station_title' => $this->post->post_title,
+			'background_id' => (int) get_post_meta( $post_id, 'radplapag_station_background_id', true ),
+			'logo_id'       => (int) get_post_meta( $post_id, 'radplapag_station_logo_id', true ),
+			'theme_color'   => $theme,
+			'visualizer'    => $visualizer,
+			'schedule'      => $schedule,
+		];
 	}
 }

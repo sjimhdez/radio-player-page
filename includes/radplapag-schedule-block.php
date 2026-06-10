@@ -31,13 +31,13 @@ $radplapag_schedule_day_map = [
  * @param string $time Time string in HH:MM format.
  * @return int Minutes since midnight (0-1439), or 0 if invalid.
  */
-function radplapag_parse_time_to_minutes( $time ) {
+function radplapag_parse_time_to_minutes( $time ): int {
 	if ( ! is_string( $time ) || $time === '' ) {
 		return 0;
 	}
 	$parts = array_map( 'intval', explode( ':', $time, 2 ) );
-	$hour  = isset( $parts[0] ) ? $parts[0] : 0;
-	$min   = isset( $parts[1] ) ? $parts[1] : 0;
+	$hour  = $parts[0] ?? 0;
+	$min   = $parts[1] ?? 0;
 	return $hour * 60 + $min;
 }
 
@@ -54,7 +54,7 @@ function radplapag_parse_time_to_minutes( $time ) {
  * @param bool   $is_prev_day_crossing True when evaluating previous day's slot that crosses midnight.
  * @return bool True if the slot is active now.
  */
-function radplapag_is_slot_active( $start, $end, $current_minutes, $is_prev_day_crossing = false ) {
+function radplapag_is_slot_active( $start, $end, int $current_minutes, bool $is_prev_day_crossing = false ): bool {
 	$start_min = radplapag_parse_time_to_minutes( $start );
 	$end_min   = radplapag_parse_time_to_minutes( $end );
 
@@ -77,7 +77,7 @@ function radplapag_is_slot_active( $start, $end, $current_minutes, $is_prev_day_
  * @since 3.3.0
  * @return array Associative array with 'day_keys_order' (array of day keys) and 'day_labels' (day_key => translated label).
  */
-function radplapag_get_schedule_day_keys_and_labels() {
+function radplapag_get_schedule_day_keys_and_labels(): array {
 	$day_keys_order = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
 	$day_labels     = [
 		'monday'    => __( 'Monday', 'radio-player-page' ),
@@ -100,7 +100,7 @@ function radplapag_get_schedule_day_keys_and_labels() {
  * @param array $station Station array with 'schedule' key.
  * @return array Associative array program_id (string) => [ 'name' => string, 'description' => string|null, 'extended_description' => string|null, 'logo_url' => string|null ].
  */
-function radplapag_build_programs_map( $station ) {
+function radplapag_build_programs_map( array $station ): array {
 	$map = [];
 	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
 	$program_ids  = [];
@@ -112,7 +112,7 @@ function radplapag_build_programs_map( $station ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
-			$pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
+			$pid = $entry['program_id'] ?? null;
 			if ( $pid === null || $pid === '' ) {
 				continue;
 			}
@@ -149,7 +149,7 @@ function radplapag_build_programs_map( $station ) {
  * @return array|null Associative array with 'programs', 'days', 'station_page_url' (permalink for station's player page, or empty string),
  *                    or null if station invalid or index out of range.
  */
-function radplapag_get_schedule_for_station( $station_index, $day_order = 'current_first' ) {
+function radplapag_get_schedule_for_station( $station_index, string $day_order = 'current_first' ) {
 	$config  = radplapag_get_config();
 	if ( ! isset( $config['stations'] ) || ! is_array( $config['stations'] ) ) {
 		return null;
@@ -181,13 +181,13 @@ function radplapag_get_schedule_for_station( $station_index, $day_order = 'curre
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
-			$program_id = isset( $entry['program_id'] ) ? sanitize_text_field( $entry['program_id'] ) : '';
-			$start      = isset( $entry['start'] ) ? $entry['start'] : '';
-			$end        = isset( $entry['end'] ) ? $entry['end'] : '';
+			$program_id = sanitize_text_field( (string) ( $entry['program_id'] ?? '' ) );
+			$start      = (string) ( $entry['start'] ?? '' );
+			$end        = (string) ( $entry['end'] ?? '' );
 			if ( $program_id === '' || $start === '' || $end === '' ) {
 				continue;
 			}
-			$prog  = isset( $programs_map[ $program_id ] ) ? $programs_map[ $program_id ] : [ 'name' => '', 'description' => null, 'extended_description' => null, 'logo_url' => null ];
+			$prog  = $programs_map[ $program_id ] ?? [ 'name' => '', 'description' => null, 'extended_description' => null, 'logo_url' => null ];
 			$day_num = array_search( $day_key, $day_keys_order, true );
 			// day_num: monday=0 .. sunday=6. WordPress day_of_week: sunday=0, monday=1, ...
 			$wp_day = $day_num === 6 ? 0 : $day_num + 1;
@@ -216,7 +216,7 @@ function radplapag_get_schedule_for_station( $station_index, $day_order = 'curre
 		} );
 		$days_out[] = [
 			'day_key' => $day_key,
-			'label'   => isset( $day_labels[ $day_key ] ) ? $day_labels[ $day_key ] : $day_key,
+			'label'   => $day_labels[ $day_key ] ?? $day_key,
 			'slots'   => $slots,
 		];
 	}
@@ -225,7 +225,7 @@ function radplapag_get_schedule_for_station( $station_index, $day_order = 'curre
 	if ( $day_order === 'current_first' && count( $days_out ) === 7 ) {
 		// WordPress day_of_week: 0=Sunday, 1=Monday, ..., 6=Saturday. days_out: 0=Monday, ..., 6=Sunday.
 		$start_index = ( $day_of_week === 0 ) ? 6 : ( $day_of_week - 1 );
-		$reordered = array();
+		$reordered = [];
 		for ( $i = 0; $i < 7; $i++ ) {
 			$reordered[] = $days_out[ ( $start_index + $i ) % 7 ];
 		}

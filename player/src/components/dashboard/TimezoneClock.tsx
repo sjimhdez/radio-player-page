@@ -4,24 +4,24 @@ import Paper from '@mui/material/Paper'
 import Chip from '@mui/material/Chip'
 import { useTranslation } from 'react-i18next'
 import { formatTimezoneDifference } from 'src/utils/timezone'
-import type { EmissionTime } from 'src/hooks/use-emission-time'
+import type { TransmissionTime } from 'src/hooks/use-transmission-time'
 
 interface TimezoneClockProps {
-  /** Emission time data from useEmissionTime hook */
-  emissionTimeData: EmissionTime
+  /** Station transmission time data from useTransmissionTime hook */
+  transmissionTimeData: TransmissionTime
 }
 
 /**
  * Timezone clock component
  *
- * Displays a discrete, stylized real-time clock showing the emission timezone (WordPress)
+ * Displays a discrete, stylized real-time clock showing the station timezone (WordPress)
  * with a subtle time difference indicator. Positioned in the top-right corner.
  *
  * Only displays when there is a timezone difference (hasDifference === true). When that
  * condition is met, the clock is always visible, independent of playback state.
  *
  * Features:
- * - Compact clock showing emission timezone in "HH:MM" format
+ * - Compact clock showing station timezone in "HH:MM" format
  * - Updates at the start of each system minute (at :00 seconds)
  * - Subtle time difference indicator
  * - Discreet positioning in top-right corner
@@ -30,9 +30,9 @@ interface TimezoneClockProps {
  * @param props - Component props
  * @returns Timezone clock, or null when there is no timezone difference
  */
-const TimezoneClock = ({ emissionTimeData }: TimezoneClockProps) => {
+const TimezoneClock = ({ transmissionTimeData }: TimezoneClockProps) => {
   const { t } = useTranslation()
-  const { emissionTime, timeDifference, hasDifference } = emissionTimeData
+  const { transmissionTime, timeDifference, hasDifference } = transmissionTimeData
 
   // Only show when there is a timezone difference (always visible then, regardless of playback)
   if (!hasDifference) {
@@ -64,10 +64,10 @@ const TimezoneClock = ({ emissionTimeData }: TimezoneClockProps) => {
           {t('dashboard.timezoneClockLabel')}
         </Typography>
 
-        {/* Emission time clock and difference indicator */}
+        {/* Station transmission time clock and difference indicator */}
         <Stack direction="row" alignItems="center" spacing={1}>
           <Typography variant="body2" letterSpacing="0.05em" fontWeight={500}>
-            {emissionTime}
+            {transmissionTime}
           </Typography>
 
           {/* Time difference indicator */}

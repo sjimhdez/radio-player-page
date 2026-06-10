@@ -1,10 +1,10 @@
 === Radio Player Page ===
 Contributors: sjimhdez
 Tags: audio, icecast, radio player, radio station, streaming
-Requires at least: 5.0
-Tested up to: 6.9
-Stable tag: 3.3.0
-Requires PHP: 5.6
+Requires at least: 6.6
+Tested up to: 7.0
+Stable tag: 3.3.1
+Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,18 +12,18 @@ Dedicated player pages for your radio stations, with scheduling and continuous p
 
 == Description ==
 
-Radio Player Page **provides dedicated, standalone player pages** for your radio broadcasts on WordPress. It lets you create a full weekly radio schedule, manage your broadcasts, and present everything on pages that guarantee reliable, theme-independent listening.
+Radio Player Page **provides dedicated, standalone player pages** for your radio broadcasts on WordPress. It lets you create a full weekly radio schedule, manage your broadcasts, and present everything on pages designed for reliable playback without theme conflicts.
 
 = The Power of Standalone Player Pages =
 
 * **Standalone Player Pages** – Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
-* **Full Radio Scheduling** – Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
+* **Full Radio Scheduling** – Create a weekly lineup with named radio shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
 * **Universal Stream Compatibility** – Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams. Automatic protocol detection with native iOS Safari support for HLS.
 
 = Broadcast Management =
 
 * **Multi-Station Control** – Manage multiple independent stations from a single WordPress installation, each with its own stream, schedule, and branding.
-* **Emission Timezone Clock** – Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
+* **Broadcast Timezone Clock** – Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 * **Media Session API** – Professional integration with device lock screens and media controls, displaying station art and info.
 * **Radio Schedule Block** – Add a Gutenberg block (Block Editor) to any post or page to display the full weekly radio schedule for a selected station. Design is controlled by the editor and theme (Block Supports, theme.json).
 * **Radio Shows List Block** – Add a Gutenberg block to list all radio shows for a selected station, with optional image, extended description, and broadcast schedule.
@@ -88,6 +88,15 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 8. Radio Station edit screen with radio schedule.
 
 == Changelog ==
+
+= 3.3.1 =
+* Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for Gutenberg blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.
+* Tested up to WordPress 7.0.
+* Modernized PHP codebase for PHP 7.4+ (typed classes, short array syntax, null coalescing).
+* Aligned admin, player, and Gutenberg block copy around consistent terminology (Radio Station, Radio Show, Broadcast Time, On Air).
+* Updated player translations across all supported languages.
+* Improved empty states and block editor settings labels for the Radio Schedule and Radio Shows List blocks.
+* Improved radio show image layout in the player schedule and radio shows modals.
 
 = 3.3.0 =
 * Added Radio Schedule block.

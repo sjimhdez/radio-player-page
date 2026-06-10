@@ -25,7 +25,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @param int $author_user_id WordPress user ID for post_author on created posts.
 	 * @return true|WP_Error True on success, WP_Error on failure.
 	 */
-	public static function run( $author_user_id ) {
+	public static function run( int $author_user_id ) {
 		$author_user_id = (int) $author_user_id;
 		if ( $author_user_id <= 0 ) {
 			return new WP_Error( 'radplapag_migration_author', __( 'Migration could not find a valid administrator user to assign created content.', 'radio-player-page' ) );
@@ -39,8 +39,8 @@ class Radplapag_Migrator_Settings_To_Cpt {
 		$stations = $raw['stations'];
 		$map      = self::build_program_id_map( $stations );
 
-		$created_post_ids = array();
-		$program_posts    = array();
+		$created_post_ids = [];
+		$program_posts    = [];
 		foreach ( $map['unique_programs'] as $old_id => $def ) {
 			$post_id = self::insert_program_post( $def, $author_user_id );
 			if ( is_wp_error( $post_id ) ) {
@@ -78,8 +78,8 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @param array $stations Legacy stations list.
 	 * @return array Map with key 'unique_programs' => old_id => program row.
 	 */
-	private static function build_program_id_map( $stations ) {
-		$unique = array();
+	private static function build_program_id_map( array $stations ): array {
+		$unique = [];
 		foreach ( $stations as $station ) {
 			if ( ! is_array( $station ) || ! isset( $station['programs'] ) || ! is_array( $station['programs'] ) ) {
 				continue;
@@ -88,7 +88,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 				if ( ! is_array( $prog ) ) {
 					continue;
 				}
-				$old_id = isset( $prog['id'] ) ? (string) $prog['id'] : '';
+				$old_id = (string) ( $prog['id'] ?? '' );
 				if ( $old_id === '' ) {
 					continue;
 				}
@@ -101,7 +101,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 				$unique[ $old_id ] = $prog;
 			}
 		}
-		return array( 'unique_programs' => $unique );
+		return [ 'unique_programs' => $unique ];
 	}
 
 	/**
@@ -109,11 +109,11 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @param array $prog Legacy program row.
 	 * @return string
 	 */
-	private static function program_fingerprint( $prog ) {
-		$name = isset( $prog['name'] ) ? (string) $prog['name'] : '';
-		$desc = isset( $prog['description'] ) ? (string) $prog['description'] : '';
-		$ext  = isset( $prog['extended_description'] ) ? (string) $prog['extended_description'] : '';
-		$logo = isset( $prog['logo_id'] ) ? (string) $prog['logo_id'] : '0';
+	private static function program_fingerprint( array $prog ): string {
+		$name = (string) ( $prog['name'] ?? '' );
+		$desc = (string) ( $prog['description'] ?? '' );
+		$ext  = (string) ( $prog['extended_description'] ?? '' );
+		$logo = (string) ( $prog['logo_id'] ?? '0' );
 		return md5( $name . '|' . $desc . '|' . $ext . '|' . $logo );
 	}
 
@@ -123,23 +123,23 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @param int   $author_user_id Post author.
 	 * @return int|WP_Error New post ID or error.
 	 */
-	private static function insert_program_post( $prog, $author_user_id ) {
-		$name = isset( $prog['name'] ) ? sanitize_text_field( $prog['name'] ) : '';
+	private static function insert_program_post( array $prog, int $author_user_id ) {
+		$name = sanitize_text_field( (string) ( $prog['name'] ?? '' ) );
 		if ( $name === '' ) {
 			$name = __( 'Program', 'radio-player-page' );
 		}
-		$description          = isset( $prog['description'] ) ? sanitize_text_field( $prog['description'] ) : '';
-		$extended_description = isset( $prog['extended_description'] ) ? sanitize_textarea_field( $prog['extended_description'] ) : '';
-		$logo_id              = isset( $prog['logo_id'] ) ? absint( $prog['logo_id'] ) : 0;
+		$description          = sanitize_text_field( (string) ( $prog['description'] ?? '' ) );
+		$extended_description = sanitize_textarea_field( (string) ( $prog['extended_description'] ?? '' ) );
+		$logo_id              = absint( $prog['logo_id'] ?? 0 );
 
 		$post_id = wp_insert_post(
-			array(
+			[
 				'post_type'    => 'radplapag_program',
 				'post_status'  => 'publish',
 				'post_title'   => $name,
 				'post_author'  => $author_user_id,
 				'post_content' => '',
-			),
+			],
 			true
 		);
 		if ( is_wp_error( $post_id ) ) {
@@ -159,20 +159,20 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @param int   $author_user_id Post author.
 	 * @return int|WP_Error
 	 */
-	private static function insert_station_post( $station, $menu_order, $program_posts, $author_user_id ) {
-		$title = isset( $station['station_title'] ) ? sanitize_text_field( $station['station_title'] ) : '';
+	private static function insert_station_post( array $station, int $menu_order, array $program_posts, int $author_user_id ) {
+		$title = sanitize_text_field( (string) ( $station['station_title'] ?? '' ) );
 		if ( $title === '' ) {
-			$title = __( 'Station', 'radio-player-page' );
+			$title = __( 'Radio Station', 'radio-player-page' );
 		}
-		$stream_url    = isset( $station['stream_url'] ) ? esc_url_raw( trim( $station['stream_url'] ) ) : '';
-		$player_page   = isset( $station['player_page'] ) ? absint( $station['player_page'] ) : 0;
-		$background_id = isset( $station['background_id'] ) ? absint( $station['background_id'] ) : 0;
-		$logo_id       = isset( $station['logo_id'] ) ? absint( $station['logo_id'] ) : 0;
-		$theme         = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
-		$visualizer    = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
+		$stream_url    = esc_url_raw( trim( (string) ( $station['stream_url'] ?? '' ) ) );
+		$player_page   = absint( $station['player_page'] ?? 0 );
+		$background_id = absint( $station['background_id'] ?? 0 );
+		$logo_id       = absint( $station['logo_id'] ?? 0 );
+		$theme         = sanitize_key( (string) ( $station['theme_color'] ?? 'neutral' ) );
+		$visualizer    = sanitize_key( (string) ( $station['visualizer'] ?? 'oscilloscope' ) );
 
-		$valid_themes      = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
-		$valid_visualizers = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
+		$valid_themes      = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
+		$valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
 		if ( ! in_array( $theme, $valid_themes, true ) ) {
 			$theme = 'neutral';
 		}
@@ -180,7 +180,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 			$visualizer = 'oscilloscope';
 		}
 
-		$schedule_input = array();
+		$schedule_input = [];
 		if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) ) {
 			$schedule_input = self::translate_schedule_for_cpt( $station['schedule'], $program_posts );
 		}
@@ -199,14 +199,14 @@ class Radplapag_Migrator_Settings_To_Cpt {
 		$schedule_json = wp_json_encode( $schedule_sanitized );
 
 		$post_id = wp_insert_post(
-			array(
+			[
 				'post_type'    => 'radplapag_station',
 				'post_status'  => 'publish',
 				'post_title'   => $title,
 				'post_author'  => $author_user_id,
 				'menu_order'   => (int) $menu_order,
 				'post_content' => '',
-			),
+			],
 			true
 		);
 		if ( is_wp_error( $post_id ) ) {
@@ -232,20 +232,20 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @param array $program_posts   Legacy id => new program post ID.
 	 * @return array
 	 */
-	private static function translate_schedule_for_cpt( $legacy_schedule, $program_posts ) {
-		$out = array();
+	private static function translate_schedule_for_cpt( array $legacy_schedule, array $program_posts ): array {
+		$out = [];
 		foreach ( $legacy_schedule as $day => $slots ) {
 			if ( ! is_array( $slots ) ) {
 				continue;
 			}
-			$day_rows = array();
+			$day_rows = [];
 			foreach ( $slots as $slot ) {
 				if ( ! is_array( $slot ) ) {
 					continue;
 				}
-				$legacy_pid = isset( $slot['program_id'] ) ? (string) $slot['program_id'] : '';
-				$start      = isset( $slot['start'] ) ? trim( (string) $slot['start'] ) : '';
-				$end        = isset( $slot['end'] ) ? trim( (string) $slot['end'] ) : '';
+				$legacy_pid = (string) ( $slot['program_id'] ?? '' );
+				$start      = trim( (string) ( $slot['start'] ?? '' ) );
+				$end        = trim( (string) ( $slot['end'] ?? '' ) );
 				if ( $legacy_pid === '' || $start === '' || $end === '' ) {
 					continue;
 				}
@@ -256,11 +256,11 @@ class Radplapag_Migrator_Settings_To_Cpt {
 					}
 					continue;
 				}
-				$day_rows[] = array(
+				$day_rows[] = [
 					'program_id' => (int) $program_posts[ $legacy_pid ],
 					'start'      => $start,
 					'end'        => $end,
-				);
+				];
 			}
 			if ( ! empty( $day_rows ) ) {
 				$out[ $day ] = $day_rows;
@@ -276,7 +276,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @param array $post_ids Post IDs to remove.
 	 * @return void
 	 */
-	private static function rollback_created_posts( $post_ids ) {
+	private static function rollback_created_posts( array $post_ids ): void {
 		if ( ! is_array( $post_ids ) || empty( $post_ids ) ) {
 			return;
 		}

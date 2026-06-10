@@ -21,15 +21,17 @@ require_once dirname( __FILE__ ) . '/data/class-radplapag-station-config.php';
  * @return array Indexed array of station configs: each with id, stream_url, player_page,
  *               station_title, background_id, logo_id, theme_color, visualizer, schedule.
  */
-function radplapag_get_stations() {
-	$posts = get_posts( array(
-		'post_type'      => 'radplapag_station',
-		'post_status'    => 'publish',
-		'posts_per_page' => -1,
-		'orderby'        => 'menu_order title',
-		'order'          => 'ASC',
-	) );
-	$out = array();
+function radplapag_get_stations(): array {
+	$posts = get_posts(
+		[
+			'post_type'      => 'radplapag_station',
+			'post_status'    => 'publish',
+			'posts_per_page' => -1,
+			'orderby'        => 'menu_order title',
+			'order'          => 'ASC',
+		]
+	);
+	$out = [];
 	foreach ( $posts as $post ) {
 		$config = Radplapag_Station_Config::from_post( $post );
 		if ( $config ) {
@@ -46,6 +48,6 @@ function radplapag_get_stations() {
  *
  * @return array Config array with key 'stations' (ordered list from radplapag_get_stations()).
  */
-function radplapag_get_config() {
-	return array( 'stations' => radplapag_get_stations() );
+function radplapag_get_config(): array {
+	return [ 'stations' => radplapag_get_stations() ];
 }

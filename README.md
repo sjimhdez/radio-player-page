@@ -1,12 +1,12 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-3.3.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-3.3.1-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
-[![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
-[![PHP](https://img.shields.io/badge/PHP-5.6%2B-blue)](https://www.php.net/)
+[![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
+[![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
 [![License](https://img.shields.io/badge/license-GPLv2-blue.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
-Dedicated player pages for your radio stations, with program scheduling and continous playback.
+Dedicated player pages for your radio stations, with program scheduling and continuous playback.
 
 [View on WordPress.org](https://wordpress.org/plugins/radio-player-page) · [Report Issues](https://github.com/sjimhdez/radio-player-page/issues) · [Documentation](https://wordpress.org/plugins/radio-player-page/)
 
@@ -26,7 +26,7 @@ Dedicated player pages for your radio stations, with program scheduling and cont
 
 ## Description
 
-**Radio Player Page** provides **dedicated, standalone player pages** for your radio streams on WordPress. It lets you create a full weekly program schedule, manage your broadcasts, and present everything on pages that guarantee reliable, theme-independent listening.
+**Radio Player Page** provides **dedicated, standalone player pages** for your radio streams on WordPress. It lets you create a full weekly program schedule, manage your broadcasts, and present everything on pages designed for reliable playback without theme conflicts.
 
 **The key differentiator:** Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
 
@@ -43,9 +43,9 @@ Each station lives on its own independent HTML page, completely bypassing your W
 - **Clean URLs** – One dedicated URL per station
 - **Reliable playback** – Continuous streaming without interruptions
 
-### Full Program Scheduling
+### Full Radio Schedule
 
-Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next program, with timezone-aware calculations and overlap prevention.
+Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
 
 - Define radio shows with names, optional short and extended descriptions, and optional logos
 - Assign radio shows to time slots across the week
@@ -74,14 +74,14 @@ Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 stre
 
 Manage **multiple independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
 
-- Its own streaming URL
+- Each station has its own streaming URL
 - A dedicated WordPress page
 - Independent branding and configuration
 - Separate program schedules (optional)
 
 Perfect for radio networks, multi-channel stations, or managing multiple streams from one WordPress installation.
 
-### Emission Timezone Clock
+### Station Timezone Clock
 
 Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 
@@ -143,7 +143,7 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 ## Quick Start
 
-**Requirements:** WordPress 5.0+, PHP 5.6+, and a valid streaming URL.
+**Requirements:** WordPress 6.6+, PHP 7.4+, and a valid streaming URL.
 
 1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress.
@@ -162,8 +162,8 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 ### Requirements
 
-- **WordPress** 5.0+
-- **PHP** 5.6+
+- **WordPress** 6.6+
+- **PHP** 7.4+
 - **Node.js** 20.x (development only; see `player/.nvmrc`)
 
 **Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and program CPT posts and flushes the object cache. Data is not removed on deactivation.
@@ -240,7 +240,7 @@ npm run lint           # ESLint
 **Standalone:** `npm run dev` uses mock `window.*` globals from `player/index.html` and hot reload.  
 **WordPress:** Use `npm run dev:build` and load the player via the assigned page; manifest and assets are read from `dist/`.
 
-The project uses [pre-commit](https://pre-commit.com/) for WordPress plugin check, PHP versions check, and ESLint. See [.github/workflows/test.yml](.github/workflows/test.yml) for CI. Scripts in `scripts/` can be run manually (e.g. `./scripts/run-eslint.sh`, `./scripts/build-release-zip.sh --build`).
+CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/test.yml): PHP syntax (7.4 and 8.4), player lint/build, Gutenberg block builds, and Plugin Check (on push to `main` or PRs that touch PHP/admin/readme). Scripts in `scripts/` mirror those checks locally (e.g. `./scripts/run-eslint.sh`, `./scripts/run-wp-plugin-check.sh`, `./scripts/run-php-versions-check.sh`, `./scripts/build-release-zip.sh --build`).
 
 ### API Reference
 

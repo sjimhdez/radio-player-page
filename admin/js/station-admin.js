@@ -544,7 +544,7 @@
   }
 
   function buildProgramSelectHtml(day, nextIndex) {
-    var selectProgramOpt = s.selectProgram || "Select Program";
+    var selectProgramOpt = s.selectProgram || "Select Radio Show";
     var opts = '<option value="">' + selectProgramOpt + "</option>";
     programsList.forEach(function (p) {
       var id = p.id != null ? String(p.id) : "";

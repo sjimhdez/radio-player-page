@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ESLint Script for Player
-# Replicates the checks from .github/workflows/test.yml
+# Replicates the player job lint step from .github/workflows/test.yml
 
 set -e
 
