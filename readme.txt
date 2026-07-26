@@ -1,6 +1,6 @@
 === Radio Player Page ===
 Contributors: sjimhdez
-Tags: audio, icecast, radio player, radio station, streaming
+Tags: radio player, radio station, radio schedule, icecast, shoutcast
 Requires at least: 6.6
 Tested up to: 7.0
 Stable tag: 3.3.1
@@ -8,61 +8,73 @@ Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Dedicated player pages for your radio stations, with scheduling and continuous playback.
+Create dedicated listening pages for your radio stations with integrated radio schedules and reliable playback.
 
 == Description ==
 
-Radio Player Page **provides dedicated, standalone player pages** for your radio broadcasts on WordPress. It lets you create a full weekly radio schedule, manage your broadcasts, and present everything on pages designed for reliable playback without theme conflicts.
+Radio Player Page lets you create dedicated listening pages for your radio stations on WordPress. Each station has its own standalone page with reliable playback, integrated weekly scheduling, radio show information, and custom branding, completely independent of your WordPress theme.
 
-= The Power of Standalone Player Pages =
+Designed for online radio stations, community broadcasters, and streaming services, it combines station management, scheduling, and playback into a single solution while keeping the listening experience fast, reliable, and distraction-free.
 
-* **Standalone Player Pages** – Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
-* **Full Radio Scheduling** – Create a weekly lineup with named radio shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
-* **Universal Stream Compatibility** – Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams. Automatic protocol detection with native iOS Safari support for HLS.
+= Dedicated Listening Pages =
 
-= Broadcast Management =
+* **Standalone Listening Pages** – Every station has its own independent HTML page, bypassing your WordPress theme entirely. This guarantees reliable playback, excellent performance, and a dedicated URL for every station.
+* **Reliable Playback** – Listeners always access the same optimized player page without theme conflicts, page builder issues, or unnecessary front-end overhead.
+* **Universal Stream Compatibility** – Supports Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams with automatic protocol detection and native HLS support on iOS Safari.
 
-* **Multi-Station Control** – Manage multiple independent stations from a single WordPress installation, each with its own stream, schedule, and branding.
-* **Broadcast Timezone Clock** – Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
-* **Media Session API** – Professional integration with device lock screens and media controls, displaying station art and info.
-* **Radio Schedule Block** – Add a Gutenberg block (Block Editor) to any post or page to display the full weekly radio schedule for a selected station. Design is controlled by the editor and theme (Block Supports, theme.json).
-* **Radio Shows List Block** – Add a Gutenberg block to list all radio shows for a selected station, with optional image, extended description, and broadcast schedule.
+= Radio Schedule =
+
+* **Weekly Schedule** – Build a complete weekly schedule with named radio shows, optional logos, timezone-aware calculations, and overlap prevention.
+* **Now & Next Information** – The player automatically displays the current radio show and the next scheduled show.
+* **Radio Shows Library** – Create reusable radio shows with featured images, descriptions, and broadcast times.
+
+= Station Management =
+
+* **Multi-Station Support** – Manage multiple independent radio stations from a single WordPress installation.
+* **Station Branding** – Customize each station with its own logo, background image, and color theme.
+* **Broadcast Timezone Clock** – Display your station's local time whenever it differs from the listener's timezone.
 
 = Listener Experience =
 
-* **Informed Listening** – The player clearly shows **what's on air now and what's coming next**.
-* **Visual Customization** – Choose from 8 color themes and 4 real-time audio visualizers (powered by Web Audio API) to match your station's brand.
-* **Station Branding** – Upload custom background images and logos for each station.
-* **Convenience Features** – Sleep timer, responsive design, and social sharing meta tags for rich link previews.
+* **Visual Themes** – Choose from eight color themes.
+* **Audio Visualizers** – Four real-time visualizers powered by the Web Audio API.
+* **Media Session API** – Integration with lock screens and hardware media controls, including artwork and metadata.
+* **Convenience Features** – Sleep Timer, responsive layout, and Open Graph metadata for social sharing.
 
-**Built for Modern Web Performance**
-The player is a self-contained application built with **React 19, TypeScript, and Vite**, ensuring a fast, accessible, and maintainable experience. It uses manifest-based asset loading for seamless updates.
+= Blocks =
+
+* **Radio Schedule Block** – Display the complete weekly schedule for any station anywhere on your site using the Block Editor.
+* **Radio Shows List Block** – Display a list of radio shows including featured images, descriptions, and broadcast schedules.
+
+= Modern Architecture =
+
+Radio Player Page is built as a standalone React application using React 19, TypeScript, and Vite. Assets are loaded through a manifest-based system for efficient caching, fast updates, and long-term maintainability.
 
 == Installation ==
 
-1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen directly.
-2. Activate the plugin through the 'Plugins' screen in WordPress.
-3. Go to **RPP → Stations** in the admin menu. Click **Add New** to create a station.
-4. For each station:
-   * Enter your streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
-   * Select the WordPress page where the player should appear
-   * Optionally customize: title, theme color, visualizer type, background image, and logo
-5. Publish or update the station and visit the assigned page. Optionally use **RPP → Radio Shows** to create radio shows and build the weekly schedule on each station.
+1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen.
+2. Activate the plugin.
+3. Open **RPP → Stations** and create your first station.
+4. Configure:
+   * Streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
+   * WordPress page
+   * Station title
+   * Branding options (logo, background, color theme)
+   * Audio visualizer
+5. Publish the station.
+6. Optionally create radio shows from **RPP → Radio Shows** and build the station's weekly schedule.
 
 **Important Notes**
 
-* Each station requires both a valid streaming URL and an assigned WordPress page.
-* Stations and radio shows are stored as WordPress content (custom post types). Uninstalling the plugin removes that data; deactivating does not.
-
+* Every station requires a valid streaming URL and an assigned WordPress page.
+* Stations and radio shows are stored as WordPress custom post types.
+* Deactivating the plugin preserves your data.
+* Uninstalling the plugin permanently removes stations, radio shows, and schedules.
 == Frequently Asked Questions ==
 
 = Do I need to configure anything on the WordPress page? =
 
-No. Once you assign a page to a station on the **RPP → Stations** edit screen, no additional configuration is needed on the page itself. The plugin intercepts page requests using WordPress template redirect hooks and serves a standalone HTML page with the player. The page's normal front-end output (content, template, blocks) is bypassed for that URL, so the player always loads reliably without page-level setup.
-
-= I upgraded from a version before 3.3.0. What happens to my data? =
-
-If your site still had the legacy settings format, the plugin migrates stations, radio shows, and schedules to the new post types the next time an administrator loads the dashboard (or right after a plugin update from the dashboard). See the **3.3.0** changelog entry for details, conflict handling, and what happens to the old option.
+No. Once you assign a page to a station on the **RPP → Stations** edit screen, no additional configuration is needed on the page itself. The plugin intercepts page requests using WordPress template redirect hooks and serves a standalone HTML page with the player. The normal page output (content, template, blocks) is bypassed for that URL, so the player always loads reliably without page-level setup.
 
 = Where can I get support or report issues? =
 
@@ -79,26 +91,26 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 == Screenshots ==
 
 1. Player page with blue theme and Oscilloscope visualizer.
-2. Player page with yellow theme, Bars Spectrum visualizer, and timezone clock.
-3. Player page with green theme, Amplitude Waterfall visualizer, and sleep mode active.
-4. Player page with pink theme and Schedule modal open.
-5. Player page with orange theme and All Radio Shows modal open.
+2. Player page with yellow theme, Bars Spectrum visualizer, and Broadcast Timezone Clock.
+3. Player page with green theme, Amplitude Waterfall visualizer, and Sleep Timer active.
+4. Player page with pink theme and Weekly Schedule dialog open.
+5. Player page with orange theme and Radio Shows dialog open.
 6. Radio Stations list.
 7. Radio Station edit screen with streaming URL and player page.
-8. Radio Station edit screen with radio schedule.
+8. Radio Station edit screen with weekly schedule.
 
 == Changelog ==
 
 = 3.3.1 =
-* Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for Gutenberg blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.
+* Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.
 * Tested up to WordPress 7.0.
 * Modernized PHP codebase for PHP 7.4+ (typed classes, short array syntax, null coalescing).
-* Aligned admin, player, and Gutenberg block copy around consistent terminology (Radio Station, Radio Show, Broadcast Time, On Air).
+* Aligned terminology across the admin area, player, and blocks around consistent concepts such as Radio Station, Radio Show, Weekly Schedule, Broadcast Time, and On Air.
 * Updated player translations across all supported languages.
-* Improved empty states and block editor settings labels for the Radio Schedule and Radio Shows List blocks.
-* Improved radio show image layout in the player schedule and radio shows modals.
+* Improved empty states and block editor settings labels for the Weekly Schedule and Radio Shows List blocks.
+* Improved radio show featured image layout in the player weekly schedule and radio shows dialogs.
 
 = 3.3.0 =
-* Added Radio Schedule block.
+* Added Weekly Schedule block.
 * Added Radio Shows List block.
 * Radio stations and radio shows now use CPTs.
