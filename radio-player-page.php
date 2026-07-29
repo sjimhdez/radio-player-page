@@ -77,7 +77,7 @@ add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_schedule_block_edi
 add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_programs_list_block_editor_assets' );
 
 /**
- * Registers the Radio Schedule Gutenberg block.
+ * Registers the Radio Schedule WordPress block.
  *
  * @since 3.3.0
  */
@@ -113,7 +113,7 @@ function radplapag_enqueue_schedule_block_editor_assets() {
 }
 
 /**
- * Registers the Programs List Gutenberg block.
+ * Registers the Programs List WordPress block.
  *
  * @since 3.3.0
  */

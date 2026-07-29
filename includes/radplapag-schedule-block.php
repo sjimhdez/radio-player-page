@@ -1,6 +1,6 @@
 <?php
 /**
- * Schedule block helpers: resolved schedule data for the Gutenberg block.
+ * Schedule block helpers: resolved schedule data for the WordPress block.
  *
  * @package radio-player-page
  * @since 3.3.0
