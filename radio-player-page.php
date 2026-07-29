@@ -96,20 +96,10 @@ function radplapag_register_schedule_block() {
  * @since 3.3.0
  */
 function radplapag_enqueue_schedule_block_editor_assets() {
-    $block_dir = plugin_dir_path( __FILE__ ) . 'blocks/schedule/';
-    $asset_file = $block_dir . 'build/index.asset.php';
-    if ( ! file_exists( $asset_file ) ) {
+    $handle = 'radplapag-schedule-editor-script';
+    if ( ! wp_script_is( $handle, 'registered' ) ) {
         return;
     }
-    $asset = include $asset_file;
-    wp_enqueue_script(
-        'radplapag-schedule-block-editor',
-        plugin_dir_url( __FILE__ ) . 'blocks/schedule/build/index.js',
-        $asset['dependencies'],
-        $asset['version'],
-        true
-    );
-    wp_set_script_translations( 'radplapag-schedule-block-editor', 'radio-player-page' );
     $config  = radplapag_get_config();
     $stations = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
     $station_labels = [];
@@ -119,7 +109,7 @@ function radplapag_enqueue_schedule_block_editor_assets() {
             'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
         ];
     }
-    wp_localize_script( 'radplapag-schedule-block-editor', 'radplapagScheduleBlock', [ 'stations' => $station_labels ] );
+    wp_localize_script( $handle, 'radplapagScheduleBlock', [ 'stations' => $station_labels ] );
 }
 
 /**
@@ -142,20 +132,10 @@ function radplapag_register_programs_list_block() {
  * @since 3.3.0
  */
 function radplapag_enqueue_programs_list_block_editor_assets() {
-    $block_dir  = plugin_dir_path( __FILE__ ) . 'blocks/programs-list/';
-    $asset_file = $block_dir . 'build/index.asset.php';
-    if ( ! file_exists( $asset_file ) ) {
+    $handle = 'radplapag-programs-list-editor-script';
+    if ( ! wp_script_is( $handle, 'registered' ) ) {
         return;
     }
-    $asset = include $asset_file;
-    wp_enqueue_script(
-        'radplapag-programs-list-block-editor',
-        plugin_dir_url( __FILE__ ) . 'blocks/programs-list/build/index.js',
-        $asset['dependencies'],
-        $asset['version'],
-        true
-    );
-    wp_set_script_translations( 'radplapag-programs-list-block-editor', 'radio-player-page' );
     $config         = radplapag_get_config();
     $stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
     $station_labels = [];
@@ -165,7 +145,7 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
             'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
         ];
     }
-    wp_localize_script( 'radplapag-programs-list-block-editor', 'radplapagProgramsListBlock', [ 'stations' => $station_labels ] );
+    wp_localize_script( $handle, 'radplapagProgramsListBlock', [ 'stations' => $station_labels ] );
 }
 
 /**

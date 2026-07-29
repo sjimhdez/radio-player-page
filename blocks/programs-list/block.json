@@ -7,6 +7,7 @@
   "category": "widgets",
   "description": "Display all Radio Shows for a selected Radio Station with name, image, extended description, and broadcast schedule.",
   "textdomain": "radio-player-page",
+  "editorScript": "file:./build/index.js",
   "attributes": {
     "stationIndex": {
       "type": "number",
