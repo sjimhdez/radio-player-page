@@ -18,6 +18,7 @@ Dedicated player pages for your radio stations, with program scheduling and cont
 - [Standalone Player Pages](#standalone-player-pages)
 - [Broadcast Management](#broadcast-management)
 - [Listener Experience](#listener-experience)
+- [WordPress Blocks](#wordpress-blocks)
 - [Built for Modern Web Performance](#built-for-modern-web-performance)
 - [Quick Start](#quick-start)
 - [Documentation for Developers](#documentation-for-developers)
@@ -26,15 +27,15 @@ Dedicated player pages for your radio stations, with program scheduling and cont
 
 ## Description
 
-**Radio Player Page** provides **dedicated, standalone player pages** for your radio streams on WordPress. It lets you create a full weekly program schedule, manage your broadcasts, and present everything on pages designed for reliable playback without theme conflicts.
+**Radio Player Page** provides **dedicated, standalone player pages** for your radio streams on WordPress. It lets you create a full weekly schedule, manage your broadcasts, and present everything on pages designed for reliable playback without theme conflicts.
 
 **The key differentiator:** Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
+
+Radio stations and radio shows are managed as WordPress custom post types (**RPP → Stations** and **RPP → Radio Shows**), and the plugin ships two WordPress blocks so schedule and show information can also be displayed inside normal WordPress content.
 
 ---
 
 ## Standalone Player Pages
-
-### Standalone Player Pages
 
 Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures:
 
@@ -43,15 +44,15 @@ Each station lives on its own independent HTML page, completely bypassing your W
 - **Clean URLs** – One dedicated URL per station
 - **Reliable playback** – Continuous streaming without interruptions
 
-### Full Radio Schedule
+### Full Weekly Schedule
 
-Create a weekly lineup with named shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
+Create a weekly lineup with named radio shows and optional logos. The player intelligently displays the current and next radio show, with timezone-aware calculations and overlap prevention.
 
 - Define radio shows with names, optional short and extended descriptions, and optional logos
 - Assign radio shows to time slots across the week
 - Automatic detection of current and upcoming radio shows
-- Visual display of active program in the player
-- Upcoming program announcements (shows 10 minutes before start)
+- Visual display of the active radio show in the player
+- Upcoming show announcements (shown 10 minutes before start)
 - Validates for time overlaps and conflicts; supports radio shows that cross midnight
 - Timezone-aware calculations based on your WordPress timezone
 
@@ -70,18 +71,18 @@ Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 stre
 
 ## Broadcast Management
 
-### Multi-Station Control
+### Multi-Station Support
 
 Manage **multiple independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
 
 - Each station has its own streaming URL
 - A dedicated WordPress page
 - Independent branding and configuration
-- Separate program schedules (optional)
+- Separate weekly schedules (optional)
 
 Perfect for radio networks, multi-channel stations, or managing multiple streams from one WordPress installation.
 
-### Station Timezone Clock
+### Broadcast Timezone Clock
 
 Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
 
@@ -135,6 +136,17 @@ Player interface available in **11 languages:** English (US), Spanish, Spanish (
 
 ---
 
+## WordPress Blocks
+
+Two WordPress blocks let you surface schedule and radio show information inside regular WordPress content, using the Block Editor:
+
+- **Radio Schedule block** (`radplapag/schedule`) – Displays the complete weekly schedule for a selected radio station, with configurable day ordering and optional descriptions.
+- **Radio Shows List block** (`radplapag/programs-list`) – Displays all radio shows for a selected station, including featured images, descriptions, and broadcast times.
+
+Both blocks read live from the same radio station and radio show data used by the player pages, so there is nothing to keep in sync manually.
+
+---
+
 ## Built for Modern Web Performance
 
 The player is a self-contained application built with **React 19, TypeScript, and Vite**, ensuring a fast, accessible, and maintainable experience. It uses manifest-based asset loading for seamless updates.
@@ -166,7 +178,16 @@ The player is a self-contained application built with **React 19, TypeScript, an
 - **PHP** 7.4+
 - **Node.js** 20.x (development only; see `player/.nvmrc`)
 
-**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and program CPT posts and flushes the object cache. Data is not removed on deactivation.
+**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and radio show CPT posts and flushes the object cache. Data is not removed on deactivation.
+
+### Data Model
+
+Since version 3.3.0, stations and radio shows are stored as WordPress custom post types rather than in a single settings option:
+
+- **`radplapag_station`** – One post per station: stream URL, assigned WordPress page, title, theme color, visualizer choice, background/logo attachment IDs, and the weekly schedule (stored as post meta).
+- **`radplapag_program`** – One post per radio show: name, short/extended description, optional logo.
+- Editing, deleting, or publishing either CPT requires the `manage_options` capability, not the default post-type capabilities.
+- Sites upgrading from a pre-3.3.0 installation are migrated automatically and one-way from the legacy `radplapag_settings` option into CPT posts.
 
 ### Architecture and Data Flow
 
@@ -179,12 +200,15 @@ WordPress page request
   → radplapag_output_clean_page()
   → Reads manifest.json, loads fingerprinted assets
   → Outputs HTML with:
-      window.RADPLAPAG_CONFIG   (streamUrl, theme, visualizer, timezoneOffset; no schedule/radio shows)
-      window.RADPLAPAG_PROGRAMS (array of { name, logoUrl? })
+      window.RADPLAPAG_CONFIG   (streamUrl, siteTitle, themeColor, visualizer,
+                                  backgroundImage, logoImage, timezoneOffset)
+      window.RADPLAPAG_PROGRAMS (array of { id, name, description?, extendedDescription?, logoUrl? })
       window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end }, ...])
   → React: useConfig() → ResolvedConfig
   → Components use useConfig() for config, schedule, and radio shows
 ```
+
+`program_id` in the schedule is the radio show's post ID (as a string), matched against `id` in `RADPLAPAG_PROGRAMS` — this relational split avoids duplicating radio show data across every schedule slot.
 
 Asset paths come from Vite's `manifest.json` (content-hashed filenames) for cache busting.
 
@@ -208,21 +232,31 @@ Node 20.x is used for development (`player/.nvmrc`, `player/package.json`).
 
 ```
 radio-player-page/
-├── radio-player-page.php      # Main plugin file, template redirect
-├── uninstall.php              # Removes CPT posts on uninstall (multisite-aware)
+├── radio-player-page.php          # Main plugin file, template redirect, block registration
+├── uninstall.php                  # Removes CPT posts on uninstall (multisite-aware)
 ├── includes/
-│   └── radplapag-stations.php # Stations data (radplapag_get_stations, radplapag_get_config)
-├── admin/                      # Loaded when is_admin()
-│   ├── admin.php               # Bootstrap, hooks, menu
-│   ├── admin-strings.php       # JS localization (radplapag_get_admin_strings)
-│   ├── css/, js/               # Admin styles and form logic
-├── player/                     # React frontend
-│   ├── src/                    # Components, hooks, config, locales, types, utils
-│   ├── dist/                   # Build output (generated)
+│   ├── radplapag-station-cpt.php  # radplapag_station CPT registration
+│   ├── radplapag-program-cpt.php  # radplapag_program CPT registration
+│   ├── radplapag-stations.php     # Read path: radplapag_get_stations(), radplapag_get_config()
+│   ├── radplapag-upgrade.php      # DB version gate, triggers migration
+│   ├── radplapag-schedule-block.php
+│   ├── radplapag-programs-list-block.php
+│   ├── data/                      # Radplapag_Station_Config, Radplapag_Program_Config
+│   └── migration/                 # Legacy settings-option → CPT one-way migrator
+├── admin/                         # Loaded when is_admin()
+│   ├── admin.php                  # Bootstrap, hooks, menu
+│   ├── admin-strings.php          # JS localization (radplapag_get_admin_strings)
+│   ├── css/, js/                  # Admin styles and form logic
+├── blocks/
+│   ├── schedule/                  # Radio Schedule block (block.json, render.php, build/)
+│   └── programs-list/             # Radio Shows List block (block.json, render.php, build/)
+├── player/                        # React frontend
+│   ├── src/                       # Components, hooks, config, locales, types, utils
+│   ├── dist/                      # Build output (generated, committed)
 │   ├── vite.config.ts
 │   └── package.json
-├── scripts/                    # run-eslint, run-wp-plugin-check, run-php-versions-check, build-release-zip
-└── readme.txt                  # WordPress.org readme format
+├── scripts/                       # run-eslint, run-wp-plugin-check, run-php-versions-check, build-release-zip
+└── readme.txt                     # WordPress.org readme format
 ```
 
 ### Development
@@ -237,8 +271,10 @@ npm run dev:build      # Watch mode; rebuilds to dist/ for testing in WordPress
 npm run lint           # ESLint
 ```
 
-**Standalone:** `npm run dev` uses mock `window.*` globals from `player/index.html` and hot reload.  
+**Standalone:** `npm run dev` uses mock `window.*` globals from `player/index.html` and hot reload.
 **WordPress:** Use `npm run dev:build` and load the player via the assigned page; manifest and assets are read from `dist/`.
+
+`player/dist/` and each block's `build/` directory are generated but committed — CI fails if they're stale, so rebuild and commit after touching `player/src` or `blocks/*/src`.
 
 CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/test.yml): PHP syntax (7.4 and 8.4), player lint/build, WordPress block builds, and Plugin Check (on push to `main` or PRs that touch PHP/admin/readme). Scripts in `scripts/` mirror those checks locally (e.g. `./scripts/run-eslint.sh`, `./scripts/run-wp-plugin-check.sh`, `./scripts/run-php-versions-check.sh`, `./scripts/build-release-zip.sh --build`).
 
@@ -252,12 +288,13 @@ CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/tes
 **JavaScript globals** (set by PHP before React; combined in React via `useConfig()`):
 
 - **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
-- **`window.RADPLAPAG_PROGRAMS`** – Array of `{ name, description?, extendedDescription?, logoUrl? }`. Optional.
-- **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end }], ... }`. `program_id` is index into `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour). Optional.
+- **`window.RADPLAPAG_PROGRAMS`** – Array of `{ id, name, description?, extendedDescription?, logoUrl? }`. Optional.
+- **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end }], ... }`. `program_id` is the radio show's post ID (as a string), matched against `id` in `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour). Optional.
 
 **PHP (public)**
 
 - `radplapag_get_config()` – Returns config array with key `stations` (ordered list from CPT).
+- `radplapag_get_stations()` – Returns the ordered list of published station configs.
 - `radplapag_get_station_for_current_page()` – Returns the station config for the current page, or `false`.
 
 ### Internationalization
