@@ -29,6 +29,7 @@
     "dayFriday": "Friday",
     "daySaturday": "Saturday",
     "scheduleLive": "On Air",
+    "rerunLabel": "(Rerun)",
     "scheduleNoProgramsForDay": "No radio shows scheduled for this day.",
     "scheduleBackToTop": "Back to today",
     "scheduleClose": "Close",

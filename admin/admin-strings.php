@@ -47,6 +47,7 @@ function radplapag_get_admin_strings(): array {
 			'selectProgram'            => __( 'Select Radio Show', 'radio-player-page' ),
 			'to'                       => __( 'to', 'radio-player-page' ),
 			'removeTimeSlot'           => __( 'Remove Time Slot', 'radio-player-page' ),
+			'scheduleRerun'            => __( 'Rerun', 'radio-player-page' ),
 			'showMoreFields'           => __( 'Show Optional Fields', 'radio-player-page' ),
 			'hideMoreFields'           => __( 'Hide Optional Fields', 'radio-player-page' ),
 			'programName'              => __( 'Radio Show Name', 'radio-player-page' ),

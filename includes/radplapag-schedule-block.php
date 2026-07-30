@@ -208,6 +208,7 @@ function radplapag_get_schedule_for_station( $station_index, string $day_order =
 				'end'                  => $end,
 				'time_range'           => $start . '-' . $end,
 				'is_live'              => $is_live,
+				'is_rerun'             => ! empty( $entry['is_rerun'] ),
 			];
 		}
 		// Sort by start time.

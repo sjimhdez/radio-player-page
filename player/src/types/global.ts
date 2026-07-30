@@ -41,6 +41,8 @@ export interface ScheduleEntry {
   start: string
   /** End time in "HH:MM" format (24-hour) */
   end: string
+  /** True when this slot is a rerun/repeat broadcast of the program */
+  is_rerun?: boolean
 }
 
 /**

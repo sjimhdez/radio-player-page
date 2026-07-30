@@ -29,6 +29,7 @@
     "dayFriday": "Пятница",
     "daySaturday": "Суббота",
     "scheduleLive": "В эфире",
+    "rerunLabel": "(Повтор)",
     "scheduleNoProgramsForDay": "На этот день нет запланированных программ.",
     "scheduleBackToTop": "Вернуться к сегодняшнему дню",
     "scheduleClose": "Закрыть",

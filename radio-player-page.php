@@ -229,7 +229,7 @@ function radplapag_get_station_for_current_page() {
  * The function sets global JavaScript variables for the React app:
  * - window.RADPLAPAG_CONFIG: stream URL, site title, theme, visualizer, media URLs, timezone (no schedule).
  * - window.RADPLAPAG_PROGRAMS: array of { id, name, logoUrl } for relational resolution.
- * - window.RADPLAPAG_SCHEDULE: weekly schedule as { day: [ { program_id (string ID), start, end }, ... ] } (relational).
+ * - window.RADPLAPAG_SCHEDULE: weekly schedule as { day: [ { program_id (string ID), start, end, is_rerun }, ... ] } (relational).
  * The React app resolves program name/logo from RADPLAPAG_PROGRAMS by matching program_id (unique string ID) to avoid duplicating data.
  *
  * It intentionally bypasses WordPress's enqueue system by outputting directly and
@@ -417,6 +417,7 @@ function radplapag_output_clean_page() {
                 $program_id = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
                 $start = isset( $entry['start'] ) ? $entry['start'] : '';
                 $end = isset( $entry['end'] ) ? $entry['end'] : '';
+                $is_rerun = ! empty( $entry['is_rerun'] );
                 if ( $program_id === '' || empty( $start ) || empty( $end ) ) {
                     continue;
                 }
@@ -424,6 +425,7 @@ function radplapag_output_clean_page() {
                     'program_id' => $program_id,
                     'start'      => $start,
                     'end'        => $end,
+                    'is_rerun'   => $is_rerun,
                 ];
             }
             if ( ! empty( $day_entries ) ) {

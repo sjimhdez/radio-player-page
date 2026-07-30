@@ -25,7 +25,7 @@ define( 'RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES', 10 );
  * @param int $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
  * @return array|null Associative array with 'current', 'upcoming', and 'station_page_url' keys.
  *                    'current'/'upcoming' are each either null or
- *                    [ 'id', 'name', 'logo_id', 'day_label', 'time_range' ] ('upcoming' never has 'logo_id').
+ *                    [ 'id', 'name', 'logo_id', 'day_label', 'time_range', 'is_rerun' ] ('upcoming' never has 'logo_id').
  *                    Null if the station index is invalid.
  */
 function radplapag_get_now_playing_for_station( $station_index ) {
@@ -90,6 +90,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 			'logo_id'    => $data['logo_id'] > 0 ? $data['logo_id'] : 0,
 			'day_label'  => $day_label,
 			'time_range' => $start . '-' . $end,
+			'is_rerun'   => ! empty( $entry['is_rerun'] ),
 		];
 	};
 
