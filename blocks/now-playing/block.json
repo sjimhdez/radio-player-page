@@ -1,0 +1,37 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "radplapag/now-playing",
+  "version": "1.0.0",
+  "title": "Now Playing",
+  "category": "widgets",
+  "description": "Display the radio show currently on air for a selected Radio Station, its schedule, and the next show starting soon.",
+  "textdomain": "radio-player-page",
+  "editorScript": "file:./build/index.js",
+  "render": "file:./render.php",
+  "attributes": {
+    "stationIndex": {
+      "type": "number",
+      "default": 0
+    },
+    "showLogo": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "supports": {
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true
+    },
+    "spacing": {
+      "margin": true,
+      "padding": true
+    },
+    "color": {
+      "text": true,
+      "background": true
+    },
+    "html": false
+  }
+}

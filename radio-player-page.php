@@ -37,6 +37,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/data/class-radplapag-progra
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-upgrade.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-schedule-block.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-programs-list-block.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-now-playing-block.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/schedule/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/programs-list/render.php';
 
@@ -73,8 +74,10 @@ add_filter( 'map_meta_cap', 'radplapag_map_cpt_meta_cap', 10, 4 );
 
 add_action( 'init', 'radplapag_register_schedule_block' );
 add_action( 'init', 'radplapag_register_programs_list_block' );
+add_action( 'init', 'radplapag_register_now_playing_block' );
 add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_schedule_block_editor_assets' );
 add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_programs_list_block_editor_assets' );
+add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_now_playing_block_editor_assets' );
 
 /**
  * Registers the Radio Schedule WordPress block.
@@ -146,6 +149,40 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
         ];
     }
     wp_localize_script( $handle, 'radplapagProgramsListBlock', [ 'stations' => $station_labels ] );
+}
+
+/**
+ * Registers the Now Playing WordPress block.
+ *
+ * Server rendering is wired via the "render" key in blocks/now-playing/block.json, so no
+ * render_callback is passed here.
+ *
+ * @since 3.3.2
+ */
+function radplapag_register_now_playing_block() {
+    register_block_type( plugin_dir_path( __FILE__ ) . 'blocks/now-playing' );
+}
+
+/**
+ * Enqueues the Now Playing block editor script and localizes station list.
+ *
+ * @since 3.3.2
+ */
+function radplapag_enqueue_now_playing_block_editor_assets() {
+    $handle = 'radplapag-now-playing-editor-script';
+    if ( ! wp_script_is( $handle, 'registered' ) ) {
+        return;
+    }
+    $config         = radplapag_get_config();
+    $stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
+    $station_labels = [];
+    foreach ( $stations as $index => $station ) {
+        $title = (string) ( $station['station_title'] ?? '' );
+        $station_labels[] = [
+            'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+        ];
+    }
+    wp_localize_script( $handle, 'radplapagNowPlayingBlock', [ 'stations' => $station_labels ] );
 }
 
 /**
