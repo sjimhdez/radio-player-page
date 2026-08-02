@@ -66,9 +66,12 @@ defined( 'ABSPATH' ) || exit;
 							<?php
 							echo wp_get_attachment_image(
 								$current['logo_id'],
+								'medium',
 								false,
-								false,
-								[ 'alt' => esc_attr( $current['name'] !== '' ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ) ]
+								[
+									'alt'   => esc_attr( $current['name'] !== '' ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
+									'style' => 'max-width: 100%; height: auto;',
+								]
 							);
 							?>
 						</a>
@@ -76,9 +79,12 @@ defined( 'ABSPATH' ) || exit;
 						<?php
 						echo wp_get_attachment_image(
 							$current['logo_id'],
+							'medium',
 							false,
-							false,
-							[ 'alt' => esc_attr( $current['name'] !== '' ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ) ]
+							[
+								'alt'   => esc_attr( $current['name'] !== '' ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
+								'style' => 'max-width: 100%; height: auto;',
+							]
 						);
 						?>
 					<?php endif; ?>
