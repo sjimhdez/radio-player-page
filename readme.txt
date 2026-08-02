@@ -73,6 +73,7 @@ Radio Player Page is built as a standalone React application using React 19, Typ
 * Stations and radio shows are stored as WordPress custom post types.
 * Deactivating the plugin preserves your data.
 * Uninstalling the plugin permanently removes stations, radio shows, and schedules.
+
 == Frequently Asked Questions ==
 
 = Do I need to configure anything on the WordPress page? =
