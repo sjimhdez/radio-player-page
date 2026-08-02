@@ -45,9 +45,9 @@ Designed for online radio stations, community broadcasters, and streaming servic
 
 = Blocks =
 
-* **Radio Schedule Block** – Display the complete weekly schedule for any station anywhere on your site using the Block Editor.
-* **Radio Shows List Block** – Display a list of radio shows including featured images, descriptions, and broadcast schedules.
-* **Now Playing Block** – Display the radio show currently on air for a station, with its schedule, and the next show if it starts within 10 minutes.
+* **RPP: Weekly Schedule Block** – Display the complete weekly schedule for any station anywhere on your site using the Block Editor.
+* **RPP: Radio Shows List Block** – Display a list of radio shows including featured images, descriptions, and broadcast schedules.
+* **RPP: Now Playing Block** – Display the radio show currently on air for a station, with its schedule, and the next show if it starts within 10 minutes.
 
 = Modern Architecture =
 
