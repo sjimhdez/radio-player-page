@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "title": "RPP: Now Playing",
   "category": "widgets",
-  "description": "Display the radio show currently on air for a selected Radio Station, its schedule, and the next show starting soon.",
+  "description": "Display the radio show currently on air for a station, with its schedule, and the next show if it starts within 10 minutes.",
   "textdomain": "radio-player-page",
   "editorScript": "file:./build/index.js",
   "render": "file:./render.php",

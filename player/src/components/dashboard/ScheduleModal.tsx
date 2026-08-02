@@ -99,7 +99,7 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
       )}
       <CardContent>
         <Stack px={1} gap={0.5} alignItems={'start'}>
-          <Stack direction="row" alignItems="center" gap={1}>
+          <Stack alignItems="start">
             {program.isActive && (
               <Chip
                 label={
@@ -123,11 +123,6 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
             <Typography variant="body1" color="primary.light">
               {program.programName || '—'}
             </Typography>
-            {program.isRerun && (
-              <Typography variant="body2" color="text.secondary">
-                {t('dashboard.rerunLabel')}
-              </Typography>
-            )}
           </Stack>
           {program.programDescription && (
             <Typography variant="body2" color="text.secondary">
@@ -137,6 +132,11 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
           <Typography variant="body2" color="text.secondary">
             {program.timeRange}
           </Typography>
+          {program.isRerun && (
+            <Typography variant="body2" color="text.secondary">
+              {t('dashboard.rerunLabel')}
+            </Typography>
+          )}
         </Stack>
       </CardContent>
     </Card>

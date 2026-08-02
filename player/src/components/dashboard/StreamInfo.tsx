@@ -125,7 +125,7 @@ const StreamInfo = ({
               sx={{
                 width: 36,
                 height: 36,
-                objectFit: 'contain',
+                objectFit: 'cover',
               }}
             />
           )}
