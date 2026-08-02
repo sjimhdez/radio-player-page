@@ -91,6 +91,10 @@ Yes. The plugin is free and open-source (GPLv2 or later), suitable for both comm
 
 The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-page).
 
+= What is Welcome Audio? =
+
+Welcome Audio is an optional MP3 clip you can upload for a station. When a listener presses play for the first time, this clip plays once before the live stream starts, and can't be paused or skipped until it finishes. It's useful for a short station ID, a welcome message, or a legal notice. It's completely optional, plays only once per page visit, and if it can't play for any reason the live stream starts normally instead.
+
 == Screenshots ==
 
 1. Player page with blue theme and Oscilloscope visualizer.
