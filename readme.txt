@@ -1,6 +1,6 @@
 === Radio Player Page ===
 Contributors: sjimhdez
-Tags: radio player, radio station, radio schedule, icecast, shoutcast
+Tags: radio player, radio station, radio, icecast, shoutcast
 Requires at least: 6.6
 Tested up to: 7.0
 Stable tag: 3.3.1

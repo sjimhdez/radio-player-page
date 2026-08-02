@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Radio Player Page
- * Description: Dedicated player pages for your radio stations, with scheduling and continuous playback.
+ * Description: Create dedicated listening pages for your radio stations with integrated radio schedules and reliable playback.
  * Version: 3.4.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
- * Tags: audio, icecast, radio player, radio station, streaming
+ * Tags: radio player, radio station, radio, icecast, shoutcast
  * Requires at least: 6.6
  * Requires PHP: 7.4
  * License: GPLv2 or later
