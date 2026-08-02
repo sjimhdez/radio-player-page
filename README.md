@@ -123,6 +123,10 @@ Visualizers are lazy-loaded for optimal performance and only activate when audio
 
 Upload custom background images and logos for each station. Personalize each station with unique titles, backgrounds, and logos.
 
+### Welcome Audio
+
+Optionally upload an MP3 for each station that plays once before the live stream starts, the first time a listener presses play.
+
 ### Convenience Features
 
 - **Sleep timer** – Automatic playback stop (30 min, 1 h, 2 h) with visual countdown; cancels if you pause manually
@@ -163,7 +167,7 @@ The player is a self-contained application built with **React 19, TypeScript, an
 4. For each station:
    - Enter your **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3).
    - Select the **WordPress page** where the player should appear.
-   - Optionally customize: title, theme color, visualizer type, background image, and logo.
+   - Optionally customize: title, theme color, visualizer type, background image, logo, and welcome audio.
 5. Publish or update the station and visit the assigned page. Optionally use **RPP → Radio Shows** to create radio shows and build the weekly schedule on each station.
 
 **Important:** Each station requires both a valid streaming URL and an assigned WordPress page. No configuration is needed on the page itself—the plugin intercepts page requests and serves the player when that page is requested.
@@ -184,7 +188,7 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 Since version 3.3.0, stations and radio shows are stored as WordPress custom post types rather than in a single settings option:
 
-- **`radplapag_station`** – One post per station: stream URL, assigned WordPress page, title, theme color, visualizer choice, background/logo attachment IDs, and the weekly schedule (stored as post meta).
+- **`radplapag_station`** – One post per station: stream URL, assigned WordPress page, title, theme color, visualizer choice, background/logo/welcome audio attachment IDs, and the weekly schedule (stored as post meta).
 - **`radplapag_program`** – One post per radio show: name, short/extended description, optional logo.
 - Editing, deleting, or publishing either CPT requires the `manage_options` capability, not the default post-type capabilities.
 - Sites upgrading from a pre-3.3.0 installation are migrated automatically and one-way from the legacy `radplapag_settings` option into CPT posts.
@@ -201,7 +205,7 @@ WordPress page request
   → Reads manifest.json, loads fingerprinted assets
   → Outputs HTML with:
       window.RADPLAPAG_CONFIG   (streamUrl, siteTitle, themeColor, visualizer,
-                                  backgroundImage, logoImage, timezoneOffset)
+                                  backgroundImage, logoImage, introAudioUrl, timezoneOffset)
       window.RADPLAPAG_PROGRAMS (array of { id, name, description?, extendedDescription?, logoUrl? })
       window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end }, ...])
   → React: useConfig() → ResolvedConfig
@@ -287,7 +291,7 @@ CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/tes
 
 **JavaScript globals** (set by PHP before React; combined in React via `useConfig()`):
 
-- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
+- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `introAudioUrl` (optional welcome audio, played once before the live stream on first play), `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
 - **`window.RADPLAPAG_PROGRAMS`** – Array of `{ id, name, description?, extendedDescription?, logoUrl? }`. Optional.
 - **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end }], ... }`. `program_id` is the radio show's post ID (as a string), matched against `id` in `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour). Optional.
 

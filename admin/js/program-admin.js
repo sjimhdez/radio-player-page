@@ -1,6 +1,8 @@
 /**
- * Program and Station CPT admin: logo/image selector (wp.media).
- * Uses .radplapag-program-logo-wrapper so one or multiple blocks (e.g. station logo + background) work.
+ * Program and Station CPT admin: logo/image selector and station welcome-audio
+ * selector (wp.media). Uses .radplapag-program-logo-wrapper so one or multiple
+ * image blocks (e.g. station logo + background) work, and .radplapag-station-audio-wrapper
+ * for the station's welcome audio (mp3) field.
  * Loaded on radplapag_program and radplapag_station edit screens.
  */
 (function () {
@@ -38,6 +40,37 @@
       wrapper.find(".radplapag-program-logo-id").val("");
       wrapper.find(".radplapag-program-logo-preview").empty();
       wrapper.find(".radplapag-program-logo-remove").hide();
+    });
+
+    var audioFrame;
+    var currentAudioWrapper;
+    $("body").on("click", ".radplapag-station-audio-select", function (e) {
+      e.preventDefault();
+      currentAudioWrapper = $(e.target).closest(".radplapag-station-audio-wrapper");
+      if (!currentAudioWrapper.length) return;
+      if (audioFrame) {
+        audioFrame.open();
+        return;
+      }
+      audioFrame = wp.media({ library: { type: "audio" }, multiple: false });
+      audioFrame.on("select", function () {
+        if (!currentAudioWrapper || !currentAudioWrapper.length) return;
+        var att = audioFrame.state().get("selection").first().toJSON();
+        currentAudioWrapper.find(".radplapag-station-audio-id").val(att.id);
+        currentAudioWrapper.find(".radplapag-station-audio-preview").html(
+          '<audio controls src="' + att.url + '"></audio>'
+        );
+        currentAudioWrapper.find(".radplapag-station-audio-remove").show();
+      });
+      audioFrame.open();
+    });
+    $("body").on("click", ".radplapag-station-audio-remove", function (e) {
+      e.preventDefault();
+      var wrapper = $(e.target).closest(".radplapag-station-audio-wrapper");
+      if (!wrapper.length) return;
+      wrapper.find(".radplapag-station-audio-id").val("");
+      wrapper.find(".radplapag-station-audio-preview").empty();
+      wrapper.find(".radplapag-station-audio-remove").hide();
     });
   });
 })();

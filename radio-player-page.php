@@ -267,6 +267,7 @@ function radplapag_output_clean_page() {
     $station_title = isset( $station['station_title'] ) ? $station['station_title'] : '';
     $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
     $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
+    $intro_audio_id = isset( $station['intro_audio_id'] ) ? intval( $station['intro_audio_id'] ) : 0;
     $theme_color = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
     $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
     
@@ -284,6 +285,7 @@ function radplapag_output_clean_page() {
 
     $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'full' ) : '';
     $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
+    $intro_audio_url = $intro_audio_id ? wp_get_attachment_url( $intro_audio_id ) : '';
 
     $manifest_path = plugin_dir_path( __FILE__ ) . 'player/dist/manifest.json';
     if ( ! file_exists( $manifest_path ) ) {
@@ -362,6 +364,7 @@ function radplapag_output_clean_page() {
         'siteTitle' => $display_title,
         'backgroundImage' => $background_url ? $background_url : null,
         'logoImage' => $logo_url ? $logo_url : null,
+        'introAudioUrl' => $intro_audio_url ? $intro_audio_url : null,
         'themeColor' => $theme_color,
         'visualizer' => $visualizer,
         'timezoneOffset' => $timezone_offset, // Numeric offset in hours from UTC

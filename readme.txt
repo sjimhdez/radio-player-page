@@ -32,6 +32,7 @@ Designed for online radio stations, community broadcasters, and streaming servic
 
 * **Multi-Station Support** – Manage multiple independent radio stations from a single WordPress installation.
 * **Station Branding** – Customize each station with its own logo, background image, and color theme.
+* **Welcome Audio** – Optionally upload an MP3 that plays once before the live stream starts, the first time a listener presses play.
 * **Broadcast Timezone Clock** – Display your station's local time whenever it differs from the listener's timezone.
 
 = Listener Experience =
@@ -104,6 +105,7 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 
 = 3.3.2 =
 * Added Now Playing block.
+* Added optional Welcome Audio: an MP3 that plays once before the live stream starts, the first time a listener presses play.
 
 = 3.3.1 =
 * Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.

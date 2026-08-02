@@ -183,6 +183,27 @@ function radplapag_register_station_meta() {
 
 	register_post_meta(
 		$post_type,
+		'radplapag_station_intro_audio_id',
+		[
+			'type'              => 'integer',
+			'description'       => __( 'Attachment ID for the welcome audio (mp3) played before the live stream.', 'radio-player-page' ),
+			'single'            => true,
+			'sanitize_callback' => function( $value ) {
+				$id = absint( $value );
+				if ( $id > 0 && get_post_mime_type( $id ) !== 'audio/mpeg' ) {
+					return 0;
+				}
+				return $id;
+			},
+			'auth_callback'     => function() {
+				return current_user_can( 'manage_options' );
+			},
+			'show_in_rest'      => true,
+		]
+	);
+
+	register_post_meta(
+		$post_type,
 		'radplapag_station_theme_color',
 		[
 			'type'              => 'string',
@@ -477,6 +498,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 	$player_page  = (int) get_post_meta( $post->ID, 'radplapag_station_player_page', true );
 	$background_id = (int) get_post_meta( $post->ID, 'radplapag_station_background_id', true );
 	$logo_id      = (int) get_post_meta( $post->ID, 'radplapag_station_logo_id', true );
+	$intro_audio_id = (int) get_post_meta( $post->ID, 'radplapag_station_intro_audio_id', true );
 	$theme        = get_post_meta( $post->ID, 'radplapag_station_theme_color', true );
 	$visualizer   = get_post_meta( $post->ID, 'radplapag_station_visualizer', true );
 
@@ -489,6 +511,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 	$pages    = get_pages( [ 'post_status' => 'publish' ] );
 	$bg_url   = $background_id > 0 ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
 	$logo_url = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+	$intro_audio_url = $intro_audio_id > 0 ? wp_get_attachment_url( $intro_audio_id ) : '';
 
 	$colors = [
 		'neutral' => __( 'Neutral', 'radio-player-page' ),
@@ -562,6 +585,22 @@ function radplapag_render_station_details_meta_box( $post ) {
 				</div>
 				<button type="button" class="button radplapag-program-logo-select"><?php esc_html_e( 'Select Image', 'radio-player-page' ); ?></button>
 				<button type="button" class="button radplapag-program-logo-remove" <?php echo $background_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove Image', 'radio-player-page' ); ?></button>
+			</div>
+		</div>
+	</div>
+	<div class="radplapag-form-row">
+		<div class="radplapag-field-wrap">
+			<label><strong><?php esc_html_e( 'Welcome Audio (Optional)', 'radio-player-page' ); ?></strong></label>
+			<p class="description"><?php esc_html_e( 'MP3 played once before the live stream starts the first time a listener presses play. It cannot be paused or skipped.', 'radio-player-page' ); ?></p>
+			<div class="radplapag-station-audio-wrapper">
+				<input type="hidden" name="radplapag_station_intro_audio_id" value="<?php echo esc_attr( $intro_audio_id ); ?>" class="radplapag-station-audio-id">
+				<div class="radplapag-station-audio-preview">
+					<?php if ( $intro_audio_url ) : ?>
+						<audio controls src="<?php echo esc_url( $intro_audio_url ); ?>"></audio>
+					<?php endif; ?>
+				</div>
+				<button type="button" class="button radplapag-station-audio-select"><?php esc_html_e( 'Select Audio', 'radio-player-page' ); ?></button>
+				<button type="button" class="button radplapag-station-audio-remove" <?php echo $intro_audio_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove Audio', 'radio-player-page' ); ?></button>
 			</div>
 		</div>
 	</div>
@@ -690,6 +729,7 @@ function radplapag_save_station_meta( $post_id ) {
 	$player_page  = isset( $_POST['radplapag_station_player_page'] ) ? absint( $_POST['radplapag_station_player_page'] ) : 0;
 	$background_id = isset( $_POST['radplapag_station_background_id'] ) ? absint( $_POST['radplapag_station_background_id'] ) : 0;
 	$logo_id      = isset( $_POST['radplapag_station_logo_id'] ) ? absint( $_POST['radplapag_station_logo_id'] ) : 0;
+	$intro_audio_id = isset( $_POST['radplapag_station_intro_audio_id'] ) ? absint( $_POST['radplapag_station_intro_audio_id'] ) : 0;
 	$theme        = isset( $_POST['radplapag_station_theme_color'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_theme_color'] ) ) : 'neutral';
 	$visualizer   = isset( $_POST['radplapag_station_visualizer'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_visualizer'] ) ) : 'oscilloscope';
 
@@ -706,6 +746,9 @@ function radplapag_save_station_meta( $post_id ) {
 	}
 	if ( $logo_id > 0 && ! wp_attachment_is_image( $logo_id ) ) {
 		$logo_id = 0;
+	}
+	if ( $intro_audio_id > 0 && get_post_mime_type( $intro_audio_id ) !== 'audio/mpeg' ) {
+		$intro_audio_id = 0;
 	}
 
 	$field_errors = [];
@@ -731,6 +774,7 @@ function radplapag_save_station_meta( $post_id ) {
 
 	update_post_meta( $post_id, 'radplapag_station_background_id', $background_id );
 	update_post_meta( $post_id, 'radplapag_station_logo_id', $logo_id );
+	update_post_meta( $post_id, 'radplapag_station_intro_audio_id', $intro_audio_id );
 	update_post_meta( $post_id, 'radplapag_station_theme_color', $theme );
 	update_post_meta( $post_id, 'radplapag_station_visualizer', $visualizer );
 
