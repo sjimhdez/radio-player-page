@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: radio player, radio station, radio, icecast, shoutcast
 Requires at least: 6.6
 Tested up to: 7.0
-Stable tag: 3.4.0
+Stable tag: 3.4.1
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -107,6 +107,11 @@ Welcome Audio is an optional MP3 clip you can upload for a station. When a liste
 8. Radio Station edit screen with weekly schedule.
 
 == Changelog ==
+
+= 3.4.1 =
+* Fixed rerun marker position in the Weekly Schedule dialog to appear below the broadcast time instead of next to the radio show name.
+* Fixed layout of the Live/Active badge and radio show name in the Weekly Schedule and Radio Shows dialogs to stack correctly instead of overlapping on narrow screens.
+* Fixed active radio show logo cropping on the player page so it fills its frame instead of leaving empty space.
 
 = 3.4.0 =
 * Added Now Playing block.

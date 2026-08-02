@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: Create dedicated listening pages for your radio stations with integrated radio schedules and reliable playback.
- * Version: 3.4.0
+ * Version: 3.4.1
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: radio player, radio station, radio, icecast, shoutcast
