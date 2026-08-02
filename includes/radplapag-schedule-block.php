@@ -1,6 +1,6 @@
 <?php
 /**
- * Schedule block helpers: resolved schedule data for the Gutenberg block.
+ * Schedule block helpers: resolved schedule data for the WordPress block.
  *
  * @package radio-player-page
  * @since 3.3.0
@@ -208,6 +208,7 @@ function radplapag_get_schedule_for_station( $station_index, string $day_order =
 				'end'                  => $end,
 				'time_range'           => $start . '-' . $end,
 				'is_live'              => $is_live,
+				'is_rerun'             => ! empty( $entry['is_rerun'] ),
 			];
 		}
 		// Sort by start time.

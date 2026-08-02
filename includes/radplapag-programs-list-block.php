@@ -1,6 +1,6 @@
 <?php
 /**
- * Programs List block helpers: list of programs with schedule slots for the Gutenberg block.
+ * Programs List block helpers: list of programs with schedule slots for the WordPress block.
  *
  * Depends on radplapag-schedule-block.php for radplapag_parse_time_to_minutes(), radplapag_is_slot_active(),
  * and radplapag_get_schedule_day_keys_and_labels().

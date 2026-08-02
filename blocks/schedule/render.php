@@ -69,12 +69,16 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			$program_name = (string) ( $slot['program_name'] ?? '' );
 			$time_range   = (string) ( $slot['time_range'] ?? '' );
 			$is_live      = ! empty( $slot['is_live'] );
+			$is_rerun     = ! empty( $slot['is_rerun'] );
 			$slot_class   = 'wp-block-list-item';
 			if ( $is_live ) {
 				$slot_class .= ' is-live';
 			}
 			$html .= '<li class="' . esc_attr( $slot_class ) . '"' . ( $is_live ? ' data-is-live="true"' : '' ) . '>';
 			$slot_content = '<span>' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
+			if ( $is_rerun ) {
+				$slot_content .= ' <span>' . esc_html__( '(Rerun)', 'radio-player-page' ) . '</span>';
+			}
 			$slot_content .= ' - <span>' . esc_html( $time_range ) . '</span>';
 			if ( $is_live ) {
 				$slot_content = '<span>' . esc_html__( 'On Air', 'radio-player-page' ) . '</span>: ' . $slot_content;

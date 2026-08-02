@@ -76,6 +76,17 @@
   opacity: 1;
   pointer-events: auto;
 }
+.radplapag-program-is-rerun-label {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.radplapag-program-row:hover .radplapag-program-is-rerun-label,
+.radplapag-program-is-rerun-label:has(input:checked),
+.radplapag-program-is-rerun-label:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
 .radplapag-program-row .radplapag-program-error-message {
   width: 100%;
 }

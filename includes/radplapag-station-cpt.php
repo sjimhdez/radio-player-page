@@ -183,6 +183,27 @@ function radplapag_register_station_meta() {
 
 	register_post_meta(
 		$post_type,
+		'radplapag_station_intro_audio_id',
+		[
+			'type'              => 'integer',
+			'description'       => __( 'Attachment ID for the welcome audio (mp3) played before the live stream.', 'radio-player-page' ),
+			'single'            => true,
+			'sanitize_callback' => function( $value ) {
+				$id = absint( $value );
+				if ( $id > 0 && get_post_mime_type( $id ) !== 'audio/mpeg' ) {
+					return 0;
+				}
+				return $id;
+			},
+			'auth_callback'     => function() {
+				return current_user_can( 'manage_options' );
+			},
+			'show_in_rest'      => true,
+		]
+	);
+
+	register_post_meta(
+		$post_type,
 		'radplapag_station_theme_color',
 		[
 			'type'              => 'string',
@@ -216,7 +237,7 @@ function radplapag_register_station_meta() {
 		'radplapag_station_schedule',
 		[
 			'type'              => 'string',
-			'description'       => __( 'Weekly schedule as JSON (day => array of program_id, start, end).', 'radio-player-page' ),
+			'description'       => __( 'Weekly schedule as JSON (day => array of program_id, start, end, is_rerun).', 'radio-player-page' ),
 			'single'            => true,
 			'auth_callback'     => function() {
 				return current_user_can( 'manage_options' );
@@ -234,7 +255,7 @@ add_action( 'init', 'radplapag_register_station_meta', 20 );
  * Returns sanitized schedule array or WP_Error with messages.
  *
  * @since 3.3.0
- * @param array $schedule_input Raw schedule array: day => [ [ program_id, start, end ], ... ].
+ * @param array $schedule_input Raw schedule array: day => [ [ program_id, start, end, is_rerun ], ... ].
  * @return array|WP_Error Sanitized schedule array keyed by day, or WP_Error on validation failure.
  */
 function radplapag_sanitize_station_schedule( $schedule_input ) {
@@ -272,6 +293,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 			$program_id    = is_numeric( $program_id_raw ) ? (int) $program_id_raw : 0;
 			$program_start  = isset( $program['start'] ) ? trim( $program['start'] ) : '';
 			$program_end   = isset( $program['end'] ) ? trim( $program['end'] ) : '';
+			$program_is_rerun = ! empty( $program['is_rerun'] );
 
 			if ( $program_id <= 0 && empty( $program_start ) && empty( $program_end ) ) {
 				continue;
@@ -337,6 +359,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 				'name'       => $program_name,
 				'start'      => $program_start,
 				'end'        => $program_end,
+				'is_rerun'   => $program_is_rerun,
 				'start_time' => $start_time,
 				'end_time'   => $end_time_for_overlap,
 			];
@@ -375,6 +398,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 				'program_id' => $prog_data['program_id'],
 				'start'      => $prog_data['start'],
 				'end'        => $prog_data['end'],
+				'is_rerun'   => $prog_data['is_rerun'],
 			];
 		}
 		if ( ! empty( $day_programs ) ) {
@@ -474,6 +498,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 	$player_page  = (int) get_post_meta( $post->ID, 'radplapag_station_player_page', true );
 	$background_id = (int) get_post_meta( $post->ID, 'radplapag_station_background_id', true );
 	$logo_id      = (int) get_post_meta( $post->ID, 'radplapag_station_logo_id', true );
+	$intro_audio_id = (int) get_post_meta( $post->ID, 'radplapag_station_intro_audio_id', true );
 	$theme        = get_post_meta( $post->ID, 'radplapag_station_theme_color', true );
 	$visualizer   = get_post_meta( $post->ID, 'radplapag_station_visualizer', true );
 
@@ -486,6 +511,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 	$pages    = get_pages( [ 'post_status' => 'publish' ] );
 	$bg_url   = $background_id > 0 ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
 	$logo_url = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+	$intro_audio_url = $intro_audio_id > 0 ? wp_get_attachment_url( $intro_audio_id ) : '';
 
 	$colors = [
 		'neutral' => __( 'Neutral', 'radio-player-page' ),
@@ -562,11 +588,27 @@ function radplapag_render_station_details_meta_box( $post ) {
 			</div>
 		</div>
 	</div>
+	<div class="radplapag-form-row">
+		<div class="radplapag-field-wrap">
+			<label><strong><?php esc_html_e( 'Welcome Audio (Optional)', 'radio-player-page' ); ?></strong></label>
+			<p class="description"><?php esc_html_e( 'MP3 played once before the live stream starts the first time a listener presses play. It cannot be paused or skipped.', 'radio-player-page' ); ?></p>
+			<div class="radplapag-station-audio-wrapper">
+				<input type="hidden" name="radplapag_station_intro_audio_id" value="<?php echo esc_attr( $intro_audio_id ); ?>" class="radplapag-station-audio-id">
+				<div class="radplapag-station-audio-preview">
+					<?php if ( $intro_audio_url ) : ?>
+						<audio controls src="<?php echo esc_url( $intro_audio_url ); ?>"></audio>
+					<?php endif; ?>
+				</div>
+				<button type="button" class="button radplapag-station-audio-select"><?php esc_html_e( 'Select Audio', 'radio-player-page' ); ?></button>
+				<button type="button" class="button radplapag-station-audio-remove" <?php echo $intro_audio_id > 0 ? '' : ' style="display:none;"'; ?>><?php esc_html_e( 'Remove Audio', 'radio-player-page' ); ?></button>
+			</div>
+		</div>
+	</div>
 	<?php
 }
 
 /**
- * Renders the station schedule meta box (one station; schedule slots per day: program_id, start, end).
+ * Renders the station schedule meta box (one station; schedule slots per day: program_id, start, end, is_rerun).
  *
  * @since 3.3.0
  * @param WP_Post $post Current post.
@@ -621,6 +663,7 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 							$prog_id_int = is_numeric( $prog_id ) ? (int) $prog_id : 0;
 							$prog_start  = isset( $program['start'] ) ? esc_attr( $program['start'] ) : '';
 							$prog_end    = isset( $program['end'] ) ? esc_attr( $program['end'] ) : '';
+							$prog_is_rerun = ! empty( $program['is_rerun'] );
 							?>
 							<div class="radplapag-program-row" data-program-index="<?php echo esc_attr( $prog_index ); ?>">
 								<select name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">
@@ -635,6 +678,10 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" value="<?php echo esc_attr( $prog_start ); ?>" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">
 								<span style="margin-right: 5px;"> <?php esc_html_e( 'to', 'radio-player-page' ); ?> </span>
 								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" value="<?php echo esc_attr( $prog_end ); ?>" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">
+								<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;">
+									<input type="checkbox" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][is_rerun]" value="1" <?php checked( $prog_is_rerun ); ?> class="radplapag-program-is-rerun">
+									<?php esc_html_e( 'Rerun', 'radio-player-page' ); ?>
+								</label>
 								<div class="radplapag-schedule-remove-cell">
 									<a href="#" class="submitdelete radplapag-remove-program"><?php esc_html_e( 'Remove Time Slot', 'radio-player-page' ); ?></a>
 								</div>
@@ -682,6 +729,7 @@ function radplapag_save_station_meta( $post_id ) {
 	$player_page  = isset( $_POST['radplapag_station_player_page'] ) ? absint( $_POST['radplapag_station_player_page'] ) : 0;
 	$background_id = isset( $_POST['radplapag_station_background_id'] ) ? absint( $_POST['radplapag_station_background_id'] ) : 0;
 	$logo_id      = isset( $_POST['radplapag_station_logo_id'] ) ? absint( $_POST['radplapag_station_logo_id'] ) : 0;
+	$intro_audio_id = isset( $_POST['radplapag_station_intro_audio_id'] ) ? absint( $_POST['radplapag_station_intro_audio_id'] ) : 0;
 	$theme        = isset( $_POST['radplapag_station_theme_color'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_theme_color'] ) ) : 'neutral';
 	$visualizer   = isset( $_POST['radplapag_station_visualizer'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_visualizer'] ) ) : 'oscilloscope';
 
@@ -698,6 +746,9 @@ function radplapag_save_station_meta( $post_id ) {
 	}
 	if ( $logo_id > 0 && ! wp_attachment_is_image( $logo_id ) ) {
 		$logo_id = 0;
+	}
+	if ( $intro_audio_id > 0 && get_post_mime_type( $intro_audio_id ) !== 'audio/mpeg' ) {
+		$intro_audio_id = 0;
 	}
 
 	$field_errors = [];
@@ -723,6 +774,7 @@ function radplapag_save_station_meta( $post_id ) {
 
 	update_post_meta( $post_id, 'radplapag_station_background_id', $background_id );
 	update_post_meta( $post_id, 'radplapag_station_logo_id', $logo_id );
+	update_post_meta( $post_id, 'radplapag_station_intro_audio_id', $intro_audio_id );
 	update_post_meta( $post_id, 'radplapag_station_theme_color', $theme );
 	update_post_meta( $post_id, 'radplapag_station_visualizer', $visualizer );
 

@@ -50,7 +50,7 @@ class Radplapag_Station_Config {
 	 * Returns the station row as an associative array (legacy shape for blocks and player).
 	 *
 	 * @since 3.3.0
-	 * @return array Keys: id, stream_url, player_page, station_title, background_id, logo_id, theme_color, visualizer, schedule.
+	 * @return array Keys: id, stream_url, player_page, station_title, background_id, logo_id, intro_audio_id, theme_color, visualizer, schedule.
 	 */
 	public function to_array(): array {
 		$post_id = (int) $this->post->ID;
@@ -84,6 +84,7 @@ class Radplapag_Station_Config {
 			'station_title' => $this->post->post_title,
 			'background_id' => (int) get_post_meta( $post_id, 'radplapag_station_background_id', true ),
 			'logo_id'       => (int) get_post_meta( $post_id, 'radplapag_station_logo_id', true ),
+			'intro_audio_id' => (int) get_post_meta( $post_id, 'radplapag_station_intro_audio_id', true ),
 			'theme_color'   => $theme,
 			'visualizer'    => $visualizer,
 			'schedule'      => $schedule,

@@ -133,6 +133,11 @@ const StreamInfo = ({
             <Typography variant="h4" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
               {currentProgram.programName}
             </Typography>
+            {currentProgram.isRerun && (
+              <Typography variant="body2" color="text.secondary">
+                {t('dashboard.rerunLabel')}
+              </Typography>
+            )}
           </Stack>
         </Stack>
       )}
@@ -151,6 +156,11 @@ const StreamInfo = ({
             >
               {upcomingProgram.programName}{' '}
             </Typography>
+            {upcomingProgram.isRerun && (
+              <Typography variant="body2" color="text.secondary">
+                {t('dashboard.rerunLabel')}
+              </Typography>
+            )}
             <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
               {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
               {upcomingProgram.timeRange}

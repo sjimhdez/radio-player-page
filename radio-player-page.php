@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: Radio Player Page
- * Description: Dedicated player pages for your radio stations, with scheduling and continuous playback.
- * Version: 3.3.1
+ * Description: Create dedicated listening pages for your radio stations with integrated radio schedules and reliable playback.
+ * Version: 3.4.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
- * Tags: audio, icecast, radio player, radio station, streaming
+ * Tags: radio player, radio station, radio, icecast, shoutcast
  * Requires at least: 6.6
  * Requires PHP: 7.4
  * License: GPLv2 or later
@@ -37,6 +37,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/data/class-radplapag-progra
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-upgrade.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-schedule-block.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-programs-list-block.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-now-playing-block.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/schedule/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/programs-list/render.php';
 
@@ -73,11 +74,13 @@ add_filter( 'map_meta_cap', 'radplapag_map_cpt_meta_cap', 10, 4 );
 
 add_action( 'init', 'radplapag_register_schedule_block' );
 add_action( 'init', 'radplapag_register_programs_list_block' );
+add_action( 'init', 'radplapag_register_now_playing_block' );
 add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_schedule_block_editor_assets' );
 add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_programs_list_block_editor_assets' );
+add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_now_playing_block_editor_assets' );
 
 /**
- * Registers the Radio Schedule Gutenberg block.
+ * Registers the Radio Schedule WordPress block.
  *
  * @since 3.3.0
  */
@@ -96,20 +99,10 @@ function radplapag_register_schedule_block() {
  * @since 3.3.0
  */
 function radplapag_enqueue_schedule_block_editor_assets() {
-    $block_dir = plugin_dir_path( __FILE__ ) . 'blocks/schedule/';
-    $asset_file = $block_dir . 'build/index.asset.php';
-    if ( ! file_exists( $asset_file ) ) {
+    $handle = 'radplapag-schedule-editor-script';
+    if ( ! wp_script_is( $handle, 'registered' ) ) {
         return;
     }
-    $asset = include $asset_file;
-    wp_enqueue_script(
-        'radplapag-schedule-block-editor',
-        plugin_dir_url( __FILE__ ) . 'blocks/schedule/build/index.js',
-        $asset['dependencies'],
-        $asset['version'],
-        true
-    );
-    wp_set_script_translations( 'radplapag-schedule-block-editor', 'radio-player-page' );
     $config  = radplapag_get_config();
     $stations = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
     $station_labels = [];
@@ -119,11 +112,11 @@ function radplapag_enqueue_schedule_block_editor_assets() {
             'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
         ];
     }
-    wp_localize_script( 'radplapag-schedule-block-editor', 'radplapagScheduleBlock', [ 'stations' => $station_labels ] );
+    wp_localize_script( $handle, 'radplapagScheduleBlock', [ 'stations' => $station_labels ] );
 }
 
 /**
- * Registers the Programs List Gutenberg block.
+ * Registers the Programs List WordPress block.
  *
  * @since 3.3.0
  */
@@ -142,20 +135,10 @@ function radplapag_register_programs_list_block() {
  * @since 3.3.0
  */
 function radplapag_enqueue_programs_list_block_editor_assets() {
-    $block_dir  = plugin_dir_path( __FILE__ ) . 'blocks/programs-list/';
-    $asset_file = $block_dir . 'build/index.asset.php';
-    if ( ! file_exists( $asset_file ) ) {
+    $handle = 'radplapag-programs-list-editor-script';
+    if ( ! wp_script_is( $handle, 'registered' ) ) {
         return;
     }
-    $asset = include $asset_file;
-    wp_enqueue_script(
-        'radplapag-programs-list-block-editor',
-        plugin_dir_url( __FILE__ ) . 'blocks/programs-list/build/index.js',
-        $asset['dependencies'],
-        $asset['version'],
-        true
-    );
-    wp_set_script_translations( 'radplapag-programs-list-block-editor', 'radio-player-page' );
     $config         = radplapag_get_config();
     $stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
     $station_labels = [];
@@ -165,7 +148,41 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
             'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
         ];
     }
-    wp_localize_script( 'radplapag-programs-list-block-editor', 'radplapagProgramsListBlock', [ 'stations' => $station_labels ] );
+    wp_localize_script( $handle, 'radplapagProgramsListBlock', [ 'stations' => $station_labels ] );
+}
+
+/**
+ * Registers the Now Playing WordPress block.
+ *
+ * Server rendering is wired via the "render" key in blocks/now-playing/block.json, so no
+ * render_callback is passed here.
+ *
+ * @since 3.4.0
+ */
+function radplapag_register_now_playing_block() {
+    register_block_type( plugin_dir_path( __FILE__ ) . 'blocks/now-playing' );
+}
+
+/**
+ * Enqueues the Now Playing block editor script and localizes station list.
+ *
+ * @since 3.4.0
+ */
+function radplapag_enqueue_now_playing_block_editor_assets() {
+    $handle = 'radplapag-now-playing-editor-script';
+    if ( ! wp_script_is( $handle, 'registered' ) ) {
+        return;
+    }
+    $config         = radplapag_get_config();
+    $stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
+    $station_labels = [];
+    foreach ( $stations as $index => $station ) {
+        $title = (string) ( $station['station_title'] ?? '' );
+        $station_labels[] = [
+            'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+        ];
+    }
+    wp_localize_script( $handle, 'radplapagNowPlayingBlock', [ 'stations' => $station_labels ] );
 }
 
 /**
@@ -212,7 +229,7 @@ function radplapag_get_station_for_current_page() {
  * The function sets global JavaScript variables for the React app:
  * - window.RADPLAPAG_CONFIG: stream URL, site title, theme, visualizer, media URLs, timezone (no schedule).
  * - window.RADPLAPAG_PROGRAMS: array of { id, name, logoUrl } for relational resolution.
- * - window.RADPLAPAG_SCHEDULE: weekly schedule as { day: [ { program_id (string ID), start, end }, ... ] } (relational).
+ * - window.RADPLAPAG_SCHEDULE: weekly schedule as { day: [ { program_id (string ID), start, end, is_rerun }, ... ] } (relational).
  * The React app resolves program name/logo from RADPLAPAG_PROGRAMS by matching program_id (unique string ID) to avoid duplicating data.
  *
  * It intentionally bypasses WordPress's enqueue system by outputting directly and
@@ -250,6 +267,7 @@ function radplapag_output_clean_page() {
     $station_title = isset( $station['station_title'] ) ? $station['station_title'] : '';
     $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
     $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
+    $intro_audio_id = isset( $station['intro_audio_id'] ) ? intval( $station['intro_audio_id'] ) : 0;
     $theme_color = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
     $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
     
@@ -267,6 +285,7 @@ function radplapag_output_clean_page() {
 
     $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'full' ) : '';
     $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
+    $intro_audio_url = $intro_audio_id ? wp_get_attachment_url( $intro_audio_id ) : '';
 
     $manifest_path = plugin_dir_path( __FILE__ ) . 'player/dist/manifest.json';
     if ( ! file_exists( $manifest_path ) ) {
@@ -345,6 +364,7 @@ function radplapag_output_clean_page() {
         'siteTitle' => $display_title,
         'backgroundImage' => $background_url ? $background_url : null,
         'logoImage' => $logo_url ? $logo_url : null,
+        'introAudioUrl' => $intro_audio_url ? $intro_audio_url : null,
         'themeColor' => $theme_color,
         'visualizer' => $visualizer,
         'timezoneOffset' => $timezone_offset, // Numeric offset in hours from UTC
@@ -400,6 +420,7 @@ function radplapag_output_clean_page() {
                 $program_id = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
                 $start = isset( $entry['start'] ) ? $entry['start'] : '';
                 $end = isset( $entry['end'] ) ? $entry['end'] : '';
+                $is_rerun = ! empty( $entry['is_rerun'] );
                 if ( $program_id === '' || empty( $start ) || empty( $end ) ) {
                     continue;
                 }
@@ -407,6 +428,7 @@ function radplapag_output_clean_page() {
                     'program_id' => $program_id,
                     'start'      => $start,
                     'end'        => $end,
+                    'is_rerun'   => $is_rerun,
                 ];
             }
             if ( ! empty( $day_entries ) ) {

@@ -11,6 +11,8 @@ interface PlayerControlsProps {
   status: PlayerStatus
   /** Whether the player is currently loading */
   loading: boolean
+  /** Whether the button should be shown but non-interactive (e.g. welcome audio playing) */
+  disabled?: boolean
   /** Callback function to start playback */
   onPlay: () => void
   /** Callback function to pause playback */
@@ -29,7 +31,7 @@ interface PlayerControlsProps {
  * @param props - Component props
  * @returns Loading spinner (when loading) or play/pause button (when not loading)
  */
-const PlayerControls = ({ status, loading, onPlay, onPause }: PlayerControlsProps) => {
+const PlayerControls = ({ status, loading, disabled, onPlay, onPause }: PlayerControlsProps) => {
   const { t } = useTranslation()
   // Show CircularProgress when loading (takes priority over button display)
   if (loading) {
@@ -39,7 +41,13 @@ const PlayerControls = ({ status, loading, onPlay, onPause }: PlayerControlsProp
   if (status !== 'playing') {
     return (
       <Tooltip title={t('dashboard.play')} placement="top" arrow>
-        <IconButton onClick={onPlay} size="large" aria-label={t('dashboard.play')} color="primary">
+        <IconButton
+          onClick={onPlay}
+          disabled={disabled}
+          size="large"
+          aria-label={t('dashboard.play')}
+          color="primary"
+        >
           <PlayCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
         </IconButton>
       </Tooltip>
@@ -48,7 +56,13 @@ const PlayerControls = ({ status, loading, onPlay, onPause }: PlayerControlsProp
 
   return (
     <Tooltip title={t('dashboard.pause')} placement="top" arrow>
-      <IconButton onClick={onPause} size="large" aria-label={t('dashboard.pause')} color="primary">
+      <IconButton
+        onClick={onPause}
+        disabled={disabled}
+        size="large"
+        aria-label={t('dashboard.pause')}
+        color="primary"
+      >
         <PauseCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
       </IconButton>
     </Tooltip>

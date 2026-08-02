@@ -1,9 +1,9 @@
 === Radio Player Page ===
 Contributors: sjimhdez
-Tags: radio player, radio station, radio schedule, icecast, shoutcast
+Tags: radio player, radio station, radio, icecast, shoutcast
 Requires at least: 6.6
 Tested up to: 7.0
-Stable tag: 3.3.1
+Stable tag: 3.4.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -27,11 +27,13 @@ Designed for online radio stations, community broadcasters, and streaming servic
 * **Weekly Schedule** – Build a complete weekly schedule with named radio shows, optional logos, timezone-aware calculations, and overlap prevention.
 * **Now & Next Information** – The player automatically displays the current radio show and the next scheduled show.
 * **Radio Shows Library** – Create reusable radio shows with featured images, descriptions, and broadcast times.
+* **Rerun Marker** – Mark any schedule time slot as a rerun, shown to listeners in the schedule and now-playing displays.
 
 = Station Management =
 
 * **Multi-Station Support** – Manage multiple independent radio stations from a single WordPress installation.
 * **Station Branding** – Customize each station with its own logo, background image, and color theme.
+* **Welcome Audio** – Optionally upload an MP3 that plays once before the live stream starts, the first time a listener presses play.
 * **Broadcast Timezone Clock** – Display your station's local time whenever it differs from the listener's timezone.
 
 = Listener Experience =
@@ -43,8 +45,9 @@ Designed for online radio stations, community broadcasters, and streaming servic
 
 = Blocks =
 
-* **Radio Schedule Block** – Display the complete weekly schedule for any station anywhere on your site using the Block Editor.
-* **Radio Shows List Block** – Display a list of radio shows including featured images, descriptions, and broadcast schedules.
+* **RPP: Weekly Schedule Block** – Display the complete weekly schedule for any station anywhere on your site using the Block Editor.
+* **RPP: Radio Shows List Block** – Display a list of radio shows including featured images, descriptions, and broadcast schedules.
+* **RPP: Now Playing Block** – Display the radio show currently on air for a station, with its schedule, and the next show if it starts within 10 minutes.
 
 = Modern Architecture =
 
@@ -100,6 +103,13 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 8. Radio Station edit screen with weekly schedule.
 
 == Changelog ==
+
+= 3.4.0 =
+* Added Now Playing block.
+* Added optional Welcome Audio: an MP3 that plays once before the live stream starts, the first time a listener presses play.
+* Added rerun/repeat marker for schedule time slots.
+* Fixed errors in the player's Dutch translation (thanks marcelgremme).
+* Fixed errors in the player's Swedish translation.
 
 = 3.3.1 =
 * Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.

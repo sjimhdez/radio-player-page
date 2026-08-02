@@ -29,6 +29,7 @@
     "dayFriday": "Freitag",
     "daySaturday": "Samstag",
     "scheduleLive": "Auf Sendung",
+    "rerunLabel": "(Wiederholung)",
     "scheduleNoProgramsForDay": "Keine Sendungen für diesen Tag eingeplant.",
     "scheduleBackToTop": "Zurück zu heute",
     "scheduleClose": "Schließen",

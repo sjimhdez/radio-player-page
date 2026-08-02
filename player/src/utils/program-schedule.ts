@@ -18,6 +18,7 @@ export interface CurrentProgram {
   programName: string
   timeRange: string
   programLogoUrl?: string | null
+  isRerun: boolean
 }
 
 /** Incoming program with minutes until start (resolved from schedule + programs) */
@@ -26,6 +27,7 @@ export interface IncomingProgram {
   timeRange: string
   minutesUntil: number
   programLogoUrl?: string | null
+  isRerun: boolean
 }
 
 /** Day of week to schedule key mapping (0=Sunday, 1=Monday, ...) */
@@ -123,6 +125,7 @@ export function findActiveProgram(
         programName: name,
         timeRange: `${entry.start}-${entry.end}`,
         programLogoUrl: logoUrl,
+        isRerun: !!entry.is_rerun,
       }
     }
   }
@@ -142,6 +145,7 @@ export function findActiveProgram(
           programName: name,
           timeRange: `${entry.start}-${entry.end}`,
           programLogoUrl: logoUrl,
+          isRerun: !!entry.is_rerun,
         }
       }
     }
@@ -209,6 +213,7 @@ export function findIncomingProgram(
         timeRange: `${entry.start}-${entry.end}`,
         minutesUntil,
         programLogoUrl: logoUrl,
+        isRerun: !!entry.is_rerun,
       }
     }
   }
@@ -225,6 +230,7 @@ export interface ProgramForDay {
   end: string
   timeRange: string
   isActive: boolean
+  isRerun: boolean
 }
 
 /**
@@ -266,6 +272,7 @@ export function getProgramsForDay(
       end: entry.end,
       timeRange: `${entry.start}-${entry.end}`,
       isActive: active,
+      isRerun: !!entry.is_rerun,
     }
   })
 }

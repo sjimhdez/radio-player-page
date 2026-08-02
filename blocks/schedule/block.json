@@ -3,10 +3,11 @@
 	"apiVersion": 3,
 	"name": "radplapag/schedule",
 	"version": "1.0.0",
-	"title": "Radio Schedule",
+	"title": "RPP: Weekly Schedule",
 	"category": "widgets",
 	"description": "Display the weekly Radio Schedule for a selected Radio Station.",
 	"textdomain": "radio-player-page",
+	"editorScript": "file:./build/index.js",
 	"attributes": {
 		"stationIndex": {
 			"type": "number",

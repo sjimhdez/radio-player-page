@@ -29,6 +29,7 @@
     "dayFriday": "Viernes",
     "daySaturday": "Sábado",
     "scheduleLive": "En directo",
+    "rerunLabel": "(Repetición)",
     "scheduleNoProgramsForDay": "No hay programas de radio programados para este día.",
     "scheduleBackToTop": "Volver a hoy",
     "scheduleClose": "Cerrar",

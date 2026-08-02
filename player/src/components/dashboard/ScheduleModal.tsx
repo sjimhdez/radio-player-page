@@ -123,6 +123,11 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
             <Typography variant="body1" color="primary.light">
               {program.programName || '—'}
             </Typography>
+            {program.isRerun && (
+              <Typography variant="body2" color="text.secondary">
+                {t('dashboard.rerunLabel')}
+              </Typography>
+            )}
           </Stack>
           {program.programDescription && (
             <Typography variant="body2" color="text.secondary">

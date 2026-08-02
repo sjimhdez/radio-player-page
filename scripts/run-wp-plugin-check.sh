@@ -2,11 +2,15 @@
 
 # WordPress Plugin Check Script
 # Replicates the plugin-check job from .github/workflows/test.yml
-# Matches: wordpress/plugin-check-action@v1 (wp-env is handled by the action in CI) with:
+# Matches: wp plugin check (see .github/workflows/test.yml, job "plugin-check") with:
 #   - exclude-directories: player, scripts, .github
 #   - ignore-codes: WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet, NonEnqueuedScript
-#   - exclude-files: .gitignore
+#   - exclude-files: .gitignore, .wp-env.json
 #   - include-experimental: false
+#
+# Locally we also exclude .DS_Store, .claude, and CLAUDE.md: CI runs against a
+# clean git checkout, so it never sees these dev-only artifacts even though
+# they're untracked/gitignored in the working directory here.
 
 # Colors for output
 RED='\033[0;31m'
@@ -26,32 +30,25 @@ if command -v wp &> /dev/null; then
     # Use WP-CLI plugin check only when command exists and WordPress is available.
     if wp help plugin check --allow-root >/dev/null 2>&1 && wp core version --allow-root 2>/dev/null >/dev/null; then
         echo "Using WP-CLI plugin check..."
-        
-        # Run wp plugin check
-        # Note: wp plugin check doesn't support all exclusion options directly.
-        # We post-filter to match CI excludes: player/, scripts/, .github/.
-        if wp plugin check "$PLUGIN_DIR" --allow-root 2>&1 | grep -Ev "(^|[[:space:]])(player|scripts|\\.github)/" > "$TMP_OUTPUT_FILE"; then
-            # Check if there are any real errors (after exclusions).
-            if grep -q "ERROR" "$TMP_OUTPUT_FILE" 2>/dev/null; then
-                echo -e "${RED}WordPress Plugin Check failed!${NC}"
-                cat "$TMP_OUTPUT_FILE"
-                exit 1
-            else
-                echo -e "${GREEN}WordPress Plugin Check passed!${NC}"
-                exit 0
-            fi
+
+        # wp plugin check natively supports exclude-directories/exclude-files/
+        # ignore-codes, so pass the same excludes CI uses instead of post-filtering
+        # the table output (post-filtering by line dropped FILE: headers but left
+        # their orphaned result rows behind, which were then miscounted as errors).
+        wp plugin check "$PLUGIN_DIR" --allow-root \
+            --exclude-directories=player,scripts,.github,.claude \
+            --exclude-files=.gitignore,.wp-env.json,.DS_Store,CLAUDE.md \
+            --ignore-codes=WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet,WordPress.WP.EnqueuedResources.NonEnqueuedScript \
+            > "$TMP_OUTPUT_FILE" 2>&1
+
+        if grep -q "ERROR" "$TMP_OUTPUT_FILE" 2>/dev/null; then
+            echo -e "${RED}WordPress Plugin Check failed!${NC}"
+            cat "$TMP_OUTPUT_FILE"
+            exit 1
         else
-            # If command failed, check output
-            if [ -f "$TMP_OUTPUT_FILE" ]; then
-                ERRORS=$(grep -Ei "error" "$TMP_OUTPUT_FILE" || true)
-                if [ -n "$ERRORS" ]; then
-                    echo -e "${RED}WordPress Plugin Check failed!${NC}"
-                    cat "$TMP_OUTPUT_FILE"
-                    exit 1
-                fi
-            fi
-            echo -e "${YELLOW}WP-CLI plugin check completed with warnings.${NC}"
-            echo -e "${YELLOW}Trying PHPCS as additional check...${NC}"
+            echo -e "${GREEN}WordPress Plugin Check passed!${NC}"
+            cat "$TMP_OUTPUT_FILE"
+            exit 0
         fi
     else
         echo -e "${YELLOW}WP-CLI plugin check command unavailable or WordPress not found. Trying PHPCS...${NC}"

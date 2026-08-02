@@ -29,6 +29,7 @@
     "dayFriday": "Vineri",
     "daySaturday": "Sâmbătă",
     "scheduleLive": "În direct",
+    "rerunLabel": "(Reluare)",
     "scheduleNoProgramsForDay": "Nu există emisiuni programate pentru această zi.",
     "scheduleBackToTop": "Înapoi la azi",
     "scheduleClose": "Închide",

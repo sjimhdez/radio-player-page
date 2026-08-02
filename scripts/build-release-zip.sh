@@ -115,9 +115,9 @@ copy_file "$PLUGIN_DIR/uninstall.php" "$RELEASE_ROOT/"
 copy_dir "$PLUGIN_DIR/includes" "$RELEASE_ROOT/"
 copy_dir "$PLUGIN_DIR/admin" "$RELEASE_ROOT/"
 
-# Dynamic Gutenberg blocks and their compiled editor assets.
+# Dynamic WordPress blocks and their compiled editor assets.
 mkdir -p "$RELEASE_ROOT/blocks"
-for block in schedule programs-list; do
+for block in schedule programs-list now-playing; do
 	BLOCK_SOURCE="$PLUGIN_DIR/blocks/$block"
 	BLOCK_TARGET="$RELEASE_ROOT/blocks/$block"
 

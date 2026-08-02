@@ -41,6 +41,8 @@ export interface ScheduleEntry {
   start: string
   /** End time in "HH:MM" format (24-hour) */
   end: string
+  /** True when this slot is a rerun/repeat broadcast of the program */
+  is_rerun?: boolean
 }
 
 /**
@@ -70,6 +72,8 @@ export interface PluginConfig {
   backgroundImage?: string | null
   /** Logo image URL (optional) */
   logoImage?: string | null
+  /** Welcome audio (mp3) URL played once before the live stream starts (optional) */
+  introAudioUrl?: string | null
   /** Theme color name (validated against whitelist, defaults to 'neutral') */
   themeColor: 'neutral' | 'blue' | 'green' | 'red' | 'orange' | 'yellow' | 'purple' | 'pink'
   /** Visualizer ID (validated against whitelist, defaults to 'oscilloscope') */

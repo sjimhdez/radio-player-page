@@ -83,9 +83,8 @@ const Dashboard = () => {
       config.schedule.saturday?.length ||
       config.schedule.sunday?.length),
   )
-  const { audioRef, status, loading, play, pause, volume, handleVolumeChange } = useAudioPlayer(
-    config.streamUrl,
-  )
+  const { audioRef, status, loading, introLocked, play, pause, volume, handleVolumeChange } =
+    useAudioPlayer(config.streamUrl, config.introAudioUrl)
   const canVisualize = useCanVisualize(audioRef)
   const transmissionTimeData = useTransmissionTime()
 
@@ -253,7 +252,13 @@ const Dashboard = () => {
           ) : (
             <Box />
           )}
-          <PlayerControls status={status} loading={loading} onPlay={play} onPause={pause} />
+          <PlayerControls
+            status={status}
+            loading={loading}
+            disabled={introLocked}
+            onPlay={play}
+            onPause={pause}
+          />
           <SleepMode
             isPlaying={status === 'playing'}
             onSleepTimerEnd={pause}

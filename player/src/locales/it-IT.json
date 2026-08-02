@@ -29,6 +29,7 @@
     "dayFriday": "Venerdì",
     "daySaturday": "Sabato",
     "scheduleLive": "In onda",
+    "rerunLabel": "(Replica)",
     "scheduleNoProgramsForDay": "Nessuna trasmissione in programmazione per questo giorno.",
     "scheduleBackToTop": "Torna a oggi",
     "scheduleClose": "Chiudi",

@@ -39,16 +39,19 @@ const loadDashjs = async () => {
  * - Cleanup of streaming libraries on unmount or stream change
  *
  * @param streamUrl - URL of the audio stream to play
+ * @param introUrl - Optional welcome audio (mp3) URL played once, before the first
+ *   live stream playback of this hook instance. Not skippable or pausable while active.
  * @returns Audio player state and control functions
  * @returns audioRef - React ref to the HTMLAudioElement
  * @returns status - Current playback status ('idle' | 'playing' | 'paused' | 'error')
  * @returns loading - Whether the player is currently loading/buffering
+ * @returns introLocked - Whether the welcome audio is currently playing (presentational only)
  * @returns play - Function to start or resume playback
- * @returns pause - Function to pause playback
+ * @returns pause - Function to pause playback (no-op while introLocked)
  * @returns volume - Current volume level (0-1)
  * @returns handleVolumeChange - Function to change volume (ignored on iOS)
  */
-function useAudioPlayer(streamUrl: string) {
+function useAudioPlayer(streamUrl: string, introUrl?: string | null) {
   const audioRef = useRef<HTMLAudioElement>(null!)
   const hlsRef = useRef<Hls | null>(null)
   const dashRef = useRef<MediaPlayerClass | null>(null)
@@ -57,6 +60,15 @@ function useAudioPlayer(streamUrl: string) {
   const [loading, setLoading] = useState(false)
   const [volume, setVolume] = useState(1)
   const isIOS = useIsIOS()
+
+  // Tracks which source is currently loaded into the audio element: the one-time
+  // welcome audio, or the live stream. Starts null (nothing loaded yet).
+  const activeSourceRef = useRef<'intro' | 'live' | null>(null)
+  // Whether the welcome audio has already played (or been skipped/failed) this page load.
+  const introConsumedRef = useRef(false)
+  // Presentational only: lets the UI grey out the play/pause button. The actual
+  // "can't pause the welcome audio" guarantee lives in pause() below.
+  const [introLocked, setIntroLocked] = useState(false)
 
   // Sync statusRef with status state
   useEffect(() => {
@@ -78,96 +90,178 @@ function useAudioPlayer(streamUrl: string) {
     }
   }, [])
 
-  const play = useCallback(async () => {
-    if (!audioRef.current) return
+  /**
+   * Loads and plays the live stream (HLS/DASH/standard), detecting protocol from
+   * the URL. Marks the active source as 'live' and clears the intro lock on success.
+   * Does not catch its own errors - callers are responsible for error handling.
+   */
+  const playLiveStream = useCallback(async () => {
     const audio = audioRef.current
+    if (!audio) return
 
-    try {
-      setLoading(true)
+    // Cleanup previous players if loading a new stream
+    destroyPlayers()
 
-      // If already playing the same URL, just resume if paused
-      if (audio.src === streamUrl && status !== 'error') {
-        if (audio.paused) {
-          await audio.play()
-          setStatus('playing')
-        }
-        return
-      }
+    // Detect streaming protocol from URL extension
+    const isHls = streamUrl.endsWith('.m3u8')
+    const isDash = streamUrl.endsWith('.mpd')
 
-      // Cleanup previous players if loading a new stream
-      destroyPlayers()
-
-      // Detect streaming protocol from URL extension
-      const isHls = streamUrl.endsWith('.m3u8')
-      const isDash = streamUrl.endsWith('.mpd')
-
-      if (isHls) {
-        // iOS Safari has native HLS support, no library needed
-        if (isIOS) {
-          audio.src = streamUrl
-          audio.crossOrigin = 'anonymous'
-          audio.load()
-          await audio.play()
-        } else {
-          // Use HLS.js for non-iOS devices
-          const Hls = await loadHls()
-          if (Hls.isSupported()) {
-            const hls = new Hls()
-            hlsRef.current = hls
-            hls.loadSource(streamUrl)
-            hls.attachMedia(audio)
-
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-              audio.play().catch(() => {
-                setStatus('error')
-                statusRef.current = 'error'
-              })
-            })
-
-            hls.on(Hls.Events.ERROR, (_, data) => {
-              if (data.fatal) {
-                setStatus('error')
-                statusRef.current = 'error'
-              }
-            })
-          } else {
-            // HLS.js not supported, fallback to native browser support
-            audio.src = streamUrl
-            audio.crossOrigin = 'anonymous'
-            audio.load()
-            await audio.play()
-          }
-        }
-      } else if (isDash) {
-        // DASH streaming using dash.js
-        // Third parameter (true) enables autoPlay - playback starts automatically
-        const MediaPlayer = await loadDashjs()
-        const player = MediaPlayer().create()
-        dashRef.current = player
-        player.initialize(audio, streamUrl, true)
-        player.on('error', () => {
-          setStatus('error')
-          statusRef.current = 'error'
-        })
-      } else {
-        // Standard audio stream (MP3, OGG, etc.)
+    if (isHls) {
+      // iOS Safari has native HLS support, no library needed
+      if (isIOS) {
         audio.src = streamUrl
         audio.crossOrigin = 'anonymous'
         audio.load()
         await audio.play()
-      }
+      } else {
+        // Use HLS.js for non-iOS devices
+        const Hls = await loadHls()
+        if (Hls.isSupported()) {
+          const hls = new Hls()
+          hlsRef.current = hls
+          hls.loadSource(streamUrl)
+          hls.attachMedia(audio)
 
-      setStatus('playing')
-      statusRef.current = 'playing'
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            audio.play().catch(() => {
+              setStatus('error')
+              statusRef.current = 'error'
+            })
+          })
+
+          hls.on(Hls.Events.ERROR, (_, data) => {
+            if (data.fatal) {
+              setStatus('error')
+              statusRef.current = 'error'
+            }
+          })
+        } else {
+          // HLS.js not supported, fallback to native browser support
+          audio.src = streamUrl
+          audio.crossOrigin = 'anonymous'
+          audio.load()
+          await audio.play()
+        }
+      }
+    } else if (isDash) {
+      // DASH streaming using dash.js
+      // Third parameter (true) enables autoPlay - playback starts automatically
+      const MediaPlayer = await loadDashjs()
+      const player = MediaPlayer().create()
+      dashRef.current = player
+      player.initialize(audio, streamUrl, true)
+      player.on('error', () => {
+        setStatus('error')
+        statusRef.current = 'error'
+      })
+    } else {
+      // Standard audio stream (MP3, OGG, etc.)
+      audio.src = streamUrl
+      audio.crossOrigin = 'anonymous'
+      audio.load()
+      await audio.play()
+    }
+
+    activeSourceRef.current = 'live'
+    setIntroLocked(false)
+    setStatus('playing')
+    statusRef.current = 'playing'
+  }, [streamUrl, destroyPlayers, isIOS])
+
+  /**
+   * Marks the welcome audio as consumed and switches to the live stream.
+   * Used both when the welcome audio finishes naturally ('ended') and when it
+   * fails to load/play - either way, playback falls through to the live stream
+   * silently, with no distinct error state for the welcome audio itself.
+   */
+  const advanceToLive = useCallback(async () => {
+    introConsumedRef.current = true
+    try {
+      setLoading(true)
+      await playLiveStream()
     } catch {
       setStatus('error')
       statusRef.current = 'error'
     } finally {
       setLoading(false)
     }
-  }, [streamUrl, destroyPlayers, status, isIOS])
+  }, [playLiveStream])
+
+  const play = useCallback(async () => {
+    if (!audioRef.current) return
+    const audio = audioRef.current
+
+    // First call of this player instance: decide whether to start with the
+    // welcome audio or go straight to the live stream.
+    if (activeSourceRef.current === null) {
+      if (introUrl && !introConsumedRef.current) {
+        activeSourceRef.current = 'intro'
+        setIntroLocked(true)
+        try {
+          setLoading(true)
+          audio.src = introUrl
+          audio.crossOrigin = 'anonymous'
+          audio.load()
+          await audio.play()
+          setStatus('playing')
+          statusRef.current = 'playing'
+        } catch {
+          // Welcome audio failed to load/play: fall through to the live stream
+          // silently, exactly as if it had played and ended normally.
+          await advanceToLive()
+        } finally {
+          setLoading(false)
+        }
+        return
+      }
+
+      try {
+        setLoading(true)
+        await playLiveStream()
+      } catch {
+        setStatus('error')
+        statusRef.current = 'error'
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
+
+    // Welcome audio is currently playing: play() has nothing to do (pause() is
+    // blocked while it's active, so this can only be reached if it's already playing).
+    if (activeSourceRef.current === 'intro') {
+      return
+    }
+
+    // Live stream: resume if already loaded, otherwise (re)load it.
+    try {
+      setLoading(true)
+
+      if (audio.src === streamUrl && status !== 'error') {
+        if (audio.paused) {
+          await audio.play()
+          setStatus('playing')
+          statusRef.current = 'playing'
+        }
+        return
+      }
+
+      await playLiveStream()
+    } catch {
+      setStatus('error')
+      statusRef.current = 'error'
+    } finally {
+      setLoading(false)
+    }
+  }, [streamUrl, introUrl, status, playLiveStream, advanceToLive])
 
   const pause = useCallback(() => {
+    // The welcome audio cannot be paused/interrupted - this is the single
+    // enforcement point, covering the on-screen button, Media Session's OS-level
+    // pause handler, and the sleep timer's auto-pause alike.
+    if (activeSourceRef.current === 'intro') {
+      return
+    }
     audioRef.current?.pause()
     setStatus('paused')
     statusRef.current = 'paused'
@@ -217,6 +311,12 @@ function useAudioPlayer(streamUrl: string) {
     // Event handler: clears loading state when playback resumes after buffering
     // Note: This is a second 'playing' listener with a different purpose
     const onPlayingFromWaiting = () => setLoading(false)
+    // Event handler: when the welcome audio finishes naturally, switch to the live stream
+    const onEnded = () => {
+      if (activeSourceRef.current === 'intro') {
+        advanceToLive()
+      }
+    }
 
     // Add event listeners
     // Note: 'playing' event has two handlers:
@@ -228,6 +328,7 @@ function useAudioPlayer(streamUrl: string) {
     audio.addEventListener('canplay', onCanPlay)
     audio.addEventListener('waiting', onWaiting)
     audio.addEventListener('playing', onPlayingFromWaiting)
+    audio.addEventListener('ended', onEnded)
 
     return () => {
       audio.removeEventListener('playing', onPlaying)
@@ -236,8 +337,9 @@ function useAudioPlayer(streamUrl: string) {
       audio.removeEventListener('canplay', onCanPlay)
       audio.removeEventListener('waiting', onWaiting)
       audio.removeEventListener('playing', onPlayingFromWaiting)
+      audio.removeEventListener('ended', onEnded)
     }
-  }, [volume, isIOS]) // Note: status dependency intentionally omitted to avoid event loop issues
+  }, [volume, isIOS, advanceToLive]) // Note: status dependency intentionally omitted to avoid event loop issues
 
   // Cleanup on unmount
   useEffect(() => {
@@ -250,6 +352,7 @@ function useAudioPlayer(streamUrl: string) {
     audioRef,
     status,
     loading,
+    introLocked,
     play,
     pause,
     volume,

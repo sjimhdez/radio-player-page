@@ -53,11 +53,14 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 
 		if ( $show_image && $logo_id > 0 ) {
 			$img_alt = $name !== '' ? $name : __( 'Radio Show image', 'radio-player-page' );
-			$html   .= '<figure class="wp-block-image has-small-padding-bottom">' . wp_get_attachment_image(
+			$html   .= '<figure class="wp-block-image has-small-padding-bottom" style="max-width: 15rem;">' . wp_get_attachment_image(
 				$logo_id,
 				'medium',
 				false,
-				[ 'alt' => esc_attr( $img_alt ) ]
+				[
+					'alt'   => esc_attr( $img_alt ),
+					'style' => 'max-width: 100%; height: auto;',
+				]
 			) . '</figure>';
 		}
 

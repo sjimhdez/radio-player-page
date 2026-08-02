@@ -124,7 +124,7 @@ jobs:
           fi
 
   gutenberg-blocks:
-    name: Gutenberg Blocks
+    name: WordPress blocks
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

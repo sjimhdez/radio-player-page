@@ -1,31 +1,20 @@
 {
   "$schema": "https://schemas.wp.org/trunk/block.json",
   "apiVersion": 3,
-  "name": "radplapag/programs-list",
+  "name": "radplapag/now-playing",
   "version": "1.0.0",
-  "title": "RPP: Radio Shows List",
+  "title": "RPP: Now Playing",
   "category": "widgets",
-  "description": "Display all Radio Shows for a selected Radio Station with name, image, extended description, and broadcast schedule.",
+  "description": "Display the radio show currently on air for a selected Radio Station, its schedule, and the next show starting soon.",
   "textdomain": "radio-player-page",
   "editorScript": "file:./build/index.js",
+  "render": "file:./render.php",
   "attributes": {
     "stationIndex": {
       "type": "number",
       "default": 0
     },
-    "showImage": {
-      "type": "boolean",
-      "default": true
-    },
-    "showDescription": {
-      "type": "boolean",
-      "default": true
-    },
-    "showExtendedDescription": {
-      "type": "boolean",
-      "default": true
-    },
-    "showSchedule": {
+    "showLogo": {
       "type": "boolean",
       "default": true
     }

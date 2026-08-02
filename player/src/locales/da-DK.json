@@ -29,6 +29,7 @@
     "dayFriday": "Fredag",
     "daySaturday": "Lørdag",
     "scheduleLive": "På luft",
+    "rerunLabel": "(Genudsendelse)",
     "scheduleNoProgramsForDay": "Ingen radioprogrammer planlagt for denne dag.",
     "scheduleBackToTop": "Tilbage til i dag",
     "scheduleClose": "Luk",

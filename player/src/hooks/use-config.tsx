@@ -84,6 +84,7 @@ function useConfig(): ResolvedConfig {
       siteTitle: rawConfig?.siteTitle || '',
       backgroundImage: rawConfig?.backgroundImage || undefined,
       logoImage: rawConfig?.logoImage || undefined,
+      introAudioUrl: rawConfig?.introAudioUrl || undefined,
       themeColor,
       visualizer,
       timezoneOffset,
