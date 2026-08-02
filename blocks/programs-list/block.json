@@ -3,7 +3,7 @@
   "apiVersion": 3,
   "name": "radplapag/programs-list",
   "version": "1.0.0",
-  "title": "Radio Shows List",
+  "title": "RPP: Radio Shows List",
   "category": "widgets",
   "description": "Display all Radio Shows for a selected Radio Station with name, image, extended description, and broadcast schedule.",
   "textdomain": "radio-player-page",

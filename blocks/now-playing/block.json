@@ -3,7 +3,7 @@
   "apiVersion": 3,
   "name": "radplapag/now-playing",
   "version": "1.0.0",
-  "title": "Now Playing",
+  "title": "RPP: Now Playing",
   "category": "widgets",
   "description": "Display the radio show currently on air for a selected Radio Station, its schedule, and the next show starting soon.",
   "textdomain": "radio-player-page",
