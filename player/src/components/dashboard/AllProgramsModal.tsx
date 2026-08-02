@@ -67,7 +67,7 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
         )}
         <CardContent sx={{ flex: 1 }}>
           <Stack px={1} gap={0.5} alignItems="start">
-            <Stack direction="row" alignItems="center" gap={1}>
+            <Stack alignItems="start" gap={1}>
               {program.isLive && (
                 <Chip
                   label={
