@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: radio player, radio station, radio, icecast, shoutcast
 Requires at least: 6.6
 Tested up to: 7.0
-Stable tag: 3.3.1
+Stable tag: 3.4.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -108,6 +108,8 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 * Added Now Playing block.
 * Added optional Welcome Audio: an MP3 that plays once before the live stream starts, the first time a listener presses play.
 * Added rerun/repeat marker for schedule time slots.
+* Fixed errors in the player's Dutch translation (thanks marcelgremme).
+* Fixed errors in the player's Swedish translation.
 
 = 3.3.1 =
 * Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.
