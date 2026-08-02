@@ -32,7 +32,18 @@ defined( 'ABSPATH' ) || exit;
 	$show_logo      = (bool) ( $attributes['showLogo'] ?? true );
 	$now_playing    = radplapag_get_now_playing_for_station( $station_index );
 
-	if ( $now_playing === null || $now_playing['current'] === null ) return;
+	if ( $now_playing === null || $now_playing['current'] === null ) {
+		if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
+			return;
+		}
+
+		echo '<div ' . wp_kses_post( get_block_wrapper_attributes( [ 'class' => 'wp-block-radplapag-now-playing is-empty' ] ) ) . '>' .
+			'<div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;">' .
+			'<p><em>' . esc_html__( 'Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.', 'radio-player-page' ) . '</em></p>' .
+			'</div>' .
+			'</div>';
+		return;
+	}
 
 	$current           = $now_playing['current'];
 	$upcoming          = $now_playing['upcoming'];
