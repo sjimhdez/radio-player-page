@@ -55,6 +55,7 @@ Create a weekly lineup with named radio shows and optional logos. The player int
 - Upcoming show announcements (shown 10 minutes before start)
 - Validates for time overlaps and conflicts; supports radio shows that cross midnight
 - Timezone-aware calculations based on your WordPress timezone
+- Mark any time slot as a rerun, shown to listeners in the schedule and now-playing displays
 
 ### Universal Stream Compatibility
 
@@ -207,7 +208,7 @@ WordPress page request
       window.RADPLAPAG_CONFIG   (streamUrl, siteTitle, themeColor, visualizer,
                                   backgroundImage, logoImage, introAudioUrl, timezoneOffset)
       window.RADPLAPAG_PROGRAMS (array of { id, name, description?, extendedDescription?, logoUrl? })
-      window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end }, ...])
+      window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end, is_rerun? }, ...])
   → React: useConfig() → ResolvedConfig
   → Components use useConfig() for config, schedule, and radio shows
 ```
@@ -293,7 +294,7 @@ CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/tes
 
 - **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `introAudioUrl` (optional welcome audio, played once before the live stream on first play), `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
 - **`window.RADPLAPAG_PROGRAMS`** – Array of `{ id, name, description?, extendedDescription?, logoUrl? }`. Optional.
-- **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end }], ... }`. `program_id` is the radio show's post ID (as a string), matched against `id` in `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour). Optional.
+- **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end, is_rerun? }], ... }`. `program_id` is the radio show's post ID (as a string), matched against `id` in `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour); `is_rerun` marks the slot as a rerun. Optional.
 
 **PHP (public)**
 

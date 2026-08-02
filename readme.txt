@@ -27,6 +27,7 @@ Designed for online radio stations, community broadcasters, and streaming servic
 * **Weekly Schedule** – Build a complete weekly schedule with named radio shows, optional logos, timezone-aware calculations, and overlap prevention.
 * **Now & Next Information** – The player automatically displays the current radio show and the next scheduled show.
 * **Radio Shows Library** – Create reusable radio shows with featured images, descriptions, and broadcast times.
+* **Rerun Marker** – Mark any schedule time slot as a rerun, shown to listeners in the schedule and now-playing displays.
 
 = Station Management =
 
@@ -106,6 +107,7 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 = 3.3.2 =
 * Added Now Playing block.
 * Added optional Welcome Audio: an MP3 that plays once before the live stream starts, the first time a listener presses play.
+* Added rerun/repeat marker for schedule time slots.
 
 = 3.3.1 =
 * Raised minimum requirements to WordPress 6.6 and PHP 7.4. Required for blocks (Block API v3 and modern JSX runtime). Sites below these versions can keep the installed plugin but cannot update until they upgrade.
