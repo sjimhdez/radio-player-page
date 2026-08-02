@@ -7,14 +7,14 @@
  * so no save() is needed here.
  *
  * @package radio-player-page
- * @since 3.3.2
+ * @since 3.4.0
  */
 
-import { registerBlockType } from '@wordpress/blocks';
+import { registerBlockType } from "@wordpress/blocks";
 
-import Edit from './edit';
-import metadata from '../block.json';
+import Edit from "./edit";
+import metadata from "../block.json";
 
-registerBlockType( metadata.name, {
-	edit: Edit,
-} );
+registerBlockType(metadata.name, {
+  edit: Edit,
+});

@@ -104,7 +104,7 @@ The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-p
 
 == Changelog ==
 
-= 3.3.2 =
+= 3.4.0 =
 * Added Now Playing block.
 * Added optional Welcome Audio: an MP3 that plays once before the live stream starts, the first time a listener presses play.
 * Added rerun/repeat marker for schedule time slots.

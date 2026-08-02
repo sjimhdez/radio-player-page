@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Radio Player Page
  * Description: Dedicated player pages for your radio stations, with scheduling and continuous playback.
- * Version: 3.3.1
+ * Version: 3.4.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: audio, icecast, radio player, radio station, streaming
@@ -157,7 +157,7 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
  * Server rendering is wired via the "render" key in blocks/now-playing/block.json, so no
  * render_callback is passed here.
  *
- * @since 3.3.2
+ * @since 3.4.0
  */
 function radplapag_register_now_playing_block() {
     register_block_type( plugin_dir_path( __FILE__ ) . 'blocks/now-playing' );
@@ -166,7 +166,7 @@ function radplapag_register_now_playing_block() {
 /**
  * Enqueues the Now Playing block editor script and localizes station list.
  *
- * @since 3.3.2
+ * @since 3.4.0
  */
 function radplapag_enqueue_now_playing_block_editor_assets() {
     $handle = 'radplapag-now-playing-editor-script';

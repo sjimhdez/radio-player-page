@@ -7,7 +7,7 @@
  * and radplapag_get_schedule_day_keys_and_labels().
  *
  * @package radio-player-page
- * @since 3.3.2
+ * @since 3.4.0
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -21,7 +21,7 @@ define( 'RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES', 10 );
  * Uses WordPress timezone for "current" time. The upcoming lookup handles the midnight
  * boundary (e.g. a show starting at 00:05 counts as "coming up" at 23:58).
  *
- * @since 3.3.2
+ * @since 3.4.0
  * @param int $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
  * @return array|null Associative array with 'current', 'upcoming', and 'station_page_url' keys.
  *                    'current'/'upcoming' are each either null or

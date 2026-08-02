@@ -18,7 +18,7 @@
  * the sniff.
  *
  * @package radio-player-page
- * @since 3.3.2
+ * @since 3.4.0
  *
  * @var array    $attributes Block attributes.
  * @var string   $content    Block content (empty for dynamic).
