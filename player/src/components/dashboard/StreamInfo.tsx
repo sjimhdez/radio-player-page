@@ -112,31 +112,44 @@ const StreamInfo = ({
       </Typography>
       {/* Show active program if schedule is configured */}
       {currentProgram && (
-        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap" justifyContent="center">
           <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
             {t('dashboard.activeProgram')}:
           </Typography>
-          {currentProgram.programLogoUrl && (
-            <Box
-              component="img"
-              src={currentProgram.programLogoUrl}
-              alt=""
-              aria-hidden
-              sx={{
-                width: 36,
-                height: 36,
-                objectFit: 'cover',
-              }}
-            />
-          )}
-          <Stack direction="row" alignItems="baseline" gap={1}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            gap={1}
+            justifyContent="center"
+            flexWrap="wrap"
+          >
+            {currentProgram.programLogoUrl && (
+              <Box
+                component="img"
+                src={currentProgram.programLogoUrl}
+                alt="{currentProgram.programName}"
+                aria-hidden
+                sx={{
+                  width: 36,
+                  height: 36,
+                  objectFit: 'cover',
+                }}
+              />
+            )}
             <Typography variant="h4" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
               {currentProgram.programName}
             </Typography>
             {currentProgram.isRerun && (
-              <Typography variant="body2" color="text.secondary">
-                {t('dashboard.rerunLabel')}
-              </Typography>
+              <Stack direction="row" alignItems="baseline">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  component="p"
+                  sx={{ textWrap: 'balance', hyphens: 'auto' }}
+                >
+                  {t('dashboard.rerunLabel')}
+                </Typography>
+              </Stack>
             )}
           </Stack>
         </Stack>
