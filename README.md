@@ -16,8 +16,9 @@ Dedicated player pages for your radio stations, with program scheduling and cont
 
 - [Description](#description)
 - [Standalone Player Pages](#standalone-player-pages)
-- [Broadcast Management](#broadcast-management)
+- [Multi-Station Support](#multi-station-support)
 - [Listener Experience](#listener-experience)
+- [Additional Features](#additional-features)
 - [WordPress Blocks](#wordpress-blocks)
 - [Built for Modern Web Performance](#built-for-modern-web-performance)
 - [Quick Start](#quick-start)
@@ -31,7 +32,7 @@ Dedicated player pages for your radio stations, with program scheduling and cont
 
 **The key differentiator:** Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
 
-Radio stations and radio shows are managed as WordPress custom post types (**RPP → Stations** and **RPP → Radio Shows**), and the plugin ships two WordPress blocks so schedule and show information can also be displayed inside normal WordPress content.
+Radio stations and radio shows are managed as WordPress custom post types (**RPP → Stations** and **RPP → Radio Shows**), and the plugin ships three WordPress blocks so schedule, radio show, and on-air information can also be displayed inside normal WordPress content.
 
 ---
 
@@ -70,9 +71,7 @@ Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 stre
 
 ---
 
-## Broadcast Management
-
-### Multi-Station Support
+## Multi-Station Support
 
 Manage **multiple independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
 
@@ -83,31 +82,11 @@ Manage **multiple independent stations** from a single WordPress installation, e
 
 Perfect for radio networks, multi-channel stations, or managing multiple streams from one WordPress installation.
 
-### Broadcast Timezone Clock
-
-Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
-
-- **Timezone clock** displays the station's local time
-- **Time difference indicator** shows the offset from the listener's timezone
-- Always visible when timezones differ (independent of playback state)
-- Helps international audiences understand program timing
-
-### Media Session API
-
-Professional integration with device lock screens and media controls, displaying station art and info.
-
-- **Lock screen controls** – Station name and artwork on mobile devices
-- **Desktop media controls** – Shows station info in system media controls
-- **Play/pause synchronization** – Controls work seamlessly across devices
-- **Artwork display** – Station logo appears in notifications and controls
-
 ---
 
 ## Listener Experience
 
-### Informed Listening
-
-The player clearly shows **what's on air now and what's coming next**.
+The player clearly shows what's on air now and what's coming next, in an interface you can tailor to your station's brand and audience.
 
 ### Visual Customization
 
@@ -120,24 +99,24 @@ Choose from **8 color themes** (Neutral, Blue, Green, Red, Orange, Yellow, Purpl
 
 Visualizers are lazy-loaded for optimal performance and only activate when audio is playing.
 
-### Station Branding
-
-Upload custom background images and logos for each station. Personalize each station with unique titles, backgrounds, and logos.
-
-### Welcome Audio
-
-Optionally upload an MP3 for each station that plays once before the live stream starts, the first time a listener presses play.
-
-### Convenience Features
-
-- **Sleep timer** – Automatic playback stop (30 min, 1 h, 2 h) with visual countdown; cancels if you pause manually
-- **Volume control** – Adjustable slider (not available on iOS due to system limitations)
-- **Responsive design** – Optimized for desktop, tablet, and mobile
-- **Social sharing** – Open Graph and Twitter Card meta tags for rich link previews on Facebook, Twitter/X, LinkedIn, WhatsApp, and similar platforms
-
 ### Multilingual Interface
 
 Player interface available in **12 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil), Italian. Automatic language detection based on browser settings, with fallback to English.
+
+---
+
+## Additional Features
+
+Smaller conveniences that round out the listener and admin experience:
+
+- **Broadcast Timezone Clock** – When a station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset; always visible, independent of playback state.
+- **Media Session integration** – Station name and artwork on device lock screens and system media controls, with play/pause synced across devices.
+- **Station Branding** – Custom background image and logo per station.
+- **Welcome Audio** – Optional MP3 that plays once before the live stream starts, the first time a listener presses play.
+- **Sleep Timer** – Automatic playback stop (30 min, 1 h, 2 h) with visual countdown; cancels if you pause manually.
+- **Volume Control** – Adjustable slider (not available on iOS due to system limitations).
+- **Responsive Design** – Optimized for desktop, tablet, and mobile.
+- **Social Sharing** – Open Graph and Twitter Card meta tags for rich link previews on Facebook, Twitter/X, LinkedIn, WhatsApp, and similar platforms.
 
 ---
 
