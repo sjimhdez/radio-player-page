@@ -137,18 +137,19 @@ Optionally upload an MP3 for each station that plays once before the live stream
 
 ### Multilingual Interface
 
-Player interface available in **11 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil). Automatic language detection based on browser settings, with fallback to English.
+Player interface available in **12 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil), Italian. Automatic language detection based on browser settings, with fallback to English.
 
 ---
 
 ## WordPress Blocks
 
-Two WordPress blocks let you surface schedule and radio show information inside regular WordPress content, using the Block Editor:
+Three WordPress blocks let you surface schedule, radio show, and on-air information inside regular WordPress content, using the Block Editor:
 
 - **Radio Schedule block** (`radplapag/schedule`) – Displays the complete weekly schedule for a selected radio station, with configurable day ordering and optional descriptions.
 - **Radio Shows List block** (`radplapag/programs-list`) – Displays all radio shows for a selected station, including featured images, descriptions, and broadcast times.
+- **Now Playing block** (`radplapag/now-playing`) – Displays the radio show currently on air for a selected station, plus the next show if it starts within 10 minutes. Renders empty on the front end when nothing is on air.
 
-Both blocks read live from the same radio station and radio show data used by the player pages, so there is nothing to keep in sync manually.
+All three blocks read live from the same radio station and radio show data used by the player pages, so there is nothing to keep in sync manually.
 
 ---
 
@@ -246,6 +247,7 @@ radio-player-page/
 │   ├── radplapag-upgrade.php      # DB version gate, triggers migration
 │   ├── radplapag-schedule-block.php
 │   ├── radplapag-programs-list-block.php
+│   ├── radplapag-now-playing-block.php
 │   ├── data/                      # Radplapag_Station_Config, Radplapag_Program_Config
 │   └── migration/                 # Legacy settings-option → CPT one-way migrator
 ├── admin/                         # Loaded when is_admin()
@@ -254,7 +256,8 @@ radio-player-page/
 │   ├── css/, js/                  # Admin styles and form logic
 ├── blocks/
 │   ├── schedule/                  # Radio Schedule block (block.json, render.php, build/)
-│   └── programs-list/             # Radio Shows List block (block.json, render.php, build/)
+│   ├── programs-list/             # Radio Shows List block (block.json, render.php, build/)
+│   └── now-playing/               # Now Playing block (block.json, render.php, build/)
 ├── player/                        # React frontend
 │   ├── src/                       # Components, hooks, config, locales, types, utils
 │   ├── dist/                      # Build output (generated, committed)
@@ -301,10 +304,11 @@ CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/tes
 - `radplapag_get_config()` – Returns config array with key `stations` (ordered list from CPT).
 - `radplapag_get_stations()` – Returns the ordered list of published station configs.
 - `radplapag_get_station_for_current_page()` – Returns the station config for the current page, or `false`.
+- `radplapag_get_now_playing_for_station( $station_index )` – Returns the current and upcoming radio show for a station by its index in `radplapag_get_stations()`, or `null` if the index is invalid. Powers the Now Playing block.
 
 ### Internationalization
 
-Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE, pt-BR / pt_BR. Detection: HTML `lang` → localStorage → navigator. For German (de_DE) and Portuguese Brazil (pt_BR), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/) and [WordPress Portuguese Brazil glossary](https://translate.wordpress.org/locale/pt-br/default/glossary/) where applicable.
+Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE, pt-BR / pt_BR, it-IT / it_IT. Detection: HTML `lang` → localStorage → navigator. For German (de_DE), Portuguese Brazil (pt_BR), and Italian (it_IT), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/), [WordPress Portuguese Brazil glossary](https://translate.wordpress.org/locale/pt-br/default/glossary/), and [WordPress Italian glossary](https://translate.wordpress.org/locale/it/default/glossary/) where applicable.
 
 **Adding a new language:** (1) Add a JSON file in `player/src/locales/` with the same keys as `en-US.json`. (2) Import it and register the locale in `player/src/config/i18n.ts` (use both hyphen and underscore keys if the locale has a region, e.g. `de-DE` and `de_DE`, so WordPress `lang` and browser codes both work). (3) Update this README. Source strings are English (en-US). For locales with an official WordPress glossary (e.g. de_DE), use the [glossary and style guide](https://make.wordpress.org/polyglots/handbook/translating/glossaries-and-style-guides-per-locale/) when translating.
 
