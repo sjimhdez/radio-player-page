@@ -326,7 +326,7 @@ function radplapag_program_edit_scripts() {
 		'radplapag-program-admin',
 		$admin_url . 'js/program-admin.js',
 		[ 'jquery', 'media-editor' ],
-		'3.4.1',
+		'3.4.2',
 		true
 	);
 }
