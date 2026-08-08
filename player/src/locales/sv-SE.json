@@ -2,7 +2,7 @@
   "dashboard": {
     "volume": "Volym",
     "connecting": "Ansluter...",
-    "playStreamError": "Kan inte spela streamen. Försök igen senare.",
+    "playStreamError": "Kan inte spela livesändningen. Försök igen senare.",
     "audioVisualizer": "Visualiserare",
     "play": "Spela",
     "pause": "Pausa",
