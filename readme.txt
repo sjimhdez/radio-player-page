@@ -109,6 +109,12 @@ Welcome Audio is an optional MP3 clip you can upload for a station. When a liste
 
 == Changelog ==
 
+= 3.4.2 =
+* Added Croatian translation.
+* Added Czech translation.
+* Fixed wording in the Swedish translation of the playback error message.
+* Fixed alignment of the active radio show logo, name, and rerun marker on the player page so they stay centered and grouped together. (thanks marcelgremme)
+
 = 3.4.1 =
 * Fixed rerun marker position in the Weekly Schedule dialog to appear below the broadcast time instead of next to the radio show name.
 * Fixed layout of the Live/Active badge and radio show name in the Weekly Schedule and Radio Shows dialogs to stack correctly instead of overlapping on narrow screens.
