@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: radio player, radio station, radio, icecast, shoutcast
 Requires at least: 6.6
 Tested up to: 7.0
-Stable tag: 3.4.1
+Stable tag: 3.4.2
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -108,6 +108,12 @@ Welcome Audio is an optional MP3 clip you can upload for a station. When a liste
 8. Radio Station edit screen with weekly schedule.
 
 == Changelog ==
+
+= 3.4.2 =
+* Added Croatian translation.
+* Added Czech translation.
+* Fixed wording in the Swedish translation of the playback error message.
+* Fixed alignment of the active radio show logo, name, and rerun marker on the player page so they stay centered and grouped together. (thanks marcelgremme)
 
 = 3.4.1 =
 * Fixed rerun marker position in the Weekly Schedule dialog to appear below the broadcast time instead of next to the radio show name.

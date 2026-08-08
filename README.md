@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-3.4.1-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-3.4.2-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
@@ -16,8 +16,9 @@ Dedicated player pages for your radio stations, with program scheduling and cont
 
 - [Description](#description)
 - [Standalone Player Pages](#standalone-player-pages)
-- [Broadcast Management](#broadcast-management)
+- [Multi-Station Support](#multi-station-support)
 - [Listener Experience](#listener-experience)
+- [Additional Features](#additional-features)
 - [WordPress Blocks](#wordpress-blocks)
 - [Built for Modern Web Performance](#built-for-modern-web-performance)
 - [Quick Start](#quick-start)
@@ -31,7 +32,7 @@ Dedicated player pages for your radio stations, with program scheduling and cont
 
 **The key differentiator:** Each station lives on its own independent HTML page, completely bypassing your WordPress theme. This ensures **zero theme conflicts, optimal performance, and one clear URL** per station.
 
-Radio stations and radio shows are managed as WordPress custom post types (**RPP → Stations** and **RPP → Radio Shows**), and the plugin ships two WordPress blocks so schedule and show information can also be displayed inside normal WordPress content.
+Radio stations and radio shows are managed as WordPress custom post types (**RPP → Stations** and **RPP → Radio Shows**), and the plugin ships three WordPress blocks so schedule, radio show, and on-air information can also be displayed inside normal WordPress content.
 
 ---
 
@@ -70,9 +71,7 @@ Works seamlessly with Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 stre
 
 ---
 
-## Broadcast Management
-
-### Multi-Station Support
+## Multi-Station Support
 
 Manage **multiple independent stations** from a single WordPress installation, each with its own stream, schedule, and branding.
 
@@ -83,31 +82,11 @@ Manage **multiple independent stations** from a single WordPress installation, e
 
 Perfect for radio networks, multi-channel stations, or managing multiple streams from one WordPress installation.
 
-### Broadcast Timezone Clock
-
-Keep a global audience informed. When your station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset.
-
-- **Timezone clock** displays the station's local time
-- **Time difference indicator** shows the offset from the listener's timezone
-- Always visible when timezones differ (independent of playback state)
-- Helps international audiences understand program timing
-
-### Media Session API
-
-Professional integration with device lock screens and media controls, displaying station art and info.
-
-- **Lock screen controls** – Station name and artwork on mobile devices
-- **Desktop media controls** – Shows station info in system media controls
-- **Play/pause synchronization** – Controls work seamlessly across devices
-- **Artwork display** – Station logo appears in notifications and controls
-
 ---
 
 ## Listener Experience
 
-### Informed Listening
-
-The player clearly shows **what's on air now and what's coming next**.
+The player clearly shows what's on air now and what's coming next, in an interface you can tailor to your station's brand and audience.
 
 ### Visual Customization
 
@@ -120,35 +99,36 @@ Choose from **8 color themes** (Neutral, Blue, Green, Red, Orange, Yellow, Purpl
 
 Visualizers are lazy-loaded for optimal performance and only activate when audio is playing.
 
-### Station Branding
-
-Upload custom background images and logos for each station. Personalize each station with unique titles, backgrounds, and logos.
-
-### Welcome Audio
-
-Optionally upload an MP3 for each station that plays once before the live stream starts, the first time a listener presses play.
-
-### Convenience Features
-
-- **Sleep timer** – Automatic playback stop (30 min, 1 h, 2 h) with visual countdown; cancels if you pause manually
-- **Volume control** – Adjustable slider (not available on iOS due to system limitations)
-- **Responsive design** – Optimized for desktop, tablet, and mobile
-- **Social sharing** – Open Graph and Twitter Card meta tags for rich link previews on Facebook, Twitter/X, LinkedIn, WhatsApp, and similar platforms
-
 ### Multilingual Interface
 
-Player interface available in **11 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil). Automatic language detection based on browser settings, with fallback to English.
+Player interface available in **12 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil), Italian. Automatic language detection based on browser settings, with fallback to English.
+
+---
+
+## Additional Features
+
+Smaller conveniences that round out the listener and admin experience:
+
+- **Broadcast Timezone Clock** – When a station's timezone differs from the listener's, a discreet clock shows the station's local time and the offset; always visible, independent of playback state.
+- **Media Session integration** – Station name and artwork on device lock screens and system media controls, with play/pause synced across devices.
+- **Station Branding** – Custom background image and logo per station.
+- **Welcome Audio** – Optional MP3 that plays once before the live stream starts, the first time a listener presses play.
+- **Sleep Timer** – Automatic playback stop (30 min, 1 h, 2 h) with visual countdown; cancels if you pause manually.
+- **Volume Control** – Adjustable slider (not available on iOS due to system limitations).
+- **Responsive Design** – Optimized for desktop, tablet, and mobile.
+- **Social Sharing** – Open Graph and Twitter Card meta tags for rich link previews on Facebook, Twitter/X, LinkedIn, WhatsApp, and similar platforms.
 
 ---
 
 ## WordPress Blocks
 
-Two WordPress blocks let you surface schedule and radio show information inside regular WordPress content, using the Block Editor:
+Three WordPress blocks let you surface schedule, radio show, and on-air information inside regular WordPress content, using the Block Editor:
 
 - **Radio Schedule block** (`radplapag/schedule`) – Displays the complete weekly schedule for a selected radio station, with configurable day ordering and optional descriptions.
 - **Radio Shows List block** (`radplapag/programs-list`) – Displays all radio shows for a selected station, including featured images, descriptions, and broadcast times.
+- **Now Playing block** (`radplapag/now-playing`) – Displays the radio show currently on air for a selected station, plus the next show if it starts within 10 minutes. Renders empty on the front end when nothing is on air.
 
-Both blocks read live from the same radio station and radio show data used by the player pages, so there is nothing to keep in sync manually.
+All three blocks read live from the same radio station and radio show data used by the player pages, so there is nothing to keep in sync manually.
 
 ---
 
@@ -246,6 +226,7 @@ radio-player-page/
 │   ├── radplapag-upgrade.php      # DB version gate, triggers migration
 │   ├── radplapag-schedule-block.php
 │   ├── radplapag-programs-list-block.php
+│   ├── radplapag-now-playing-block.php
 │   ├── data/                      # Radplapag_Station_Config, Radplapag_Program_Config
 │   └── migration/                 # Legacy settings-option → CPT one-way migrator
 ├── admin/                         # Loaded when is_admin()
@@ -254,7 +235,8 @@ radio-player-page/
 │   ├── css/, js/                  # Admin styles and form logic
 ├── blocks/
 │   ├── schedule/                  # Radio Schedule block (block.json, render.php, build/)
-│   └── programs-list/             # Radio Shows List block (block.json, render.php, build/)
+│   ├── programs-list/             # Radio Shows List block (block.json, render.php, build/)
+│   └── now-playing/               # Now Playing block (block.json, render.php, build/)
 ├── player/                        # React frontend
 │   ├── src/                       # Components, hooks, config, locales, types, utils
 │   ├── dist/                      # Build output (generated, committed)
@@ -301,10 +283,11 @@ CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/tes
 - `radplapag_get_config()` – Returns config array with key `stations` (ordered list from CPT).
 - `radplapag_get_stations()` – Returns the ordered list of published station configs.
 - `radplapag_get_station_for_current_page()` – Returns the station config for the current page, or `false`.
+- `radplapag_get_now_playing_for_station( $station_index )` – Returns the current and upcoming radio show for a station by its index in `radplapag_get_stations()`, or `null` if the index is invalid. Powers the Now Playing block.
 
 ### Internationalization
 
-Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE, pt-BR / pt_BR. Detection: HTML `lang` → localStorage → navigator. For German (de_DE) and Portuguese Brazil (pt_BR), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/) and [WordPress Portuguese Brazil glossary](https://translate.wordpress.org/locale/pt-br/default/glossary/) where applicable.
+Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE, pt-BR / pt_BR, it-IT / it_IT. Detection: HTML `lang` → localStorage → navigator. For German (de_DE), Portuguese Brazil (pt_BR), and Italian (it_IT), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/), [WordPress Portuguese Brazil glossary](https://translate.wordpress.org/locale/pt-br/default/glossary/), and [WordPress Italian glossary](https://translate.wordpress.org/locale/it/default/glossary/) where applicable.
 
 **Adding a new language:** (1) Add a JSON file in `player/src/locales/` with the same keys as `en-US.json`. (2) Import it and register the locale in `player/src/config/i18n.ts` (use both hyphen and underscore keys if the locale has a region, e.g. `de-DE` and `de_DE`, so WordPress `lang` and browser codes both work). (3) Update this README. Source strings are English (en-US). For locales with an official WordPress glossary (e.g. de_DE), use the [glossary and style guide](https://make.wordpress.org/polyglots/handbook/translating/glossaries-and-style-guides-per-locale/) when translating.
 

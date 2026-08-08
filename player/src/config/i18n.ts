@@ -14,6 +14,8 @@ import translationsDA_DK from 'src/locales/da-DK.json'
 import translationsDE_DE from 'src/locales/de-DE.json'
 import translationsPT_BR from 'src/locales/pt-BR.json'
 import translationsIT_IT from 'src/locales/it-IT.json'
+import translationsCS from 'src/locales/cs.json'
+import translationsHR from 'src/locales/hr.json'
 
 /**
  * Internationalization (i18n) configuration
@@ -32,6 +34,8 @@ import translationsIT_IT from 'src/locales/it-IT.json'
  * - de-DE / de_DE (German - Germany)
  * - pt-BR / pt_BR (Portuguese - Brazil)
  * - it-IT / it_IT (Italian - Italy)
+ * - cs (Czech)
+ * - hr (Croatian)
  *
  * Language detection order:
  * 1. HTML lang attribute
@@ -89,6 +93,12 @@ i18n
       },
       it_IT: {
         translation: translationsIT_IT,
+      },
+      cs: {
+        translation: translationsCS,
+      },
+      hr: {
+        translation: translationsHR,
       },
     },
     fallbackLng: 'en-US',
