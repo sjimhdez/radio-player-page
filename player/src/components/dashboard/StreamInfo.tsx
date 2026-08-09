@@ -5,6 +5,7 @@ import Box from '@mui/material/Box'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState, useEffect } from 'react'
 import useProgramSchedule from 'src/hooks/use-program-schedule'
+import { Avatar } from '@mui/material'
 
 interface StreamInfoProps {
   /** Radio station or stream title */
@@ -110,77 +111,77 @@ const StreamInfo = ({
       >
         {title}
       </Typography>
-      {/* Show active program if schedule is configured */}
-      {currentProgram && (
-        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap" justifyContent="center">
-          <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
-            {t('dashboard.activeProgram')}:
-          </Typography>
+      <Stack gap={4}>
+        {/* Show active program if schedule is configured */}
+        {currentProgram && (
           <Stack
             direction="row"
-            alignItems="center"
-            gap={1}
+            alignItems="baseline"
             justifyContent="center"
+            gap={1}
             flexWrap="wrap"
           >
-            {currentProgram.programLogoUrl && (
-              <Box
-                component="img"
-                src={currentProgram.programLogoUrl}
-                alt="{currentProgram.programName}"
-                aria-hidden
-                sx={{
-                  width: 36,
-                  height: 36,
-                  objectFit: 'cover',
-                }}
-              />
-            )}
-            <Typography variant="h4" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
-              {currentProgram.programName}
+            <Typography variant="body2" component="p" lineHeight={1}>
+              {t('dashboard.activeProgram')}:
             </Typography>
-            {currentProgram.isRerun && (
-              <Stack direction="row" alignItems="baseline">
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  component="p"
-                  sx={{ textWrap: 'balance', hyphens: 'auto' }}
-                >
+
+            <Stack
+              direction="row"
+              alignItems="baseline"
+              justifyContent="center"
+              gap={1}
+              flexWrap="wrap"
+            >
+              {currentProgram.programLogoUrl && (
+                <Avatar
+                  src={currentProgram.programLogoUrl}
+                  alt="{currentProgram.programName}"
+                  aria-hidden
+                  sx={{
+                    position: 'relative',
+                    bottom: '-12px',
+                  }}
+                />
+              )}
+
+              <Typography variant="h4" component="p" lineHeight={1}>
+                {currentProgram.programName}
+              </Typography>
+              {currentProgram.isRerun && (
+                <Typography variant="body2" color="text.secondary" component="p" lineHeight={1}>
                   {t('dashboard.rerunLabel')}
                 </Typography>
-              </Stack>
-            )}
+              )}
+            </Stack>
           </Stack>
-        </Stack>
-      )}
-      {/* Show upcoming program announcement if it starts within 10 minutes */}
-      {upcomingProgram && (
-        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
-          <Stack direction="row" alignItems="baseline" gap={0.5}>
-            <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+        )}
+        {/* Show upcoming program announcement if it starts within 10 minutes */}
+        {upcomingProgram && (
+          <Stack
+            direction="row"
+            alignItems="baseline"
+            justifyContent="center"
+            gap={1}
+            flexWrap="wrap"
+          >
+            <Typography variant="body2" component="p" lineHeight={1}>
               {t('dashboard.upcomingPrefix')}:
             </Typography>
-            <Typography
-              variant="body1"
-              component="p"
-              fontWeight="bold"
-              sx={{ textWrap: 'balance', hyphens: 'auto' }}
-            >
+            <Typography variant="body1" component="p" fontWeight="bold" lineHeight={1}>
               {upcomingProgram.programName}{' '}
             </Typography>
             {upcomingProgram.isRerun && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary" lineHeight={1}>
                 {t('dashboard.rerunLabel')}
               </Typography>
             )}
-            <Typography variant="body2" component="p" sx={{ textWrap: 'balance', hyphens: 'auto' }}>
+            <Typography variant="body2" component="p" lineHeight={1}>
               {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
               {upcomingProgram.timeRange}
             </Typography>
           </Stack>
-        </Stack>
-      )}
+        )}
+      </Stack>
       {/* Show connecting message when loading but not yet playing */}
       {loading && !isPlaying && (
         <Typography
