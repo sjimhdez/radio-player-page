@@ -140,6 +140,7 @@ const StreamInfo = ({
                   sx={{
                     position: 'relative',
                     bottom: '-12px',
+                    marginBottom: '12px',
                   }}
                 />
               )}
