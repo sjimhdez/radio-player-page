@@ -115,34 +115,35 @@ const StreamInfo = ({
         {/* Show active program if schedule is configured */}
         {currentProgram && (
           <Stack
-            direction="row"
-            alignItems="baseline"
+            flexDirection={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'center', sm: 'baseline' }}
             justifyContent="center"
-            gap={1}
             flexWrap="wrap"
+            gap={1.5}
           >
             <Typography variant="body2" component="p" lineHeight={1}>
               {t('dashboard.activeProgram')}:
             </Typography>
 
             <Stack
-              direction="row"
-              alignItems="baseline"
+              flexDirection={{ xs: 'column', sm: 'row' }}
+              alignItems={{ xs: 'center', sm: 'baseline' }}
               justifyContent="center"
               gap={1}
               flexWrap="wrap"
             >
               {currentProgram.programLogoUrl && (
-                <Avatar
-                  src={currentProgram.programLogoUrl}
-                  alt="{currentProgram.programName}"
-                  aria-hidden
-                  sx={{
-                    position: 'relative',
-                    bottom: '-12px',
-                    marginBottom: '8px',
-                  }}
-                />
+                <Box
+                  position={{ sm: 'relative' }}
+                  bottom={{ xs: 0, sm: '-12px' }}
+                  marginBottom={{ xs: 0, sm: '8px' }}
+                >
+                  <Avatar
+                    src={currentProgram.programLogoUrl}
+                    alt="{currentProgram.programName}"
+                    aria-hidden
+                  />
+                </Box>
               )}
 
               <Typography
