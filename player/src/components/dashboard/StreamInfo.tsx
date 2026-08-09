@@ -111,7 +111,7 @@ const StreamInfo = ({
       >
         {title}
       </Typography>
-      <Stack gap={4}>
+      <Stack gap={3}>
         {/* Show active program if schedule is configured */}
         {currentProgram && (
           <Stack
@@ -140,12 +140,25 @@ const StreamInfo = ({
                   sx={{
                     position: 'relative',
                     bottom: '-12px',
-                    marginBottom: '12px',
+                    marginBottom: '8px',
                   }}
                 />
               )}
 
-              <Typography variant="h4" component="p" lineHeight={1}>
+              <Typography
+                variant="h4"
+                component="p"
+                lineHeight={1.3}
+                sx={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'break-word',
+                  hyphens: 'auto',
+                }}
+              >
                 {currentProgram.programName}
               </Typography>
               {currentProgram.isRerun && (
@@ -168,8 +181,22 @@ const StreamInfo = ({
             <Typography variant="body2" component="p" lineHeight={1}>
               {t('dashboard.upcomingPrefix')}:
             </Typography>
-            <Typography variant="body1" component="p" fontWeight="bold" lineHeight={1}>
-              {upcomingProgram.programName}{' '}
+            <Typography
+              variant="body1"
+              component="p"
+              fontWeight="bold"
+              lineHeight={1.3}
+              sx={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+                hyphens: 'auto',
+              }}
+            >
+              {upcomingProgram.programName}
             </Typography>
             {upcomingProgram.isRerun && (
               <Typography variant="body2" color="text.secondary" lineHeight={1}>
