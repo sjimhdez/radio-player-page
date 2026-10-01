@@ -2,7 +2,7 @@
 Contributors: sjimhdez
 Tags: radio player, radio station, radio, icecast, shoutcast
 Requires at least: 6.6
-Tested up to: 7.0
+Tested up to: 7.1
 Stable tag: 3.4.2
 Requires PHP: 7.4
 License: GPLv2 or later
