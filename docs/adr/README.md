@@ -10,3 +10,4 @@ Decisiones de arquitectura con formato de Michael Nygard: contexto, decisión, c
 | [0004](0004-crossorigin-on-direct-sources.md) | `crossOrigin` en las fuentes directas, no en las rutas MSE | aceptado | 0001 · R3 |
 | [0005](0005-migration-sources-2-0-plus.md) | La migración admite los formatos de la 2.0 en adelante | aceptado | 0001 · R5 |
 | [0006](0006-happy-dom.md) | happy-dom como entorno DOM de Vitest en el player | aceptado | 0001 · R4 |
+| [0007](0007-trunk-integration-branch.md) | Rama de integración `trunk`; `main` = lo publicado | aceptado | 0001 · §6 |

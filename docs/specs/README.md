@@ -17,7 +17,7 @@
 | 0007+ | Correcciones por zona (lo aprobado en el triage de la 0002) | pendiente de escribir | — | 0005, 0006 |
 | último | Release | pendiente de escribir | — | todas |
 
-Las 0003 y 0004 son independientes entre sí, igual que las 0005 y 0006. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree.
+Las 0003 y 0004 son independientes entre sí, igual que las 0005 y 0006. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree y con su rama desde `trunk`.
 
 ## Iniciativa en curso: base de calidad (versión 3.x siguiente)
 
@@ -31,7 +31,7 @@ Las 0003 y 0004 son independientes entre sí, igual que las 0005 y 0006. Se pued
 |---|---|---|
 | 1 | Metodología | Spec-driven development, ADRs, fases con criterios de aceptación, spike, caracterización antes de refactorizar, TDD/ATDD, commits atómicos e ingeniería de contexto (detalle en la 0001, §2). |
 | 2 | Requisitos mínimos | Se mantienen **WordPress 6.6+** y **PHP 7.4+**. |
-| 3 | Releases y ramas | Ninguna release hasta la spec de release. Trunk-based: una rama `spec/*` por spec, PR a `main` con merge commit (sin squash), que fusiona el usuario; los tags `vX.Y.Z` marcan lo publicado (0001, §6). |
+| 3 | Releases y ramas | Ninguna release hasta la spec de release. `trunk` integra y `main` es lo publicado ([ADR 0007](../adr/0007-trunk-integration-branch.md)): una rama `spec/*` por spec, desde `trunk`, PR a `trunk` con merge commit (sin squash), que fusiona el usuario; la release es un PR `trunk` → `main` con su tag `vX.Y.Z` (0001, §6). |
 | 4 | Comportamiento | No cambia nada visible hasta las specs de correcciones. Excepción: lo que imponga una actualización de dependencias, con su ADR. |
 | 5 | Visualizadores | Siguen en el producto y quedan **congelados**: fuera del refactor y de los mínimos de cobertura. Su contrato con el reproductor (`crossOrigin = 'anonymous'` en toda fuente asignada a `audio.src`, [ADR 0004](../adr/0004-crossorigin-on-direct-sources.md); `audioRef`) se preserva y se testea. C5 y la parte del canvas de C15 solo se corrigen si el usuario lo aprueba, con un ADR. |
 | 6 | Dos mundos | La parte WordPress sigue las guidelines de WordPress.org y los estándares de WordPress. La parte React (`player/`) es independiente (0001, §3). |
@@ -87,4 +87,4 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - Plugin Check sobre el zip, la checklist de las guidelines y la matriz PHP 7.4/8.4 × WP 6.6/última;
   - verificación manual: iOS y Android, una emisora real y una actualización desde la 3.4.2;
   - changelog y `== Upgrade Notice ==`;
-  - merge a `main`, tag `vX.Y.Z` y pasos de SVN para el usuario.
+  - merge en `trunk`, PR `trunk` → `main`, tag `vX.Y.Z` y pasos de SVN para el usuario.

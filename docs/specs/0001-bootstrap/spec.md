@@ -15,9 +15,9 @@ Para la sesión que la ejecuta:
 1. Lee la hoja de ruta (`docs/specs/README.md`), esta spec y la sección *Documentation for Developers* de `README.md`.
 2. Si existe `docs/status.md`, manda. Si no, se empieza por la **fase 0**.
 3. **Antes de la fase 0:**
-   - crea la rama `spec/0001-bootstrap` desde `main` (§6);
+   - crea la rama `spec/0001-bootstrap` desde `main` (§6; `trunk` se creó después, desde `main`, ADR 0007);
    - haz un primer commit con los documentos de diseño (`docs/specs/` y `docs/inherited-bugs.md`), con el mensaje `docs(0001): add specs roadmap and bootstrap spec`;
-   - pide al usuario que haga el push y que configure la protección de `main` en GitHub: PR obligatorio, CI en verde, sin force push. Esa configuración la hace el usuario; los permisos de Claude todavía no existen hasta la fase 1;
+   - pide al usuario que haga el push y que configure la protección de `main` y de `trunk` en GitHub: PR obligatorio, CI en verde, sin force push. Esa configuración la hace el usuario; los permisos de Claude todavía no existen hasta la fase 1;
    - abre el PR en borrador.
 4. Hasta que existan las skills `start-phase` y `close-phase` (se crean en la fase 1), cada fase empieza igual: plan mode → plan en `docs/specs/0001-bootstrap/phase-N.md` con el formato de §7.8 → aprobación del usuario → ejecución tarea a tarea, con un commit por tarea.
 5. Si algo de esta spec resulta falso al contrastarlo con el código, o una decisión la contradice: **para y pregunta**. Si se confirma el cambio, se escribe un ADR y se actualiza la spec en el mismo commit.
@@ -49,7 +49,7 @@ Fuera de alcance: escribir tests de caracterización (spec 0002), actualizar dep
 |---|---|
 | **Spec-driven development** | `SPEC.md` (raíz) describe **cómo es el producto hoy**: su contrato y sus invariantes. Cada cambio se describe en una **spec de cambio** (`docs/specs/NNNN-slug/spec.md`) con objetivos, fases y criterios de aceptación. Al cerrarla, `SPEC.md` se actualiza con lo que cambió. |
 | **ADRs** (Michael Nygard) | Están en `docs/adr/`. Cada decisión de arquitectura lleva su contexto y las alternativas descartadas. Si contradice `SPEC.md` o la spec activa, se actualizan los dos documentos en el mismo commit. |
-| **Desarrollo iterativo e incremental por fases** | Cada spec tiene fases con criterios de aceptación. Al cerrar cada fase, `main` queda en verde. |
+| **Desarrollo iterativo e incremental por fases** | Cada spec tiene fases con criterios de aceptación. Al cerrar cada fase, `trunk` queda en verde. |
 | **Spike** (XP) | Es la fase 0 de una spec con riesgo técnico: un prototipo desechable para validar los riesgos antes de construir. |
 | **Tests de caracterización** (Feathers, *Working Effectively with Legacy Code*) | **Antes de tocar código existente**, se fija su comportamiento actual con tests, aunque ese comportamiento sea raro. Esta es la red de seguridad del refactor. |
 | **TDD** | Para **la lógica nueva y la lógica extraída**: el test se escribe primero y se ve en rojo. Cada bug corregido lleva su test de regresión, que también se ve fallar primero. |
@@ -65,7 +65,7 @@ write-spec (sesión de diseño)   →  docs/specs/NNNN-slug/spec.md (propuesta) 
   └─ sesión nueva: start-phase  →  rama spec/NNNN-slug + docs/specs/NNNN-slug/phase-N.md (aprobado en plan mode)
        └─ tareas (caracterización o TDD, un commit por tarea, hook Stop en verde)
        └─ close-phase           →  revisores, ADRs, SPEC.md, rules, status.md, known-issues.md
-  └─ última close-phase         →  spec «cerrada», merge de la rama (§6), índice actualizado
+  └─ última close-phase         →  spec «cerrada», merge de la rama en `trunk` (§6), índice actualizado
        └─ sesión de diseño: write-spec de la siguiente spec del índice, con lo aprendido
 ```
 
@@ -276,39 +276,53 @@ En esta spec se montan las herramientas y una suite de humo por capa. Los tests 
     - `timezoneOffset` con valores negativos y fraccionarios (+5:30)
 - Nombres: PHP `*Test.php` con métodos `test_*`; TS `*.test.ts(x)`. Un comportamiento por test.
 
-## 6. Flujo de ramas (decidido el 2026-10-16 → ADR en la fase 1)
+## 6. Flujo de ramas ([ADR 0007](../../adr/0007-trunk-integration-branch.md))
 
-Trunk-based development: ramas cortas, una por spec, que entran en `main` por PR con merge commit (sin squash).
+Dos ramas largas: **`trunk`** (integración) y **`main`** (lo publicado). Ramas cortas, una por spec, que entran en `trunk` por PR con merge commit (sin squash).
 
 ```
-main ──●────────────●──────────────●─────────────●──── (tag vX.Y.Z al publicar)
-        \          / \            / \           /
-spec/0001 ●─●─●─●─●   spec/0002 ●─●─●─●  spec/0003 ●─●─●
-          (PR en borrador → CI en cada push → revisión del usuario → merge --no-ff)
+main  ──●──────────────────────────────────────────●────── (tag vX.Y.Z en cada merge)
+         \                                         /
+trunk     ●────────●───────────────●──────────────●────────
+           \      / \             / \            /
+spec/0001   ●─●─●●   spec/0002 ●─●─●  spec/NNNN ●─●   (PR en borrador → CI → revisión → merge --no-ff)
 ```
 
-- **`main` es la única rama larga.**
-  - Siempre está en verde, pero puede ir por delante de la última versión publicada. Lo publicado lo marcan los tags `vX.Y.Z`, y wordpress.org se sirve de SVN.
-  - Está protegida en GitHub: solo entra código por PR, con la CI en verde, y sin force push.
-- **`spec/NNNN-slug`** sale de `main` en la primera fase de la spec y dura lo que dura la spec. Dentro, un commit por tarea: `<type>(NNNN): <description> (<fase>.<tarea>)`.
-- **PR en borrador** desde el primer push, para que la CI corra en cada push. Al cerrar la spec pasa a «listo». **El merge lo hace siempre el usuario**, con merge commit (`--no-ff`) y el título `Spec NNNN: <título>`. Antes puede lanzar `/code-review` sobre el PR.
-- **Sin squash.** `git log --first-parent main` muestra una línea por spec, y `git log` conserva cada tarea. `git bisect`, el blame y `.git-blame-ignore-revs` siguen funcionando, y `git revert -m 1 <merge>` deshace una spec entera.
-- **Release:** la spec de release sube la versión en su rama, se fusiona y se pone el tag `vX.Y.Z` en el merge. La skill `release` genera el zip desde ese tag y prepara los pasos de SVN, que ejecuta el usuario.
+- **`main` = la última versión publicada.**
+  - Coincide siempre con el tag más reciente. Solo recibe PRs `trunk` → `main` (release) y `hotfix/*` → `main`.
+  - Es la rama por defecto en GitHub: quien visita el repositorio ve lo publicado.
+- **`trunk` = integración.**
+  - Sale de `main` (3.4.2). Siempre está en verde y puede ir por delante de lo publicado.
+  - Recibe todos los PRs de las specs.
+- **Las dos ramas están protegidas** en GitHub con el mismo ruleset: PR obligatorio sin aprobaciones, CI en verde con la rama al día, sin force push, sin borrado y solo merge commit.
+- **`spec/NNNN-slug`** sale de `trunk` en la primera fase de la spec y dura lo que dura la spec. Dentro, un commit por tarea: `<type>(NNNN): <description> (<fase>.<tarea>)`.
+- **PR en borrador contra `trunk`** (`gh pr create --draft --base trunk`; sin `--base` apuntaría a `main`, que es la rama por defecto) desde el primer push, para que la CI corra en cada push.
+  - Al cerrar la spec, el PR pasa a «listo».
+  - **El merge lo hace siempre el usuario**, con merge commit (`--no-ff`) y el título `Spec NNNN: <título>`. Antes puede lanzar `/code-review` sobre el PR.
+- **Sin squash.**
+  - `git log --first-parent trunk` muestra una línea por spec, y `git log --first-parent main` una por versión.
+  - `git log` conserva cada tarea.
+  - `git bisect`, el blame y `.git-blame-ignore-revs` siguen funcionando.
+  - `git revert -m 1 <merge>` deshace una spec entera.
+- **Release:**
+  1. la spec de release sube la versión en su rama y se fusiona en `trunk`;
+  2. el usuario fusiona un PR `trunk` → `main` titulado `Release vX.Y.Z`, con merge commit;
+  3. se pone el tag `vX.Y.Z` en ese merge;
+  4. la skill `release` genera el zip desde el tag y prepara los pasos de SVN, que ejecuta el usuario.
 - **Parche urgente:**
-  1. rama `hotfix/X.Y.Z` desde el tag publicado, con su test de regresión;
-  2. se publica desde esa rama y se le pone el tag;
-  3. después se fusiona en `main` con un PR.
-
-  Es el único caso en que se publica desde fuera de `main`.
-- **Specs en paralelo:** cada una en su worktree y con su rama.
+  1. rama `hotfix/X.Y.Z` desde `main` (que es el tag publicado), con su test de regresión;
+  2. PR a `main`, merge y tag; se publica desde ese tag;
+  3. PR `main` → `trunk` para llevar el arreglo a la integración.
+- **Specs en paralelo:** cada una en su worktree y con su rama, las dos desde `trunk`.
 - **Permisos de Claude** (`.claude/settings.json`):
-  - se permiten: crear ramas `spec/*`, commitear, `git push -u origin spec/*`, `gh pr create --draft`, `gh pr view`, `gh pr checks` y `gh pr ready`;
-  - se deniegan: `git push` a `main`, `git push --force*`, `gh pr merge`, `git tag` (solo en la skill `release`, invocada por el usuario) y `svn *`.
-- Las skills `start-phase` y `close-phase` crean la rama, abren el PR y lo marcan como listo.
-- **Descartado:**
-  - GitFlow, porque mantener `develop` y `main` en paralelo no aporta nada a un solo desarrollador que publica por SVN;
-  - una rama release larga con squash, porque la CI va aparte, se integra todo al final y el squash rompe la trazabilidad;
-  - commits directos a `main`, porque no habría PR donde revisar el trabajo antes de que entre.
+  - se permiten: crear ramas `spec/*`, commitear, `git push -u origin spec/*`, `gh pr create --draft --base trunk`, `gh pr view`, `gh pr checks` y `gh pr ready`;
+  - se deniegan: `git push` a `main` o a `trunk`, `git push --force*`, `gh pr merge`, `git tag` (solo en la skill `release`, invocada por el usuario) y `svn *`.
+- Las skills `start-phase` y `close-phase` crean la rama, abren el PR contra `trunk` y lo marcan como listo. La skill `release` abre el PR `trunk` → `main`.
+- **Descartado** (detalle en el ADR 0007):
+  - solo `main`, con los tags para lo publicado, porque `main` iría por delante de lo publicado durante toda la iniciativa;
+  - `trunk` como rama por defecto, porque quien visita el repositorio vería código sin publicar;
+  - GitFlow completo (`release/*`, `feature/*`), porque sobra para un solo desarrollador que publica por SVN;
+  - commits directos a `trunk` o a `main`, porque no habría PR donde revisar el trabajo antes de que entre.
 
 ## 7. Ingeniería de contexto
 
@@ -410,7 +424,7 @@ Todas terminan con «`npm run check` en verde; actualizar `docs/status.md`».
 | Skill | Cuándo | Qué garantiza |
 |---|---|---|
 | `write-spec` | El usuario pide un trabajo nuevo (funcionalidad, refactor o bug no trivial) | Se ejecuta en la sesión de diseño. Lee `SPEC.md`, los ADRs y el código. Escribe `docs/specs/NNNN-slug/spec.md` con la plantilla: contexto, objetivos y no objetivos, cambios al contrato de `SPEC.md`, fases con criterios de aceptación como tests, riesgos y una sección «Cómo usar este documento» para la sesión nueva. Actualiza el índice. **No implementa nada.** |
-| `start-phase` | Al empezar una fase | Lee la spec activa, los ADRs y el plan anterior. En la primera fase, crea la rama `spec/NNNN-slug` desde `main` y abre el PR en borrador (§6). En plan mode, escribe `phase-N.md` con tareas de ≤ 1 h, cada una con su test y su comando de verificación. Actualiza `status.md`. |
+| `start-phase` | Al empezar una fase | Lee la spec activa, los ADRs y el plan anterior. En la primera fase, crea la rama `spec/NNNN-slug` desde `trunk` y abre el PR en borrador contra `trunk` (§6). En plan mode, escribe `phase-N.md` con tareas de ≤ 1 h, cada una con su test y su comando de verificación. Actualiza `status.md`. |
 | `close-phase` | Al terminar una fase | Integración + e2e en verde. Ejecuta los subagentes revisores. Escribe los ADRs de la fase. Actualiza `SPEC.md` si cambió el contrato. Revisa las rules y `CLAUDE.md` (buscando instrucciones contradictorias u obsoletas). Actualiza `status.md`. Commit `chore(NNNN): close phase N`. En la última fase, además, cierra la spec: estado «cerrada» en el índice, PR marcado como «listo» para que el usuario lo fusione (§6) y un recordatorio para escribir la siguiente spec con `write-spec` en una sesión de diseño. |
 | `characterize` | Antes de tocar un archivo o módulo existente | Inventaría sus entradas, salidas y efectos (hooks, BD, globales, HTML). Escribe tests contra el código sin modificarlo y los comprueba con una mutación temporal: un cambio que debe romperlos y se revierte después. Apunta las rarezas en `known-issues.md`. |
 | `fix-bug` | Se corrige un bug | Test de regresión primero, visto en rojo; después el arreglo mínimo; después en verde. Commit `fix(…)`. |
@@ -507,7 +521,7 @@ Objetivo: validar los riesgos del montaje de tests antes de construir nada. El c
   - `SPEC.md` (producto), a partir de §4 verificado contra el código, con la metodología (§2), los dos mundos (§3) y las invariantes;
   - `docs/specs/_template.md`, y el índice (`docs/specs/README.md`) al día;
   - `docs/status.md`;
-  - `docs/adr/` con ADRs retroactivos de las decisiones ya existentes: páginas limpias sin tema; React + MUI + Vite en el player; migración a CPT en la 3.3.0; prefijos; requisitos mínimos; `crossOrigin` anónimo para los visualizadores; build commiteado; publicación por SVN. Más los de la iniciativa: flujo de ramas (§6), metodología por specs, caracterización antes que refactor, visualizadores congelados, dos mundos (WordPress.org / React), proyectos JS sin unificar y última versión de todo.
+  - `docs/adr/` con ADRs retroactivos de las decisiones ya existentes: páginas limpias sin tema; React + MUI + Vite en el player; migración a CPT en la 3.3.0; prefijos; requisitos mínimos; `crossOrigin` anónimo para los visualizadores; build commiteado; publicación por SVN. Más los de la iniciativa: flujo de ramas (§6, ya escrito: ADR 0007), metodología por specs, caracterización antes que refactor, visualizadores congelados, dos mundos (WordPress.org / React), proyectos JS sin unificar y última versión de todo.
   - `docs/known-issues.md` sembrado con el catálogo C1–C16 de `docs/inherited-bugs.md` (§5.2), todavía sin confirmar, y con los candidatos `K*` del spike ([informe](../../spikes/0001-phase-0.md), «Para la fase 1»). Después se borra `inherited-bugs.md`.
 - **CI:** los jobs nuevos (PHPCS, PHPCompatibility, PHPUnit unit e integración con la matriz de R1, Vitest, Playwright y tests de hooks), aunque las suites estén casi vacías. También la comprobación de que el zip no contiene rutas de desarrollo.
 - ✅ **Criterios:**
@@ -522,7 +536,7 @@ Objetivo: validar los riesgos del montaje de tests antes de construir nada. El c
 - PHPCS (WPCS + PHPCompatibilityWP `7.4-`).
 - Plugin Check (todas las categorías).
 - PHPStan con su baseline (desde la spec 0002).
-- Disparadores: `push` a `main` y `pull_request` (las ramas `spec/*` siempre tienen un PR en borrador).
+- Disparadores: `push` a `main` y a `trunk`, y `pull_request` (las ramas `spec/*` siempre tienen un PR en borrador).
 - **Un job por proyecto JS, sin unificar:**
   - la raíz: ESLint de WordPress en `admin/js` y Vitest del admin;
   - `player/`: `npm ci` → `tsc` → ESLint → Vitest con umbrales → build → `git diff --exit-code player/dist/`;
@@ -543,8 +557,8 @@ Objetivo: validar los riesgos del montaje de tests antes de construir nada. El c
 | 2 | La página limpia no se puede testear por el `exit` | Spike R2 | Fase 0 |
 | 3 | La reproducción de streams en e2e es inestable (autoplay, WebKit en Linux) | Spike R3, servidor de streams local y reintentos solo en CI | Fase 0 |
 | 4 | Con `crossOrigin = 'anonymous'`, los streams sin CORS no suenan (C1) | Se mide en el spike (R3) y se apunta en `known-issues.md`. Se caracteriza en la 0002 | Fase 0 |
-| 5 | Una spec larga deja su rama abierta mucho tiempo y se aleja de `main` | Specs pequeñas; si una se alarga, se rebasa o se fusiona `main` en su rama al empezar cada fase | Continuo |
-| 6 | Parches urgentes mientras dura la iniciativa | `hotfix/*` desde el tag `v3.4.2` y merge a `main` después (§6) | Si ocurre |
+| 5 | Una spec larga deja su rama abierta mucho tiempo y se aleja de `trunk` | Specs pequeñas; si una se alarga, se fusiona `trunk` en su rama al empezar cada fase | Continuo |
+| 6 | Parches urgentes mientras dura la iniciativa | `hotfix/*` desde `main` (= `v3.4.2`), merge a `main` y PR `main` → `trunk` (§6) | Si ocurre |
 | 7 | El bootstrap se come la iniciativa (demasiada configuración antes de escribir tests) | Las suites se quedan en humo; los tests de verdad son la 0002. Criterio de la fase 1: todo funciona, no todo está completo | Fase 1 |
 
 ## Apéndice A — Referencias
