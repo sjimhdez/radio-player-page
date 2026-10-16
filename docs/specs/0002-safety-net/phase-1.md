@@ -57,7 +57,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: caracterización, `ScheduleHelpersTest.php`. Mutación: `||` → `&&` en `radplapag_is_slot_active()`.
 - Verificación: `npm run test:php:unit`
 - Nota: PHP y TS dan la misma resolución en todos los vectores (el saneador guarda las franjas ordenadas por inicio), así que no hay resultados `php`/`ts`. La validación sí lleva `php`/`admin` (C3) y el código `start_equals_end`, que solo da el admin. C3-4 (martes 07:00 con la franja `08:00–08:00`) es C16, no C3. Mutación `||` → `&&`: 10 tests fallan.
-- [x] hecha · commit: —
+- [x] hecha · commit: b53c8d7
 
 ### 1.3 Saneado y validación del horario (≤ 1 h)
 - Qué: `radplapag_sanitize_station_schedule()` con los vectores `validation` y además:
@@ -69,7 +69,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/php/integration/Schedule/SanitizeScheduleTest.php`, `docs/known-issues.md` (C3, C10).
 - Test: caracterización. Mutación: quitar el `continue` tras el error de formato.
 - Verificación: `npm run test:php:integration -- --filter SanitizeScheduleTest`
-- [ ] hecha · commit: —
+- Nota: los códigos de error salen del primer mensaje (en inglés, `en_US`). La rama «End time must be after start time» es inalcanzable: con `end <= start` el fin pasa al día siguiente. Del solape entre días solo se informa el primero, detrás de todos los errores por día. Mutación sin el `continue`: 2 tests fallan (con `'ab:cd'` no mordía; el test usa `'7:00'`, que solaparía).
+- [x] hecha · commit: —
 
 ### 1.4 Guardado de la emisora (≤ 1 h)
 - Qué: `radplapag_save_station_meta()`:
