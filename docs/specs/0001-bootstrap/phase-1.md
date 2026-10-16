@@ -41,13 +41,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `.nvmrc`, `player/.nvmrc`, `blocks/*/.nvmrc`, `player/package.json`, `blocks/*/package.json`, `.editorconfig`, `.gitignore`, `README.md`.
 - Test: —
 - Verificación: `npm --prefix player ci && npm --prefix player run build && git diff --exit-code player/dist` (Node 26); ídem en cada bloque. `package-lock.json` sin más cambio que `engines`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 3b7a9a3
 
 ### 1.3 `package.json` de la raíz y wp-env (dev + tests) (≤ 1 h)
 - Qué: `package.json` raíz (privado, GPL, `engines`) solo con herramientas de la parte WordPress, versiones exactas del censo: `@wordpress/env` 11.17.0, `@playwright/test` 1.64.1, `vitest` + `@vitest/coverage-v8` 5.0.5, `@wordpress/eslint-plugin` y `eslint` (últimas). `.wp-env.json` de desarrollo (última WP, PHP 8.4, mapea el plugin) y `.wp-env.tests.json` aparte (`--config`, puertos propios, `testsEnvironment: false`) cuyo `core`/`phpVersion` se fija por `WP_ENV_CORE`/`WP_ENV_PHP_VERSION` para las dos puntas (R1). Scripts `env:start`, `env:start:min`, `env:start:latest`, `env:stop`, `env:reset`.
 - Archivos: `package.json`, `package-lock.json`, `.wp-env.json`, `.wp-env.tests.json`.
 - Test: —
 - Verificación: `npm run env:start:min` y `npx wp-env --config .wp-env.tests.json run cli wp core version` → 6.6.x; ídem latest → 7.1.x; comprobar que la BD de tests no es la de desarrollo (una opción escrita en una no aparece en la otra).
+- Resultado: desarrollo en `:8886` (el `:8888` lo usa el entorno de `podcast-player-page`), tests en `:8890`. Tests mínima: WP 6.6.10 + PHP 7.4.33; latest: WP 7.1.3 + PHP 8.4.26. Una opción escrita en tests no aparece en desarrollo.
 - [ ] hecha · commit: —
 
 ### 1.4 Composer y PHPCS (≤ 1 h)
