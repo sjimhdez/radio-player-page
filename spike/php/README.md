@@ -15,3 +15,10 @@ configured database with the `wp_` prefix and would wipe the development site.
 
 R7 variants (PHPUnit 10/11/12 on the `env-latest` stack) were built in throwaway
 folders with `config.platform.php = 8.4.0`; the results are in the report.
+
+## R5 — migration golden master
+
+`fixtures/legacy-settings/*.json` are the historical shapes of `radplapag_settings`
+(reconstructed from the git tags, source noted in each `_source`). `MigrationGoldenTest`
+runs the real admin path twice and compares with `fixtures/golden/*.json`. Delete a golden
+to regenerate it (the test is marked incomplete on that run).

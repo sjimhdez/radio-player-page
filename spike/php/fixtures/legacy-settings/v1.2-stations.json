@@ -1,0 +1,9 @@
+{
+	"_source": "v1.2.0–v1.2.1 compatibility.php: radplapag_migrate_old_settings() → stations[] with station_title",
+	"settings": {
+		"stations": [
+			{ "stream_url": "https://stream.example.test/one.mp3", "player_page": "{{PAGE_1}}", "station_title": "Station One" },
+			{ "stream_url": "https://stream.example.test/two.m3u8", "player_page": "{{PAGE_2}}", "station_title": "" }
+		]
+	}
+}

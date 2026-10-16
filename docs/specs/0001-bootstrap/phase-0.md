@@ -50,13 +50,13 @@ Entorno local comprobado: Node 22.23.3 (nvm; también 20.19.2), PHP 8.5 + `php@7
 - Qué: proyecto en `spike/player-unit/` con alias a `player/src` (sin tocar `player/package.json`), `FakeAudioElement` y `vi.mock('hls.js')`/`vi.mock('dashjs')` para los `import()` dinámicos. 3–4 tests: MP3 asigna `src` con `crossOrigin`, HLS no‑iOS crea `Hls`, DASH inicializa con autoplay, iOS usa HLS nativo. Ejecutar con happy-dom y con jsdom y elegir.
 - Archivos: `spike/player-unit/{package.json,vitest.config.ts,fake-audio.ts,use-audio-player.test.tsx}`.
 - Verificación: `npx vitest run --environment happy-dom` y `--environment jsdom`.
-- [x] hecha · commit: —
+- [x] hecha · commit: 3300a35
 
 ### 0.6 R5 — Golden master de la migración (≤ 1 h)
 - Qué: reconstruir del historial de git (`git log -S radplapag_settings`; 1.0.1 → 3.2.x) las formas reales de `radplapag_settings` por versión; fixtures JSON; test de integración que fija la opción, ejecuta el migrador (`includes/migration/class-radplapag-migrator-settings-to-cpt.php` vía `includes/radplapag-upgrade.php`), vuelca posts + meta normalizados y compara con el golden; segunda pasada sin cambios.
 - Archivos: `spike/php/fixtures/legacy-settings/*.json`, `spike/php/MigrationGoldenTest.php`.
 - Verificación: el test pasa en la config `min` de 0.2.
-- [ ] hecha · commit: —
+- [x] hecha · commit: —
 
 ### 0.7 R6 — Node: builds idénticos y versión mínima (≤ 1 h)
 - Qué: con la última Node, `npm ci && npm run build` en `player/` y en `blocks/{schedule,programs-list,now-playing}` (en un worktree temporal, para no ensuciar el árbol), `diff -r` contra lo commiteado; repetir con 20 y 22 para la mínima. Comprobar wp-env, Vitest y Playwright de 0.2–0.5 con la última Node (ojo: el workaround de `test.yml` por el bug de wp-env en Node 24.16+).
