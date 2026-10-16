@@ -143,7 +143,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/php/integration/Schedule/ScheduleVectorsTest.php`, `docs/known-issues.md` (C16, parte PHP).
 - Test: caracterización. Mutación: ventana de 10 → 9 minutos.
 - Verificación: `npm run test:php:integration -- --filter ScheduleVectorsTest` en las dos puntas.
-- [ ] hecha · commit: —
+- Nota: 23 tests. Los 18 vectores de `resolution`: 15 con el resultado correcto y 3 `currently` de C16 (13, 14 y también C3-4, que es el mismo fallo con `start == end`), en un test `test_currently_*` aparte que además exige que el vector difiera de su `correct`. El resultado PHP de cada vector es su `current`/`upcoming` de primer nivel; `minutes` y `from` no salen en la respuesta (se ven en `day_label`). Una franja activa con el programa en borrador da `current` nulo (y `upcoming` nulo si es la siguiente). Sin filas nuevas en `known-issues.md`; C16 pasa a «confirmado (helper PHP y programa en antena)». Mutación: ventana de 10 → 9 minutos (falla el vector 3). En verde en PHP 7.4 + WP 6.6.10 y en PHP 8.4 + WP 7.1.3.
+- [x] hecha · commit: —
 
 ### 1.9 Helpers de los bloques de horario y programas (≤ 1 h)
 - Qué:
