@@ -104,13 +104,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: primero: `smoke.spec.ts`.
 - Verificación: `npm run test:e2e` (2 navegadores en verde).
 - Resultado: el `global-setup` siembra el sitio `wp_` del entorno de tests con `seed.php` (ya era idempotente) y guarda la URL en `test-results/e2e-seed.json`. Un *fixture* automático aborta cualquier petición fuera del origen de test y falla si hubo alguna. 2/2 en verde (Chromium y WebKit); con la mutación (`Pause` en vez de `Play`) falla.
-- [ ] hecha · commit: —
+- [x] hecha · commit: c55ed83
 
 ### 1.11 Test de la lista del zip (≤ 1 h)
 - Qué: `tests/zip/compare-with-v3.4.2.sh`: genera el zip de `HEAD` y el de `v3.4.2` (con `git worktree` temporal y el script del tag), compara `unzip -Z1` ordenado y falla ante cualquier ruta prohibida (§9). Script `check:zip`.
 - Archivos: `tests/zip/compare-with-v3.4.2.sh`, `package.json`.
 - Test: primero: el script, visto en rojo metiendo temporalmente un archivo de más en la lista de `build-release-zip.sh` (se revierte).
 - Verificación: `npm run check:zip`.
+- Resultado: 39 archivos, la misma lista que `v3.4.2`. Mutaciones: copiar `README.md` → falla el diff; copiar `phpcs.xml.dist` → falla el diff y la comprobación de rutas prohibidas.
 - [ ] hecha · commit: —
 
 ### 1.12 `npm run check` orquestado (≤ 1 h)

@@ -21,7 +21,8 @@
 		"test": "TZ=UTC vitest run",
 		"test:coverage": "TZ=UTC vitest run --coverage",
 		"lint:js": "eslint .",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"check:zip": "bash tests/zip/compare-with-v3.4.2.sh"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.64.1",
