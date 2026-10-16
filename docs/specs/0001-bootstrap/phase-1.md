@@ -49,13 +49,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: —
 - Verificación: `npm run env:start:min` y `npx wp-env --config .wp-env.tests.json run cli wp core version` → 6.6.x; ídem latest → 7.1.x; comprobar que la BD de tests no es la de desarrollo (una opción escrita en una no aparece en la otra).
 - Resultado: desarrollo en `:8886` (el `:8888` lo usa el entorno de `podcast-player-page`), tests en `:8890`. Tests mínima: WP 6.6.10 + PHP 7.4.33; latest: WP 7.1.3 + PHP 8.4.26. Una opción escrita en tests no aparece en desarrollo.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 465983d
 
 ### 1.4 Composer y PHPCS (≤ 1 h)
 - Qué: `composer.json` solo `require-dev`: `phpunit/phpunit ^9.6`, `yoast/phpunit-polyfills ^4.0`, `wp-coding-standards/wpcs ^3`, `phpcompatibility/phpcompatibility-wp`, `dealerdirect/phpcodesniffer-composer-installer`; `config.platform.php = 7.4.33`. `phpcs.xml.dist`: `WordPress` + `PHPCompatibilityWP` con `testVersion 7.4-`, `minimum_wp_version 6.6`, prefijos `radplapag`/`RADPLAPAG`/`RadioPlayerPage`, text domain; excluye `vendor`, `node_modules`, `spike`, `*/build/*`, `player/`. **Las 34 sniffs que hoy fallan se excluyen una a una** en un bloque comentado «re-enable in spec 0002 after phpcbf» (ADR 0021). Scripts `lint:php`, `format:php` (no se ejecuta en esta fase).
 - Archivos: `composer.json`, `composer.lock`, `phpcs.xml.dist`, `package.json`.
 - Test: —
 - Verificación: `composer install && npm run lint:php` (0 errores); quitar temporalmente una exclusión → falla (y se revierte).
+- Resultado: la línea base no excluye sniffs enteras, sino **cada sniff solo en los archivos donde falla hoy** (39 sniffs, 965 violaciones, incluido `scripts/fixtures/seed.php`); los archivos nuevos se comprueban con WPCS completo. Mutación: sin el bloque de Yoda salen 90 errores en 13 archivos.
 - [ ] hecha · commit: —
 
 ### 1.5 PHPUnit unit (sin WP) (≤ 1 h)

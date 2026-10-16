@@ -13,7 +13,9 @@
 		"env:start:min": "WP_ENV_CORE=WordPress/WordPress#6.6-branch WP_ENV_PHP_VERSION=7.4 wp-env --config .wp-env.tests.json start --update",
 		"env:start:latest": "wp-env --config .wp-env.tests.json start --update",
 		"env:reset": "wp-env --config .wp-env.tests.json reset all",
-		"wp-env:tests": "wp-env --config .wp-env.tests.json"
+		"wp-env:tests": "wp-env --config .wp-env.tests.json",
+		"lint:php": "vendor/bin/phpcs -q",
+		"format:php": "vendor/bin/phpcbf -q"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.64.1",

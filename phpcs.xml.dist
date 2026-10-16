@@ -1,0 +1,238 @@
+<?xml version="1.0"?>
+<ruleset name="Radio Player Page">
+	<description>WordPress Coding Standards and PHP 7.4+ compatibility for the WordPress side of the plugin.</description>
+
+	<file>.</file>
+
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>/player/*</exclude-pattern>
+	<exclude-pattern>/blocks/*/build/*</exclude-pattern>
+	<exclude-pattern>/spike/*</exclude-pattern>
+	<exclude-pattern>/coverage/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<arg name="parallel" value="8"/>
+
+	<config name="testVersion" value="7.4-"/>
+	<config name="minimum_wp_version" value="6.6"/>
+
+	<rule ref="PHPCompatibilityWP"/>
+
+	<rule ref="WordPress"/>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="radplapag"/>
+				<element value="RADPLAPAG"/>
+				<element value="RadioPlayerPage"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="radio-player-page"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!--
+		Baseline for legacy code (ADR 0021): each sniff that fails today is excluded only in
+		the files where it fails, so new files get the full standard. Spec 0002 runs phpcbf
+		and removes this block. Do not add entries: fix the code instead.
+	-->
+	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.Found">
+		<exclude-pattern>/admin/admin\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed">
+		<exclude-pattern>/blocks/programs-list/render\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/schedule/render\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Commenting.DocComment.LongNotCapital">
+		<exclude-pattern>/admin/admin\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Commenting.DocComment.MissingShort">
+		<exclude-pattern>/includes/data/class-radplapag-program-config\.php$</exclude-pattern>
+		<exclude-pattern>/includes/migration/class-radplapag-migrator-settings-to-cpt\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Formatting.MultipleStatementAlignment.IncorrectWarning">
+		<exclude-pattern>/includes/radplapag-programs-list-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Generic.Formatting.MultipleStatementAlignment.NotSameWarning">
+		<exclude-pattern>/admin/admin\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/now-playing/render\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/programs-list/render\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/schedule/render\.php$</exclude-pattern>
+		<exclude-pattern>/includes/migration/class-radplapag-migrator-settings-to-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-programs-list-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-stations\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-upgrade\.php$</exclude-pattern>
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Generic.WhiteSpace.DisallowSpaceIndent.SpacesUsed">
+		<exclude-pattern>/admin/admin\.php$</exclude-pattern>
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Modernize.FunctionCalls.Dirname.FileConstant">
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-stations\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-upgrade\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.Functions.FunctionCallSignature.CloseBracketLine">
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-programs-list-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/uninstall\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket">
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-programs-list-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/uninstall\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.Functions.FunctionCallSignature.MultipleArguments">
+		<exclude-pattern>/includes/radplapag-programs-list-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.Functions.FunctionCallSignature.SpaceAfterOpenBracket">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="PEAR.Functions.FunctionCallSignature.SpaceBeforeCloseBracket">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.FileComment.DuplicatePackageTag">
+		<exclude-pattern>/uninstall\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.FileComment.Missing">
+		<exclude-pattern>/admin/admin-strings\.php$</exclude-pattern>
+		<exclude-pattern>/admin/admin\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/programs-list/render\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/schedule/render\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-stations\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.FileComment.MissingPackageTag">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.FunctionComment.MissingParamTag">
+		<exclude-pattern>/scripts/fixtures/seed\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.FunctionComment.SpacingAfterParamType">
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.InlineComment.InvalidEndChar">
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+		<exclude-pattern>/uninstall\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Commenting.InlineComment.SpacingBefore">
+		<exclude-pattern>/scripts/fixtures/seed\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace">
+		<exclude-pattern>/blocks/now-playing/render\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.Functions.MultiLineFunctionDeclaration.SpaceAfterFunction">
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.PHP.EmbeddedPhp.ContentAfterOpen">
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Squiz.WhiteSpace.SuperfluousWhitespace.EndLine">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Universal.Arrays.DisallowShortArraySyntax.Found">
+		<exclude-pattern>/admin/admin-strings\.php$</exclude-pattern>
+		<exclude-pattern>/admin/admin\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/now-playing/render\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/programs-list/render\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/schedule/render\.php$</exclude-pattern>
+		<exclude-pattern>/includes/data/class-radplapag-program-config\.php$</exclude-pattern>
+		<exclude-pattern>/includes/data/class-radplapag-station-config\.php$</exclude-pattern>
+		<exclude-pattern>/includes/migration/class-radplapag-migrator-settings-to-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-now-playing-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-programs-list-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-stations\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-upgrade\.php$</exclude-pattern>
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+		<exclude-pattern>/scripts/fixtures/seed\.php$</exclude-pattern>
+		<exclude-pattern>/uninstall\.php$</exclude-pattern>
+	</rule>
+	<rule ref="Universal.Operators.DisallowStandalonePostIncrementDecrement.PostIncrementFound">
+		<exclude-pattern>/blocks/programs-list/render\.php$</exclude-pattern>
+		<exclude-pattern>/includes/migration/class-radplapag-migrator-settings-to-cpt\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound">
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Arrays.MultipleStatementAlignment.DoubleArrowNotAligned">
+		<exclude-pattern>/admin/admin-strings\.php$</exclude-pattern>
+		<exclude-pattern>/includes/data/class-radplapag-station-config\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.SlowDBQuery.slow_db_query_meta_key">
+		<exclude-pattern>/scripts/fixtures/seed\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.DB.SlowDBQuery.slow_db_query_meta_value">
+		<exclude-pattern>/scripts/fixtures/seed\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound">
+		<exclude-pattern>/scripts/fixtures/seed\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.PHP.YodaConditions.NotYoda">
+		<exclude-pattern>/admin/admin\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/now-playing/render\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/programs-list/render\.php$</exclude-pattern>
+		<exclude-pattern>/blocks/schedule/render\.php$</exclude-pattern>
+		<exclude-pattern>/includes/data/class-radplapag-station-config\.php$</exclude-pattern>
+		<exclude-pattern>/includes/migration/class-radplapag-migrator-settings-to-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-now-playing-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-program-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-programs-list-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-schedule-block\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-station-cpt\.php$</exclude-pattern>
+		<exclude-pattern>/includes/radplapag-upgrade\.php$</exclude-pattern>
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.EnqueuedResources.NonEnqueuedScript">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceAfterOpenParenthesis">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WhiteSpace.ControlStructureSpacing.NoSpaceBeforeCloseParenthesis">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WhiteSpace.OperatorSpacing.NoSpaceAfter">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.WhiteSpace.OperatorSpacing.NoSpaceBefore">
+		<exclude-pattern>/radio-player-page\.php$</exclude-pattern>
+	</rule>
+</ruleset>
