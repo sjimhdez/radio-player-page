@@ -8,6 +8,7 @@ Spec activa: 0001 — Bootstrap: spike, herramientas e ingeniería de contexto �
 1. Sesión nueva → plan mode → `docs/specs/0001-bootstrap/phase-1.md` con el formato de la spec (§7.8), partiendo de «Para la fase 1» del informe del spike.
 2. Antes de crear `.claude/`: comprobar en la documentación oficial de Claude Code el formato de memoria, settings, rules, skills, hooks, subagentes y MCP (§7.1).
 3. Sembrar `docs/known-issues.md` con C1–C16 y los candidatos K1–K3 del spike.
+4. En el ADR del flujo de ramas (§6), incluir como alternativa descartada una rama `trunk` de integración junto a `main` (planteada por el usuario el 2026-10-16): equivale a GitFlow (dos ramas largas, release y hotfix por partida doble); «`main` = lo publicado» ya lo cubren los tags `vX.Y.Z`.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno. PR en borrador: #36. `main` está protegida con el ruleset `main`. Cuando la fase 1 cambie los nombres de los jobs de la CI, el usuario tendrá que actualizar los checks obligatorios del ruleset (hoy: `PHP Syntax (PHP 7.4)`, `PHP Syntax (PHP 8.4)`, `Player (lint, build, dist check)` y `WordPress blocks`).
