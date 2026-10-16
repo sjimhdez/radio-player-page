@@ -119,7 +119,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `package.json`.
 - Verificación: `npm run check` en verde; un fallo en `player/` lo hace fallar.
 - Resultado: `check` = `lint:php` → `test:php:unit` → `lint:js` → `test` → `check:player` → `check:blocks` → `check:zip` (unos 20 s, sin Docker); `test:hooks` entra en la 1.13. Un test roto en `player/` lo hace fallar. Equivalencias de `scripts/run-*.sh`: `run-eslint.sh` ≈ `npm --prefix player run lint`; `run-php-versions-check.sh` ≈ `php -l` de la CI; `run-wp-plugin-check.sh` ≈ job de Plugin Check (1.30).
-- [ ] hecha · commit: —
+- [x] hecha · commit: 2f5a1a8
 
 ### 1.13 Hook `SessionStart`: `session-context.sh` (≤ 1 h)
 - Qué: inyecta `docs/status.md`, la ruta de la spec activa (leída de la línea «Spec activa»), rama, resumen de `git status` y si wp-env está arrancado (sin fallar si Docker no está). Runner `tests/hooks/run.sh` + `npm run test:hooks`.
