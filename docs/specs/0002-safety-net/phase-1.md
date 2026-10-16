@@ -116,7 +116,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: caracterización. Mutación: quitar `delete_transient( 'radplapag_migrating' )`.
 - Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
 - Nota: 40 tests. El fallo se fuerza solo en la emisora (`wp_insert_post_empty_content` según `post_type`), así que también se comprueba que el programa ya creado se borra; el mensaje del aviso es el de core («Content, title, and excerpt are empty.»). Una emisora en borrador no cuenta como conflicto. El autor de lo migrado es el administrador de menor ID, no el usuario actual, que se restaura. El post type «sin registrar» se simula quitándolo de `$wp_post_types` y restaurándolo. K4 pasa a este archivo y queda «confirmado». Sin rarezas nuevas. Mutaciones (cada una hace fallar al menos un test): sin `delete_transient( 'radplapag_migrating' )` (3), sin `is_admin()` (1), sin comprobar el bloqueo (1), `init` 100 → 10 (1), sin verificar el nonce del descarte (1) y el error sin `esc_html` (1). En verde en PHP 7.4 + WP 6.6.10 y en PHP 8.4 + WP 7.1.3.
-- [x] hecha · commit: —
+- [x] hecha · commit: bda25e4
 
 ### 1.7 Config y lectura (≤ 1 h)
 - Qué:
