@@ -1,0 +1,20 @@
+# Estado
+Spec activa: 0001 — Bootstrap: spike, herramientas e ingeniería de contexto · Fase: 1 — Bootstrap: herramientas e ingeniería de contexto · Plan: docs/specs/0001-bootstrap/phase-1.md (por escribir) · Actualizado: 2026-10-16
+
+## En curso
+- Nada. La fase 0 (spike) está cerrada: informe en `docs/spikes/0001-phase-0.md` y ADRs 0001–0006 en `docs/adr/`.
+
+## Siguiente (máx. 5)
+1. Sesión nueva → plan mode → `docs/specs/0001-bootstrap/phase-1.md` con el formato de la spec (§7.8), partiendo de «Para la fase 1» del informe del spike.
+2. Antes de crear `.claude/`: comprobar en la documentación oficial de Claude Code el formato de memoria, settings, rules, skills, hooks, subagentes y MCP (§7.1).
+3. Sembrar `docs/known-issues.md` con C1–C16 y los candidatos K1–K3 del spike.
+
+## Bloqueos / preguntas para el humano
+- Hacer push de `spec/0001-bootstrap`, proteger `main` en GitHub (PR obligatorio, CI en verde, sin force push) y abrir el PR en borrador. `gh` no está instalado: o se instala (`brew install gh && gh auth login`) o el PR se abre desde la web.
+
+## Verificación manual pendiente
+- Ninguna.
+
+## Desviaciones de la spec (→ ADR)
+- §4.2: la migración cubre los formatos 2.0.x–3.2.x, no «cualquier versión anterior a la 3.3.0» (ADR 0005).
+- §4.8 / decisión 5: `crossOrigin` solo en las fuentes directas (ADR 0004).

@@ -21,7 +21,7 @@ Fijar con tests el comportamiento actual de la 3.4.2 antes de tocar nada (caract
 
 ## 3. Fixtures
 
-- `tests/fixtures/legacy-settings/`: valores de `radplapag_settings` reales de antes de la 3.3.0, con varias formas: una emisora, varias, sin horario, con datos corruptos y con conflicto con los CPT. Se reconstruyen a partir del historial de git anterior a `v3.3.0`.
+- `tests/fixtures/legacy-settings/`: valores de `radplapag_settings` reales de los formatos 2.0.x–3.2.x ([ADR 0005](../../adr/0005-migration-sources-2-0-plus.md); el spike ya los reconstruyó en `spike/php/fixtures/legacy-settings/`), con varias formas: una emisora, varias, sin horario, con datos corruptos y con conflicto con los CPT. Se reconstruyen a partir del historial de git anterior a `v3.3.0`.
 - `tests/fixtures/schedule-vectors.json`: casos del horario compartidos por PHP (`radplapag_get_now_playing_for_station()` y la validación del servidor) y TS (`utils/program-schedule.ts` y la validación del admin). La semilla son los vectores de `docs/known-issues.md` (catálogo heredado). Cada vector guarda el resultado **de la 3.4.2**; los vectores 13 y 14 (C16) y los de C3 se guardan como `currently` hasta la spec de correcciones. Los dos lenguajes tienen que pasar los mismos vectores.
 - `tests/fixtures/audio/`:
   - tonos cortos generados con ffmpeg (MP3 y OGG)
@@ -43,7 +43,7 @@ Fijar con tests el comportamiento actual de la 3.4.2 antes de tocar nada (caract
    - no se puede pausar mientras suena;
    - si la intro falla, se pasa al directo sin error.
 4. **`crossOrigin`:**
-   - el `<audio>` lleva `crossorigin="anonymous"` con cada fuente;
+   - el `<audio>` lleva `crossorigin="anonymous"` con cada fuente asignada a `audio.src` (MP3, HLS nativo, intro) y no lo lleva en las rutas MSE (`hls.js`, `dashjs`) ([ADR 0004](../../adr/0004-crossorigin-on-direct-sources.md));
    - se comprueba (y se apunta como comportamiento actual) qué pasa con un stream **sin** cabeceras CORS.
 5. **Programa actual y siguiente** con el reloj congelado: franja normal, cruce de medianoche, reposición y franja sin programa. **La reproducción no cambia cuando termina un programa.**
 6. **Modales** del horario y de todos los programas: se abren, se cierran y muestran sus datos.

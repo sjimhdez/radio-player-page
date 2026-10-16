@@ -1,6 +1,6 @@
 # Spec 0001 — Bootstrap: spike, herramientas e ingeniería de contexto
 
-> Estado: **lista para ejecutar** · Fecha: 2026-10-16 · Rama: `spec/0001-bootstrap` · Versión de partida: 3.4.2 (tag `v3.4.2`)
+> Estado: **en curso — fase 0 cerrada, sigue la fase 1** · Fecha: 2026-10-16 · Rama: `spec/0001-bootstrap` · Versión de partida: 3.4.2 (tag `v3.4.2`)
 >
 > Primera spec de la iniciativa «base de calidad». Contexto, orden y decisiones comunes: [`docs/specs/README.md`](../README.md). Docs en español; código, comentarios y commits en inglés.
 
@@ -153,7 +153,7 @@ La fuente para completarlo es **el código de la 3.4.2** y su `README.md`.
 ### 4.2 Migración y actualización
 
 - Migración unidireccional de `radplapag_settings` a los CPT (`includes/migration/`), controlada por `includes/radplapag-upgrade.php`.
-- Debe seguir siendo **idempotente** y funcionar desde cualquier versión anterior a la 3.3.0.
+- Debe seguir siendo **idempotente** y funcionar con los formatos de **2.0.x a 3.2.x**. Los de 1.x quedan fuera del contrato ([ADR 0005](../../adr/0005-migration-sources-2-0-plus.md)).
 
 ### 4.3 Página del reproductor
 
@@ -199,7 +199,7 @@ La fuente para completarlo es **el código de la 3.4.2** y su `README.md`.
   - DASH con `dashjs` y autoplay.
   - Los protocolos se detectan por la extensión de la URL.
 - **Audio de bienvenida (intro):** suena una vez antes del directo, no se puede pausar, y si falla se pasa al directo sin mostrar error.
-- **`crossOrigin = 'anonymous'` en todas las fuentes** (decisión 4).
+- **`crossOrigin = 'anonymous'` en toda fuente asignada directamente a `audio.src`** (MP3/OGG, HLS nativo, audio de bienvenida). Las rutas MSE (`hls.js`, `dashjs`) cargan por XHR/fetch con CORS y dejan el atributo en `null` (decisión 5, [ADR 0004](../../adr/0004-crossorigin-on-direct-sources.md)).
 - **Volumen** desactivado en iOS.
 - **Resto de funciones:**
   - Media Session
@@ -238,9 +238,9 @@ En esta spec se montan las herramientas y una suite de humo por capa. Los tests 
 
 | Capa | Herramienta | Qué cubre |
 |---|---|---|
-| **PHP unit** | PHPUnit + Yoast polyfills (la versión la decide R7), sin WP (`tests/php/unit/`) | Lógica pura: validación y saneado del horario, cálculo del programa en antena, construcción de la config y mapeo de la migración. Crece sobre todo en la spec 0005. |
+| **PHP unit** | PHPUnit 9.6 + Yoast polyfills 4 ([ADR 0003](../../adr/0003-phpunit-9-6.md)), sin WP (`tests/php/unit/`) | Lógica pura: validación y saneado del horario, cálculo del programa en antena, construcción de la config y mapeo de la migración. Crece sobre todo en la spec 0005. |
 | **PHP integration** | `WP_UnitTestCase` sobre wp-env (`tests/php/integration/`) | CPT, meta, capacidades, guardado con nonces, migración y actualización, ruta de lectura, render de los bloques (snapshot normalizado), página limpia y desinstalación (también multisite). |
-| **JS unit (React)** | Vitest + Testing Library + happy-dom o jsdom (lo decide el spike), **dentro de `player/`**, con su propio `vitest.config` y en su `package.json` | `utils/`, hooks (no visualizadores) con un `FakeAudioElement` y `hls.js`/`dashjs` simulados, validación de la config, i18n. Más adelante, el núcleo extraído en la spec 0006. |
+| **JS unit (React)** | Vitest + Testing Library + happy-dom ([ADR 0006](../../adr/0006-happy-dom.md)), **dentro de `player/`**, con su propio `vitest.config` y en su `package.json` | `utils/`, hooks (no visualizadores) con un `FakeAudioElement` y `hls.js`/`dashjs` simulados, validación de la config, i18n. Más adelante, el núcleo extraído en la spec 0006. |
 | **JS unit (WordPress)** | Vitest en la raíz (`tests/js/admin/`) | Lógica pura extraída de `admin/js/` en la spec 0005. Si se extrae lógica de un bloque, sus tests van en ese bloque. |
 | **E2E** | Playwright sobre wp-env, Chromium y WebKit (`tests/e2e/`) | Flujos completos (la spec 0002). |
 | **Hooks** | bash (`tests/hooks/`) | Scripts de `.claude/hooks/`. |
@@ -353,7 +353,7 @@ Solo debe contener esto:
    - Las meta keys, las opciones, las globales JS, las funciones `radplapag_*`, los atributos y el markup de los bloques no cambian sin un ADR (§4).
    - La migración es unidireccional e idempotente.
    - El horario nunca controla la reproducción.
-   - Todas las fuentes de audio llevan `crossOrigin = 'anonymous'`.
+   - Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'` (ADR 0004).
    - Los visualizadores no se editan sin un ADR.
    - El núcleo del reproductor (cuando exista, spec 0006) no importa React ni MUI.
    - `player/dist/` y `blocks/*/build/` se regeneran y nunca se editan a mano.
@@ -422,7 +422,7 @@ Todas terminan con «`npm run check` en verde; actualizar `docs/status.md`».
 ### 7.6 Subagentes (solo lectura)
 
 - `spec-conformance-reviewer`: compara el diff de la fase con la spec activa, `SPEC.md`, los ADRs y el plan. Señala desviaciones no documentadas y criterios sin test.
-- `backcompat-reviewer`: busca en el diff cambios en el contrato de §5. Revisa claves, opciones, globales, funciones públicas, markup y atributos de los bloques, nombres de los assets y sintaxis por encima de PHP 7.4 o de APIs de WP posteriores a la 6.6.
+- `backcompat-reviewer`: busca en el diff cambios en el contrato de §4. Revisa claves, opciones, globales, funciones públicas, markup y atributos de los bloques, nombres de los assets y sintaxis por encima de PHP 7.4 o de APIs de WP posteriores a la 6.6.
 - `wp-security-reviewer`: escape, nonces, capacidades y saneado.
 - `wporg-reviewer`: revisa la parte WordPress del diff, o una zona completa en la auditoría, contra las guidelines del directorio y los estándares de WordPress (§3). Cubre lo que Plugin Check no detecta: llamadas externas, «nags» del admin, prefijos, librerías de core empaquetadas, licencias, `readme.txt` y desinstalación.
 - `a11y-reviewer`: comprueba si hay violaciones nuevas respecto a la línea base cuando se toca UI.
@@ -498,9 +498,9 @@ Objetivo: validar los riesgos del montaje de tests antes de construir nada. El c
 - **Herramientas** (no cambian ningún comportamiento):
   - `package.json` en la raíz, **solo con las herramientas de la parte WordPress** (wp-env, Playwright, Vitest del admin, `@wordpress/eslint-plugin` para `admin/js`) y con scripts que **orquestan** sin unificar (hoja de ruta, decisión 7). Por ejemplo, `npm run check` ejecuta el check de la raíz, `npm --prefix player run check` y el de cada bloque.
   - `player/package.json` incorpora sus propios scripts de tests (`test`, `test:coverage`, `typecheck`, `check`) y Vitest. Cada bloque mantiene su `package.json`.
-  - `composer.json` solo de desarrollo: PHPUnit y polyfills en la versión que diga R7, WPCS 3 y PHPCompatibilityWP.
-  - `phpcs.xml.dist`, `.wp-env.json` (con la matriz de R1), `.editorconfig`, `.nvmrc` en la raíz, en `player/` y en cada bloque (todos con la misma versión de Node), `vitest.config` y `playwright.config`.
-  - Node en la última versión, según R6. Se comprueba que `player/dist/` y `blocks/*/build/` salen **idénticos** o se documenta la diferencia.
+  - `composer.json` solo de desarrollo: PHPUnit 9.6 y polyfills 4 (ADR 0003), WPCS 3 y PHPCompatibilityWP, con `config.platform.php = 7.4.33`.
+  - `phpcs.xml.dist`, `.wp-env.json` de desarrollo y una configuración de tests aparte (`--config`, con la matriz de R1; `testsEnvironment` está obsoleto en wp-env 11, y la suite se ejecuta en un contenedor cuya base de datos no es la del sitio de desarrollo; ADR 0003), `.editorconfig`, `.nvmrc` en la raíz, en `player/` y en cada bloque (todos con la misma versión de Node), `vitest.config` y `playwright.config`.
+  - Node 26 en todos los `.nvmrc` y `engines.node: ">=22.22.2"` ([ADR 0002](../../adr/0002-node-26.md)); el campo no estándar `"node"` de `player/package.json` pasa a `engines`. El spike ya comprobó que `player/dist/` y `blocks/*/build/` salen **idénticos**.
   - `.gitignore`: `vendor/`, `coverage/`, `test-results/`, `playwright/.auth/`, `.phpunit.result.cache`, `CLAUDE.local.md` y `.claude/settings.local.json`.
 - **Ingeniería de contexto:** todo lo de §7, con sus hooks y los tests de esos hooks. `.claude/rules/testing.md` recoge §5 y los mínimos de cobertura de la hoja de ruta.
 - **Documentación:**
@@ -508,7 +508,7 @@ Objetivo: validar los riesgos del montaje de tests antes de construir nada. El c
   - `docs/specs/_template.md`, y el índice (`docs/specs/README.md`) al día;
   - `docs/status.md`;
   - `docs/adr/` con ADRs retroactivos de las decisiones ya existentes: páginas limpias sin tema; React + MUI + Vite en el player; migración a CPT en la 3.3.0; prefijos; requisitos mínimos; `crossOrigin` anónimo para los visualizadores; build commiteado; publicación por SVN. Más los de la iniciativa: flujo de ramas (§6), metodología por specs, caracterización antes que refactor, visualizadores congelados, dos mundos (WordPress.org / React), proyectos JS sin unificar y última versión de todo.
-  - `docs/known-issues.md` sembrado con el catálogo C1–C16 de `docs/inherited-bugs.md` (§5.2), todavía sin confirmar. Después se borra `inherited-bugs.md`.
+  - `docs/known-issues.md` sembrado con el catálogo C1–C16 de `docs/inherited-bugs.md` (§5.2), todavía sin confirmar, y con los candidatos `K*` del spike ([informe](../../spikes/0001-phase-0.md), «Para la fase 1»). Después se borra `inherited-bugs.md`.
 - **CI:** los jobs nuevos (PHPCS, PHPCompatibility, PHPUnit unit e integración con la matriz de R1, Vitest, Playwright y tests de hooks), aunque las suites estén casi vacías. También la comprobación de que el zip no contiene rutas de desarrollo.
 - ✅ **Criterios:**
   - `npm run check` y la CI en verde;
@@ -549,7 +549,8 @@ Objetivo: validar los riesgos del montaje de tests antes de construir nada. El c
 
 ## Apéndice A — Referencias
 
-- Bugs heredados y vectores del horario: [`inherited-bugs.md`](inherited-bugs.md).
+- Bugs heredados y vectores del horario: [`inherited-bugs.md`](../../inherited-bugs.md).
+- Spike de la fase 0: [`docs/spikes/0001-phase-0.md`](../../spikes/0001-phase-0.md).
 - WordPress.org: [Detailed Plugin Guidelines](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/), [Plugin Handbook](https://developer.wordpress.org/plugins/), [Coding Standards](https://developer.wordpress.org/coding-standards/), [Plugin Check](https://wordpress.org/plugins/plugin-check/), [readme.txt](https://developer.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/).
 - Metodología de referencia: `../podcast-player-page/SPEC.md` (§18 fases, §19 tests, §20 ingeniería de contexto, §21 CI), `CLAUDE.md`, `.claude/` (rules, skills, hooks y agentes) y `docs/` (`status.md`, `plans/`, `adr/`).
 - Michael Feathers, *Working Effectively with Legacy Code*: tests de caracterización y costuras.

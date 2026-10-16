@@ -1,7 +1,5 @@
 # Spec 0001 · Fase 0 — Spike (desechable)
-Estado: en curso · Inicio: 2026-10-16 · ADRs: (salen de esta fase: R2, versión de Node, excepciones de R7)
-
-> Al aprobarse, este plan se guarda en `docs/specs/0001-bootstrap/phase-0.md` (primer commit de la fase).
+Estado: **cerrada** (2026-10-16) · Inicio: 2026-10-16 · ADRs: 0001–0006 · Informe: [`docs/spikes/0001-phase-0.md`](../../spikes/0001-phase-0.md)
 
 ## Contexto
 La 0001 deja el repo listo para trabajar con specs y tests. Antes de montar nada (fase 1) hay que demostrar que las herramientas de test funcionan con los mínimos (WP 6.6 / PHP 7.4), con la página limpia que termina en `exit` y con la reproducción real de streams. Todo el código va a `spike/`: se versiona en la rama (para poder reproducirlo, como en `podcast-player-page`), no entra en el zip (lista de inclusión de `scripts/build-release-zip.sh`) y no se reutiliza. **No se toca ningún archivo del plugin.**
@@ -62,12 +60,12 @@ Entorno local comprobado: Node 22.23.3 (nvm; también 20.19.2), PHP 8.5 + `php@7
 - Qué: con la última Node, `npm ci && npm run build` en `player/` y en `blocks/{schedule,programs-list,now-playing}` (en un worktree temporal, para no ensuciar el árbol), `diff -r` contra lo commiteado; repetir con 20 y 22 para la mínima. Comprobar wp-env, Vitest y Playwright de 0.2–0.5 con la última Node (ojo: el workaround de `test.yml` por el bug de wp-env en Node 24.16+).
 - Archivos: solo el informe.
 - Verificación: salida de `diff -r` apuntada en el informe.
-- [x] hecha · commit: —
+- [x] hecha · commit: 69286d2
 
 ### 0.8 Cierre de la fase (≤ 1 h)
 - Qué: informe completo `docs/spikes/0001-phase-0.md` (resumen por riesgo con evidencia); ADRs en `docs/adr/` con su `README.md` índice (como mínimo: método de R2, versión de Node, excepciones de R7); actualizar la spec y la hoja de ruta si algo cambia; `docs/status.md` mínimo (formato §7.7) apuntando a la fase 1; marcar este plan como cerrado. Corregir de paso las erratas de la spec (abajo). Commit `chore(0001): close phase 0`.
 - Verificación: cada riesgo del informe tiene ✅ demostrado o alternativa aprobada por el usuario.
-- [ ] hecha · commit: —
+- [x] hecha · commit: `chore(0001): close phase 0`
 
 Commits: `<type>(0001): <description> (0.N)`, sin push.
 
@@ -80,7 +78,4 @@ Commits: `<type>(0001): <description> (0.N)`, sin push.
 - Push de `spec/0001-bootstrap`, protección de `main` en GitHub y PR en borrador (o instalar `gh` para que lo abra yo).
 
 ## Decisiones abiertas → ADR
-- R2: (a) HTTP o (b) costura.
-- Node: versión de desarrollo y mínima.
-- R7: versiones fijadas por debajo de la última.
-- R4: happy-dom o jsdom.
+Todas cerradas: R2 → ADR 0001 · Node → ADR 0002 · R7 → ADR 0003 · `crossOrigin` → ADR 0004 · migración 1.x → ADR 0005 · R4 → ADR 0006.

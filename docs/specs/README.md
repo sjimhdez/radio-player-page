@@ -8,7 +8,7 @@
 
 | # | Spec | Estado | Rama | Depende de |
 |---|---|---|---|---|
-| 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | lista para ejecutar | `spec/0001-bootstrap` | — |
+| 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | en curso (fase 0 cerrada; sigue la fase 1) | `spec/0001-bootstrap` | — |
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | borrador (se cierra con `write-spec` al terminar la 0001) | `spec/0002-safety-net` | 0001 |
 | 0003 | Dependencias del player (React) | pendiente de escribir | — | 0002 |
 | 0004 | Dependencias de la parte WordPress (bloques, raíz, Composer, CI) | pendiente de escribir | — | 0002 |
@@ -33,7 +33,7 @@ Las 0003 y 0004 son independientes entre sí, igual que las 0005 y 0006. Se pued
 | 2 | Requisitos mínimos | Se mantienen **WordPress 6.6+** y **PHP 7.4+**. |
 | 3 | Releases y ramas | Ninguna release hasta la spec de release. Trunk-based: una rama `spec/*` por spec, PR a `main` con merge commit (sin squash), que fusiona el usuario; los tags `vX.Y.Z` marcan lo publicado (0001, §6). |
 | 4 | Comportamiento | No cambia nada visible hasta las specs de correcciones. Excepción: lo que imponga una actualización de dependencias, con su ADR. |
-| 5 | Visualizadores | Siguen en el producto y quedan **congelados**: fuera del refactor y de los mínimos de cobertura. Su contrato con el reproductor (`crossOrigin = 'anonymous'` en todas las fuentes, `audioRef`) se preserva y se testea. C5 y la parte del canvas de C15 solo se corrigen si el usuario lo aprueba, con un ADR. |
+| 5 | Visualizadores | Siguen en el producto y quedan **congelados**: fuera del refactor y de los mínimos de cobertura. Su contrato con el reproductor (`crossOrigin = 'anonymous'` en toda fuente asignada a `audio.src`, [ADR 0004](../adr/0004-crossorigin-on-direct-sources.md); `audioRef`) se preserva y se testea. C5 y la parte del canvas de C15 solo se corrigen si el usuario lo aprueba, con un ADR. |
 | 6 | Dos mundos | La parte WordPress sigue las guidelines de WordPress.org y los estándares de WordPress. La parte React (`player/`) es independiente (0001, §3). |
 | 7 | Sin unificar | `player/` y cada `blocks/*` conservan su `package.json`, su lockfile y su build. |
 | 8 | Versiones | La última versión estable de todo. Una herramienta de desarrollo que la matriz de mínimos obligue a fijar más atrás lleva su ADR. |
