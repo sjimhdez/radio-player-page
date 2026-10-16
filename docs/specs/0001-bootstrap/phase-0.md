@@ -44,13 +44,13 @@ Entorno local comprobado: Node 22.23.3 (nvm; también 20.19.2), PHP 8.5 + `php@7
 - Qué: servidor Node local con dos orígenes (con y sin `Access-Control-Allow-Origin`) que sirve MP3 progresivo, MP3 infinito (bucle por chunks), HLS y DASH generados con ffmpeg a partir de `scripts/fixtures/assets/intro.mp3`. Página de pruebas que carga el **`player/dist` real** con `window.RADPLAPAG_*` simulados (sin WP). Tests: pulsar play → `currentTime` avanza, `paused === false`, sin `error`. Chromium y WebKit; flags de autoplay. Medir C1 (sin CORS + `crossOrigin='anonymous'`).
 - Archivos: `spike/e2e/{package.json,server.mjs,harness.html,playwright.config.ts,streams.spec.ts}`.
 - Verificación: `npx playwright test` en macOS y en `docker run mcr.microsoft.com/playwright:<versión>`.
-- [x] hecha · commit: —
+- [x] hecha · commit: 7c588db
 
 ### 0.5 R4 — Vitest sobre `use-audio-player` (≤ 1 h)
 - Qué: proyecto en `spike/player-unit/` con alias a `player/src` (sin tocar `player/package.json`), `FakeAudioElement` y `vi.mock('hls.js')`/`vi.mock('dashjs')` para los `import()` dinámicos. 3–4 tests: MP3 asigna `src` con `crossOrigin`, HLS no‑iOS crea `Hls`, DASH inicializa con autoplay, iOS usa HLS nativo. Ejecutar con happy-dom y con jsdom y elegir.
 - Archivos: `spike/player-unit/{package.json,vitest.config.ts,fake-audio.ts,use-audio-player.test.tsx}`.
 - Verificación: `npx vitest run --environment happy-dom` y `--environment jsdom`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: —
 
 ### 0.6 R5 — Golden master de la migración (≤ 1 h)
 - Qué: reconstruir del historial de git (`git log -S radplapag_settings`; 1.0.1 → 3.2.x) las formas reales de `radplapag_settings` por versión; fixtures JSON; test de integración que fija la opción, ejecuta el migrador (`includes/migration/class-radplapag-migrator-settings-to-cpt.php` vía `includes/radplapag-upgrade.php`), vuelca posts + meta normalizados y compara con el golden; segunda pasada sin cambios.
