@@ -10,8 +10,7 @@ Spec activa: 0001 — Bootstrap: spike, herramientas e ingeniería de contexto �
 3. Sembrar `docs/known-issues.md` con C1–C16 y los candidatos K1–K3 del spike.
 
 ## Bloqueos / preguntas para el humano
-- Crear en GitHub un ruleset para `trunk` igual que el de `main` (ADR 0007): PR obligatorio sin aprobaciones, solo merge, CI en verde con la rama al día, sin force push, sin borrado. Checks obligatorios hoy: `PHP Syntax (PHP 7.4)`, `PHP Syntax (PHP 8.4)`, `Player (lint, build, dist check)` y `WordPress blocks`. Cuando la fase 1 cambie los nombres de los jobs, hay que actualizar los dos rulesets.
-- PR en borrador: #36, contra `trunk`.
+- Ninguno. PR en borrador: #36, contra `trunk`. `main` y `trunk` están protegidas con rulesets idénticos (ADR 0007). Cuando la fase 1 cambie los nombres de los jobs de la CI, el usuario tiene que actualizar los checks obligatorios de los dos rulesets (hoy: `PHP Syntax (PHP 7.4)`, `PHP Syntax (PHP 8.4)`, `Player (lint, build, dist check)` y `WordPress blocks`), y la CI debe dispararse también con `push` a `trunk` (§9).
 
 ## Verificación manual pendiente
 - Ninguna.
