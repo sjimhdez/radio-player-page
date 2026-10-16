@@ -126,7 +126,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `.claude/hooks/session-context.sh`, `tests/hooks/{run.sh,session-context.test.sh}`.
 - Test: primero: `session-context.test.sh` (la salida contiene el contenido de `status.md`).
 - Verificación: `npm run test:hooks`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 8b06651
 
 ### 1.14 Hook `PreToolUse`: `protect-generated.sh` (≤ 1 h)
 - Qué: bloquea `Edit|Write` en `player/dist/**`, `blocks/*/build/**`, `vendor/**`, `node_modules/**` y dice qué comando lo regenera.
