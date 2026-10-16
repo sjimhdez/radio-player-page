@@ -130,7 +130,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/php/integration/Data/ConfigTest.php`.
 - Test: caracterización. Mutación: `'publish'` → `'any'` en `radplapag_get_stations()`.
 - Verificación: `npm run test:php:integration -- --filter ConfigTest`
-- [ ] hecha · commit: —
+- Nota: 37 tests. `Radplapag_Program_Config` no tiene ningún llamador en la 3.4.2; se fija igual. `to_array()` devuelve el horario tal como está guardado (sin volver a sanearlo); JSON inválido o que no es un objeto → `[]`. Las emisoras pendientes y privadas tampoco salen; en `radplapag_get_player_pages_assigned_to_other_stations()` cuentan todas salvo las de la papelera. Con dos emisoras en la misma página gana la primera del orden. Sin nada consultado (ID 0, la portada de entradas), una emisora con URL y sin página coincide; el único llamador, `radplapag_output_clean_page()`, sale antes con un ID ≤ 0, así que no es una rareza. Sin filas nuevas en `known-issues.md`. Mutaciones: `'publish'` → `'any'` (3 tests), orden solo por título (3), sin exigir URL (1), solo programas publicados en el select (1), sin excluir la emisora (1) y `json_decode` sin `true` (2). En verde en PHP 7.4 + WP 6.6.10 y en PHP 8.4 + WP 7.1.3.
+- [x] hecha · commit: —
 
 ### 1.8 Programa en antena con los vectores (≤ 1 h)
 - Qué: `ScheduleVectorsTest` recorre `resolution` con `Clock` y comprueba `radplapag_get_now_playing_for_station(0)`:
