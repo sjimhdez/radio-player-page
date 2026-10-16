@@ -73,7 +73,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: primero: `tests/php/integration/SmokeTest.php`.
 - Verificación: `npm run test:php:integration` en las dos puntas (1.3).
 - Resultado: con `testsEnvironment: false` no hay `tests-cli`. La suite corre en el `cli` de `.wp-env.tests.json` con `WORDPRESS_TABLE_PREFIX=wptests_` (lo lee `wp-tests-config.php`), así que no toca el sitio `wp_` de ese entorno, que es el que usa e2e (comprobado con una opción sonda). Verde en WP 6.6.10 + PHP 7.4.33 y en WP 7.1.3 + PHP 8.4.26.
-- [ ] hecha · commit: —
+- [x] hecha · commit: ca25d26
 
 ### 1.7 Vitest en `player/` (≤ 1 h)
 - Qué: en `player/package.json`: `vitest`, `@vitest/coverage-v8`, `happy-dom`, `@testing-library/react` (+ `@testing-library/dom`) como dev; scripts `test`, `test:coverage`, `typecheck` (`tsc -b`), `check` (`typecheck` + `lint` + `test`). `player/vitest.config.ts` (happy-dom, alias `src` como `tsconfig.app.json`, `setupFiles: src/test/setup.ts`, cobertura v8 sin umbrales todavía: los pone la 0002; visualizadores excluidos). Humo: un test de `src/utils/` real. `player/tsconfig*` excluye `*.test.*` del build si hace falta para que `dist/` no cambie.
