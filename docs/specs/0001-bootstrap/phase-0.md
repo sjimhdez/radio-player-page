@@ -32,13 +32,13 @@ Entorno local comprobado: Node 22.23.3 (nvm; también 20.19.2), PHP 8.5 + `php@7
 - Archivos: `spike/php/{composer.json,phpunit.xml.dist,bootstrap.php,SmokeTest.php,.wp-env.*.json}`.
 - Test: humo `WP_UnitTestCase`.
 - Verificación: `npx wp-env start` + `npx wp-env run tests-cli --env-cwd=… vendor/bin/phpunit` en cada config.
-- [x] hecha · commit: —
+- [x] hecha · commit: 26e8591
 
 ### 0.3 R2 — Caracterizar la página limpia (≤ 1 h)
 - Qué: prototipar (a) snapshot por HTTP contra wp-env, con normalización (URLs, versiones, nonces) y fixture de emisora creado por WP-CLI; (b) costura mínima **en una copia dentro de `spike/`** (función que devuelve el HTML) con prueba de identidad byte a byte frente a (a). Recomendar una para el ADR (preferencia inicial: (a), porque no exige tocar código antes de caracterizarlo).
 - Archivos: `spike/clean-page/`.
 - Verificación: el script de snapshot da la misma salida dos veces seguidas; (b) idéntica a (a).
-- [ ] hecha · commit: —
+- [x] hecha · commit: —
 
 ### 0.4 R3 — Servidor de streams y Playwright (≤ 1 h)
 - Qué: servidor Node local con dos orígenes (con y sin `Access-Control-Allow-Origin`) que sirve MP3 progresivo, MP3 infinito (bucle por chunks), HLS y DASH generados con ffmpeg a partir de `scripts/fixtures/assets/intro.mp3`. Página de pruebas que carga el **`player/dist` real** con `window.RADPLAPAG_*` simulados (sin WP). Tests: pulsar play → `currentTime` avanza, `paused === false`, sin `error`. Chromium y WebKit; flags de autoplay. Medir C1 (sin CORS + `crossOrigin='anonymous'`).
