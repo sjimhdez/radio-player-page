@@ -1,0 +1,7 @@
+{
+	"core": null,
+	"phpVersion": "8.4",
+	"port": 8895,
+	"testsEnvironment": false,
+	"plugins": [ "../../..", "https://downloads.wordpress.org/plugin/plugin-check.latest-stable.zip" ]
+}

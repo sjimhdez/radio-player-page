@@ -12,5 +12,5 @@ Each folder is independent and has its own dependencies:
 | `clean-page/` | R2 | see `clean-page/README.md` |
 | `e2e/` | R3 | see `e2e/README.md` |
 | `player-unit/` | R4 | see `player-unit/README.md` |
-
-R6 (Node versions and build reproducibility) has no code: the commands are in the report.
+| `node/` | R6 | `./node/check-builds.sh 26.12.0 24.22.0 22.23.3 20.19.2` |
+| `php/env-zip/` | R6 (wp-env + remote plugin zip) | `npx @wordpress/env@11.17.0 start` with Node 26 |

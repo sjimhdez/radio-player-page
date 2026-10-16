@@ -56,13 +56,13 @@ Entorno local comprobado: Node 22.23.3 (nvm; también 20.19.2), PHP 8.5 + `php@7
 - Qué: reconstruir del historial de git (`git log -S radplapag_settings`; 1.0.1 → 3.2.x) las formas reales de `radplapag_settings` por versión; fixtures JSON; test de integración que fija la opción, ejecuta el migrador (`includes/migration/class-radplapag-migrator-settings-to-cpt.php` vía `includes/radplapag-upgrade.php`), vuelca posts + meta normalizados y compara con el golden; segunda pasada sin cambios.
 - Archivos: `spike/php/fixtures/legacy-settings/*.json`, `spike/php/MigrationGoldenTest.php`.
 - Verificación: el test pasa en la config `min` de 0.2.
-- [x] hecha · commit: —
+- [x] hecha · commit: bde37ca
 
 ### 0.7 R6 — Node: builds idénticos y versión mínima (≤ 1 h)
 - Qué: con la última Node, `npm ci && npm run build` en `player/` y en `blocks/{schedule,programs-list,now-playing}` (en un worktree temporal, para no ensuciar el árbol), `diff -r` contra lo commiteado; repetir con 20 y 22 para la mínima. Comprobar wp-env, Vitest y Playwright de 0.2–0.5 con la última Node (ojo: el workaround de `test.yml` por el bug de wp-env en Node 24.16+).
 - Archivos: solo el informe.
 - Verificación: salida de `diff -r` apuntada en el informe.
-- [ ] hecha · commit: —
+- [x] hecha · commit: —
 
 ### 0.8 Cierre de la fase (≤ 1 h)
 - Qué: informe completo `docs/spikes/0001-phase-0.md` (resumen por riesgo con evidencia); ADRs en `docs/adr/` con su `README.md` índice (como mínimo: método de R2, versión de Node, excepciones de R7); actualizar la spec y la hoja de ruta si algo cambia; `docs/status.md` mínimo (formato §7.7) apuntando a la fase 1; marcar este plan como cerrado. Corregir de paso las erratas de la spec (abajo). Commit `chore(0001): close phase 0`.
