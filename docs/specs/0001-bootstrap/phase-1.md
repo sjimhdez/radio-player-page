@@ -174,12 +174,13 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: ídem; `testing.md` recoge §5 y los mínimos de cobertura de la hoja de ruta.
 - Archivos: `.claude/rules/{admin,player,visualizers,testing}.md`.
 - Verificación: ídem 1.19.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 5c8e69c
 
 ### 1.21 Skills del ciclo: `write-spec`, `start-phase`, `close-phase`, `write-adr` + plantilla (≤ 1 h)
 - Qué: §7.5; `docs/specs/_template.md` para `write-spec`; `docs/adr/_template.md` si 1.1 no lo impide. Todas terminan con «`npm run check` en verde; actualizar `docs/status.md`».
 - Archivos: `.claude/skills/{write-spec,start-phase,close-phase,write-adr}/SKILL.md`, `docs/specs/_template.md`.
 - Verificación: frontmatter según 1.1; las skills aparecen en una sesión nueva.
+- Resultado: la plantilla del ADR vive solo en `write-adr` (no hay `docs/adr/_template.md`, para no duplicarla). Matiz sobre §2.2/§6: como la spec se escribe en una sesión y se ejecuta en otra, `write-spec` ya crea la rama `spec/NNNN-slug` desde `origin/trunk` y commitea ahí la spec; `start-phase` la reutiliza (o la crea si no existe) y hace el primer push y el PR en borrador. Los revisores reciben el diff en un archivo, porque no llevan `Bash` (nota de 1.1).
 - [ ] hecha · commit: —
 
 ### 1.22 Skills de trabajo: `characterize`, `fix-bug`, `audit`, `upgrade-dependency`, `release` (≤ 1 h)
