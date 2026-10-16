@@ -1,6 +1,6 @@
 # Spec 0001 — Bootstrap: spike, herramientas e ingeniería de contexto
 
-> Estado: **en curso — fase 0 cerrada, sigue la fase 1** · Fecha: 2026-10-16 · Rama: `spec/0001-bootstrap` · Versión de partida: 3.4.2 (tag `v3.4.2`)
+> Estado: **cerrada** (fases 0 y 1, 2026-10-16) · Fecha: 2026-10-16 · Rama: `spec/0001-bootstrap` · Versión de partida: 3.4.2 (tag `v3.4.2`)
 >
 > Primera spec de la iniciativa «base de calidad». Contexto, orden y decisiones comunes: [`docs/specs/README.md`](../README.md). Docs en español; código, comentarios y commits en inglés.
 
@@ -143,8 +143,8 @@ La fuente para completarlo es **el código de la 3.4.2** y su `README.md`.
   - `radplapag_settings`: legado de antes de la 3.3.0, origen de la migración.
   - `radplapag_db_version`: actualmente `'330'`.
   - `radplapag_migration_skipped_cpt_conflict`
-  - las de los avisos de migración: `radplapag_migration_success_notice` y `radplapag_migration_error_notice`
 - **Transients:**
+  - los de los avisos de migración: `radplapag_migration_success_notice` y `radplapag_migration_error_notice` (corregido en la fase 1: son transients, no opciones; el inventario verificado está en `SPEC.md` §3.1)
   - `radplapag_station_schedule_errors_*`
   - `radplapag_station_field_errors_*`
   - el de bloqueo de migración, `radplapag_migrating`

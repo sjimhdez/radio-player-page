@@ -215,9 +215,15 @@ jobs:
       - run: npm run test:hooks
 
   e2e:
-    name: E2E (Playwright, Chromium + WebKit)
+    name: E2E (${{ matrix.env.name }}, Chromium + WebKit)
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - { name: "PHP 7.4 + WP 6.6", script: "env:start:min", slug: "min" }
+          - { name: "PHP 8.4 + latest WP", script: "env:start:latest", slug: "latest" }
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -227,18 +233,18 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npx playwright install --with-deps chromium webkit
-      - name: Start the test environment (latest WP)
+      - name: Start the test environment
         uses: nick-fields/retry@v4
         with:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 10
-          command: npm run env:start:latest
+          command: npm run ${{ matrix.env.script }}
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v7
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.env.slug }}
           path: |
             playwright-report/
             test-results/

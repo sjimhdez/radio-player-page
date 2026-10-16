@@ -39,5 +39,19 @@ fi
 
 rm -f "$REPO/broken.php" "$REPO/tests/php/unit/XTest.php"
 run_hook verify-before-stop.sh "$(stop_json)" "$REPO"
+
+# Touching player/src or a block's src triggers that project's own build
+# (here it fails because the scratch repo has no npm project).
+mkdir -p "$REPO/player/src" "$REPO/blocks/schedule/src"
+echo "export {}" >"$REPO/player/src/x.ts"
+echo "export {}" >"$REPO/blocks/schedule/src/x.js"
+run_hook verify-before-stop.sh "$(stop_json)" "$REPO"
+if echo "$OUT" | jq -e '(.reason | contains("Player build")) and (.reason | contains("Player Vitest")) and (.reason | contains("Block schedule build"))' >/dev/null; then
+	ok "rebuilds and tests the player and the touched block"
+else
+	ko "rebuilds and tests the player and the touched block" "$OUT $ERR"
+fi
+rm -rf "$REPO/player" "$REPO/blocks"
+run_hook verify-before-stop.sh "$(stop_json)" "$REPO"
 if [ "$CODE" -eq 0 ] && [ -z "$OUT" ]; then ok "resets the cap once the checks pass"; else ko "resets the cap once the checks pass" "$OUT"; fi
 rm -f "${TMPDIR:-/tmp}/radplapag-stop-$SESSION"

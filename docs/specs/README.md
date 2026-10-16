@@ -8,7 +8,7 @@
 
 | # | Spec | Estado | Rama | Depende de |
 |---|---|---|---|---|
-| 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | en curso (fase 0 cerrada; sigue la fase 1) | `spec/0001-bootstrap` | — |
+| 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | cerrada (PR #36, pendiente de merge) | `spec/0001-bootstrap` | — |
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | borrador (se cierra con `write-spec` al terminar la 0001) | `spec/0002-safety-net` | 0001 |
 | 0003 | Dependencias del player (React) | pendiente de escribir | — | 0002 |
 | 0004 | Dependencias de la parte WordPress (bloques, raíz, Composer, CI) | pendiente de escribir | — | 0002 |
@@ -66,6 +66,7 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
 - **0004 Dependencias de WordPress:**
   - `@wordpress/scripts` de **cada bloque por separado**;
   - las herramientas de la raíz, Composer y las Actions de GitHub;
+  - `@babel/runtime` de los bloques: puede acabar en `build/` y hoy es dependencia de desarrollo, así que `check-licenses.mjs` no lo mira (moverlo a `dependencies` o ampliar el script);
   - el e2e de los bloques en WP 6.6 manda: si un build moderno necesita una WP posterior, se fija la versión con un ADR.
 - **0005 Refactor de PHP y admin:**
   - *strangler*: el código nuevo en el namespace `RadioPlayerPage\` con autoloader PSR-4 propio;

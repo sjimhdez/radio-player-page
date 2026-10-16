@@ -21,6 +21,7 @@ La CI tiene que estar en verde, y la spec 0001 no puede cambiar código del plug
   - Bloques: `overrides` en el `.eslintrc.json` de cada uno.
   - Player: los archivos en `player/.prettierignore`.
 - PHPCompatibilityWP no tiene línea base: se exige desde ya.
+- Tres entradas de la línea base de PHPCS **no son de formato** y no las arregla `phpcbf`: `WordPress.WP.EnqueuedResources.NonEnqueuedScript`/`NonEnqueuedStylesheet` (la página limpia imprime sus assets a propósito, ADR 0008) y `WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents` (lee el `manifest.json` local). La spec 0002 las convierte en `// phpcs:ignore` en su línea, con la justificación, para poder borrar el bloque entero.
 - **No se añaden entradas.** La spec 0002 formatea el código (`phpcbf`, `eslint --fix`, `prettier --write`) en commits propios (añadidos a `.git-blame-ignore-revs`), reduce o elimina las líneas base y activa `phpcbf` en el hook `format-edited-file.sh`.
 
 ## Consecuencias

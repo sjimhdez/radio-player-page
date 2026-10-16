@@ -10,7 +10,7 @@ El contrato completo está en `SPEC.md` (datos, migración y desinstalación). E
 
 ## Nunca se renombra nada
 
-- CPT `radplapag_station` / `radplapag_program`, sus meta keys (`radplapag_station_*`, `radplapag_program_*`), las opciones (`radplapag_settings`, `radplapag_db_version`, `radplapag_migration_*`) y los transients (`radplapag_station_schedule_errors_*`, `radplapag_station_field_errors_*`, `radplapag_migrating`) son contrato: hay sitios en producción con esos datos.
+- CPT `radplapag_station` / `radplapag_program`, sus meta keys (`radplapag_station_*`, `radplapag_program_*`), las opciones (`radplapag_settings`, `radplapag_db_version`, `radplapag_migration_skipped_cpt_conflict`) y los transients (`radplapag_station_schedule_errors_*`, `radplapag_station_field_errors_*`, `radplapag_migrating`, `radplapag_migration_success_notice`, `radplapag_migration_error_notice`) son contrato: hay sitios en producción con esos datos.
 - El formato del horario (`{ monday: [{ program_id, start: "HH:MM", end: "HH:MM", is_rerun? }], … }`) también, incluidas las franjas que cruzan la medianoche.
 
 ## Cambiar el esquema

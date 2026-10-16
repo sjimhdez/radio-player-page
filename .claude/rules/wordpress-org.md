@@ -26,7 +26,8 @@ Fuentes: [Detailed Plugin Guidelines](https://developer.wordpress.org/plugins/wo
 
 ## Plugin Check
 
-- La CI lo ejecuta sobre el zip con todas las categorías, incluida `plugin_repo`.
+- La CI lo ejecuta sobre el zip con todas las categorías, incluida `plugin_repo`, **excepto `player/`** (`--exclude-directories=player`: es código compilado). Lo que entra en `player/dist/` lo cubren la regla «sin peticiones a terceros» de `player.md`, la comprobación de licencias y el subagente `wporg-reviewer`.
+- `wp plugin check` sale con 0 aunque encuentre errores: la CI lee su salida y falla con cualquier `ERROR` o `WARNING`.
 - **No detecta:** llamadas externas en JS, «nags», librerías de core empaquetadas en bundles, licencias de dependencias, si `readme.txt` describe bien el plugin, ni lo que deja la desinstalación. Eso lo revisa el subagente `wporg-reviewer`.
 - Ignorados a propósito: `WordPress.WP.EnqueuedResources.NonEnqueuedScript/Stylesheet` en la página limpia (no carga el tema; ADR 0008).
 

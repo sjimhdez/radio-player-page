@@ -1,10 +1,10 @@
 # Spec 0001 · Fase 1 — Bootstrap: herramientas e ingeniería de contexto
-Estado: en curso · Inicio: 2026-10-16 · ADRs: 0008–0022 (previstos)
+Estado: **cerrada** (2026-10-16) · Inicio: 2026-10-16 · ADRs: 0008–0022
 
 ## Contexto
 La fase 0 está cerrada (informe [`docs/spikes/0001-phase-0.md`](../../spikes/0001-phase-0.md), «Para la fase 1»; ADRs 0001–0007). Medido al planificar (2026-10-16):
 
-- **WPCS sobre el PHP actual:** 906 violaciones en 34 sniffs; `phpcbf` arregla 773 (indentación, arrays cortos, alineación). No las arregla: Yoda (90), comentarios (~30), parámetros sin usar (11), `file_get_contents` (1), recursos no encolados (2). **PHPCompatibilityWP `7.4-`: 0.** El formateo masivo es de la 0002 (§7.4), así que esta fase no puede exigir WPCS completo (ADR 0021).
+- **WPCS sobre el PHP actual** (medido con el PHPCS de `podcast-player-page`, sin `scripts/`): 906 violaciones en 34 sniffs (con el ruleset final, 965 en 39, ver 1.4); `phpcbf` arregla 773 (indentación, arrays cortos, alineación). No las arregla: Yoda (90), comentarios (~30), parámetros sin usar (11), `file_get_contents` (1), recursos no encolados (2). **PHPCompatibilityWP `7.4-`: 0.** El formateo masivo es de la 0002 (§7.4), así que esta fase no puede exigir WPCS completo (ADR 0021).
 - La rama está al día con `origin/trunk`. `v3.4.2` ya tiene `scripts/build-release-zip.sh`: el zip de referencia sale del tag.
 - `player/.nvmrc` = `20.19.2` y `player/package.json` usa el campo no estándar `"node": "20"`. Los bloques no tienen script de lint. La CI no compila `now-playing` (K2) ni se dispara con `push` a `trunk`.
 
@@ -25,7 +25,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 | Una sesión nueva recibe `status.md` al arrancar | `tests/hooks/session-context.test.sh` |
 | Los 4 hooks hacen lo de §7.4 | `npm run test:hooks` |
 | `write-spec`, `start-phase` y `close-phase` existen y pasan una prueba en seco | checklist de 1.31, resultado apuntado en este plan |
-| Ningún archivo publicado cambia | `git diff --stat origin/trunk -- radio-player-page.php includes admin blocks/*/render.php blocks/*/block.json blocks/*/src player/src player/dist blocks/*/build uninstall.php readme.txt` vacío al cerrar |
+| Ningún archivo publicado cambia | `git diff --stat origin/trunk -- radio-player-page.php includes admin blocks/*/render.php blocks/*/block.json blocks/*/src player/src player/dist blocks/*/build uninstall.php readme.txt` vacío al cerrar, salvo los tests nuevos de `player/src` (`src/test/`, `*.test.ts`), que no entran en el bundle (`dist/` idéntico) |
 
 ## Tareas
 
@@ -104,6 +104,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: primero: `smoke.spec.ts`.
 - Verificación: `npm run test:e2e` (2 navegadores en verde).
 - Resultado: el `global-setup` siembra el sitio `wp_` del entorno de tests con `seed.php` (ya era idempotente) y guarda la URL en `test-results/e2e-seed.json`. Un *fixture* automático aborta cualquier petición fuera del origen de test y falla si hubo alguna. 2/2 en verde (Chromium y WebKit); con la mutación (`Pause` en vez de `Play`) falla.
+- Resultado (cierre): el humo no comprueba que la página sea «limpia» (sin tema ni `wp_head`); lo cubre el snapshot HTTP de la 0002 (ADR 0001).
 - [x] hecha · commit: c55ed83
 
 ### 1.11 Test de la lista del zip (≤ 1 h)
@@ -148,6 +149,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `.claude/hooks/verify-before-stop.sh`, `tests/hooks/verify-before-stop.test.sh`.
 - Test: primero: sin cambios → pasa; test roto → block; `stop_hook_active` → no bloquea en bucle.
 - Verificación: `npm run test:hooks`.
+- Resultado (cierre): el hook no lee `stop_hook_active` (la nota de 1.1 decía que se apoyaría en él): el tope es su contador por sesión, más el de 8 de Claude Code. El test cubre también la regeneración del player y de un bloque (caso añadido en el cierre).
 - Resultado: el tope es de 3 paradas bloqueadas seguidas por sesión (contador en `$TMPDIR`, se reinicia cuando todo pasa); por encima está el tope de 8 de Claude Code. También pasa `php -l` a cada PHP cambiado y los tests de hooks si cambian. Sobre el árbol real: unos 7 s.
 - [x] hecha · commit: 3359b9e
 
@@ -156,6 +158,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `.claude/settings.json`, `.mcp.json`.
 - Verificación: JSON válido contra el esquema; sesión nueva (`claude -p` breve) recibe el contexto del `SessionStart`.
 - Resultado: `settings.json` es válido contra el esquema de SchemaStore. `git push` se deniega a `main`/`trunk` (también `refspec:main`), con `--force`/`-f` y con `--delete`; se permite `git push -u origin spec/*`; el resto pregunta (nota de 1.1). Una sesión nueva (`claude -p`) recibe el contexto de `SessionStart`. Playwright MCP fijado a 0.0.83 con `--isolated`.
+- Resultado (cierre): permisos añadidos sin estar en §7.4/§6, todos de lectura o de herramientas del proyecto: `git show *`, `npx prettier *` y `npm --prefix <proyecto> test *`.
 - [x] hecha · commit: 9ff1cf4
 
 ### 1.18 `CLAUDE.md` (≤ 1 h)
@@ -239,6 +242,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `.github/workflows/ci.yml`, `scripts/check-licenses.mjs`.
 - Verificación: `gh pr checks 36` en verde. **Después, el usuario actualiza los checks obligatorios de los rulesets de `main` y `trunk`** con los nombres nuevos (se le dan en `status.md`).
 - Resultado: `wp plugin check` sale con 0 aunque encuentre errores (el job antiguo no podía fallar nunca), así que el job lee su salida CSV y falla con cualquier `ERROR` o `WARNING`. Plugin Check se instala desde su zip dentro de `.wp-env.json`, sin el *workaround* de WP-CLI: probado en local y en la CI (pendiente de R6, cerrado). Licencias: 113 paquetes de runtime en `player/`, 0 en los bloques (todo lo de los bloques es de desarrollo o externo de core).
+- Resultado (cierre): el e2e de la CI pasa a matriz (PHP 7.4 + WP 6.6 y PHP 8.4 + última WP), como dice el ADR 0012. **Checks nuevos** para los rulesets: ver `docs/status.md`.
 - [x] hecha · commit: 748d441
 
 ### 1.31 Prueba en seco de `write-spec`, `start-phase` y `close-phase` (≤ 1 h)
@@ -253,15 +257,15 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
   - Hoja de ruta (0003): Node ya está hecho (ADR 0002); la 0003 monta la medición del bundle y las capturas.
   - Esperado, no es un fallo: `write-spec` de la 0003 avisa de que `origin/trunk` aún no tiene `docs/` ni `.claude/` (la 0001 no está fusionada) y de que la 0003 depende de la 0002.
   - `close-phase` se prueba al cerrar esta fase.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 0e4cca0
 
 ### Cierre
 `close-phase` (ya existe): revisores, `SPEC.md`, rules, `CLAUDE.md`, `status.md`, spec 0001 «cerrada» en el índice, PR #36 listo para que el usuario lo fusione en `trunk`, recordatorio de `write-spec` para la 0002 en una sesión de diseño. Commit `chore(0001): close phase 1`.
 
 ## Decisiones abiertas → ADR
-- **Estándares sobre código heredado (ADR 0021):** WPCS completo y PHPCompatibilityWP en `phpcs.xml.dist`, pero las 34 sniffs que hoy fallan (y las reglas ESLint que fallen en `admin/js` y en los bloques) se excluyen explícitamente hasta el formateo masivo de la 0002, que las reactiva. PHPCompatibilityWP ya está a 0 y se exige desde ya. Alternativa descartada: formatear ahora (cambia 34 archivos antes de la red de seguridad).
-- **Cobertura:** en esta fase solo se genera el informe; los umbrales de la hoja de ruta los pone la CI de la 0002 (con PCOV/Xdebug en wp-env), que es cuando hay tests.
-- **Plugin Check sobre el zip** en lugar de sobre el árbol con exclusiones: evita mantener la lista de directorios de desarrollo en dos sitios.
+- **Estándares sobre código heredado → ADR 0021:** estándar completo con una línea base **por archivo** (39 sniffs de PHPCS; reglas de ESLint en `admin/js` y en los bloques; Prettier del player) hasta el formateo de la 0002. PHPCompatibilityWP ya está a 0 y se exige desde ya. Alternativa descartada: formatear ahora (cambia 34 archivos antes de la red de seguridad).
+- **Cobertura** (sin ADR, decisión de alcance): en esta fase solo se genera el informe; los umbrales de la hoja de ruta los pone la CI de la 0002 (con PCOV/Xdebug en wp-env), que es cuando hay tests.
+- **Plugin Check sobre el zip** en lugar de sobre el árbol con exclusiones: evita mantener la lista de directorios de desarrollo en dos sitios (sigue excluyendo `player/`, como antes; documentado en `wordpress-org.md`).
 - Diferencias con §7: ver «Notas de 1.1».
 
 
@@ -278,3 +282,16 @@ Fuentes: [memory](https://code.claude.com/docs/en/memory), [settings](https://co
 | Skills | `.claude/skills/<nombre>/SKILL.md`; frontmatter opcional: `name`, `description`, `when_to_use`, `argument-hint`, `disable-model-invocation`, `user-invocable`, `allowed-tools`, `paths`, `context`… < 500 líneas. Se invocan con `/nombre`. | Sí. |
 | Subagentes | `.claude/agents/<nombre>.md`; obligatorios `name` y `description`; `tools` (cadena con comas o lista), `disallowedTools`, `model`. La documentación avisa de que `Bash` permite modificar archivos: un agente estrictamente de solo lectura no lo lleva. | Sí, con un matiz: los revisores llevan `tools: Read, Grep, Glob`. La skill que los invoca (`close-phase`, `audit`) les pasa el diff ya generado en un archivo temporal. |
 | MCP | `.mcp.json` en la raíz: `{"mcpServers": {"<nombre>": {"type": "stdio", "command": …, "args": […]}}}`. Los servidores del proyecto piden aprobación en una sesión interactiva. | Sí. |
+
+## Cierre (2026-10-16)
+- Verificación: `npm run check` en verde; integración y e2e en verde en WP 6.6.10 + PHP 7.4.33 y en WP 7.1.3 + PHP 8.4.26; `player/dist` y `blocks/*/build` idénticos; `check:zip` en verde; CI 17/17 en el PR #36 (antes de la matriz de e2e).
+- Revisores (en sesiones nuevas, porque los subagentes creados durante la sesión no se cargan en ella): `spec-conformance-reviewer` («conforme con observaciones»), `backcompat-reviewer` (sin hallazgos que rompan nada) y `wporg-reviewer` (nada bloqueante). Se corrigió en el cierre:
+  - matriz de e2e en la CI;
+  - inventario de §4.1 de la spec y de la rule de datos;
+  - K2 resuelto;
+  - exclusión de `player/` en Plugin Check documentada;
+  - excepciones permanentes de PHPCS anotadas en el ADR 0021;
+  - test del hook `Stop` para el player y los bloques;
+  - notas de 1.10, 1.16 y 1.17.
+- Para la 0004: `check-licenses.mjs` solo mira las dependencias de runtime, pero `@babel/runtime` (dependencia de desarrollo de los bloques) puede acabar en `build/` (hoy es MIT). Hay que revisarlo al actualizar los bloques.
+- La prueba en seco de `close-phase` es este cierre: funcionó, con un matiz. Los subagentes hay que lanzarlos desde una sesión que ya los tenga cargados (en una sesión nueva lo están).
