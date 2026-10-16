@@ -213,7 +213,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: 0008 páginas limpias sin tema · 0009 React + MUI + Vite en el player · 0010 migración a CPT en la 3.3.0 · 0011 prefijos · 0012 requisitos mínimos WP 6.6 / PHP 7.4 · 0013 `crossOrigin` anónimo para los visualizadores (origen; lo matiza 0004) · 0014 build commiteado · 0015 publicación por SVN. Índice al día.
 - Archivos: `docs/adr/0008…0015-*.md`, `docs/adr/README.md`.
 - Verificación: índice = archivos (`ls docs/adr | wc -l`).
-- [ ] hecha · commit: —
+- [x] hecha · commit: bd51c94
 
 ### 1.27 ADRs de la iniciativa (≤ 1 h)
 - Qué: 0016 metodología por specs · 0017 caracterización antes que refactor · 0018 visualizadores congelados · 0019 dos mundos (WordPress.org / React) · 0020 proyectos JS sin unificar · 0021 estándares de código sobre código heredado: exclusiones por sniff/regla hasta el formateo de la 0002 · 0022 última versión de todo (con las excepciones ya conocidas: ADR 0003). (El de ramas ya es 0007.)

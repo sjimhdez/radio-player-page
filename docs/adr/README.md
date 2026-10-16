@@ -19,3 +19,10 @@ Decisiones de arquitectura con formato de Michael Nygard: contexto, decisión, c
 | [0013](0013-crossorigin-for-visualizers.md) | `crossOrigin = 'anonymous'` en el audio para los visualizadores | aceptado (retroactivo) | 0001 · fase 1 |
 | [0014](0014-committed-builds.md) | Los builds se commitean | aceptado (retroactivo) | 0001 · fase 1 |
 | [0015](0015-manual-svn-publishing.md) | Publicación por SVN, siempre a mano por el usuario | aceptado (retroactivo) | 0001 · fase 1 |
+| [0016](0016-spec-driven-development.md) | Desarrollo dirigido por specs, por fases y con ingeniería de contexto | aceptado | 0001 · fase 1 |
+| [0017](0017-characterization-before-refactor.md) | Caracterización antes de tocar, TDD para lo nuevo y strangler fig | aceptado | 0001 · fase 1 |
+| [0018](0018-frozen-visualizers.md) | Visualizadores congelados | aceptado | 0001 · fase 1 |
+| [0019](0019-two-worlds-wordpress-react.md) | Dos mundos: parte WordPress (WordPress.org) y parte React independiente | aceptado | 0001 · §3 |
+| [0020](0020-independent-js-projects.md) | `player/` y cada bloque son proyectos JS independientes | aceptado | 0001 · fase 1 |
+| [0021](0021-legacy-code-standards-baseline.md) | Estándares sobre el código heredado: línea base por archivo | aceptado | 0001 · fase 1 |
+| [0022](0022-latest-stable-versions.md) | La última versión estable de todo, con excepciones documentadas | aceptado | 0001 · fase 1 |
