@@ -187,7 +187,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: §7.5; `release` con `disable-model-invocation: true`.
 - Archivos: `.claude/skills/{characterize,fix-bug,audit,upgrade-dependency,release}/SKILL.md`.
 - Verificación: ídem 1.21.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 4ef439e
 
 ### 1.23 Subagentes revisores (≤ 1 h)
 - Qué: §7.6, solo lectura (`tools` sin edición): `spec-conformance-reviewer`, `backcompat-reviewer`, `wp-security-reviewer`, `wporg-reviewer`, `a11y-reviewer`.
