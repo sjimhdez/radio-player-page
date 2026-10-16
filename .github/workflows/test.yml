@@ -1,4 +1,4 @@
-name: CI
+name: CI (legacy, removed in 1.30)
 
 on:
   pull_request:
@@ -50,45 +50,6 @@ jobs:
           else
             echo "result=false" >> "$GITHUB_OUTPUT"
           fi
-
-  php-syntax:
-    name: PHP Syntax (PHP ${{ matrix.php-version }})
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php-version:
-          - "7.4"
-          - "8.4"
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php-version }}
-          coverage: none
-          tools: none
-
-      - name: Lint plugin PHP files
-        shell: bash
-        run: |
-          set -euo pipefail
-          mapfile -t files < <(git ls-files '*.php')
-
-          if [ "${#files[@]}" -eq 0 ]; then
-            echo "No PHP files found."
-            exit 0
-          fi
-
-          status=0
-          for file in "${files[@]}"; do
-            if ! php -l "$file"; then
-              status=1
-            fi
-          done
-          exit "$status"
 
   player:
     name: Player (lint, build, dist check)

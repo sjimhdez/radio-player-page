@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - trunk
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # PHP (WordPress side). Minimums: PHP 7.4 + WP 6.6 (ADR 0012).
+  # ---------------------------------------------------------------------------
+
+  php-syntax:
+    name: PHP Syntax (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["7.4", "8.4"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: none
+      - name: Lint shipped and development PHP files
+        run: |
+          set -euo pipefail
+          status=0
+          while IFS= read -r file; do
+            php -l "$file" >/dev/null || status=1
+          done < <(git ls-files '*.php' ':!spike')
+          exit "$status"
+
+  phpcs:
+    name: PHPCS (WPCS + PHPCompatibilityWP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/phpcs -q --report-full --report-summary
+      - name: Composer audit
+        run: composer audit --no-interaction
+
+  phpunit-unit:
+    name: PHPUnit unit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["7.4", "8.4"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/phpunit
+
+  phpunit-integration:
+    name: PHPUnit integration (${{ matrix.env.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - { name: "PHP 7.4 + WP 6.6", script: "env:start:min" }
+          - { name: "PHP 8.4 + latest WP", script: "env:start:latest" }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Start the test environment
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: npm run ${{ matrix.env.script }}
+      - run: npm run test:php:integration

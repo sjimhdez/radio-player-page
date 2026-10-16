@@ -226,7 +226,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `docs/known-issues.md`, `docs/inherited-bugs.md` (borrado), referencias.
 - Verificación: `grep -rn inherited-bugs docs/ SPEC.md CLAUDE.md .claude/` vacío salvo histórico.
 - Resultado: 20 filas (C1–C16, K1–K4). K4 es el candidato del spike sobre la migración de 1.x, ya decidido por el ADR 0005 («no arreglar»). C1 y K1 quedan «confirmado (spike)»; C8, «replicar» (§5.2); C14, «no aplica». Las definiciones y los vectores del horario pasan tal cual a `known-issues.md`. Quedan menciones históricas a `inherited-bugs.md` en la spec (§0, árbol de §2.3 y fase 1) y en `phase-0.md`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: c2e3b33
 
 ### 1.29 CI (1/2): PHP (≤ 1 h)
 - Qué: reescribir `.github/workflows/` (Node 26, `actions/*` en su última versión mayor): disparadores `push` a `main` y `trunk` + `pull_request`; sintaxis PHP 7.4/8.4; PHPCS; PHPUnit unit (7.4/8.4, sin Docker); PHPUnit integración (matriz R1 con wp-env); `composer audit`.
