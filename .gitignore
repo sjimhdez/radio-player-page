@@ -25,3 +25,12 @@ dist-ssr
 # Cursor
 .cursorignore
 .cursor/
+# Dev tooling (spec 0001)
+vendor/
+coverage/
+test-results/
+playwright-report/
+playwright/.auth/
+.phpunit.result.cache
+CLAUDE.local.md
+.claude/settings.local.json

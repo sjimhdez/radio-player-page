@@ -2,6 +2,9 @@
 	"name": "radplapag-schedule-block",
 	"version": "1.0.0",
 	"private": true,
+	"engines": {
+		"node": ">=22.22.2"
+	},
 	"scripts": {
 		"build": "wp-scripts build",
 		"start": "wp-scripts start"

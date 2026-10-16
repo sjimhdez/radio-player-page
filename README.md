@@ -161,7 +161,7 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 - **WordPress** 6.6+
 - **PHP** 7.4+
-- **Node.js** 20.x (development only; see `player/.nvmrc`)
+- **Node.js** 26 (development only; `.nvmrc`; minimum `>=22.22.2`)
 
 **Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and radio show CPT posts and flushes the object cache. Data is not removed on deactivation.
 
@@ -211,7 +211,7 @@ Asset paths come from Vite's `manifest.json` (content-hashed filenames) for cach
 | date-fns      | Date/time formatting           |
 | Web Audio API | Audio analysis for visualizers |
 
-Node 20.x is used for development (`player/.nvmrc`, `player/package.json`).
+Node 26 is used for development (`.nvmrc` in the root, `player/` and each block; `engines.node >=22.22.2`).
 
 ### Project Structure
 

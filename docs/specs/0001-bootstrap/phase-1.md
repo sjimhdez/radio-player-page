@@ -34,7 +34,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: este plan (sección de notas).
 - Test: —
 - Verificación: notas con enlace y fecha por mecanismo.
-- [ ] hecha · commit: —
+- [x] hecha · commit: ed5abd7
 
 ### 1.2 Node 26 y archivos base (≤ 1 h)
 - Qué: `.nvmrc` (`26`) en la raíz, `player/` y cada bloque; `engines.node: ">=22.22.2"` en `player/package.json` (sustituye a `"node": "20"`) y en cada bloque; `.editorconfig` (tabs en PHP/JS de WP, 2 espacios en `player/` según su Prettier); `.gitignore` con `vendor/`, `coverage/`, `test-results/`, `playwright-report/`, `playwright/.auth/`, `.phpunit.result.cache`, `CLAUDE.local.md`, `.claude/settings.local.json`. Línea de Node de `README.md` (Developers) a Node 26 (ADR 0002).
