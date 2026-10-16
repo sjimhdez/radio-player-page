@@ -168,7 +168,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: tabla §7.3, 20–60 líneas cada una, `paths:` en el frontmatter, enlaces a fuentes oficiales; sin repetir lo que está en `CLAUDE.md`.
 - Archivos: `.claude/rules/{wordpress-org,php,security,data-and-migrations,blocks}.md`.
 - Verificación: `wc -l` en rango; frontmatter según 1.1.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 53470da
 
 ### 1.20 Rules (2/2): `admin`, `player`, `visualizers`, `testing` (≤ 1 h)
 - Qué: ídem; `testing.md` recoge §5 y los mínimos de cobertura de la hoja de ruta.
