@@ -162,7 +162,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: lo de §7.2 y nada más (< 120 líneas): qué es y dónde está la verdad, comandos, mapa, invariantes verificables, flujo, qué no hacer.
 - Archivos: `CLAUDE.md`.
 - Verificación: `wc -l CLAUDE.md` < 120; cada invariante apunta a su ADR o test.
-- [ ] hecha · commit: —
+- [x] hecha · commit: c584b17
 
 ### 1.19 Rules (1/2): `wordpress-org`, `php`, `security`, `data-and-migrations`, `blocks` (≤ 1 h)
 - Qué: tabla §7.3, 20–60 líneas cada una, `paths:` en el frontmatter, enlaces a fuentes oficiales; sin repetir lo que está en `CLAUDE.md`.
