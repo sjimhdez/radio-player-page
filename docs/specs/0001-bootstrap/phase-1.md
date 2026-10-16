@@ -193,12 +193,13 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: §7.6, solo lectura (`tools` sin edición): `spec-conformance-reviewer`, `backcompat-reviewer`, `wp-security-reviewer`, `wporg-reviewer`, `a11y-reviewer`.
 - Archivos: `.claude/agents/*.md`.
 - Verificación: frontmatter según 1.1; aparecen en una sesión nueva.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 7a07622
 
 ### 1.24 `SPEC.md` (1/2): datos, migración, PHP, bloques, admin, desinstalación (≤ 1 h)
 - Qué: §4.1–§4.7 y §4.10 **verificados contra el código de la 3.4.2** (grep de cada meta key, opción, transient, función, hook y atributo); lo que falte o difiera se completa y, si contradice la spec, se para y se pregunta (§0.5). Más §2 (metodología, resumida y enlazando), §3 (dos mundos) e invariantes.
 - Archivos: `SPEC.md`.
 - Verificación: cada clave de `SPEC.md` aparece con `grep` en el código (lista en el commit).
+- Resultado: correcciones al inventario de §4 de la spec, verificadas en el código: `radplapag_migration_success_notice` y `radplapag_migration_error_notice` son **transients** (60 s y 120 s), no opciones; `uninstall.php` también borra las opciones `radplapag_db_version` y `radplapag_migration_skipped_cpt_conflict`; la migración también se dispara en `upgrader_process_complete`; `RADPLAPAG_PROGRAMS` lleva además `description` y `extendedDescription`. Se añaden a `SPEC.md`: tabla de callbacks enganchados con prioridades, atributos de los bloques con sus valores por defecto, listas blancas de tema y visualizador y caducidad de los transients. Cada identificador `radplapag_*` de `SPEC.md` aparece en el código (`git grep`).
 - [ ] hecha · commit: —
 
 ### 1.25 `SPEC.md` (2/2): página del reproductor, globales y reproductor (≤ 1 h)
