@@ -32,3 +32,4 @@ Spec activa: 0001 — Bootstrap: spike, herramientas e ingeniería de contexto �
 - §7.4: no se deniega `git push *` (incompatible con permitir `git push -u origin spec/*`); se deniegan los push a `main`/`trunk`, `--force` y `--delete`.
 - §2.2 / §6: `write-spec` ya crea la rama `spec/NNNN-slug` y commitea la spec; `start-phase` hace el primer push y el PR.
 - §7.3–§7.4: estándares con línea base por archivo hasta la 0002 (ADR 0021).
+- §6: `gh pr merge` ya no está denegado; Claude fusiona solo si el usuario lo pide, con confirmación (nota en el ADR 0007).

@@ -298,7 +298,7 @@ spec/0001   ●─●─●●   spec/0002 ●─●─●  spec/NNNN ●─● 
 - **`spec/NNNN-slug`** sale de `trunk` en la primera fase de la spec y dura lo que dura la spec. Dentro, un commit por tarea: `<type>(NNNN): <description> (<fase>.<tarea>)`.
 - **PR en borrador contra `trunk`** (`gh pr create --draft --base trunk`; sin `--base` apuntaría a `main`, que es la rama por defecto) desde el primer push, para que la CI corra en cada push.
   - Al cerrar la spec, el PR pasa a «listo».
-  - **El merge lo hace siempre el usuario**, con merge commit (`--no-ff`) y el título `Spec NNNN: <título>`. Antes puede lanzar `/code-review` sobre el PR.
+  - **El merge lo decide siempre el usuario** (lo hace él, o Claude si se lo pide; nota en el ADR 0007), con merge commit (`--no-ff`) y el título `Spec NNNN: <título>`. Antes puede lanzar `/code-review` sobre el PR.
 - **Sin squash.**
   - `git log --first-parent trunk` muestra una línea por spec, y `git log --first-parent main` una por versión.
   - `git log` conserva cada tarea.
@@ -316,7 +316,7 @@ spec/0001   ●─●─●●   spec/0002 ●─●─●  spec/NNNN ●─● 
 - **Specs en paralelo:** cada una en su worktree y con su rama, las dos desde `trunk`.
 - **Permisos de Claude** (`.claude/settings.json`):
   - se permiten: crear ramas `spec/*`, commitear, `git push -u origin spec/*`, `gh pr create --draft --base trunk`, `gh pr view`, `gh pr checks` y `gh pr ready`;
-  - se deniegan: `git push` a `main` o a `trunk`, `git push --force*`, `gh pr merge`, `git tag` (solo en la skill `release`, invocada por el usuario) y `svn *`.
+  - se deniegan: `git push` a `main` o a `trunk`, `git push --force*`, `git tag` (solo en la skill `release`, invocada por el usuario) y `svn *`.
 - Las skills `start-phase` y `close-phase` crean la rama, abren el PR contra `trunk` y lo marcan como listo. La skill `release` abre el PR `trunk` → `main`.
 - **Descartado** (detalle en el ADR 0007):
   - solo `main`, con los tags para lo publicado, porque `main` iría por delante de lo publicado durante toda la iniciativa;
