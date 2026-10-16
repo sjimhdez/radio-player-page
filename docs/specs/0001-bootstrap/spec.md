@@ -254,13 +254,13 @@ En esta spec se montan las herramientas y una suite de humo por capa. Los tests 
   2. ese test se ve en rojo;
   3. se hace el arreglo.
 - **`known-issues.md`** tiene una fila por hallazgo con estas columnas:
-  - ID: `C2`–`C16` de [`docs/inherited-bugs.md`](../../inherited-bugs.md), o `K1…` para los nuevos;
+  - ID: `C1`–`C16` del catálogo heredado (hoy en [`docs/known-issues.md`](../../known-issues.md)), o `K1…` para los nuevos;
   - origen: catálogo, caracterización, auditoría, axe o guidelines;
   - descripción;
   - archivo y test que lo fija;
   - gravedad;
   - decisión del usuario: corregir en una spec de correcciones, abrir otra spec o no arreglar.
-- **El catálogo C1–C16 de [`docs/inherited-bugs.md`](../../inherited-bugs.md) entra de inicio en `known-issues.md`.** En la spec 0002, cada uno se **confirma contra la 3.4.2** con su test `currently`: si no se reproduce, se apunta como «no se reproduce». La propuesta heredada sirve de punto de partida, pero se vuelve a confirmar aquí. Hay tres excepciones:
+- **El catálogo C1–C16 heredado entra de inicio en [`known-issues.md`](../../known-issues.md)** (sembrado en la fase 1; `inherited-bugs.md` se borró). En la spec 0002, cada uno se **confirma contra la 3.4.2** con su test `currently`: si no se reproduce, se apunta como «no se reproduce». La propuesta heredada sirve de punto de partida, pero se vuelve a confirmar aquí. Hay tres excepciones:
   - C14 no aplica: es un cambio de la arquitectura de la 4.0.
   - C8 se replica.
   - C1 (CORS) y C9 (zona horaria) siguen pendientes.
@@ -563,7 +563,7 @@ Objetivo: validar los riesgos del montaje de tests antes de construir nada. El c
 
 ## Apéndice A — Referencias
 
-- Bugs heredados y vectores del horario: [`inherited-bugs.md`](../../inherited-bugs.md).
+- Bugs heredados y vectores del horario: [`docs/known-issues.md`](../../known-issues.md) (antes `inherited-bugs.md`).
 - Spike de la fase 0: [`docs/spikes/0001-phase-0.md`](../../spikes/0001-phase-0.md).
 - WordPress.org: [Detailed Plugin Guidelines](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/), [Plugin Handbook](https://developer.wordpress.org/plugins/), [Coding Standards](https://developer.wordpress.org/coding-standards/), [Plugin Check](https://wordpress.org/plugins/plugin-check/), [readme.txt](https://developer.wordpress.org/plugins/wordpress-org/how-your-readme-txt-works/).
 - Metodología de referencia: `../podcast-player-page/SPEC.md` (§18 fases, §19 tests, §20 ingeniería de contexto, §21 CI), `CLAUDE.md`, `.claude/` (rules, skills, hooks y agentes) y `docs/` (`status.md`, `plans/`, `adr/`).

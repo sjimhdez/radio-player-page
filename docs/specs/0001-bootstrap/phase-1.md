@@ -219,12 +219,13 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: 0016 metodología por specs · 0017 caracterización antes que refactor · 0018 visualizadores congelados · 0019 dos mundos (WordPress.org / React) · 0020 proyectos JS sin unificar · 0021 estándares de código sobre código heredado: exclusiones por sniff/regla hasta el formateo de la 0002 · 0022 última versión de todo (con las excepciones ya conocidas: ADR 0003). (El de ramas ya es 0007.)
 - Archivos: `docs/adr/0016…0022-*.md`, `docs/adr/README.md`.
 - Verificación: ídem 1.26.
-- [ ] hecha · commit: —
+- [x] hecha · commit: a1bdc82
 
 ### 1.28 `docs/known-issues.md` (≤ 1 h)
 - Qué: tabla §5.2 con C1–C16 de `docs/inherited-bugs.md` (estado «sin confirmar»; C14 «no aplica», C8 «se replica», C1/C9 pendientes según §5.2) y K1–K3 del spike (K2: «resuelto por la CI de la fase 1» si 1.29 lo cubre). Los vectores del horario de `inherited-bugs.md` pasan a `known-issues.md` (los usa la 0002). Se borra `inherited-bugs.md` y se actualizan los enlaces (spec, hoja de ruta, 0002).
 - Archivos: `docs/known-issues.md`, `docs/inherited-bugs.md` (borrado), referencias.
 - Verificación: `grep -rn inherited-bugs docs/ SPEC.md CLAUDE.md .claude/` vacío salvo histórico.
+- Resultado: 20 filas (C1–C16, K1–K4). K4 es el candidato del spike sobre la migración de 1.x, ya decidido por el ADR 0005 («no arreglar»). C1 y K1 quedan «confirmado (spike)»; C8, «replicar» (§5.2); C14, «no aplica». Las definiciones y los vectores del horario pasan tal cual a `known-issues.md`. Quedan menciones históricas a `inherited-bugs.md` en la spec (§0, árbol de §2.3 y fase 1) y en `phase-0.md`.
 - [ ] hecha · commit: —
 
 ### 1.29 CI (1/2): PHP (≤ 1 h)

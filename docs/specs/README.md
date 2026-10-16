@@ -37,7 +37,7 @@ Las 0003 y 0004 son independientes entre sí, igual que las 0005 y 0006. Se pued
 | 6 | Dos mundos | La parte WordPress sigue las guidelines de WordPress.org y los estándares de WordPress. La parte React (`player/`) es independiente (0001, §3). |
 | 7 | Sin unificar | `player/` y cada `blocks/*` conservan su `package.json`, su lockfile y su build. |
 | 8 | Versiones | La última versión estable de todo. Una herramienta de desarrollo que la matriz de mínimos obligue a fijar más atrás lleva su ADR. |
-| 9 | Bugs | Solo se corrigen en las specs de correcciones, tras el triage de la 0002. Hasta entonces se fijan con tests `currently` y se registran en `docs/known-issues.md`. Semilla: [`docs/inherited-bugs.md`](../inherited-bugs.md) (C1–C16). |
+| 9 | Bugs | Solo se corrigen en las specs de correcciones, tras el triage de la 0002. Hasta entonces se fijan con tests `currently` y se registran en `docs/known-issues.md`. El catálogo heredado C1–C16 ya está sembrado allí. |
 | 10 | Claude Code | Solo mecanismos oficiales en sus rutas estándar. `docs/specs/`, `docs/adr/`, `docs/status.md` y `docs/known-issues.md` son convenciones del proyecto. |
 
 ### Mínimos de cobertura (los hace cumplir la CI)
