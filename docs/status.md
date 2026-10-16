@@ -11,7 +11,7 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 1 en curso 
 4. Tareas 1.20–1.22: cobertura en la CI y `contract-map.md`; después `close-phase`.
 
 ## Bloqueos / preguntas para el humano
-- Los `php@7.4`/`php@8.4` de Homebrew ya no arrancan (faltan `libffi` y `net-snmp`). En local, la matriz de PHP se prueba con `docker run php:<v>-cli` o con wp-env. Arreglarlo es opcional (`brew reinstall php@7.4 php@8.4`).
+- Ninguno.
 
 ## Verificación manual pendiente
 - Ninguna.
