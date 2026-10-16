@@ -96,13 +96,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: —
 - Verificación: `for b in blocks/*/; do npm --prefix "$b" run check; done && git diff --exit-code blocks/*/build`.
 - Resultado: ESLint 8 (el de `@wordpress/scripts` 28) encontraba el `eslint.config.mjs` de la raíz. Cada bloque tiene ahora su `.eslintrc.json` (`root: true`, preset de WordPress y línea base por archivo), lint con `ESLINT_USE_FLAT_CONFIG=false` y `"prettier"` en su `package.json`, así que no hereda nada de la raíz. En `now-playing`, el lock resolvía TypeScript 7.0.2 como *peer*, y eso rompía `@typescript-eslint` 6: ese lint ya fallaba en la 3.4.2. Se fija `typescript` 5.9.3 como dependencia de desarrollo (la que resuelven los otros dos bloques); el lock solo pierde TS 7 y sus binarios, y `build/` no cambia. La actualización real es de la 0004.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 17c9464
 
 ### 1.10 Playwright y humo e2e (≤ 1 h)
 - Qué: `playwright.config.ts` (Chromium + WebKit, `baseURL` de `.wp-env.tests.json`, trazas e informe solo si falla, reintentos solo en CI, bloqueo de peticiones a orígenes externos). `tests/e2e/global-setup.ts` que siembra con `scripts/fixtures/seed.php` (vía `wp-env run`) en un entorno reseteado. Un humo: la página de la emisora devuelve el HTML limpio y monta `#root`. El servidor de medios y los 12 escenarios son de la 0002.
 - Archivos: `playwright.config.ts`, `tests/e2e/{global-setup.ts,smoke.spec.ts}`, `package.json` (`test:e2e`).
 - Test: primero: `smoke.spec.ts`.
 - Verificación: `npm run test:e2e` (2 navegadores en verde).
+- Resultado: el `global-setup` siembra el sitio `wp_` del entorno de tests con `seed.php` (ya era idempotente) y guarda la URL en `test-results/e2e-seed.json`. Un *fixture* automático aborta cualquier petición fuera del origen de test y falla si hubo alguna. 2/2 en verde (Chromium y WebKit); con la mutación (`Pause` en vez de `Play`) falla.
 - [ ] hecha · commit: —
 
 ### 1.11 Test de la lista del zip (≤ 1 h)
