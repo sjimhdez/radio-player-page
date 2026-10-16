@@ -149,12 +149,13 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: primero: sin cambios → pasa; test roto → block; `stop_hook_active` → no bloquea en bucle.
 - Verificación: `npm run test:hooks`.
 - Resultado: el tope es de 3 paradas bloqueadas seguidas por sesión (contador en `$TMPDIR`, se reinicia cuando todo pasa); por encima está el tope de 8 de Claude Code. También pasa `php -l` a cada PHP cambiado y los tests de hooks si cambian. Sobre el árbol real: unos 7 s.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 3359b9e
 
 ### 1.17 `.claude/settings.json` y `.mcp.json` (≤ 1 h)
 - Qué: hooks de 1.13–1.16 y permisos de §7.4 + §6 (permitir `git checkout -b spec/*`, `git push -u origin spec/*`, `gh pr create --draft --base trunk`, `gh pr view|checks|ready`; denegar `git push` a `main`/`trunk`, `--force*`, `gh pr merge`, `git tag`, `svn`, `npm publish`, leer `.env*`). `.mcp.json` con Playwright MCP.
 - Archivos: `.claude/settings.json`, `.mcp.json`.
 - Verificación: JSON válido contra el esquema; sesión nueva (`claude -p` breve) recibe el contexto del `SessionStart`.
+- Resultado: `settings.json` es válido contra el esquema de SchemaStore. `git push` se deniega a `main`/`trunk` (también `refspec:main`), con `--force`/`-f` y con `--delete`; se permite `git push -u origin spec/*`; el resto pregunta (nota de 1.1). Una sesión nueva (`claude -p`) recibe el contexto de `SessionStart`. Playwright MCP fijado a 0.0.83 con `--isolated`.
 - [ ] hecha · commit: —
 
 ### 1.18 `CLAUDE.md` (≤ 1 h)
