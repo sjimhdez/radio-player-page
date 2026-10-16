@@ -25,14 +25,14 @@ Entorno local comprobado: Node 22.23.3 (nvm; también 20.19.2), PHP 8.5 + `php@7
 - Qué: `spike/README.md` (cómo reproducir cada riesgo), `spike/.gitignore` (resultados, `vendor/`, `node_modules/`). Censo de la **última versión estable** (fuentes oficiales, con fecha): Node, WordPress, PHPUnit, Yoast polyfills, `@wordpress/env`, Playwright, Vitest, happy-dom, jsdom. Instalar la última Node con nvm (solo en la máquina).
 - Archivos: `spike/README.md`, `spike/.gitignore`, borrador de `docs/spikes/0001-phase-0.md` (sección *Entorno*).
 - Verificación: `git status` muestra solo `spike/` y `docs/`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 09077f8
 
 ### 0.2 R1 + R7 — PHPUnit + suite de WP sobre wp-env (≤ 1 h)
 - Qué: `spike/php/composer.json` con `config.platform.php = 7.4`; dos configs de wp-env (`min`: PHP 7.4 + WP 6.6; `latest`: PHP 8.4 + última WP) montando el plugin; bootstrap de integración y un test de humo. Probar PHPUnit 9.6 y, si la última WP lo admite, versiones más nuevas en la punta `latest`, para ver si una sola versión vale para las dos.
 - Archivos: `spike/php/{composer.json,phpunit.xml.dist,bootstrap.php,SmokeTest.php,.wp-env.*.json}`.
 - Test: humo `WP_UnitTestCase`.
 - Verificación: `npx wp-env start` + `npx wp-env run tests-cli --env-cwd=… vendor/bin/phpunit` en cada config.
-- [ ] hecha · commit: —
+- [x] hecha · commit: —
 
 ### 0.3 R2 — Caracterizar la página limpia (≤ 1 h)
 - Qué: prototipar (a) snapshot por HTTP contra wp-env, con normalización (URLs, versiones, nonces) y fixture de emisora creado por WP-CLI; (b) costura mínima **en una copia dentro de `spike/`** (función que devuelve el HTML) con prueba de identidad byte a byte frente a (a). Recomendar una para el ADR (preferencia inicial: (a), porque no exige tocar código antes de caracterizarlo).

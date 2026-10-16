@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<phpunit
+	bootstrap="tests/bootstrap.php"
+	colors="true"
+	failOnRisky="true"
+	failOnWarning="true"
+	convertDeprecationsToExceptions="true"
+>
+	<testsuites>
+		<testsuite name="spike">
+			<directory suffix="Test.php">tests</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

@@ -1,0 +1,15 @@
+{
+	"name": "radplapag/spike-php",
+	"description": "Spike 0001 phase 0: PHPUnit + WP test suite on wp-env (R1, R5, R7). Throwaway.",
+	"license": "GPL-2.0-or-later",
+	"require-dev": {
+		"phpunit/phpunit": "^9.6",
+		"yoast/phpunit-polyfills": "^4.0"
+	},
+	"config": {
+		"platform": {
+			"php": "7.4.33"
+		},
+		"sort-packages": true
+	}
+}
