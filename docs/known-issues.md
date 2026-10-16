@@ -29,7 +29,7 @@
 | K1 | spike R3 | En Chromium, un MP3 sin CORS falla (`audio.error = 4`, `paused`) **sin mostrar** «Unable to play the stream». En WebKit sí se muestra; en HLS/DASH, en los dos. | `player/src/hooks/use-audio-player.tsx` | — (0002) | media | confirmado (spike) | pendiente |
 | K2 | lectura de la CI | La CI de la 3.4.2 solo compilaba y verificaba `schedule` y `programs-list`: el build de `now-playing` no se comprobaba. | `.github/workflows/test.yml` | job `Block (now-playing)` de `ci.yml` | baja | corregido (spec 0001, fase 1) | — (tooling, no producto) |
 | K3 | lectura del README | `README.md` dice «12 languages» (hay 14 locales: faltan `cs` y `hr`). La línea de Node ya se corrigió en la 0001 (ADR 0002). | `README.md` | — | baja | confirmado | pendiente |
-| K4 | spike R5 | Un sitio que salte de la 1.0.x–1.1.x a la 3.3+ pierde su emisora en silencio: la opción plana no tiene `stations`, `radplapag_db_version` pasa a `'330'` y `radplapag_settings` queda huérfana, sin aviso. | `includes/radplapag-upgrade.php` | `spike/php/tests/MigrationGoldenTest.php` (`v1.1-flat`) | alta (sin usuarios afectados) | confirmado (spike) | no arreglar: formatos 1.x fuera del contrato (ADR 0005) |
+| K4 | spike R5 | Un sitio que salte de la 1.0.x–1.1.x a la 3.3+ pierde su emisora en silencio: la opción plana no tiene `stations`, `radplapag_db_version` pasa a `'330'` y `radplapag_settings` queda huérfana, sin aviso. | `includes/radplapag-upgrade.php` | `tests/php/integration/Migration/UpgradeFlowTest.php` (`test_currently_flat_1x_settings_are_orphaned_without_notice`) | alta (sin usuarios afectados) | confirmado | no arreglar: formatos 1.x fuera del contrato (ADR 0005) |
 
 ## Definiciones del horario (para leer los vectores)
 
