@@ -232,7 +232,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: reescribir `.github/workflows/` (Node 26, `actions/*` en su última versión mayor): disparadores `push` a `main` y `trunk` + `pull_request`; sintaxis PHP 7.4/8.4; PHPCS; PHPUnit unit (7.4/8.4, sin Docker); PHPUnit integración (matriz R1 con wp-env); `composer audit`.
 - Archivos: `.github/workflows/ci.yml` (sustituye a `test.yml`).
 - Verificación: push de la rama (lo hace el usuario o Claude tras 1.17) → `gh pr checks 36`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 3fd86b9
 
 ### 1.30 CI (2/2): JS, e2e, hooks, zip y Plugin Check (≤ 1 h)
 - Qué: un job por proyecto JS (raíz; `player/` con `npm ci` → `tsc` → ESLint → Vitest → build → `git diff --exit-code`; cada uno de los **3** bloques), licencias GPL-compatibles de las dependencias empaquetadas (`player/` y bloques, script propio sobre `package-lock.json`, `--omit=dev`), `npm audit --omit=dev`, Playwright (Chromium + WebKit, artefactos si falla), tests de hooks, `check:zip`, Plugin Check sobre el zip (probar sin el workaround de Node ≥ 24.16, como dejó pendiente R6; si falla, se mantiene).
