@@ -70,7 +70,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: caracterización. Mutación: quitar el `continue` tras el error de formato.
 - Verificación: `npm run test:php:integration -- --filter SanitizeScheduleTest`
 - Nota: los códigos de error salen del primer mensaje (en inglés, `en_US`). La rama «End time must be after start time» es inalcanzable: con `end <= start` el fin pasa al día siguiente. Del solape entre días solo se informa el primero, detrás de todos los errores por día. Mutación sin el `continue`: 2 tests fallan (con `'ab:cd'` no mordía; el test usa `'7:00'`, que solaparía).
-- [x] hecha · commit: —
+- [x] hecha · commit: ae81980
 
 ### 1.4 Guardado de la emisora (≤ 1 h)
 - Qué: `radplapag_save_station_meta()`:
@@ -85,7 +85,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/php/integration/Station/SaveStationMetaTest.php`.
 - Test: caracterización. Mutación: cambiar el valor por defecto `neutral`.
 - Verificación: `npm run test:php:integration -- --filter SaveStationMetaTest`
-- [ ] hecha · commit: —
+- Nota: 41 tests. `DOING_AUTOSAVE` no se puede deshacer: ese test corre en su propio proceso. En CLI la URL nunca se lee, así que la rama que guarda URL y página y borra el transient de campos no se alcanza (va a e2e). Sin rarezas nuevas para `known-issues.md`: los campos que faltan se guardan como 0 / valor por defecto y los errores de campo no frenan el resto, como se espera de un formulario que siempre los envía. Mutaciones: el defecto `neutral` → `blue` (1 test), el `neutral` de la lista blanca (2), sin la guarda de autosave (1) y sin excluir la propia emisora (1).
+- [x] hecha · commit: —
 
 ### 1.5 Golden master de la migración (≤ 1 h)
 - Qué: `tests/fixtures/legacy-settings/`:
