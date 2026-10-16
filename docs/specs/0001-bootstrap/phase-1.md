@@ -207,7 +207,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `SPEC.md`.
 - Verificación: ídem 1.24.
 - Resultado: verificado contra `radio-player-page.php` y `player/src`. Lo nuevo frente a §4.3/§4.8 de la spec: la página solo se intercepta si está publicada, sin contraseña y asignada; cabecera con meta de Open Graph y Twitter; `RADPLAPAG_PROGRAMS` en orden de primera aparición; el protocolo se detecta con `endsWith('.m3u8' | '.mpd')` (una URL con *query string* va como audio directo; queda para caracterizar en la 0002); sueño de 30/60/120 min.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 8d623b3
 
 ### 1.26 ADRs retroactivos de producto (≤ 1 h)
 - Qué: 0008 páginas limpias sin tema · 0009 React + MUI + Vite en el player · 0010 migración a CPT en la 3.3.0 · 0011 prefijos · 0012 requisitos mínimos WP 6.6 / PHP 7.4 · 0013 `crossOrigin` anónimo para los visualizadores (origen; lo matiza 0004) · 0014 build commiteado · 0015 publicación por SVN. Índice al día.

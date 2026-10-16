@@ -11,3 +11,11 @@ Decisiones de arquitectura con formato de Michael Nygard: contexto, decisión, c
 | [0005](0005-migration-sources-2-0-plus.md) | La migración admite los formatos de la 2.0 en adelante | aceptado | 0001 · R5 |
 | [0006](0006-happy-dom.md) | happy-dom como entorno DOM de Vitest en el player | aceptado | 0001 · R4 |
 | [0007](0007-trunk-integration-branch.md) | Rama de integración `trunk`; `main` = lo publicado | aceptado | 0001 · §6 |
+| [0008](0008-clean-player-pages-without-theme.md) | Páginas del reproductor limpias, sin el tema | aceptado (retroactivo) | 0001 · fase 1 |
+| [0009](0009-react-mui-vite-player.md) | El reproductor es una app React + MUI + Vite | aceptado (retroactivo) | 0001 · fase 1 |
+| [0010](0010-cpt-storage-and-migration.md) | Emisoras y programas como CPT, con migración desde `radplapag_settings` | aceptado (retroactivo) | 0001 · fase 1 |
+| [0011](0011-global-prefixes.md) | Prefijos `radplapag` / `RADPLAPAG` en todo lo global | aceptado (retroactivo) | 0001 · fase 1 |
+| [0012](0012-minimum-requirements.md) | Requisitos mínimos: WordPress 6.6 y PHP 7.4 | aceptado (retroactivo) | 0001 · fase 1 |
+| [0013](0013-crossorigin-for-visualizers.md) | `crossOrigin = 'anonymous'` en el audio para los visualizadores | aceptado (retroactivo) | 0001 · fase 1 |
+| [0014](0014-committed-builds.md) | Los builds se commitean | aceptado (retroactivo) | 0001 · fase 1 |
+| [0015](0015-manual-svn-publishing.md) | Publicación por SVN, siempre a mano por el usuario | aceptado (retroactivo) | 0001 · fase 1 |
