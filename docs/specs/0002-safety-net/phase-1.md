@@ -155,7 +155,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/php/integration/Schedule/BlockDataTest.php`.
 - Test: caracterización. Mutación: quitar el reordenado `current_first`.
 - Verificación: `npm run test:php:integration -- --filter BlockDataTest`
-- [ ] hecha · commit: —
+- Nota: 33 tests. `is_live` se comprueba con los 18 vectores de `resolution` en los dos bloques: en los 15 correctos la única franja en directo es el `current` del vector; en los 3 `currently` de C16 son su `current` más el `correct.current` (vector 13: dos franjas en directo, C de hoy y E de ayer). Las claves del mapa de programas son enteros en PHP (`'12'` → `12`). El bloque de horario deja la franja de un programa en borrador o inexistente con el nombre vacío; para el borrador es un `currently` de C10 (los otros dos bloques lo ocultan). El reordenado `current_first` solo se ve si hoy no es lunes. Mutaciones (todas fallan y se revierten): sin reordenado `current_first`, sin `usort` de las franjas, sin `is_live` de la franja de ayer en la lista de programas, borradores en el mapa y orden de última aparición en la lista. En verde en PHP 7.4 + WP 6.6.10.
+- [x] hecha · commit: —
 
 ### 1.10 Render de los bloques (≤ 1 h)
 - Qué: snapshot del HTML normalizado (helper `Snapshot`, reloj con `Clock`) de cada combinación de atributos:
