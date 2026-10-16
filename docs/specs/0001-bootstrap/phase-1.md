@@ -80,13 +80,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `player/package.json`, `player/package-lock.json`, `player/vitest.config.ts`, `player/src/test/setup.ts`, `player/src/utils/<util>.test.ts`.
 - Test: primero: el humo de `utils/`.
 - Verificación: `npm --prefix player run check && npm --prefix player run build && git diff --exit-code player/dist`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: afd898e
 
 ### 1.8 Vitest y ESLint de la raíz (admin) (≤ 1 h)
 - Qué: `vitest.config.ts` raíz (solo `tests/js/**`), humo en `tests/js/admin/`. `eslint.config.js` raíz con `@wordpress/eslint-plugin` solo sobre `admin/js/**` y `tests/js/**`; las reglas que hoy fallan en `admin/js` se desactivan una a una en un bloque «re-enable in spec 0002» (mismo ADR 0021). Scripts `test`, `lint:js`.
 - Archivos: `vitest.config.ts`, `eslint.config.js`, `tests/js/admin/smoke.test.ts`, `package.json`.
 - Test: primero: el humo.
 - Verificación: `npm test && npm run lint:js`.
+- Resultado: `eslint.config.mjs` y `vitest.config.mjs` (la raíz no es `type: module`). La configuración de Prettier de WordPress necesita el fork `wp-prettier` (alias `prettier@npm:wp-prettier`, como `@wordpress/scripts`). Línea base por archivo y regla (mutación: sin la de `station-admin.js` salen más de 1.000 errores). Humo: los dos scripts de `admin/js` se ejecutan en un `vm` sin su markup y no lanzan.
 - [ ] hecha · commit: —
 
 ### 1.9 Lint de cada bloque (≤ 1 h)
