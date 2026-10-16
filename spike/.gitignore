@@ -6,3 +6,4 @@ playwright-report/
 *.log
 .wp-env-home/
 .phpunit.result.cache
+e2e/media/

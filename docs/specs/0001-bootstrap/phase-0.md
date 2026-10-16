@@ -38,13 +38,13 @@ Entorno local comprobado: Node 22.23.3 (nvm; también 20.19.2), PHP 8.5 + `php@7
 - Qué: prototipar (a) snapshot por HTTP contra wp-env, con normalización (URLs, versiones, nonces) y fixture de emisora creado por WP-CLI; (b) costura mínima **en una copia dentro de `spike/`** (función que devuelve el HTML) con prueba de identidad byte a byte frente a (a). Recomendar una para el ADR (preferencia inicial: (a), porque no exige tocar código antes de caracterizarlo).
 - Archivos: `spike/clean-page/`.
 - Verificación: el script de snapshot da la misma salida dos veces seguidas; (b) idéntica a (a).
-- [x] hecha · commit: —
+- [x] hecha · commit: 2d53af5
 
 ### 0.4 R3 — Servidor de streams y Playwright (≤ 1 h)
 - Qué: servidor Node local con dos orígenes (con y sin `Access-Control-Allow-Origin`) que sirve MP3 progresivo, MP3 infinito (bucle por chunks), HLS y DASH generados con ffmpeg a partir de `scripts/fixtures/assets/intro.mp3`. Página de pruebas que carga el **`player/dist` real** con `window.RADPLAPAG_*` simulados (sin WP). Tests: pulsar play → `currentTime` avanza, `paused === false`, sin `error`. Chromium y WebKit; flags de autoplay. Medir C1 (sin CORS + `crossOrigin='anonymous'`).
 - Archivos: `spike/e2e/{package.json,server.mjs,harness.html,playwright.config.ts,streams.spec.ts}`.
 - Verificación: `npx playwright test` en macOS y en `docker run mcr.microsoft.com/playwright:<versión>`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: —
 
 ### 0.5 R4 — Vitest sobre `use-audio-player` (≤ 1 h)
 - Qué: proyecto en `spike/player-unit/` con alias a `player/src` (sin tocar `player/package.json`), `FakeAudioElement` y `vi.mock('hls.js')`/`vi.mock('dashjs')` para los `import()` dinámicos. 3–4 tests: MP3 asigna `src` con `crossOrigin`, HLS no‑iOS crea `Hls`, DASH inicializa con autoplay, iOS usa HLS nativo. Ejecutar con happy-dom y con jsdom y elegir.
