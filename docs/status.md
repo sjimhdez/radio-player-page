@@ -1,13 +1,12 @@
 # Estado
-Spec activa: 0001 — Bootstrap: spike, herramientas e ingeniería de contexto · Fase: cerrada (0 y 1) · Plan: docs/specs/0001-bootstrap/phase-1.md · Actualizado: 2026-10-16
+Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 1 por planificar · Plan: — (lo escribe `start-phase` en docs/specs/0002-safety-net/phase-1.md) · Actualizado: 2026-10-16
 
 ## En curso
-- Nada. La spec 0001 está cerrada y el PR #36 (`spec/0001-bootstrap` → `trunk`) está listo para merge.
+- Nada. La 0001 está cerrada y fusionada en `trunk` (PR #36). La spec 0002 está escrita (rama `spec/0002-safety-net`, commit local, sin push).
 
 ## Siguiente (máx. 5)
-1. Usuario: actualizar los checks obligatorios de los rulesets de `main` y `trunk` (ver «Bloqueos») y fusionar el PR #36 con merge commit, sin squash, título `Spec 0001: Bootstrap: spike, herramientas e ingeniería de contexto`. Antes puede lanzar `/code-review`.
-2. Tras el merge: sesión de diseño → `write-spec 0002` (red de seguridad, auditoría y triage), partiendo del borrador `docs/specs/0002-safety-net/spec.md`.
-3. Después, sesión nueva → `start-phase` de la 0002.
+1. Sesión nueva → `start-phase` de la 0002, fase 1 (caracterización unit e integración). Hace el primer push y abre el PR en borrador contra `trunk`.
+2. Si no se ha hecho: el usuario actualiza los checks obligatorios de los rulesets de `main` y `trunk` (ver «Bloqueos»).
 
 ## Bloqueos / preguntas para el humano
 - **Checks obligatorios de los rulesets.** Los antiguos (`PHP Syntax (PHP 7.4)`, `PHP Syntax (PHP 8.4)`, `Player (lint, build, dist check)`, `WordPress blocks`) ya no existen, salvo los dos de sintaxis. Los jobs de `.github/workflows/ci.yml` son:
