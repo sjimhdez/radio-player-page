@@ -238,13 +238,22 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Qué: un job por proyecto JS (raíz; `player/` con `npm ci` → `tsc` → ESLint → Vitest → build → `git diff --exit-code`; cada uno de los **3** bloques), licencias GPL-compatibles de las dependencias empaquetadas (`player/` y bloques, script propio sobre `package-lock.json`, `--omit=dev`), `npm audit --omit=dev`, Playwright (Chromium + WebKit, artefactos si falla), tests de hooks, `check:zip`, Plugin Check sobre el zip (probar sin el workaround de Node ≥ 24.16, como dejó pendiente R6; si falla, se mantiene).
 - Archivos: `.github/workflows/ci.yml`, `scripts/check-licenses.mjs`.
 - Verificación: `gh pr checks 36` en verde. **Después, el usuario actualiza los checks obligatorios de los rulesets de `main` y `trunk`** con los nombres nuevos (se le dan en `status.md`).
-- [ ] hecha · commit: —
+- Resultado: `wp plugin check` sale con 0 aunque encuentre errores (el job antiguo no podía fallar nunca), así que el job lee su salida CSV y falla con cualquier `ERROR` o `WARNING`. Plugin Check se instala desde su zip dentro de `.wp-env.json`, sin el *workaround* de WP-CLI: probado en local y en la CI (pendiente de R6, cerrado). Licencias: 113 paquetes de runtime en `player/`, 0 en los bloques (todo lo de los bloques es de desarrollo o externo de core).
+- [x] hecha · commit: 748d441
 
 ### 1.31 Prueba en seco de `write-spec`, `start-phase` y `close-phase` (≤ 1 h)
 - Qué: `write-spec` sobre una spec ficticia en el scratchpad (no se commitea); `start-phase` en modo lectura sobre la 0002 (comprobar que encuentra spec, ADRs y plan anterior y propone rama/PR correctos sin ejecutarlos); `close-phase` recorriendo su checklist sobre esta fase. Apuntar el resultado aquí y ajustar las skills si algo falla.
 - Archivos: este plan; skills si hace falta.
 - Verificación: checklist apuntada.
-- [ ] hecha · commit: —
+- Resultado: `write-spec` (0003) y `start-phase` (0002) se ejecutaron en sesiones nuevas con `claude -p --permission-mode plan`: las dos encuentran las skills, leen lo que deben y no cambian nada. Arreglos que salieron de ahí:
+  - `start-phase`: precondición de spec «propuesta» (no borrador); plan anterior «si existe»; nuevo orden plan → rama → commit → push/PR (el PR ya no puede nacer sin commits, y el orden encaja con plan mode); cuerpo del PR en una línea.
+  - `write-spec`: `status.md` va en el mismo commit; «Spec activa» solo cambia si la anterior está cerrada; §0 también en la spec ligera.
+  - Permisos: `git fetch *`, `git switch|checkout spec/*`, `git merge origin/trunk`.
+  - `CLAUDE.md`: los commits de proceso no llevan tarea; plan mode para cambios **de código** de más de un archivo.
+  - Hoja de ruta (0003): Node ya está hecho (ADR 0002); la 0003 monta la medición del bundle y las capturas.
+  - Esperado, no es un fallo: `write-spec` de la 0003 avisa de que `origin/trunk` aún no tiene `docs/` ni `.claude/` (la 0001 no está fusionada) y de que la 0003 depende de la 0002.
+  - `close-phase` se prueba al cerrar esta fase.
+- [x] hecha · commit: (este)
 
 ### Cierre
 `close-phase` (ya existe): revisores, `SPEC.md`, rules, `CLAUDE.md`, `status.md`, spec 0001 «cerrada» en el índice, PR #36 listo para que el usuario lo fusione en `trunk`, recordatorio de `write-spec` para la 0002 en una sesión de diseño. Commit `chore(0001): close phase 1`.

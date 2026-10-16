@@ -23,7 +23,7 @@ El contrato completo está en `SPEC.md` (datos, migración y desinstalación). E
 ## La migración heredada (`includes/migration/`, `radplapag-upgrade.php`)
 
 - Unidireccional: de `radplapag_settings` a los CPT; nunca al revés (ADR 0010).
-- Cubre los formatos de 2.0.x a 3.2.x; los de 1.x quedan fuera del contrato (ADR 0005, candidato K en `docs/known-issues.md`).
+- Cubre los formatos de 2.0.x a 3.2.x; los de 1.x quedan fuera del contrato (ADR 0005; K4 en `docs/known-issues.md`).
 - Tiene bloqueo (`radplapag_migrating`), avisos de éxito y error, y detecta conflictos con CPT ya existentes (`radplapag_migration_skipped_cpt_conflict`).
 - Los fixtures de los formatos reales están en `spike/php/fixtures/legacy-settings/`; la spec 0002 los mueve a `tests/fixtures/`.
 

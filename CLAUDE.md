@@ -51,9 +51,9 @@ Entornos (Docker, wp-env): desarrollo con `npm run env:start` → <http://localh
 ## Flujo de trabajo
 
 - Todo trabajo empieza con una spec (`write-spec`, en una sesión de diseño). Cada fase empieza con `start-phase` y termina con `close-phase`.
-- Plan mode para cualquier cambio de más de un archivo.
+- Plan mode para cualquier cambio de código de más de un archivo.
 - Caracterización antes de tocar código existente (`characterize`). Test primero para la lógica nueva o extraída. Bug → `fix-bug` (test de regresión en rojo primero).
-- Un commit por tarea del plan: `<type>(NNNN): <description> (<fase>.<tarea>)`. Push solo de ramas `spec/*`; el merge lo hace el usuario.
+- Un commit por tarea del plan: `<type>(NNNN): <description> (<fase>.<tarea>)`. Los commits de proceso (`docs(NNNN): add spec`, `docs(NNNN): add phase N plan`, `chore(NNNN): close phase N`) no llevan tarea. Push solo de ramas `spec/*`; el merge lo hace el usuario.
 - Si algo contradice `SPEC.md` o un ADR: para y usa `write-adr`.
 - Los hooks formatean cada archivo editado y, al terminar el turno, regeneran builds y pasan los tests rápidos de lo tocado. Si bloquean, se arregla la causa.
 

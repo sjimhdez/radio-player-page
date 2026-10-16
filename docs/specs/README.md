@@ -60,9 +60,8 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - todo a la última versión, una versión mayor por commit (skill `upgrade-dependency`);
   - **MUI** (hoy 7.3.x) y Emotion con la guía oficial y `@mui/codemod`, versión mayor a versión mayor;
   - React, `hls.js`, `dashjs`, i18next, `date-fns`, Vite, TypeScript, ESLint;
-  - Node a la última versión;
-  - presupuesto del bundle (más de un +10 % necesita un ADR);
-  - capturas antes y después para la revisión visual del usuario;
+  - presupuesto del bundle (más de un +10 % necesita un ADR): la 0003 monta la medición (bytes y gzip de `player/dist`), que hoy no existe;
+  - capturas antes y después para la revisión visual del usuario (Playwright; también por montar);
   - los visualizadores, sin tocar o con un cambio mínimo y su ADR.
 - **0004 Dependencias de WordPress:**
   - `@wordpress/scripts` de **cada bloque por separado**;

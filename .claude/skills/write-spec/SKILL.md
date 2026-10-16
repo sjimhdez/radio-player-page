@@ -21,7 +21,7 @@ Trabajo: `$ARGUMENTS` (si es un número, es la entrada de `docs/specs/README.md`
 ## 2. Tamaño
 
 - Spec normal: < 250 líneas, con fases de criterios verificables.
-- Trabajo pequeño: **spec ligera** de una sola fase (Objetivo, Criterios, Fase 1, Riesgos). Un bug no trivial también lleva spec.
+- Trabajo pequeño: **spec ligera** de una sola fase (§0 Cómo usar, Objetivo, Criterios, Fase 1, Riesgos). Un bug no trivial también lleva spec.
 - Si el trabajo tiene riesgo técnico sin resolver, la fase 0 es un **spike** desechable en `spike/` con preguntas concretas.
 
 ## 3. Escribir
@@ -35,7 +35,7 @@ Trabajo: `$ARGUMENTS` (si es un número, es la entrada de `docs/specs/README.md`
 ## 4. Registrar
 
 1. Índice de `docs/specs/README.md`: fila con estado «propuesta», rama `spec/NNNN-slug` y dependencias; si estaba como «pendiente de escribir», se actualiza. Las notas de «Lo que se sabe de las specs pendientes» que ya están en la spec se quitan de la hoja de ruta.
-2. Rama: `git switch -c spec/NNNN-slug origin/trunk` (tras `git fetch`), commit `docs(NNNN): add spec` con la spec y el índice. Sin push: el primer push y el PR los hace `start-phase`.
-3. `docs/status.md`: «Spec activa» pasa a esta spec, fase 0 o 1 «por planificar», y en «Siguiente»: «sesión nueva → `start-phase`».
+2. `docs/status.md`: si la spec anterior está cerrada, «Spec activa» pasa a esta, con la fase 0 o 1 «por planificar» y en «Siguiente»: «sesión nueva → `start-phase`». Si no (trabajo en paralelo en otro worktree), solo una línea en «Siguiente».
+3. Rama: `git fetch origin` y `git switch -c spec/NNNN-slug origin/trunk`. Un único commit `docs(NNNN): add spec` con la spec, el índice y `status.md`. Sin push: el primer push y el PR los hace `start-phase`.
 
 `npm run check` en verde; actualizar `docs/status.md`.
