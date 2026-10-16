@@ -10,7 +10,7 @@ Spec activa: 0001 — Bootstrap: spike, herramientas e ingeniería de contexto �
 3. Sembrar `docs/known-issues.md` con C1–C16 y los candidatos K1–K3 del spike.
 
 ## Bloqueos / preguntas para el humano
-- Hacer push de `spec/0001-bootstrap`, proteger `main` en GitHub (PR obligatorio, CI en verde, sin force push) y abrir el PR en borrador. `gh` no está instalado: o se instala (`brew install gh && gh auth login`) o el PR se abre desde la web.
+- Ninguno. PR en borrador: #36. `main` está protegida con el ruleset `main`. Cuando la fase 1 cambie los nombres de los jobs de la CI, el usuario tendrá que actualizar los checks obligatorios del ruleset (hoy: `PHP Syntax (PHP 7.4)`, `PHP Syntax (PHP 8.4)`, `Player (lint, build, dist check)` y `WordPress blocks`).
 
 ## Verificación manual pendiente
 - Ninguna.
