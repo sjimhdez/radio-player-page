@@ -1,0 +1,7 @@
+node_modules/
+vendor/
+results/
+test-results/
+playwright-report/
+*.log
+.wp-env-home/
