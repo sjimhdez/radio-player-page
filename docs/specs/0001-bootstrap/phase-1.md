@@ -133,13 +133,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `.claude/hooks/protect-generated.sh`, `tests/hooks/protect-generated.test.sh`.
 - Test: primero: casos bloqueados y permitidos.
 - Verificación: `npm run test:hooks`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 707b60c
 
 ### 1.15 Hook `PostToolUse`: `format-edited-file.sh` (≤ 1 h)
 - Qué: solo el archivo editado. `player/**/*.{ts,tsx}`: ESLint `--fix` + Prettier de `player/`. `admin/js`, `tests/js`, `blocks/*/src`: ESLint `--fix` de su proyecto. `.php`: `php -l` (devuelve el error); `phpcbf` queda desactivado hasta la 0002 (comentario y bandera).
 - Archivos: `.claude/hooks/format-edited-file.sh`, `tests/hooks/format-edited-file.test.sh`.
 - Test: primero: PHP con error de sintaxis → bloquea; TS mal formateado → formateado; PHP antiguo → sin cambios.
 - Verificación: `npm run test:hooks`.
+- Resultado: `player/` tenía `.prettierrc` pero no Prettier instalado. Se instala (3.9.10, exacto) y entra `format:check` en su `check`; 8 archivos que no cumplen (5 de `src/` y 3 configs) van a una línea base en `player/.prettierignore` (ADR 0021), así que el hook no reformatea entero un archivo antiguo. Los errores que `--fix` no arregla vuelven a Claude como `decision: block`.
 - [ ] hecha · commit: —
 
 ### 1.16 Hook `Stop`: `verify-before-stop.sh` (≤ 1 h)
