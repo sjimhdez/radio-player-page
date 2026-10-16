@@ -112,12 +112,13 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: primero: el script, visto en rojo metiendo temporalmente un archivo de más en la lista de `build-release-zip.sh` (se revierte).
 - Verificación: `npm run check:zip`.
 - Resultado: 39 archivos, la misma lista que `v3.4.2`. Mutaciones: copiar `README.md` → falla el diff; copiar `phpcs.xml.dist` → falla el diff y la comprobación de rutas prohibidas.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 36149b0
 
 ### 1.12 `npm run check` orquestado (≤ 1 h)
 - Qué: `check` en la raíz = `lint:php` + `test:php:unit` + `lint:js` + `test` + `test:hooks` + `npm --prefix player run check` + `check` de cada bloque + `check:zip`. Sin Docker (la integración y e2e van aparte: `test:php:integration`, `test:e2e`). `scripts/run-*.sh` se mantienen y se apunta su equivalente.
 - Archivos: `package.json`.
 - Verificación: `npm run check` en verde; un fallo en `player/` lo hace fallar.
+- Resultado: `check` = `lint:php` → `test:php:unit` → `lint:js` → `test` → `check:player` → `check:blocks` → `check:zip` (unos 20 s, sin Docker); `test:hooks` entra en la 1.13. Un test roto en `player/` lo hace fallar. Equivalencias de `scripts/run-*.sh`: `run-eslint.sh` ≈ `npm --prefix player run lint`; `run-php-versions-check.sh` ≈ `php -l` de la CI; `run-wp-plugin-check.sh` ≈ job de Plugin Check (1.30).
 - [ ] hecha · commit: —
 
 ### 1.13 Hook `SessionStart`: `session-context.sh` (≤ 1 h)
