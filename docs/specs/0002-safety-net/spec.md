@@ -1,6 +1,6 @@
 # Spec 0002 — Red de seguridad, auditoría y triage
 
-> Estado: **propuesta** · Fecha: 2026-10-16 · Rama: `spec/0002-safety-net` · Depende de: 0001
+> Estado: **en curso** · Fecha: 2026-10-16 · Rama: `spec/0002-safety-net` · Depende de: 0001
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 
