@@ -2,13 +2,12 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 1 en curso · Plan: [docs/specs/0002-safety-net/phase-1.md](specs/0002-safety-net/phase-1.md) · Actualizado: 2026-10-16
 
 ## En curso
-- Spec 0002, fase 1: caracterización unit e integración (22 tareas, 1.1 hecha). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 1: caracterización unit e integración (22 tareas, 1.1–1.2 hechas). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 1.2: fixtures del horario (`schedule-vectors.json`) y unit de los helpers puros.
-2. Tareas 1.3–1.13: PHP (horario, migración, config, programa en antena, bloques, CPT, admin, desinstalación), en orden.
-3. Tareas 1.14–1.19: Vitest (utils y hooks del player, admin JS, locales).
-4. Tareas 1.20–1.22: cobertura en la CI y `contract-map.md`; después `close-phase`.
+1. Tareas 1.3–1.13: PHP (horario, migración, config, programa en antena, bloques, CPT, admin, desinstalación), en orden.
+2. Tareas 1.14–1.19: Vitest (utils y hooks del player, admin JS, locales).
+3. Tareas 1.20–1.22: cobertura en la CI y `contract-map.md`; después `close-phase`.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
@@ -21,6 +20,7 @@ Spec 0002:
 - §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).
 - §4.5: la cobertura de PHP por función se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
 - §5 fase 1: C9 solo en TS. La parte PHP (offset por petición) va con el snapshot de la página limpia en la fase 2.
+- §4.1: `schedule-vectors.json` amplía el formato: parrillas con nombre (`grids.main`, `grids.c3`), resultados de validación por capa (`php`/`admin`, porque C3 los separa) y el código `start_equals_end` (solo admin). La resolución no se separa en `php`/`ts`: con datos saneados (ordenados por inicio) dan lo mismo.
 
 Spec 0001:
 - §6: rama de integración `trunk`; `main` = lo publicado (ADR 0007).

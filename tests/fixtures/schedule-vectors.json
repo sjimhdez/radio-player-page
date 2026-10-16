@@ -1,0 +1,327 @@
+{
+	"_doc": [
+		"Shared schedule vectors (spec 0002, section 4.1). Read by PHP (integration) and TS (player, admin JS); every vector must have a result in each layer that reads it.",
+		"Results are those of 3.4.2. A vector whose 3.4.2 result differs from the correct one has \"currently\": true, the docs/known-issues.md row in \"issue\" and the correct result in \"correct\".",
+		"Days are schedule keys (monday ... sunday). Times are station-local HH:MM. Program keys refer to \"programs\": each test creates one published program per key, named after it; a key missing from \"programs\" stands for a program that does not exist.",
+		"resolution: \"grid\" names an entry of \"grids\". current/upcoming.day is the day the slot belongs to; current.from is today or yesterday (a slot crossing midnight). upcoming.minutes is minutes until start.",
+		"tz: instant in UTC plus timezoneOffset (hours) gives the station-local day (0 = Sunday) and minutes since midnight.",
+		"validation: \"php\" is radplapag_sanitize_station_schedule(), \"admin\" is admin/js/station-admin.js. error is the code of the first error reported (days Monday to Sunday, rows in order): required, invalid_program, format, overlap (same day), cross_midnight_overlap (slot crossing into the next day), start_equals_end (admin only)."
+	],
+	"programs": [ "A", "B", "C", "D", "E", "F", "G", "H" ],
+	"grids": {
+		"main": {
+			"monday": [
+				{ "program": "A", "start": "06:00", "end": "10:00", "is_rerun": false },
+				{ "program": "B", "start": "10:00", "end": "14:00", "is_rerun": true },
+				{ "program": "C", "start": "22:00", "end": "02:00", "is_rerun": false }
+			],
+			"tuesday": [
+				{ "program": "D", "start": "02:00", "end": "04:00", "is_rerun": false }
+			],
+			"wednesday": [
+				{ "program": "H", "start": "00:05", "end": "01:00", "is_rerun": false }
+			],
+			"saturday": [
+				{ "program": "G", "start": "23:00", "end": "23:50", "is_rerun": false }
+			],
+			"sunday": [
+				{ "program": "E", "start": "23:55", "end": "00:30", "is_rerun": false }
+			]
+		},
+		"c3": {
+			"tuesday": [
+				{ "program": "F", "start": "08:00", "end": "08:00", "is_rerun": false }
+			]
+		}
+	},
+	"resolution": [
+		{
+			"id": "1",
+			"grid": "main",
+			"now": { "day": "monday", "time": "05:59" },
+			"current": null,
+			"upcoming": { "program": "A", "day": "monday", "time_range": "06:00-10:00", "is_rerun": false, "minutes": 1 }
+		},
+		{
+			"id": "2",
+			"grid": "main",
+			"now": { "day": "monday", "time": "06:00" },
+			"current": { "program": "A", "day": "monday", "from": "today", "time_range": "06:00-10:00", "is_rerun": false },
+			"upcoming": null
+		},
+		{
+			"id": "3",
+			"grid": "main",
+			"now": { "day": "monday", "time": "09:50" },
+			"current": { "program": "A", "day": "monday", "from": "today", "time_range": "06:00-10:00", "is_rerun": false },
+			"upcoming": { "program": "B", "day": "monday", "time_range": "10:00-14:00", "is_rerun": true, "minutes": 10 }
+		},
+		{
+			"id": "4",
+			"grid": "main",
+			"now": { "day": "monday", "time": "09:49" },
+			"current": { "program": "A", "day": "monday", "from": "today", "time_range": "06:00-10:00", "is_rerun": false },
+			"upcoming": null
+		},
+		{
+			"id": "5",
+			"grid": "main",
+			"now": { "day": "monday", "time": "10:00" },
+			"current": { "program": "B", "day": "monday", "from": "today", "time_range": "10:00-14:00", "is_rerun": true },
+			"upcoming": null
+		},
+		{
+			"id": "6",
+			"grid": "main",
+			"now": { "day": "monday", "time": "23:00" },
+			"current": { "program": "C", "day": "monday", "from": "today", "time_range": "22:00-02:00", "is_rerun": false },
+			"upcoming": null
+		},
+		{
+			"id": "7",
+			"grid": "main",
+			"now": { "day": "tuesday", "time": "01:00" },
+			"current": { "program": "C", "day": "monday", "from": "yesterday", "time_range": "22:00-02:00", "is_rerun": false },
+			"upcoming": null
+		},
+		{
+			"id": "8",
+			"grid": "main",
+			"now": { "day": "tuesday", "time": "01:55" },
+			"current": { "program": "C", "day": "monday", "from": "yesterday", "time_range": "22:00-02:00", "is_rerun": false },
+			"upcoming": { "program": "D", "day": "tuesday", "time_range": "02:00-04:00", "is_rerun": false, "minutes": 5 }
+		},
+		{
+			"id": "9",
+			"grid": "main",
+			"now": { "day": "tuesday", "time": "02:00" },
+			"current": { "program": "D", "day": "tuesday", "from": "today", "time_range": "02:00-04:00", "is_rerun": false },
+			"upcoming": null
+		},
+		{
+			"id": "10",
+			"grid": "main",
+			"now": { "day": "tuesday", "time": "23:58" },
+			"current": null,
+			"upcoming": { "program": "H", "day": "wednesday", "time_range": "00:05-01:00", "is_rerun": false, "minutes": 7 }
+		},
+		{
+			"id": "11",
+			"grid": "main",
+			"now": { "day": "saturday", "time": "23:50" },
+			"current": null,
+			"upcoming": null
+		},
+		{
+			"id": "12",
+			"grid": "main",
+			"now": { "day": "sunday", "time": "23:52" },
+			"current": null,
+			"upcoming": { "program": "E", "day": "sunday", "time_range": "23:55-00:30", "is_rerun": false, "minutes": 3 }
+		},
+		{
+			"id": "13",
+			"grid": "main",
+			"now": { "day": "monday", "time": "00:10" },
+			"current": { "program": "C", "day": "monday", "from": "today", "time_range": "22:00-02:00", "is_rerun": false },
+			"upcoming": null,
+			"currently": true,
+			"issue": "C16",
+			"correct": {
+				"current": { "program": "E", "day": "sunday", "from": "yesterday", "time_range": "23:55-00:30", "is_rerun": false },
+				"upcoming": null
+			}
+		},
+		{
+			"id": "14",
+			"grid": "main",
+			"now": { "day": "monday", "time": "00:30" },
+			"current": { "program": "C", "day": "monday", "from": "today", "time_range": "22:00-02:00", "is_rerun": false },
+			"upcoming": null,
+			"currently": true,
+			"issue": "C16",
+			"correct": {
+				"current": null,
+				"upcoming": null
+			}
+		},
+		{
+			"id": "C3-1",
+			"grid": "c3",
+			"now": { "day": "tuesday", "time": "23:00" },
+			"current": { "program": "F", "day": "tuesday", "from": "today", "time_range": "08:00-08:00", "is_rerun": false },
+			"upcoming": null
+		},
+		{
+			"id": "C3-2",
+			"grid": "c3",
+			"now": { "day": "wednesday", "time": "07:59" },
+			"current": { "program": "F", "day": "tuesday", "from": "yesterday", "time_range": "08:00-08:00", "is_rerun": false },
+			"upcoming": null
+		},
+		{
+			"id": "C3-3",
+			"grid": "c3",
+			"now": { "day": "wednesday", "time": "08:00" },
+			"current": null,
+			"upcoming": null
+		},
+		{
+			"id": "C3-4",
+			"grid": "c3",
+			"now": { "day": "tuesday", "time": "07:00" },
+			"current": { "program": "F", "day": "tuesday", "from": "today", "time_range": "08:00-08:00", "is_rerun": false },
+			"upcoming": null,
+			"currently": true,
+			"issue": "C16",
+			"correct": {
+				"current": null,
+				"upcoming": null
+			}
+		}
+	],
+	"tz": [
+		{
+			"id": "tz-negative",
+			"utc": "2026-10-20T03:30:00Z",
+			"timezoneOffset": -5,
+			"expected": { "dayOfWeek": 1, "currentTime": 1350 }
+		},
+		{
+			"id": "tz-fractional",
+			"utc": "2026-10-19T20:00:00Z",
+			"timezoneOffset": 5.5,
+			"expected": { "dayOfWeek": 2, "currentTime": 90 }
+		},
+		{
+			"id": "tz-utc",
+			"utc": "2026-10-19T09:50:00Z",
+			"timezoneOffset": 0,
+			"expected": { "dayOfWeek": 1, "currentTime": 590 }
+		},
+		{
+			"id": "tz-dst-start",
+			"_doc": "America/New_York switches to EDT at 2026-03-08T07:00:00Z. The page was served before the switch with timezoneOffset -5 and is still open; the station is at 04:30 EDT.",
+			"utc": "2026-03-08T08:30:00Z",
+			"timezoneOffset": -5,
+			"expected": { "dayOfWeek": 0, "currentTime": 210 },
+			"currently": true,
+			"issue": "C9",
+			"correct": { "dayOfWeek": 0, "currentTime": 270 }
+		}
+	],
+	"validation": [
+		{
+			"id": "grid-main",
+			"schedule": "main",
+			"php": { "valid": true },
+			"admin": { "valid": true }
+		},
+		{
+			"id": "same-day-overlap",
+			"schedule": {
+				"monday": [
+					{ "program": "A", "start": "06:00", "end": "10:00" },
+					{ "program": "B", "start": "09:00", "end": "11:00" }
+				]
+			},
+			"php": { "valid": false, "error": "overlap" },
+			"admin": { "valid": false, "error": "overlap" }
+		},
+		{
+			"id": "cross-midnight-overlap",
+			"schedule": {
+				"monday": [ { "program": "C", "start": "22:00", "end": "02:00" } ],
+				"tuesday": [ { "program": "D", "start": "01:00", "end": "03:00" } ]
+			},
+			"php": { "valid": false, "error": "cross_midnight_overlap" },
+			"admin": { "valid": false, "error": "cross_midnight_overlap" }
+		},
+		{
+			"id": "cross-midnight-overlap-sunday-monday",
+			"schedule": {
+				"monday": [ { "program": "H", "start": "00:15", "end": "01:00" } ],
+				"sunday": [ { "program": "E", "start": "23:55", "end": "00:30" } ]
+			},
+			"php": { "valid": false, "error": "cross_midnight_overlap" },
+			"admin": { "valid": false, "error": "cross_midnight_overlap" }
+		},
+		{
+			"id": "cross-midnight-exact-boundary",
+			"schedule": {
+				"monday": [ { "program": "C", "start": "22:00", "end": "02:00" } ],
+				"tuesday": [ { "program": "D", "start": "02:00", "end": "04:00" } ]
+			},
+			"php": { "valid": true },
+			"admin": { "valid": true }
+		},
+		{
+			"id": "format-24-00",
+			"schedule": {
+				"monday": [ { "program": "C", "start": "22:00", "end": "24:00" } ]
+			},
+			"php": { "valid": false, "error": "format" },
+			"admin": { "valid": false, "error": "format" }
+		},
+		{
+			"id": "incomplete-row",
+			"schedule": {
+				"monday": [ { "program": "A", "start": "06:00", "end": "" } ]
+			},
+			"php": { "valid": false, "error": "required" },
+			"admin": { "valid": false, "error": "required" }
+		},
+		{
+			"id": "missing-program",
+			"schedule": {
+				"monday": [ { "program": "Z", "start": "06:00", "end": "10:00" } ]
+			},
+			"php": { "valid": false, "error": "invalid_program" },
+			"admin": { "valid": false, "error": "invalid_program" }
+		},
+		{
+			"id": "c3-start-equals-end",
+			"schedule": "c3",
+			"php": { "valid": true },
+			"admin": {
+				"valid": false,
+				"error": "start_equals_end",
+				"currently": true,
+				"issue": "C3",
+				"correct": { "valid": true }
+			}
+		},
+		{
+			"id": "c3-start-equals-end-same-day-conflict",
+			"schedule": {
+				"tuesday": [
+					{ "program": "F", "start": "08:00", "end": "08:00" },
+					{ "program": "G", "start": "10:00", "end": "11:00" }
+				]
+			},
+			"php": { "valid": false, "error": "overlap" },
+			"admin": {
+				"valid": false,
+				"error": "start_equals_end",
+				"currently": true,
+				"issue": "C3",
+				"correct": { "valid": false, "error": "overlap" }
+			}
+		},
+		{
+			"id": "c3-start-equals-end-next-day-conflict",
+			"schedule": {
+				"tuesday": [ { "program": "F", "start": "08:00", "end": "08:00" } ],
+				"wednesday": [ { "program": "H", "start": "07:00", "end": "09:00" } ]
+			},
+			"php": { "valid": false, "error": "cross_midnight_overlap" },
+			"admin": {
+				"valid": false,
+				"error": "start_equals_end",
+				"currently": true,
+				"issue": "C3",
+				"correct": { "valid": false, "error": "cross_midnight_overlap" }
+			}
+		}
+	]
+}

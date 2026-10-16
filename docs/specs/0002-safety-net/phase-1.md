@@ -43,7 +43,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: primero (TDD), `SupportTest.php`: con `Clock`, `new DateTime('now', wp_timezone())` da el día y el minuto pedidos (incluidos 00:00, 23:59 y un día distinto del UTC). También comprueba que están registrados todos los callbacks de admin.
 - Verificación: `npm run test:php:integration -- --filter SupportTest` en `env:start:min` y en `env:start:latest`.
 - Nota: `Clock` suma medio minuto al `gmt_offset` porque `wp_timezone_string()` trunca los minutos con `%02d` (17/60 h daría 16 min); la mutación sin ese medio minuto hace fallar `SupportTest`. Los snapshots viven en `tests/php/integration/snapshots/`.
-- [x] hecha · commit: —
+- [x] hecha · commit: 69ddcd3
 
 ### 1.2 Fixtures del horario y helpers puros (≤ 1 h)
 - Qué: `tests/fixtures/schedule-vectors.json` con este contenido:
@@ -56,7 +56,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/fixtures/schedule-vectors.json`, `tests/php/unit/ScheduleHelpersTest.php`.
 - Test: caracterización, `ScheduleHelpersTest.php`. Mutación: `||` → `&&` en `radplapag_is_slot_active()`.
 - Verificación: `npm run test:php:unit`
-- [ ] hecha · commit: —
+- Nota: PHP y TS dan la misma resolución en todos los vectores (el saneador guarda las franjas ordenadas por inicio), así que no hay resultados `php`/`ts`. La validación sí lleva `php`/`admin` (C3) y el código `start_equals_end`, que solo da el admin. C3-4 (martes 07:00 con la franja `08:00–08:00`) es C16, no C3. Mutación `||` → `&&`: 10 tests fallan.
+- [x] hecha · commit: —
 
 ### 1.3 Saneado y validación del horario (≤ 1 h)
 - Qué: `radplapag_sanitize_station_schedule()` con los vectores `validation` y además:
