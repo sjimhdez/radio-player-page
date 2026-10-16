@@ -165,10 +165,11 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
   - `now-playing`: `showLogo` × con y sin programa.
 
   `now-playing` vacío en el front y su marcador con `REST_REQUEST`. Índice inexistente. Registro de los bloques (`block.json`: atributos y valores por defecto de `SPEC.md` §3.5). Datos del editor (`radplapagScheduleBlock`, `radplapagProgramsListBlock`, `radplapagNowPlayingBlock`) tras `enqueue_block_editor_assets`.
-- Archivos: `tests/php/integration/Blocks/BlockRenderTest.php`, `tests/fixtures/blocks/*.html`.
+- Archivos: `tests/php/integration/Blocks/BlockRenderTest.php`, `tests/php/integration/snapshots/blocks/*.html` (los snapshots viven donde los escribe `Snapshot`, nota de la 1.2, no en `tests/fixtures/blocks/`), `docs/known-issues.md` (K6).
 - Test: caracterización. Mutación: quitar una clase del markup de `blocks/schedule/render.php`.
 - Verificación: `npm run test:php:integration -- --filter BlockRenderTest` en las dos puntas.
-- [ ] hecha · commit: —
+- Nota: 43 tests, 28 snapshots (8 + 16 + 4). Se renderiza con `render_block()`, para que `get_block_wrapper_attributes()` funcione como en una página. El sitio está en un miércoles vectorial a las 10:55 (si fuera lunes, `natural` y `current_first` darían el mismo orden); la salida se devuelve a los días vectoriales antes de comparar. «Con y sin programa» de `now-playing`: `showLogo` × emisora con logo, enlace y siguiente en reemisión / emisora sin logo ni página; sin programa, vacío en el front (sin nada en antena e índice inexistente) y el marcador con `REST_REQUEST` (proceso separado: es una constante). **K6:** en WP 6.6 la clase del contenedor sale dos veces; en la 7.1, una. Es la única diferencia entre las dos puntas (comprobado byte a byte), así que los snapshots comparan el contenedor sin clases repetidas y un `currently` fija la repetición por versión. Los atributos registrados se comparan solo en las claves propias (los `supports` añaden otros que cambian con la versión). K5 queda reservado para la 1.11. Mutación (falla en los 8 snapshots del horario y se revierte): sin `class="wp-block-list"` en el `<ul>`. En verde en PHP 7.4 + WP 6.6.10 y en WP 7.1.3 (suite de integración completa, 274 tests).
+- [x] hecha · commit: —
 
 ### 1.11 CPT, capacidades, meta y editor (≤ 1 h)
 - Qué:
