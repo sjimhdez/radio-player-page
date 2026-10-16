@@ -141,13 +141,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: primero: PHP con error de sintaxis → bloquea; TS mal formateado → formateado; PHP antiguo → sin cambios.
 - Verificación: `npm run test:hooks`.
 - Resultado: `player/` tenía `.prettierrc` pero no Prettier instalado. Se instala (3.9.10, exacto) y entra `format:check` en su `check`; 8 archivos que no cumplen (5 de `src/` y 3 configs) van a una línea base en `player/.prettierignore` (ADR 0021), así que el hook no reformatea entero un archivo antiguo. Los errores que `--fix` no arregla vuelven a Claude como `decision: block`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 9d6a6cb
 
 ### 1.16 Hook `Stop`: `verify-before-stop.sh` (≤ 1 h)
 - Qué: si hay cambios: build del player si cambió `player/src`, build de cada bloque cuyo `src` cambió, `tsc` y tests unitarios de las zonas tocadas (PHP unit, Vitest raíz, Vitest player). Fallo → `decision: block` con el resumen. Tope de iteraciones (`stop_hook_active` + contador).
 - Archivos: `.claude/hooks/verify-before-stop.sh`, `tests/hooks/verify-before-stop.test.sh`.
 - Test: primero: sin cambios → pasa; test roto → block; `stop_hook_active` → no bloquea en bucle.
 - Verificación: `npm run test:hooks`.
+- Resultado: el tope es de 3 paradas bloqueadas seguidas por sesión (contador en `$TMPDIR`, se reinicia cuando todo pasa); por encima está el tope de 8 de Claude Code. También pasa `php -l` a cada PHP cambiado y los tests de hooks si cambian. Sobre el árbol real: unos 7 s.
 - [ ] hecha · commit: —
 
 ### 1.17 `.claude/settings.json` y `.mcp.json` (≤ 1 h)
