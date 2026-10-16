@@ -88,13 +88,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: primero: el humo.
 - Verificación: `npm test && npm run lint:js`.
 - Resultado: `eslint.config.mjs` y `vitest.config.mjs` (la raíz no es `type: module`). La configuración de Prettier de WordPress necesita el fork `wp-prettier` (alias `prettier@npm:wp-prettier`, como `@wordpress/scripts`). Línea base por archivo y regla (mutación: sin la de `station-admin.js` salen más de 1.000 errores). Humo: los dos scripts de `admin/js` se ejecutan en un `vm` sin su markup y no lanzan.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 2eb257b
 
 ### 1.9 Lint de cada bloque (≤ 1 h)
 - Qué: script `lint` (`wp-scripts lint-js src`) y `check` (`lint` + `build`) en cada `blocks/*/package.json`, sin compartir configuración. Si `@wordpress/scripts` 28 falla en `src` actual, se desactivan las reglas concretas en el `.eslintrc` del bloque con el mismo criterio (ADR 0021). Las actualizaciones son de la 0004.
 - Archivos: `blocks/*/package.json`, si hace falta `blocks/*/.eslintrc.json`.
 - Test: —
 - Verificación: `for b in blocks/*/; do npm --prefix "$b" run check; done && git diff --exit-code blocks/*/build`.
+- Resultado: ESLint 8 (el de `@wordpress/scripts` 28) encontraba el `eslint.config.mjs` de la raíz. Cada bloque tiene ahora su `.eslintrc.json` (`root: true`, preset de WordPress y línea base por archivo), lint con `ESLINT_USE_FLAT_CONFIG=false` y `"prettier"` en su `package.json`, así que no hereda nada de la raíz. En `now-playing`, el lock resolvía TypeScript 7.0.2 como *peer*, y eso rompía `@typescript-eslint` 6: ese lint ya fallaba en la 3.4.2. Se fija `typescript` 5.9.3 como dependencia de desarrollo (la que resuelven los otros dos bloques); el lock solo pierde TS 7 y sus binarios, y `build/` no cambia. La actualización real es de la 0004.
 - [ ] hecha · commit: —
 
 ### 1.10 Playwright y humo e2e (≤ 1 h)
