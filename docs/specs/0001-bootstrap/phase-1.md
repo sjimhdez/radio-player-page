@@ -65,13 +65,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: primero: `SmokeTest.php` (visto en rojo antes del bootstrap).
 - Verificación: `npm run test:php:unit` con `php@7.4` y con PHP 8.4.
 - Resultado: humo sobre `includes/data/class-radplapag-program-config.php`, que carga sin WordPress (solo necesita `ABSPATH`). Verde con PHP 8.5 local y con `php:7.4-cli`/`php:8.4-cli` en Docker: los `php@7.4`/`php@8.4` de Homebrew ya no arrancan (faltan `libffi`/`net-snmp`). En `tests/` no se aplica `WordPress.Files.FileName` (convención `*Test.php`, §5.2).
-- [ ] hecha · commit: —
+- [x] hecha · commit: 4275c24
 
 ### 1.6 PHPUnit integración sobre wp-env (≤ 1 h)
 - Qué: `phpunit-integration.xml.dist`, `tests/php/integration/bootstrap.php` (de `spike/php`: `WP_TESTS_DIR`, polyfills, plugin en `muplugins_loaded`), `SmokeTest` (plugin activo, `radplapag_station` y `radplapag_program` registrados). Script `test:php:integration` que corre en `tests-cli` de `.wp-env.tests.json`, nunca en el `cli` de desarrollo.
 - Archivos: `phpunit-integration.xml.dist`, `tests/php/integration/{bootstrap.php,SmokeTest.php}`, `package.json`.
 - Test: primero: `tests/php/integration/SmokeTest.php`.
 - Verificación: `npm run test:php:integration` en las dos puntas (1.3).
+- Resultado: con `testsEnvironment: false` no hay `tests-cli`. La suite corre en el `cli` de `.wp-env.tests.json` con `WORDPRESS_TABLE_PREFIX=wptests_` (lo lee `wp-tests-config.php`), así que no toca el sitio `wp_` de ese entorno, que es el que usa e2e (comprobado con una opción sonda). Verde en WP 6.6.10 + PHP 7.4.33 y en WP 7.1.3 + PHP 8.4.26.
 - [ ] hecha · commit: —
 
 ### 1.7 Vitest en `player/` (≤ 1 h)

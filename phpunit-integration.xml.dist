@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<phpunit
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+	bootstrap="tests/php/integration/bootstrap.php"
+	colors="true"
+	beStrictAboutTestsThatDoNotTestAnything="true"
+	failOnRisky="true"
+	failOnWarning="true"
+	convertDeprecationsToExceptions="true"
+>
+	<testsuites>
+		<testsuite name="integration">
+			<directory suffix="Test.php">tests/php/integration</directory>
+		</testsuite>
+	</testsuites>
+	<coverage includeUncoveredFiles="true">
+		<include>
+			<directory suffix=".php">includes</directory>
+			<directory suffix=".php">admin</directory>
+			<file>radio-player-page.php</file>
+			<file>uninstall.php</file>
+			<file>blocks/schedule/render.php</file>
+			<file>blocks/programs-list/render.php</file>
+			<file>blocks/now-playing/render.php</file>
+		</include>
+	</coverage>
+</phpunit>
