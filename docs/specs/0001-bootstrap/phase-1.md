@@ -200,12 +200,13 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `SPEC.md`.
 - Verificación: cada clave de `SPEC.md` aparece con `grep` en el código (lista en el commit).
 - Resultado: correcciones al inventario de §4 de la spec, verificadas en el código: `radplapag_migration_success_notice` y `radplapag_migration_error_notice` son **transients** (60 s y 120 s), no opciones; `uninstall.php` también borra las opciones `radplapag_db_version` y `radplapag_migration_skipped_cpt_conflict`; la migración también se dispara en `upgrader_process_complete`; `RADPLAPAG_PROGRAMS` lleva además `description` y `extendedDescription`. Se añaden a `SPEC.md`: tabla de callbacks enganchados con prioridades, atributos de los bloques con sus valores por defecto, listas blancas de tema y visualizador y caducidad de los transients. Cada identificador `radplapag_*` de `SPEC.md` aparece en el código (`git grep`).
-- [ ] hecha · commit: —
+- [x] hecha · commit: 3043459
 
 ### 1.25 `SPEC.md` (2/2): página del reproductor, globales y reproductor (≤ 1 h)
 - Qué: §4.3, §4.8, §4.9 verificados contra `radio-player-page.php`, `includes/` y `player/src` (claves reales de `RADPLAPAG_CONFIG`, forma de `RADPLAPAG_PROGRAMS`/`SCHEDULE`, 14 locales, detección de idioma).
 - Archivos: `SPEC.md`.
 - Verificación: ídem 1.24.
+- Resultado: verificado contra `radio-player-page.php` y `player/src`. Lo nuevo frente a §4.3/§4.8 de la spec: la página solo se intercepta si está publicada, sin contraseña y asignada; cabecera con meta de Open Graph y Twitter; `RADPLAPAG_PROGRAMS` en orden de primera aparición; el protocolo se detecta con `endsWith('.m3u8' | '.mpd')` (una URL con *query string* va como audio directo; queda para caracterizar en la 0002); sueño de 30/60/120 min.
 - [ ] hecha · commit: —
 
 ### 1.26 ADRs retroactivos de producto (≤ 1 h)

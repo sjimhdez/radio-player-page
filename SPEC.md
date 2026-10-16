@@ -85,7 +85,17 @@ Plugin de WordPress, publicado en el directorio de wordpress.org, que da a cada 
 
 ### 3.3 Página del reproductor
 
-_Se completa en la tarea 1.25._
+- `template_redirect` → `radplapag_output_clean_page()`. Solo intercepta una **página publicada**, sin contraseña, asignada a una emisora (`radplapag_get_station_for_current_page()`). En cualquier otro caso devuelve sin hacer nada y WordPress pinta el tema.
+- Imprime un HTML mínimo **sin `wp_head()`/`wp_footer()`** y termina con `exit` (ADR 0008). Se caracteriza por HTTP (ADR 0001).
+- `<head>`: `lang` = idioma del sitio; `<title>` = título de la emisora o, si está vacío, el nombre del sitio; favicon = icono del sitio; `description` «Listen to %s live» (traducible); Open Graph (`og:title`, `og:description`, `og:url`, `og:type=website`, `og:site_name`, `og:locale`) y Twitter Card. La imagen social es el logo, si no el fondo, si no el favicon (`summary_large_image`); sin imagen, `summary`.
+- Assets: lee `player/dist/manifest.json` y su entrada `src/main.tsx`. Sin manifiesto, o sin el JS de esa entrada, `wp_die()` con un mensaje traducible. Nombres: `radio-player-page-<versión>[-<chunk>].min.js` y `.css` (versión de `player/package.json`). El JS se carga como `<script type="module">` y monta en `<div id="root">`.
+- **Globales JS**, en un `<script>` antes del player, con `wp_json_encode()` y `JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT`:
+
+| Global | Forma |
+|---|---|
+| `window.RADPLAPAG_CONFIG` | `{ streamUrl, siteTitle, backgroundImage, logoImage, introAudioUrl, themeColor, visualizer, timezoneOffset }`. Las URLs de medios son `null` si no hay. `timezoneOffset` = desfase actual de la zona horaria de WordPress en horas (número; puede ser negativo o fraccionario, y cambia con el horario de verano). |
+| `window.RADPLAPAG_PROGRAMS` | `[ { id, name, description, extendedDescription, logoUrl } ]` (`id` como cadena; los opcionales, `null`). Solo los programas que aparecen en el horario, **en el orden de su primera aparición** (lunes → domingo). |
+| `window.RADPLAPAG_SCHEDULE` | `{ <día>: [ { program_id, start, end, is_rerun } ] }`. `program_id` como cadena; se omiten las franjas incompletas y los días vacíos. |
 
 ### 3.4 API PHP
 
@@ -147,11 +157,29 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 
 ### 3.8 Reproductor (comportamiento)
 
-_Se completa en la tarea 1.25._
+- **Configuración:** `hooks/use-config.tsx` lee y valida las tres globales; es la única puerta de entrada de datos.
+- **Protocolo por la extensión de la URL:** termina en `.m3u8` → HLS; termina en `.mpd` → DASH; cualquier otra → audio directo (MP3/OGG, Icecast, Shoutcast).
+  - HLS: nativo en iOS; con `hls.js` en el resto si lo soporta (empieza al recibir el manifiesto); si no, nativo como alternativa.
+  - DASH: `dashjs` con autoplay.
+  - `hls.js` y `dashjs` se cargan con `import()` dinámico, solo cuando hacen falta.
+- **`crossOrigin = 'anonymous'`** en toda fuente asignada directamente a `audio.src` (audio directo, HLS nativo y audio de bienvenida). Las rutas MSE (`hls.js`, `dashjs`) cargan por XHR/fetch con CORS y dejan el atributo en `null` (ADR 0004). Consecuencia conocida: un stream sin cabeceras CORS no suena (C1 en `docs/known-issues.md`).
+- **Audio de bienvenida:** si `introAudioUrl` existe, suena una vez, en la primera reproducción, antes del directo; mientras suena no se puede pausar; al terminar, o si falla, pasa al directo sin mostrar error.
+- **Volumen:** control deslizante; oculto en iOS.
+- **Media Session:** título de la emisora y logo en la pantalla de bloqueo; acciones de reproducir y pausar.
+- **Temporizador de sueño:** 30, 60 o 120 minutos con cuenta atrás; al llegar a cero pausa; se cancela si se pausa a mano.
+- **Programa actual y siguiente:** según el horario y `timezoneOffset`, incluidas las reposiciones y las franjas que cruzan la medianoche. El siguiente se anuncia si empieza en 10 minutos o menos.
+- **Reloj de la emisora:** si la zona horaria de la emisora difiere de la del oyente, muestra la hora de la emisora y la diferencia.
+- **Modales** del horario semanal y de todos los programas.
+- **El horario es solo informativo:** nunca inicia, detiene ni cambia la reproducción.
+- **Errores:** si el stream falla, se muestra «Unable to play the stream. Try again later.» (traducido) (con las excepciones de K1 en `docs/known-issues.md`).
+- **i18n:** 14 locales en `player/src/locales/` (`cs`, `da-DK`, `de-DE`, `en-US`, `es`, `es-MX`, `gl-ES`, `hr`, `it-IT`, `nl-NL`, `pt-BR`, `ro-RO`, `ru-RU`, `sv-SE`). Detección: `lang` del `<html>` → `localStorage` → navegador; reserva `en-US`.
 
-### 3.9 Visualizadores (zona congelada)
+### 3.9 Visualizadores (zona congelada, ADR 0018)
 
-_Se completa en la tarea 1.25._
+- Cuatro: osciloscopio (por defecto), barras, cascada y partículas, según `visualizer`. Se cargan de forma diferida (`getVisualizer()`) y solo se activan con el audio sonando.
+- Archivos: `player/src/components/visualizers/**`, `player/src/config/visualizers.ts`, `player/src/types/visualizers.tsx`, `player/src/hooks/use-audio-visualizer.tsx`, `player/src/hooks/use-can-visualize.tsx`.
+- Contrato con el reproductor: leen el `<audio>` compartido (`audioRef`) con Web Audio API (`AnalyserNode`), y por eso dependen del `crossOrigin` de §3.8.
+- Fuera del refactor y de los mínimos de cobertura. Las actualizaciones de dependencias no los tocan; si una lo obliga, el cambio es mínimo y lleva un ADR.
 
 ### 3.10 Release
 
