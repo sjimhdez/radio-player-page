@@ -1,0 +1,112 @@
+{
+	"$schema": "https://json.schemastore.org/claude-code-settings.json",
+	"permissions": {
+		"allow": [
+			"Bash(npm run *)",
+			"Bash(npm test *)",
+			"Bash(npm --prefix player run *)",
+			"Bash(npm --prefix player test *)",
+			"Bash(npm --prefix blocks/schedule run *)",
+			"Bash(npm --prefix blocks/schedule test *)",
+			"Bash(npm --prefix blocks/programs-list run *)",
+			"Bash(npm --prefix blocks/programs-list test *)",
+			"Bash(npm --prefix blocks/now-playing run *)",
+			"Bash(npm --prefix blocks/now-playing test *)",
+			"Bash(npx wp-env *)",
+			"Bash(npx playwright *)",
+			"Bash(npx tsc *)",
+			"Bash(npx eslint *)",
+			"Bash(npx vitest *)",
+			"Bash(npx prettier *)",
+			"Bash(composer *)",
+			"Bash(vendor/bin/*)",
+			"Bash(php -l *)",
+			"Bash(git status *)",
+			"Bash(git diff *)",
+			"Bash(git log *)",
+			"Bash(git show *)",
+			"Bash(git add *)",
+			"Bash(git commit *)",
+			"Bash(git fetch *)",
+			"Bash(git switch spec/*)",
+			"Bash(git checkout spec/*)",
+			"Bash(git merge origin/trunk)",
+			"Bash(git checkout -b spec/*)",
+			"Bash(git switch -c spec/*)",
+			"Bash(git push -u origin spec/*)",
+			"Bash(gh pr create --draft --base trunk *)",
+			"Bash(gh pr view *)",
+			"Bash(gh pr checks *)",
+			"Bash(gh pr ready *)"
+		],
+		"deny": [
+			"Bash(git push * main)",
+			"Bash(git push * main *)",
+			"Bash(git push *:main)",
+			"Bash(git push *:main *)",
+			"Bash(git push * trunk)",
+			"Bash(git push * trunk *)",
+			"Bash(git push *:trunk)",
+			"Bash(git push *:trunk *)",
+			"Bash(git push *--force*)",
+			"Bash(git push -f*)",
+			"Bash(git push * -f*)",
+			"Bash(git push *--delete*)",
+			"Bash(git tag *)",
+			"Bash(svn *)",
+			"Bash(npm publish *)",
+			"Read(./.env)",
+			"Read(./.env.*)",
+			"Read(**/.env)",
+			"Read(**/.env.*)"
+		]
+	},
+	"hooks": {
+		"SessionStart": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/session-context.sh",
+						"timeout": 10
+					}
+				]
+			}
+		],
+		"PreToolUse": [
+			{
+				"matcher": "Edit|Write",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/protect-generated.sh",
+						"timeout": 5
+					}
+				]
+			}
+		],
+		"PostToolUse": [
+			{
+				"matcher": "Edit|Write",
+				"hooks": [
+					{
+						"type": "command",
+						"command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/format-edited-file.sh",
+						"timeout": 60
+					}
+				]
+			}
+		],
+		"Stop": [
+			{
+				"hooks": [
+					{
+						"type": "command",
+						"command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/verify-before-stop.sh",
+						"timeout": 300
+					}
+				]
+			}
+		]
+	}
+}

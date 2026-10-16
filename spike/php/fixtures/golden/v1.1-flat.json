@@ -1,0 +1,16 @@
+{
+    "stations": [],
+    "programs": [],
+    "options": {
+        "radplapag_settings": {
+            "stream_url": "https://stream.example.test/live.mp3",
+            "player_page": "{{PAGE_1}}"
+        },
+        "radplapag_db_version": "330",
+        "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
+    },
+    "transients": {
+        "radplapag_migration_success_notice": false,
+        "radplapag_migration_error_notice": false
+    }
+}

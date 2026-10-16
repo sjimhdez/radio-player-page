@@ -1,0 +1,9 @@
+{
+	"_source": "v2.0.1–v2.0.2 admin-page.php: + background_id, logo_id, theme_color, visualizer",
+	"settings": {
+		"stations": [
+			{ "stream_url": "https://stream.example.test/one.mpd", "player_page": "{{PAGE_1}}", "station_title": "Branded", "background_id": "0", "logo_id": "0", "theme_color": "purple", "visualizer": "particles" },
+			{ "stream_url": " https://stream.example.test/two.mp3 ", "player_page": "{{PAGE_2}}", "station_title": "Bad values", "background_id": 0, "logo_id": 0, "theme_color": "fuchsia", "visualizer": "lasers" }
+		]
+	}
+}
