@@ -1,0 +1,11 @@
+{
+	"_source": "3.2.x shape with three stations: menu_order follows the array order, an empty title falls back to the default and non-array rows are skipped",
+	"settings": {
+		"stations": [
+			{ "stream_url": "https://stream.example.test/one.mp3", "player_page": "{{PAGE:Player 1}}", "station_title": "Alpha", "background_id": 0, "logo_id": 0, "theme_color": "red", "visualizer": "bars", "programs": [], "schedule": {} },
+			"not a station",
+			{ "stream_url": "https://stream.example.test/two.m3u8", "player_page": "{{PAGE:Player 2}}", "station_title": "", "background_id": 0, "logo_id": 0, "theme_color": "orange", "visualizer": "particles", "programs": [], "schedule": {} },
+			{ "stream_url": "https://stream.example.test/three.mpd", "player_page": "{{PAGE:Player 3}}", "station_title": "<b>Gamma</b> FM", "background_id": 0, "logo_id": 0, "theme_color": "yellow", "visualizer": "waterfall", "programs": [], "schedule": {} }
+		]
+	}
+}

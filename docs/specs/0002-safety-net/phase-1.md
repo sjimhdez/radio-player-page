@@ -86,7 +86,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: caracterización. Mutación: cambiar el valor por defecto `neutral`.
 - Verificación: `npm run test:php:integration -- --filter SaveStationMetaTest`
 - Nota: 41 tests. `DOING_AUTOSAVE` no se puede deshacer: ese test corre en su propio proceso. En CLI la URL nunca se lee, así que la rama que guarda URL y página y borra el transient de campos no se alcanza (va a e2e). Sin rarezas nuevas para `known-issues.md`: los campos que faltan se guardan como 0 / valor por defecto y los errores de campo no frenan el resto, como se espera de un formulario que siempre los envía. Mutaciones: el defecto `neutral` → `blue` (1 test), el `neutral` de la lista blanca (2), sin la guarda de autosave (1) y sin excluir la propia emisora (1).
-- [x] hecha · commit: —
+- [x] hecha · commit: 6e6d028
 
 ### 1.5 Golden master de la migración (≤ 1 h)
 - Qué: `tests/fixtures/legacy-settings/`:
@@ -97,7 +97,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/fixtures/legacy-settings/**`, `tests/php/integration/Migration/MigrationGoldenTest.php`.
 - Test: caracterización. Mutación: quitar `'is_rerun' => false` en el migrador.
 - Verificación: `npm run test:php:integration -- --filter MigrationGoldenTest` en las dos puntas (los goldens deben ser idénticos).
-- [ ] hecha · commit: —
+- Nota: los marcadores de página pasan a `{{PAGE:<nombre>}}` (el test crea las páginas que nombra el fixture y los adjuntos de su mapa `attachments`). Se ejecutan solo los callbacks `radplapag_*` de `plugins_loaded` y `admin_init`, en orden de prioridad: los de core envían cabeceras. `corrupt` se parte en dos, porque una hora mal formada hace fallar toda la migración y taparía el resto: `corrupt` (tipos erróneos, días desconocidos o en mayúsculas, filas sin campos; la migración termina) y `corrupt-times` (`7:00`/`25:00` en la segunda emisora → rollback de todo, la opción se queda, transient de error y se reintenta en cada petición). Sin rarezas nuevas para `known-issues.md`: el saneador de la 3.2 usaba la misma regex de hora, así que `corrupt-times` solo sale de datos editados a mano; el migrador no comprueba que la página no esté repetida ni conserva `is_rerun` (los formatos heredados no lo tenían). La mutación del plan no existe tal cual (el migrador no escribe `is_rerun`; lo añade el saneador): se quitó `'is_rerun' => $prog_data['is_rerun']` en `radplapag_sanitize_station_schedule()` y fallan 5 de 10. Goldens idénticos en PHP 7.4 + WP 6.6.10 y PHP 8.4 + WP 7.1.3.
+- [x] hecha · commit: —
 
 ### 1.6 Flujo de actualización (≤ 1 h)
 - Qué:

@@ -1,0 +1,30 @@
+{
+	"_source": "3.2.x shape with wrong types and unknown days: every bad row is skipped, the migration still succeeds",
+	"settings": {
+		"stations": [
+			{
+				"stream_url": "javascript:alert(1)", "player_page": "not-a-number", "station_title": 12345,
+				"background_id": "-5", "logo_id": "abc", "theme_color": "BLUE", "visualizer": null,
+				"programs": [
+					"not a program",
+					{ "id": "", "name": "No id" },
+					{ "id": "prog_good00001", "name": "  Good <i>Show</i>  ", "description": "<script>x</script>Desc", "extended_description": "Line 1\n<b>Line 2</b>", "logo_id": "7abc" },
+					{ "id": "prog_noname001", "logo_id": 0 }
+				],
+				"schedule": {
+					"Monday": [ { "program_id": "prog_good00001", "start": "07:00", "end": "08:00" } ],
+					"funday": [ { "program_id": "prog_good00001", "start": "07:00", "end": "08:00" } ],
+					"tuesday": "not a list",
+					"wednesday": [
+						"not a slot",
+						{ "program_id": "prog_good00001", "start": "", "end": "08:00" },
+						{ "program_id": "prog_unknown01", "start": "07:00", "end": "08:00" },
+						{ "program_id": "prog_good00001", "start": " 09:00 ", "end": " 10:00 ", "is_rerun": true },
+						{ "program_id": "prog_noname001", "start": "10:00", "end": "10:00" }
+					]
+				}
+			},
+			{ "stream_url": "https://stream.example.test/ok.mp3", "player_page": "{{PAGE:Player 1}}", "station_title": "Same page", "programs": "nope", "schedule": "nope" }
+		]
+	}
+}

@@ -1,0 +1,17 @@
+{
+	"_source": "3.2.x shape with a malformed time in the second station: the schedule sanitizer rejects it, every created post is rolled back and the legacy option stays",
+	"settings": {
+		"stations": [
+			{
+				"stream_url": "https://stream.example.test/one.mp3", "player_page": "{{PAGE:Player 1}}", "station_title": "Valid",
+				"programs": [ { "id": "prog_valid0001", "name": "Valid Show", "logo_id": 0 } ],
+				"schedule": { "monday": [ { "program_id": "prog_valid0001", "start": "07:00", "end": "09:00" } ] }
+			},
+			{
+				"stream_url": "https://stream.example.test/two.mp3", "player_page": "{{PAGE:Player 2}}", "station_title": "Broken",
+				"programs": [ { "id": "prog_broken001", "name": "Broken Show", "logo_id": 0 } ],
+				"schedule": { "friday": [ { "program_id": "prog_broken001", "start": "7:00", "end": "25:00" } ] }
+			}
+		]
+	}
+}
