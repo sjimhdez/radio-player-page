@@ -15,7 +15,8 @@
 		"env:reset": "wp-env --config .wp-env.tests.json reset all",
 		"wp-env:tests": "wp-env --config .wp-env.tests.json",
 		"lint:php": "vendor/bin/phpcs -q",
-		"format:php": "vendor/bin/phpcbf -q"
+		"format:php": "vendor/bin/phpcbf -q",
+		"test:php:unit": "vendor/bin/phpunit"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.64.1",

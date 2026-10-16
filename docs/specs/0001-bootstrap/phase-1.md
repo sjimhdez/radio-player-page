@@ -57,13 +57,14 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Test: —
 - Verificación: `composer install && npm run lint:php` (0 errores); quitar temporalmente una exclusión → falla (y se revierte).
 - Resultado: la línea base no excluye sniffs enteras, sino **cada sniff solo en los archivos donde falla hoy** (39 sniffs, 965 violaciones, incluido `scripts/fixtures/seed.php`); los archivos nuevos se comprueban con WPCS completo. Mutación: sin el bloque de Yoda salen 90 errores en 13 archivos.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 4850752
 
 ### 1.5 PHPUnit unit (sin WP) (≤ 1 h)
 - Qué: `phpunit.xml.dist` (suite `unit`, `tests/php/unit/`), `tests/php/unit/bootstrap.php` (autoload de Composer, define `ABSPATH` falso solo si un archivo lo exige), un humo que carga un archivo puro del plugin sin WP o, si no hay ninguno cargable sin WP, un humo trivial documentado. Script `test:php:unit`.
 - Archivos: `phpunit.xml.dist`, `tests/php/unit/{bootstrap.php,SmokeTest.php}`.
 - Test: primero: `SmokeTest.php` (visto en rojo antes del bootstrap).
 - Verificación: `npm run test:php:unit` con `php@7.4` y con PHP 8.4.
+- Resultado: humo sobre `includes/data/class-radplapag-program-config.php`, que carga sin WordPress (solo necesita `ABSPATH`). Verde con PHP 8.5 local y con `php:7.4-cli`/`php:8.4-cli` en Docker: los `php@7.4`/`php@8.4` de Homebrew ya no arrancan (faltan `libffi`/`net-snmp`). En `tests/` no se aplica `WordPress.Files.FileName` (convención `*Test.php`, §5.2).
 - [ ] hecha · commit: —
 
 ### 1.6 PHPUnit integración sobre wp-env (≤ 1 h)

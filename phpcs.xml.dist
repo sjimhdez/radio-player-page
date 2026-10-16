@@ -41,6 +41,11 @@
 		</properties>
 	</rule>
 
+	<!-- Test files follow PHPUnit naming (*Test.php, spec 0001 §5.2), not WordPress file naming. -->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+
 	<!--
 		Baseline for legacy code (ADR 0021): each sniff that fails today is excluded only in
 		the files where it fails, so new files get the full standard. Spec 0002 runs phpcbf
