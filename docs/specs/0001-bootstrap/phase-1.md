@@ -156,7 +156,7 @@ Dejar el repo listo para trabajar con specs y tests **sin cambiar ningún compor
 - Archivos: `.claude/settings.json`, `.mcp.json`.
 - Verificación: JSON válido contra el esquema; sesión nueva (`claude -p` breve) recibe el contexto del `SessionStart`.
 - Resultado: `settings.json` es válido contra el esquema de SchemaStore. `git push` se deniega a `main`/`trunk` (también `refspec:main`), con `--force`/`-f` y con `--delete`; se permite `git push -u origin spec/*`; el resto pregunta (nota de 1.1). Una sesión nueva (`claude -p`) recibe el contexto de `SessionStart`. Playwright MCP fijado a 0.0.83 con `--isolated`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 9ff1cf4
 
 ### 1.18 `CLAUDE.md` (≤ 1 h)
 - Qué: lo de §7.2 y nada más (< 120 líneas): qué es y dónde está la verdad, comandos, mapa, invariantes verificables, flujo, qué no hacer.
