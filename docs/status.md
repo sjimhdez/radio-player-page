@@ -2,14 +2,13 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.14 hechas. PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.15 hechas. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 2.15 Escenario 10 (a): admin, crear y guardar (C13).
-2. 2.16 Escenario 10 (b): admin, validación, aviso tras guardar y K15.
-3. 2.17 Escenario 11: bloques en el frontend y en el editor.
-4. 2.18 Escenario 12: accesibilidad y su línea base.
-5. 2.19 Cierre del catálogo y del mapa del contrato.
+1. 2.16 Escenario 10 (b): admin, validación, aviso tras guardar y K15.
+2. 2.17 Escenario 11: bloques en el frontend y en el editor.
+3. 2.18 Escenario 12: accesibilidad y su línea base.
+4. 2.19 Cierre del catálogo y del mapa del contrato.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
