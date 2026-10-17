@@ -209,7 +209,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/php/integration/Uninstall/UninstallTest.php`, `tests/php/integration/Uninstall/UninstallMultisiteTest.php`, `package.json`, `phpunit-integration.xml.dist` (excluir `ms-required`), `.github/workflows/ci.yml`, `docs/known-issues.md` (C11).
 - Test: caracterización. Mutación: quitar `radplapag_uninstall_delete_programs()` del bucle multisite.
 - Verificación: `npm run test:php:integration -- --filter UninstallTest && npm run test:php:integration:ms`
-- [ ] hecha · commit: —
+- Nota: 8 tests (5 + 3). La librería de tests de WP lee `WP_MULTISITE=1`, no `WP_TESTS_MULTISITE` (esa es la constante que define): el script usa `WP_MULTISITE=1` con `--group ms-required --exclude-group ms-excluded` (el `--exclude-group` de la línea de órdenes sustituye la exclusión de `ms-required` del XML). `UninstallMultisiteTest` además se salta fuera de multisite (`skipWithoutMultisite()`). `uninstall.php` declara funciones, así que se carga una vez por proceso (con `WP_UNINSTALL_PLUGIN`) y después se llama a `radplapag_uninstall_plugin()`. Rareza nueva **K7**: `post_status => 'any'` excluye `trash` y `auto-draft`, así que las emisoras y programas en la papelera sobreviven a la desinstalación (`test_currently_keeps_trashed_and_auto_draft_posts`). C11 confirmado en sitio simple y en un subsitio. Mutaciones (fallan y se revierten): sin `radplapag_uninstall_delete_programs()` en el bucle multisite (1 test) y sin el primer `delete_option( 'radplapag_db_version' )` (1 test). En verde en PHP 7.4 + WP 6.6.10 y en PHP 8.4 + WP 7.1.3 (integración completa, 342 tests; multisite, 3).
+- [x] hecha · commit: —
 
 ### 1.14 Utils del player con los vectores (≤ 1 h)
 - Qué:

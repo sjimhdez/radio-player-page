@@ -106,6 +106,7 @@ jobs:
           retry_wait_seconds: 10
           command: npm run ${{ matrix.env.script }}
       - run: npm run test:php:integration
+      - run: npm run test:php:integration:ms
 
   # ---------------------------------------------------------------------------
   # JavaScript: one job per project, never unified (ADR 0020).
