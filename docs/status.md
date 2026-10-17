@@ -2,10 +2,10 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 1 en curso · Plan: [docs/specs/0002-safety-net/phase-1.md](specs/0002-safety-net/phase-1.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 1: caracterización unit e integración (22 tareas, 1.1–1.21 hechas). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 1: caracterización unit e integración (22 tareas, todas hechas; mapa del contrato en [`contract-map.md`](specs/0002-safety-net/contract-map.md)). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 1.22: `contract-map.md`; después `close-phase`.
+1. `close-phase` de la fase 1 (en una sesión nueva).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
