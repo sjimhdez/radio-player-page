@@ -303,6 +303,19 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
   Estabilidad con los dos arreglos, `--retries=0 --repeat-each=1`: latest (WP 7.1.3 + PHP 8.4) 448, 439 y 443 s; min (WP 6.6.10 + PHP 7.4), justo tras el cambio de entorno, 420, 422 y 414 s. 148 en verde y 20 omitidos en cada una. `npm run check` en verde.
 - [x] hecha · commit: `e179c0e`
 
+### 2.21 E2E de WebKit en la CI (≤ 1 h)
+- Qué: tras el commit de cierre (`9dbea43`), la CI del PR #37 seguía en rojo, y lo estaba desde el push de la 2.13. En las dos puntas fallaban siempre, también con los reintentos, K18 y C8 en WebKit. En local (macOS) pasaban. Además, el test del editor de `blocks.spec.ts` salió *flaky* en Chromium por una petición externa. La fase se reabre con esta tarea (decisión del usuario, 2026-10-17).
+- Cambio aprobado de tests de caracterización (usuario, 2026-10-17): K18, C7 y C8 se separan según la plataforma de WebKit, y cada test fija lo que hace la suya.
+- Archivos: `tests/e2e/mp3.spec.ts`, `tests/e2e/global-setup.ts`, `docs/known-issues.md` (C7, C8, K18).
+- Test: los mismos e2e, más uno nuevo para C8 en WebKitGTK. Mutación: esperar `errorCode: 3` en el test nuevo → falla; revertida.
+- Verificación: `mp3.spec.ts` con el WebKit de Linux (`mcr.microsoft.com/playwright:v1.64.1-noble`, red del host, solo el servidor de medios y la siembra de la última ejecución local); `npm run test:e2e -- --retries=0` en local (latest); CI del PR #37.
+- Nota: en Linux, el WebKit de Playwright es WebKitGTK con GStreamer, no la pila de medios de Safari (la de macOS). Con una sonda de eventos del `<audio>` en ese contenedor:
+  - **K18 no pasa en Linux.** Tras Pausa + Play reanuda desde el buffer sin petición nueva, como C7, pero `buffered` siempre está vacío. El test de C7 corre ahora también en WebKitGTK (la comprobación de `buffered` queda solo para Chromium). El de K18 solo corre en macOS, así que la CI no lo fija.
+  - **C8:** WebKitGTK no dispara `stalled`. Da `error` de red (código 2) y, 1,5 s después, `pause` y `ended`; vuelve a 0 y el player muestra Play, sin aviso y sin reintentos. Test nuevo: `currently stops with a network error and no message when the stream is cut in WebKitGTK (C8)`. El de siempre se salta en WebKitGTK.
+  - **Editor:** la guía de bienvenida pide `https://s.w.org/images/block-editor/welcome-canvas.gif` en cuanto se pinta, antes de que `openNewPost` la cierre. `global-setup` guarda ahora `welcomeGuide: false` en `wp_persisted_preferences` del admin. Comprobado quitando el cierre en JS: el editor abre sin la guía (6/6).
+  - En local: 148 en verde y 22 omitidos (+2: el test nuevo no corre en Chromium ni en macOS).
+- [ ] hecha · commit:
+
 ## Decisiones abiertas → ADR
 - **Línea base de axe** (2.18): el criterio es «ninguna violación nueva», no «cero».
 - **`player/dist` alternativo con montajes anidados** (2.6): es configuración de test, no hace falta ADR. Si no funciona, se para y se pregunta (la alternativa tocaría código publicado y necesitaría su ADR).

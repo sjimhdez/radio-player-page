@@ -91,6 +91,20 @@ export default async function globalSetup( config: FullConfig ) {
 	// blocked due to unexpected output"). Both are no-ops on a fresh site.
 	wpCli( 'core', 'update-db' );
 	wpCli( 'user', 'update', 'admin', '--user_pass=password' );
+	// The editor's welcome guide loads an image from s.w.org as soon as it
+	// renders, before a test can close it: the preference is stored up front.
+	wpCli(
+		'user',
+		'meta',
+		'update',
+		'admin',
+		'wp_persisted_preferences',
+		JSON.stringify( {
+			'core/edit-post': { welcomeGuide: false },
+			_modified: new Date().toISOString(),
+		} ),
+		'--format=json'
+	);
 	wpCli( 'plugin', 'activate', 'radio-player-page' );
 	wpCli( 'eval-file', `${ PLUGIN_DIR }/scripts/fixtures/seed.php` );
 

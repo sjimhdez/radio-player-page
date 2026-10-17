@@ -19,6 +19,11 @@ import {
 // stalled or resumed stream before reading it again.
 const QUIET_MS = 3000;
 
+// Playwright's WebKit is WebKitGTK on Linux (GStreamer media stack, the CI)
+// and Safari's on macOS (AVFoundation). They handle a live MP3 differently
+// (K18, C8); Safari's is the one users have.
+const GSTREAMER = process.platform === 'linux';
+
 /**
  * Collects the `Range` header of every request the page makes to `path`.
  *
@@ -61,7 +66,10 @@ test( 'currently resumes the live MP3 from the buffer after Pause and Play (C7)'
 	page,
 	browserName,
 } ) => {
-	test.skip( browserName === 'webkit', 'WebKit freezes instead (K18)' );
+	test.skip(
+		browserName === 'webkit' && ! GSTREAMER,
+		"Safari's WebKit freezes instead (K18)"
+	);
 	await page.goto( readSeed().urls.live );
 	await startPlayback( page );
 	const requests = await mediaRequests();
@@ -78,16 +86,19 @@ test( 'currently resumes the live MP3 from the buffer after Pause and Play (C7)'
 	const state = await audioState( page );
 	expect( state.src ).toBe( paused.src );
 	expect( state.currentTime ).toBeGreaterThan( paused.currentTime );
-	expect( state.buffered[ 0 ]?.[ 0 ] ).toBe( 0 );
+	// GStreamer reports no buffered ranges for a live stream.
+	if ( browserName === 'chromium' ) {
+		expect( state.buffered[ 0 ]?.[ 0 ] ).toBe( 0 );
+	}
 } );
 
-test( 'currently freezes the live MP3 after Pause and Play in WebKit (K18)', async ( {
+test( "currently freezes the live MP3 after Pause and Play in Safari's WebKit (K18)", async ( {
 	page,
 	browserName,
 } ) => {
 	test.skip(
-		browserName !== 'webkit',
-		'Chromium resumes from the buffer (C7)'
+		browserName !== 'webkit' || GSTREAMER,
+		'Chromium and WebKitGTK resume from the buffer (C7)'
 	);
 	await page.goto( readSeed().urls.live );
 	await startPlayback( page );
@@ -118,6 +129,10 @@ test( 'currently stays stalled without reconnecting when the stream is cut (C8)'
 	page,
 	browserName,
 } ) => {
+	test.skip(
+		browserName === 'webkit' && GSTREAMER,
+		'WebKitGTK fails with a network error instead (C8, next test)'
+	);
 	const ranges = recordRanges( page, '/cut.mp3' );
 	await page.goto( readSeed().urls.cut );
 	await startPlayback( page );
@@ -163,4 +178,34 @@ test( 'currently stays stalled without reconnecting when the stream is cut (C8)'
 			page.getByRole( 'button', { name: /^(Play|Pause)$/ } )
 		).toHaveCount( 0 );
 	}
+} );
+
+test( 'currently stops with a network error and no message when the stream is cut in WebKitGTK (C8)', async ( {
+	page,
+	browserName,
+} ) => {
+	test.skip(
+		browserName !== 'webkit' || ! GSTREAMER,
+		"Chromium and Safari's WebKit stall instead (previous test)"
+	);
+	const ranges = recordRanges( page, '/cut.mp3' );
+	await page.goto( readSeed().urls.cut );
+	await startPlayback( page );
+
+	await waitForAudioEvent( page, 'error' );
+	const requestsAtError = ranges.length;
+	await page.waitForTimeout( QUIET_MS );
+
+	// No reconnection, neither from the player nor from the media stack. The
+	// element ends (`pause` + `ended`) back at 0 and the player shows Play,
+	// with no "Unable to play the stream" (the `pause` replaces the error
+	// state, as in K1).
+	expect( ranges.slice( requestsAtError ) ).toEqual( [] );
+	expect( await audioState( page ) ).toMatchObject( {
+		paused: true,
+		errorCode: 2,
+		currentTime: 0,
+	} );
+	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
 } );
