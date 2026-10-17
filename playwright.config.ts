@@ -7,6 +7,8 @@ export default defineConfig( {
 	testDir: './tests/e2e',
 	globalSetup: './tests/e2e/global-setup.ts',
 	outputDir: './test-results/e2e',
+	// HTTP snapshots are browser- and platform-independent: one file per name.
+	snapshotPathTemplate: '{testDir}/snapshots/{arg}{ext}',
 	fullyParallel: false,
 	forbidOnly: isCI,
 	retries: isCI ? 2 : 0,

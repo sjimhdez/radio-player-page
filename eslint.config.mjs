@@ -8,6 +8,8 @@ export default [
 			'spike/**',
 			'vendor/**',
 			'coverage/**',
+			// Generated media: the HLS segments are MPEG-TS, not TypeScript.
+			'tests/fixtures/audio/**',
 			'**/node_modules/**',
 		],
 	},

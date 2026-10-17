@@ -1,30 +1,31 @@
 # Estado
-Spec activa: 0001 — Bootstrap: spike, herramientas e ingeniería de contexto · Fase: cerrada (0 y 1) · Plan: docs/specs/0001-bootstrap/phase-1.md · Actualizado: 2026-10-16
+Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Nada. La spec 0001 está cerrada y el PR #36 (`spec/0001-bootstrap` → `trunk`) está listo para merge.
+- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.15 hechas. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Usuario: actualizar los checks obligatorios de los rulesets de `main` y `trunk` (ver «Bloqueos») y fusionar el PR #36 con merge commit, sin squash, título `Spec 0001: Bootstrap: spike, herramientas e ingeniería de contexto`. Antes puede lanzar `/code-review`.
-2. Tras el merge: sesión de diseño → `write-spec 0002` (red de seguridad, auditoría y triage), partiendo del borrador `docs/specs/0002-safety-net/spec.md`.
-3. Después, sesión nueva → `start-phase` de la 0002.
+1. 2.16 Escenario 10 (b): admin, validación, aviso tras guardar y K15.
+2. 2.17 Escenario 11: bloques en el frontend y en el editor.
+3. 2.18 Escenario 12: accesibilidad y su línea base.
+4. 2.19 Cierre del catálogo y del mapa del contrato.
 
 ## Bloqueos / preguntas para el humano
-- **Checks obligatorios de los rulesets.** Los antiguos (`PHP Syntax (PHP 7.4)`, `PHP Syntax (PHP 8.4)`, `Player (lint, build, dist check)`, `WordPress blocks`) ya no existen, salvo los dos de sintaxis. Los jobs de `.github/workflows/ci.yml` son:
-  - `PHP Syntax (PHP 7.4)` · `PHP Syntax (PHP 8.4)` · `PHPCS (WPCS + PHPCompatibilityWP)`
-  - `PHPUnit unit (PHP 7.4)` · `PHPUnit unit (PHP 8.4)`
-  - `PHPUnit integration (PHP 7.4 + WP 6.6)` · `PHPUnit integration (PHP 8.4 + latest WP)`
-  - `WordPress JS (root lint + Vitest)` · `Player (typecheck, lint, format, Vitest, build, dist check)`
-  - `Block (schedule)` · `Block (programs-list)` · `Block (now-playing)`
-  - `Licenses and npm audit (bundled dependencies)` · `Claude Code hook tests`
-  - `E2E (PHP 7.4 + WP 6.6, Chromium + WebKit)` · `E2E (PHP 8.4 + latest WP, Chromium + WebKit)`
-  - `Release zip (file list and development paths)` · `Plugin Check (release zip)`
-- Los `php@7.4`/`php@8.4` de Homebrew ya no arrancan (faltan `libffi` y `net-snmp`). En local, la matriz de PHP se prueba con `docker run php:<v>-cli` o con wp-env. Arreglarlo es opcional (`brew reinstall php@7.4 php@8.4`).
+- Ninguno.
 
 ## Verificación manual pendiente
-- Ninguna.
+- K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright, tarea 2.7).
 
 ## Desviaciones de la spec (→ ADR)
+Spec 0002:
+- §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).
+- §4.5: la cobertura de PHP por función se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
+- §5 fase 1: C9 solo en TS. La parte PHP (offset por petición) va con el snapshot de la página limpia en la fase 2. El horario de verano en PHP lo fija ya la integración (`SiteTimezoneTest`, `timezone_string` con DST); el snapshot sigue en `Asia/Kolkata`.
+- §4.1: no hay fixture `legacy-settings` de «conflicto con CPT publicados»: el caso necesita una emisora publicada antes de migrar y lo cubre `UpgradeFlowTest::test_published_station_skips_migration_and_flags_conflict`.
+- §4.2: las globales `window.RADPLAPAG_*` no se pueden fijar en integración (las imprime `radplapag_output_clean_page()`, que termina con `exit`): van al snapshot HTTP de la fase 2.
+- §4.1: `schedule-vectors.json` amplía el formato: parrillas con nombre (`grids.main`, `grids.c3`), resultados de validación por capa (`php`/`admin`, porque C3 los separa) y el código `start_equals_end` (solo admin). La resolución solo se separa donde el player difiere de PHP: el vector C3-2 lleva un objeto `ts` (K8, día sin franjas tras una que cruza la medianoche); el resultado de primer nivel es el de PHP.
+
+Spec 0001:
 - §6: rama de integración `trunk`; `main` = lo publicado (ADR 0007).
 - §4.2: la migración cubre los formatos 2.0.x–3.2.x, no «cualquier versión anterior a la 3.3.0» (ADR 0005).
 - §4.8 / decisión 5: `crossOrigin` solo en las fuentes directas (ADR 0004).

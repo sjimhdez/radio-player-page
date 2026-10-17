@@ -1,0 +1,8 @@
+{
+	"_source": "3.x station saved without programs, schedule, theme or visualizer keys: defaults apply",
+	"settings": {
+		"stations": [
+			{ "stream_url": "https://stream.example.test/plain.ogg", "player_page": "{{PAGE:Player 1}}", "station_title": "Plain" }
+		]
+	}
+}

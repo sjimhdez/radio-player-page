@@ -9,7 +9,7 @@ paths:
 
 ## Herramientas
 
-- `npm --prefix player run check` = `tsc -b` + ESLint (typescript-eslint + react-hooks) + `prettier --check` (`player/.prettierrc`) + Vitest (happy-dom, ADR 0006).
+- `npm --prefix player run check` = `tsc -b` + ESLint (typescript-eslint + react-hooks) + `prettier --check` (`player/.prettierrc`) + Vitest con cobertura (`test:coverage`, happy-dom, ADR 0006; umbrales por glob en `vitest.config.ts`).
 - `npm --prefix player run build` → `player/dist/` (se commitea; nombres `radio-player-page-<versión>[-<chunk>].min.js|css`, que PHP lee de `manifest.json`).
 - TypeScript `strict`. Alias `src/*` (en `tsconfig.app.json`, `vite.config.ts` y `vitest.config.ts`).
 - Los archivos de `player/.prettierignore` son la línea base heredada (ADR 0021); no se añaden más.

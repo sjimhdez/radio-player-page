@@ -34,3 +34,4 @@ playwright/.auth/
 .phpunit.result.cache
 CLAUDE.local.md
 .claude/settings.local.json
+!tests/coverage/
