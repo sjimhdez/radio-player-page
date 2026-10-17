@@ -237,7 +237,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: caracterización. Mutación: quitar un `crossOrigin = 'anonymous'`.
 - Verificación: `npm --prefix player test -- src/hooks/use-audio-player`
 - Nota: 38 tests; cobertura de `use-audio-player.tsx`: 99 % líneas, 94 % ramas. `fake-audio.ts` instala el fake en `beforeEach` y lo restaura en `afterEach` (no va en `setup.ts`): `play()` puede fallar por fuente (`media.failing`) o quedar pendiente (`media.hold`). happy-dom dispara `canplay` y `durationchange` de forma síncrona al asignar `src`, cosa que no hace ningún navegador y que borraba el `loading`; el fake los descarta. C2 confirmado (también `.mpd?token=x` y `.MPD`). Rarezas nuevas **K11** (HLS/DASH: `playing` antes de que suene) y **K12** (reanudar HLS/DASH recrea el reproductor). Al cambiar de stream, el reproductor anterior no se destruye hasta el siguiente `play()` (se fija como comportamiento; la página tiene un stream por emisora). Mutaciones (fallan y se revierten): sin `crossOrigin` en el directo (5 tests), en HLS nativo iOS (1), en la alternativa nativa (1) y en la intro (1); intro pausable (1); todo error de `hls.js` fatal (1); volumen en iOS (1); sin `destroyPlayers()` (4); `canplay` siempre limpia `loading` (1).
-- [x] hecha · commit: —
+- [x] hecha · commit: `a297d08`
 
 ### 1.16 Resto de hooks del player (≤ 1 h)
 - Qué:
