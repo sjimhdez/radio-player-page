@@ -2,13 +2,12 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 4 (auditoría) · Plan: [`phase-4.md`](specs/0002-safety-net/phase-4.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 4 (auditoría): plan aprobado el 2026-10-17, tareas 4.1–4.7 sin empezar. Fases 1–3 cerradas; queda la 5 (triage). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 4 (auditoría): plan aprobado el 2026-10-17, 4.1 hecha (PHPStan nivel 8 con baseline en `npm run check`); 4.2–4.7 por hacer. Fases 1–3 cerradas; queda la 5 (triage). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 4.1: PHPStan nivel 8 con baseline, en local.
-2. 4.2–4.6: skill `audit` por zona (núcleo, migración, admin, bloques, player), un informe por zona en `docs/specs/0002-safety-net/audit/`.
-3. 4.7: PHPStan en la CI y ADR 0024.
-4. `close-phase` de la fase 4.
+1. 4.2–4.6: skill `audit` por zona (núcleo, migración, admin, bloques, player), un informe por zona en `docs/specs/0002-safety-net/audit/`.
+2. 4.7: PHPStan en la CI y ADR 0024.
+3. `close-phase` de la fase 4.
 
 ## Bloqueos / preguntas para el humano
 - Fase 3: el criterio del blame de la 3.8 se cumple solo para las líneas que ya existían (82 líneas nuevas de `station-admin.js` siguen en la 3.4, ver desviaciones). ¿Se acepta así?

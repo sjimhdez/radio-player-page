@@ -42,7 +42,12 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 - Archivos: `composer.json`, `composer.lock`, `phpstan.neon.dist`, `phpstan-baseline.neon`, `package.json`.
 - Test: mutación de comprobación: un `esc_html( 1 );` temporal en un PHP publicado hace fallar `lint:phpstan`; se revierte.
 - Verificación: `npm run lint:phpstan && npm run check:zip && npm run check`
-- [ ] hecha · commit: —
+- Resultado (2026-10-17):
+  - `phpstan/phpstan` 2.3.1, `szepeviktor/phpstan-wordpress` 2.0.4 (stubs WP 7.1.2) y `phpstan/extension-installer` 1.4.3 en `require-dev`, con `allow-plugins` para el instalador. `phpstan.neon.dist`: nivel 8, `phpVersion: 70400`, `radio-player-page.php`, `uninstall.php`, `includes/`, `admin/` y los tres `blocks/*/render.php`. Baseline: 83 errores en 75 entradas, como se midió.
+  - `lint:phpstan` lleva `--memory-limit=1G`: sin la caché de resultados, los workers se caen con el límite de 128M de PHP (lo destapó la mutación). Va en `check` detrás de `lint:php`.
+  - Mutación: `esc_html( 1 );` al final de `uninstall.php` → `lint:phpstan` sale con 1 (`uninstall.php:95`, `argument.type`); revertida, vuelve a «No errors» con la caché limpia.
+  - `npm run check:zip`: 39 archivos, la misma lista que `v3.4.2` (la lista de inclusión no recoge `phpstan*.neon*`). `npm run check` en verde.
+- [x] hecha · commit: `e50ad63`
 
 ### 4.2 Auditoría · zona 1, PHP del núcleo (≤ 1 h)
 - Qué: skill `audit` sobre los archivos de la zona 1. Estáticas: PHPCS (y los `phpcs:ignore` de la zona con su motivo), las entradas de la baseline de PHPStan de la zona (cada una: ¿bug o ruido?), `.claude/rules/security.md` y `wordpress-org.md`. Revisión: `/code-review` a esfuerzo alto con la lista de archivos, `wp-security-reviewer`, `wporg-reviewer` y `backcompat-reviewer`. Contraste: `SPEC.md` §3 (globales, capacidades, CPT, meta) y §4 (página limpia); filas C9, C11, K7, K17 (¿variantes en otros sitios?). Candidatos ya vistos: `switch_to_blog( string )` en `uninstall.php:82`.
