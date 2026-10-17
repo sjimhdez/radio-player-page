@@ -2,10 +2,10 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 1 en curso · Plan: [docs/specs/0002-safety-net/phase-1.md](specs/0002-safety-net/phase-1.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 1: caracterización unit e integración (22 tareas, 1.1–1.13 hechas). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 1: caracterización unit e integración (22 tareas, 1.1–1.14 hechas). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tareas 1.14–1.19: Vitest (utils y hooks del player, admin JS, locales).
+1. Tareas 1.15–1.19: Vitest (hooks del player, admin JS, locales).
 2. Tareas 1.20–1.22: cobertura en la CI y `contract-map.md`; después `close-phase`.
 
 ## Bloqueos / preguntas para el humano
@@ -19,7 +19,7 @@ Spec 0002:
 - §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).
 - §4.5: la cobertura de PHP por función se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
 - §5 fase 1: C9 solo en TS. La parte PHP (offset por petición) va con el snapshot de la página limpia en la fase 2.
-- §4.1: `schedule-vectors.json` amplía el formato: parrillas con nombre (`grids.main`, `grids.c3`), resultados de validación por capa (`php`/`admin`, porque C3 los separa) y el código `start_equals_end` (solo admin). La resolución no se separa en `php`/`ts`: con datos saneados (ordenados por inicio) dan lo mismo.
+- §4.1: `schedule-vectors.json` amplía el formato: parrillas con nombre (`grids.main`, `grids.c3`), resultados de validación por capa (`php`/`admin`, porque C3 los separa) y el código `start_equals_end` (solo admin). La resolución solo se separa donde el player difiere de PHP: el vector C3-2 lleva un objeto `ts` (K8, día sin franjas tras una que cruza la medianoche); el resultado de primer nivel es el de PHP.
 
 Spec 0001:
 - §6: rama de integración `trunk`; `main` = lo publicado (ADR 0007).
