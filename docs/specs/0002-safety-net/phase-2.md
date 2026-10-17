@@ -223,7 +223,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Test: caracterización. Mutación: esperar el texto en inglés con `es_ES` → falla.
 - Verificación: `npm run test:e2e -- visualizers.spec.ts i18n.spec.ts`
 - Nota: visualizadores sobre las cuatro variantes `visualizer-*` (MP3 en directo): `RADPLAPAG_CONFIG.visualizer` es el de la meta, suena, hay un `canvas` visible y ni `console.error` ni `pageerror`. El valor no válido se fija en la meta de `station-visualizer-bars` con WP-CLI (`not-a-visualizer`) y se restaura a `bars` en `finally`: llega `oscilloscope`. i18n: `sanitize_option()` descarta un `WPLANG` cuyo idioma no está instalado y el sitio de tests no tiene ninguno (instalarlo sale a internet); se fija con `wp eval` y el filtro `sanitize_option_WPLANG` devolviendo el valor original. `get_locale()` lee la opción tal cual. `es_ES` → `lang="es-ES"` y «Reproducir» (recurso `es`); `eu` → «Play»; con `i18nextLng=de-DE` en `localStorage` gana `lang` («Reproducir») y la caché pasa a `es-ES`. `WPLANG` se borra en `finally` (no existía). `seededId()` pasa de `clean-page.spec.ts` a `seed.ts` para compartirlo. Sin filas nuevas en `known-issues.md`. Mutaciones: «Play» con `es_ES` y `bars` como resultado del valor no válido → fallan. Revertidas.
-- [x] hecha · commit: —
+- [x] hecha · commit: `6a223ec`
 
 ### 2.15 Escenario 10 (a): admin, crear y guardar (C13) (≤ 1 h)
 - Qué: `tests/e2e/admin.spec.ts` con `storageState`:
