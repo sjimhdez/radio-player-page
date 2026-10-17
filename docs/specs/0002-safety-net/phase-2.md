@@ -71,7 +71,15 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Archivos: `tests/e2e/fixtures/seed-e2e.php`, `tests/e2e/global-setup.ts`, `tests/e2e/seed.ts`, `tests/e2e/smoke.spec.ts`.
 - Test: caracterización, `smoke.spec.ts`: cada URL sembrada responde 200 y, con el `storageState`, `wp-admin/edit.php?post_type=radplapag_station` lista las emisoras. Ejecutar dos veces seguidas (idempotencia).
 - Verificación: `npm run test:e2e -- smoke.spec.ts && npm run test:e2e -- smoke.spec.ts`
-- [ ] hecha · commit: —
+- Nota: el sembrador recibe los dos orígenes de medios como argumentos (los puertos salen de `media-server.mjs`) y se ejecuta con `--user=admin`, para que el título de `E2E Minimal <>&'"` no pase por kses. Además de lo previsto:
+  - siete programas `E2E Program A…H` con la parrilla de `known-issues.md`; H no tiene descripción larga, para C6 (2.12);
+  - `E2E MP3` lleva logo y fondo (la imagen de `scripts/fixtures/assets/`); `E2E Minimal`, ninguno;
+  - la intro rota es un adjunto `audio/mpeg` sin archivo cuyo `guid` apunta a `:8901/broken-intro.mp3` (`wp_get_attachment_url()` cae en el `guid`);
+  - el borrador, la página con contraseña (`e2e`) y la entrada tienen una emisora válida asignada, así que lo único que cambia es la condición que no se intercepta;
+  - la página de bloques calcula `stationIndex` de `E2E MP3` en `radplapag_get_stations()` (orden `menu_order title`; sale 8). Un test que cree emisoras (2.15) puede desplazarlo mientras existan.
+  
+  También fija `show_avatars = 0`: la barra de admin pide el avatar a gravatar.com y `fixtures.ts` lo bloquea. Los IDs del mapa usan nombres estables (`page-mp3`, `station-mp3`, `program-A`, `attachment-artwork`…). La lista de emisoras pasa los títulos por `wptexturize`, así que el smoke solo compara el prefijo del título con `<>&`; el título guardado está intacto (comprobado con WP-CLI). Mutación: sin el borrado inicial, la segunda ejecución da 19 filas en vez de 17 y falla. Verificado en WP 6.6.10 + PHP 7.4.33.
+- [x] hecha · commit: —
 
 ### 2.4 Normalizador de snapshots (≤ 1 h)
 - Qué: `tests/e2e/support/normalize.mjs` (sale de `spike/clean-page/normalize.mjs`). Hace estos cambios:
