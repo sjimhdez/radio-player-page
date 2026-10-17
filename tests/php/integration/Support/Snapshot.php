@@ -80,7 +80,20 @@ final class Snapshot {
 	 * @param array<int, string> $names   ID → placeholder (Factory::names()).
 	 */
 	public static function assert_matches( TestCase $test, $name, $content, array $names = array() ) {
-		$path       = self::path( $name );
+		self::assert_matches_file( $test, self::path( $name ), $content, $names );
+	}
+
+	/**
+	 * Same as assert_matches(), with the full path of the file: for snapshots that other
+	 * suites read, such as the fixtures in tests/fixtures/.
+	 *
+	 * @param TestCase           $test    Running test.
+	 * @param string             $path    Absolute path of the file.
+	 * @param string             $content Output to compare.
+	 * @param array<int, string> $names   ID → placeholder (Factory::names()).
+	 */
+	public static function assert_matches_file( TestCase $test, $path, $content, array $names = array() ) {
+		$name       = basename( $path );
 		$normalized = self::normalize( $content, $names );
 
 		if ( getenv( 'RADPLAPAG_UPDATE_SNAPSHOTS' ) ) {
