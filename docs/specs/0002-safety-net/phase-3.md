@@ -60,7 +60,7 @@ Código formateado con los estándares completos y sin bloques de línea base (A
   - `seed.php`: las 18 variables globales llevan `radplapag_` (solo fuera de las dos funciones; las locales siguen igual), `@param`/`@return` en sus dos funciones y `phpcs:ignore` de `SlowDBQuery` en `meta_key`/`meta_value` como en `seed-e2e.php`; `phpcbf` realinea las asignaciones.
   - `phpcs.xml.dist` sin la línea base: `npm run lint:php` limpio con el estándar completo.
   - `npm run check` en verde (builds sin cambios); integración 347/347; e2e completo: 148 en verde y 22 omitidos.
-- [x] hecha · commit: —
+- [x] hecha · commit: `92d3f8a`
 
 ### 3.4 `admin/js`: `eslint --fix`, los 31 a mano y fuera su línea base (≤ 1 h)
 - Qué: `npx eslint --fix admin/js` sin los bloques de línea base de `eslint.config.mjs` (se borran en este commit), luego los 31 restantes de §Contexto. Cualquiera que no sea mecánico: para y pregunta.
