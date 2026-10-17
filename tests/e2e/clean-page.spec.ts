@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { APIRequestContext } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { ADMIN_STATE, readSeed, type SeedUrlKey } from './seed';
+import { ADMIN_STATE, readSeed, seededId, type SeedUrlKey } from './seed';
 import { wpCli } from './support/wp-cli';
 
 /**
@@ -85,19 +85,6 @@ function meta( html: string, key: string ) {
 function favicon( html: string ) {
 	const match = html.match( /<link rel="icon" href="([^"]*)" \/>/ );
 	return match ? match[ 1 ] : null;
-}
-
-/**
- * Returns the ID the seeder gave a stable name.
- *
- * @param name Stable name (`station-minimal`, `attachment-artwork`…).
- */
-function seededId( name: string ) {
-	const entry = Object.entries( readSeed().ids ).find(
-		( [ , value ] ) => value === name
-	);
-	expect( entry, name ).toBeDefined();
-	return ( entry as [ string, string ] )[ 0 ];
 }
 
 test.describe( 'clean page (HTTP)', () => {

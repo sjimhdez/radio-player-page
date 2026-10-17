@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { expect } from '@playwright/test';
 
 export const SEED_FILE = join( __dirname, '../../test-results/e2e-seed.json' );
 
@@ -42,4 +43,17 @@ export interface Seed {
 
 export function readSeed(): Seed {
 	return JSON.parse( readFileSync( SEED_FILE, 'utf8' ) ) as Seed;
+}
+
+/**
+ * Returns the ID the seeder gave a stable name.
+ *
+ * @param name Stable name (`station-minimal`, `attachment-artwork`…).
+ */
+export function seededId( name: string ) {
+	const entry = Object.entries( readSeed().ids ).find(
+		( [ , value ] ) => value === name
+	);
+	expect( entry, name ).toBeDefined();
+	return ( entry as [ string, string ] )[ 0 ];
 }
