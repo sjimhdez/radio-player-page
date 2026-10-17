@@ -26,6 +26,8 @@ define( 'RADPLAPAG_FIXTURE_TAG', 'radplapag-dev-fixtures' );
 
 /**
  * Tags a post/attachment as a fixture so a later run can find and remove it.
+ *
+ * @param int $post_id Post or attachment ID.
  */
 function radplapag_fixture_tag( $post_id ) {
 	update_post_meta( $post_id, RADPLAPAG_FIXTURE_META, RADPLAPAG_FIXTURE_TAG );
@@ -34,6 +36,10 @@ function radplapag_fixture_tag( $post_id ) {
 /**
  * Sideloads a fixture asset into the media library without consuming the
  * source file (media_handle_sideload() moves/deletes its tmp_name).
+ *
+ * @param string $path        Absolute path of the asset.
+ * @param string $description Attachment description.
+ * @return int Attachment ID.
  */
 function radplapag_fixture_sideload( $path, $description ) {
 	if ( ! file_exists( $path ) ) {
@@ -69,36 +75,36 @@ function radplapag_fixture_sideload( $path, $description ) {
 // -----------------------------------------------------------------------
 WP_CLI::log( 'Removing fixtures from a previous run (if any)...' );
 
-$previous_fixture_ids = get_posts(
+$radplapag_previous_fixture_ids = get_posts(
 	array(
 		'post_type'   => array( 'page', 'radplapag_station', 'radplapag_program', 'attachment' ),
 		'post_status' => 'any',
 		'numberposts' => -1,
 		'fields'      => 'ids',
-		'meta_key'    => RADPLAPAG_FIXTURE_META,
-		'meta_value'  => RADPLAPAG_FIXTURE_TAG,
+		'meta_key'    => RADPLAPAG_FIXTURE_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Seeder, run once per dev or e2e setup.
+		'meta_value'  => RADPLAPAG_FIXTURE_TAG, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_value -- Seeder, run once per dev or e2e setup.
 	)
 );
 
-foreach ( $previous_fixture_ids as $previous_id ) {
-	wp_delete_post( $previous_id, true );
+foreach ( $radplapag_previous_fixture_ids as $radplapag_previous_id ) {
+	wp_delete_post( $radplapag_previous_id, true );
 }
 
-WP_CLI::log( sprintf( 'Removed %d fixture post(s) from a previous run.', count( $previous_fixture_ids ) ) );
+WP_CLI::log( sprintf( 'Removed %d fixture post(s) from a previous run.', count( $radplapag_previous_fixture_ids ) ) );
 
 // -----------------------------------------------------------------------
 // 2. Upload fixture media (one image, one mp3).
 // -----------------------------------------------------------------------
-$assets_dir = __DIR__ . '/assets';
-$image_id   = radplapag_fixture_sideload( $assets_dir . '/station-artwork.jpg', 'Fixture station artwork' );
-$audio_id   = radplapag_fixture_sideload( $assets_dir . '/intro.mp3', 'Fixture intro audio' );
+$radplapag_assets_dir = __DIR__ . '/assets';
+$radplapag_image_id   = radplapag_fixture_sideload( $radplapag_assets_dir . '/station-artwork.jpg', 'Fixture station artwork' );
+$radplapag_audio_id   = radplapag_fixture_sideload( $radplapag_assets_dir . '/intro.mp3', 'Fixture intro audio' );
 
-WP_CLI::log( "Uploaded artwork (attachment #{$image_id}) and intro audio (attachment #{$audio_id})." );
+WP_CLI::log( "Uploaded artwork (attachment #{$radplapag_image_id}) and intro audio (attachment #{$radplapag_audio_id})." );
 
 // -----------------------------------------------------------------------
 // 3. Create the WP page the station will be assigned to.
 // -----------------------------------------------------------------------
-$page_id = wp_insert_post(
+$radplapag_page_id = wp_insert_post(
 	array(
 		'post_type'   => 'page',
 		'post_title'  => 'Fixture Radio Station',
@@ -107,16 +113,16 @@ $page_id = wp_insert_post(
 	true
 );
 
-if ( is_wp_error( $page_id ) ) {
-	WP_CLI::error( 'Could not create player page: ' . $page_id->get_error_message() );
+if ( is_wp_error( $radplapag_page_id ) ) {
+	WP_CLI::error( 'Could not create player page: ' . $radplapag_page_id->get_error_message() );
 }
-radplapag_fixture_tag( $page_id );
-WP_CLI::log( "Created player page (post #{$page_id})." );
+radplapag_fixture_tag( $radplapag_page_id );
+WP_CLI::log( "Created player page (post #{$radplapag_page_id})." );
 
 // -----------------------------------------------------------------------
 // 4. Create 5 radio shows with full content.
 // -----------------------------------------------------------------------
-$programs_input = array(
+$radplapag_programs_input = array(
 	array(
 		'title'       => 'Morning Drive',
 		'description' => 'Wake up with news, traffic and the best music to start your day.',
@@ -144,36 +150,36 @@ $programs_input = array(
 	),
 );
 
-$program_ids = array();
-foreach ( $programs_input as $program ) {
-	$program_id = wp_insert_post(
+$radplapag_program_ids = array();
+foreach ( $radplapag_programs_input as $radplapag_program ) {
+	$radplapag_program_id = wp_insert_post(
 		array(
 			'post_type'   => 'radplapag_program',
-			'post_title'  => $program['title'],
+			'post_title'  => $radplapag_program['title'],
 			'post_status' => 'publish',
 		),
 		true
 	);
 
-	if ( is_wp_error( $program_id ) ) {
-		WP_CLI::error( 'Could not create radio show "' . $program['title'] . '": ' . $program_id->get_error_message() );
+	if ( is_wp_error( $radplapag_program_id ) ) {
+		WP_CLI::error( 'Could not create radio show "' . $radplapag_program['title'] . '": ' . $radplapag_program_id->get_error_message() );
 	}
 
-	radplapag_fixture_tag( $program_id );
-	update_post_meta( $program_id, 'radplapag_program_description', $program['description'] );
-	update_post_meta( $program_id, 'radplapag_program_extended_description', $program['extended'] );
-	update_post_meta( $program_id, 'radplapag_program_logo_id', $image_id );
+	radplapag_fixture_tag( $radplapag_program_id );
+	update_post_meta( $radplapag_program_id, 'radplapag_program_description', $radplapag_program['description'] );
+	update_post_meta( $radplapag_program_id, 'radplapag_program_extended_description', $radplapag_program['extended'] );
+	update_post_meta( $radplapag_program_id, 'radplapag_program_logo_id', $radplapag_image_id );
 
-	$program_ids[] = $program_id;
-	WP_CLI::log( "Created radio show \"{$program['title']}\" (post #{$program_id})." );
+	$radplapag_program_ids[] = $radplapag_program_id;
+	WP_CLI::log( "Created radio show \"{$radplapag_program['title']}\" (post #{$radplapag_program_id})." );
 }
 
-[ $morning_drive, $indie_waves, $late_night_jazz, $weekend_sports, $sunday_chill ] = $program_ids;
+[ $radplapag_morning_drive, $radplapag_indie_waves, $radplapag_late_night_jazz, $radplapag_weekend_sports, $radplapag_sunday_chill ] = $radplapag_program_ids;
 
 // -----------------------------------------------------------------------
 // 5. Create the station and set every field.
 // -----------------------------------------------------------------------
-$station_id = wp_insert_post(
+$radplapag_station_id = wp_insert_post(
 	array(
 		'post_type'   => 'radplapag_station',
 		'post_title'  => 'Fixture Radio Station',
@@ -182,37 +188,37 @@ $station_id = wp_insert_post(
 	true
 );
 
-if ( is_wp_error( $station_id ) ) {
-	WP_CLI::error( 'Could not create station: ' . $station_id->get_error_message() );
+if ( is_wp_error( $radplapag_station_id ) ) {
+	WP_CLI::error( 'Could not create station: ' . $radplapag_station_id->get_error_message() );
 }
-radplapag_fixture_tag( $station_id );
+radplapag_fixture_tag( $radplapag_station_id );
 
 // The intro audio doubles as a local, always-reachable "stream" so the
 // player has something real to play without an external Icecast server.
-update_post_meta( $station_id, 'radplapag_station_stream_url', wp_get_attachment_url( $audio_id ) );
-update_post_meta( $station_id, 'radplapag_station_theme_color', 'blue' );
-update_post_meta( $station_id, 'radplapag_station_visualizer', 'bars' );
-update_post_meta( $station_id, 'radplapag_station_background_id', $image_id );
-update_post_meta( $station_id, 'radplapag_station_logo_id', $image_id );
-update_post_meta( $station_id, 'radplapag_station_intro_audio_id', $audio_id );
-update_post_meta( $station_id, 'radplapag_station_player_page', $page_id );
+update_post_meta( $radplapag_station_id, 'radplapag_station_stream_url', wp_get_attachment_url( $radplapag_audio_id ) );
+update_post_meta( $radplapag_station_id, 'radplapag_station_theme_color', 'blue' );
+update_post_meta( $radplapag_station_id, 'radplapag_station_visualizer', 'bars' );
+update_post_meta( $radplapag_station_id, 'radplapag_station_background_id', $radplapag_image_id );
+update_post_meta( $radplapag_station_id, 'radplapag_station_logo_id', $radplapag_image_id );
+update_post_meta( $radplapag_station_id, 'radplapag_station_intro_audio_id', $radplapag_audio_id );
+update_post_meta( $radplapag_station_id, 'radplapag_station_player_page', $radplapag_page_id );
 
-WP_CLI::log( "Created station \"Fixture Radio Station\" (post #{$station_id})." );
+WP_CLI::log( "Created station \"Fixture Radio Station\" (post #{$radplapag_station_id})." );
 
 // -----------------------------------------------------------------------
 // 6. Build a complete weekly schedule: every day filled, several reruns,
 // and one slot that crosses midnight (Sunday 23:00 -> Monday 01:00).
 // -----------------------------------------------------------------------
-$schedule_input = array(
+$radplapag_schedule_input = array(
 	'monday'    => array(
 		array(
-			'program_id' => $morning_drive,
+			'program_id' => $radplapag_morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
 		),
 		array(
-			'program_id' => $weekend_sports,
+			'program_id' => $radplapag_weekend_sports,
 			'start'      => '20:00',
 			'end'        => '21:00',
 			'is_rerun'   => true,
@@ -220,13 +226,13 @@ $schedule_input = array(
 	),
 	'tuesday'   => array(
 		array(
-			'program_id' => $morning_drive,
+			'program_id' => $radplapag_morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
 		),
 		array(
-			'program_id' => $indie_waves,
+			'program_id' => $radplapag_indie_waves,
 			'start'      => '19:00',
 			'end'        => '21:00',
 			'is_rerun'   => false,
@@ -234,13 +240,13 @@ $schedule_input = array(
 	),
 	'wednesday' => array(
 		array(
-			'program_id' => $morning_drive,
+			'program_id' => $radplapag_morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
 		),
 		array(
-			'program_id' => $late_night_jazz,
+			'program_id' => $radplapag_late_night_jazz,
 			'start'      => '22:00',
 			'end'        => '23:30',
 			'is_rerun'   => false,
@@ -248,13 +254,13 @@ $schedule_input = array(
 	),
 	'thursday'  => array(
 		array(
-			'program_id' => $morning_drive,
+			'program_id' => $radplapag_morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
 		),
 		array(
-			'program_id' => $indie_waves,
+			'program_id' => $radplapag_indie_waves,
 			'start'      => '19:00',
 			'end'        => '21:00',
 			'is_rerun'   => true,
@@ -262,13 +268,13 @@ $schedule_input = array(
 	),
 	'friday'    => array(
 		array(
-			'program_id' => $morning_drive,
+			'program_id' => $radplapag_morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
 		),
 		array(
-			'program_id' => $late_night_jazz,
+			'program_id' => $radplapag_late_night_jazz,
 			'start'      => '22:00',
 			'end'        => '23:30',
 			'is_rerun'   => true,
@@ -276,7 +282,7 @@ $schedule_input = array(
 	),
 	'saturday'  => array(
 		array(
-			'program_id' => $weekend_sports,
+			'program_id' => $radplapag_weekend_sports,
 			'start'      => '10:00',
 			'end'        => '12:00',
 			'is_rerun'   => false,
@@ -284,7 +290,7 @@ $schedule_input = array(
 	),
 	'sunday'    => array(
 		array(
-			'program_id' => $indie_waves,
+			'program_id' => $radplapag_indie_waves,
 			'start'      => '10:00',
 			'end'        => '12:00',
 			'is_rerun'   => true,
@@ -294,7 +300,7 @@ $schedule_input = array(
 		// Monday's slots below (07:00, 20:00) -- neither starts before 01:00,
 		// so this validates cleanly instead of failing as an overlap.
 		array(
-			'program_id' => $sunday_chill,
+			'program_id' => $radplapag_sunday_chill,
 			'start'      => '23:00',
 			'end'        => '01:00',
 			'is_rerun'   => false,
@@ -302,13 +308,13 @@ $schedule_input = array(
 	),
 );
 
-$schedule_sanitized = radplapag_sanitize_station_schedule( $schedule_input );
+$radplapag_schedule_sanitized = radplapag_sanitize_station_schedule( $radplapag_schedule_input );
 
-if ( is_wp_error( $schedule_sanitized ) ) {
-	WP_CLI::error( 'Schedule validation failed: ' . $schedule_sanitized->get_error_message() );
+if ( is_wp_error( $radplapag_schedule_sanitized ) ) {
+	WP_CLI::error( 'Schedule validation failed: ' . $radplapag_schedule_sanitized->get_error_message() );
 }
 
-update_post_meta( $station_id, 'radplapag_station_schedule', wp_json_encode( $schedule_sanitized ) );
+update_post_meta( $radplapag_station_id, 'radplapag_station_schedule', wp_json_encode( $radplapag_schedule_sanitized ) );
 WP_CLI::log( 'Weekly schedule saved (7 days, includes reruns and a midnight-crossing slot).' );
 
 // -----------------------------------------------------------------------
@@ -316,6 +322,6 @@ WP_CLI::log( 'Weekly schedule saved (7 days, includes reruns and a midnight-cros
 // -----------------------------------------------------------------------
 WP_CLI::success( 'Fixtures ready.' );
 WP_CLI::log( '' );
-WP_CLI::log( 'Player page:   ' . get_permalink( $page_id ) );
-WP_CLI::log( 'Edit station:  ' . admin_url( "post.php?post={$station_id}&action=edit" ) );
-WP_CLI::log( 'Radio shows:   ' . implode( ', ', $program_ids ) );
+WP_CLI::log( 'Player page:   ' . get_permalink( $radplapag_page_id ) );
+WP_CLI::log( 'Edit station:  ' . admin_url( "post.php?post={$radplapag_station_id}&action=edit" ) );
+WP_CLI::log( 'Radio shows:   ' . implode( ', ', $radplapag_program_ids ) );

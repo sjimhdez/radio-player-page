@@ -294,7 +294,7 @@ function radplapag_output_clean_page() {
 		wp_die( esc_html__( 'The player compilation file (manifest.json) could not be found.', 'radio-player-page' ) );
 	}
 
-	$manifest   = json_decode( file_get_contents( $manifest_path ), true );
+	$manifest   = json_decode( file_get_contents( $manifest_path ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local file inside the plugin, not a remote URL.
 	$main_entry = isset( $manifest['src/main.tsx'] ) ? $manifest['src/main.tsx'] : null;
 	$main_js    = isset( $main_entry['file'] ) ? $main_entry['file'] : null;
 	$main_css   = isset( $main_entry['css'][0] ) ? $main_entry['css'][0] : null;
@@ -446,12 +446,12 @@ function radplapag_output_clean_page() {
 	echo 'window.RADPLAPAG_SCHEDULE = ' . wp_json_encode( $schedule_for_player, $json_flags ) . ';';
 	echo '</script>';
 	if ( $main_css ) {
-		echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
+		echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- Clean page without wp_head(), ADR 0008.
 	}
 	echo '</head>';
 	echo '<body>';
 	echo '<div id="root"></div>';
-	echo '<script type="module" src="' . esc_url( $dist_url . $main_js ) . '"></script>';
+	echo '<script type="module" src="' . esc_url( $dist_url . $main_js ) . '"></script>'; // phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- Clean page without wp_footer(), ADR 0008.
 	echo '</body>';
 	echo '</html>';
 

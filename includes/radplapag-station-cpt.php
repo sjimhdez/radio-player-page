@@ -80,7 +80,7 @@ add_filter( 'use_block_editor_for_post_type', 'radplapag_station_use_classic_edi
  * @param WP_User $user    User object.
  * @return array Filtered capabilities.
  */
-function radplapag_grant_station_caps_to_manage_options( $allcaps, $caps, $args, $user ) {
+function radplapag_grant_station_caps_to_manage_options( $allcaps, $caps, $args, $user ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by user_has_cap (4 arguments).
 	if ( ! empty( $allcaps['manage_options'] ) ) {
 		$allcaps['edit_radplapag_stations']             = true;
 		$allcaps['edit_others_radplapag_stations']      = true;

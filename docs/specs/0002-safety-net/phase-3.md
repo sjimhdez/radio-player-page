@@ -55,7 +55,12 @@ Código formateado con los estándares completos y sin bloques de línea base (A
 - Archivos: `phpcs.xml.dist`, `radio-player-page.php`, `admin/admin.php`, `blocks/{programs-list,schedule}/render.php`, `includes/radplapag-{program,station}-cpt.php`, `scripts/fixtures/seed.php`.
 - Test: caracterización; `seed.php` lo ejecuta el `global-setup` del e2e.
 - Verificación: `npm run lint:php && npm run check && npm run test:php:integration && npm run test:e2e`
-- [ ] hecha · commit: —
+- Resultado (2026-10-17):
+  - Sin el bloque de línea base quedaban 38 violaciones en 7 archivos, las previstas. Ocho `phpcs:ignore` en su línea con el motivo: `file_get_contents` y `NonEnqueuedStylesheet`/`NonEnqueuedScript` en `radplapag_output_clean_page()` (ADR 0008), y `UnusedFunctionParameter` en `radplapag_admin_scripts()` (`admin_enqueue_scripts`, 1 arg), los dos `render_callback` y los dos filtros de `user_has_cap` (4 args).
+  - `seed.php`: las 18 variables globales llevan `radplapag_` (solo fuera de las dos funciones; las locales siguen igual), `@param`/`@return` en sus dos funciones y `phpcs:ignore` de `SlowDBQuery` en `meta_key`/`meta_value` como en `seed-e2e.php`; `phpcbf` realinea las asignaciones.
+  - `phpcs.xml.dist` sin la línea base: `npm run lint:php` limpio con el estándar completo.
+  - `npm run check` en verde (builds sin cambios); integración 347/347; e2e completo: 148 en verde y 22 omitidos.
+- [x] hecha · commit: —
 
 ### 3.4 `admin/js`: `eslint --fix`, los 31 a mano y fuera su línea base (≤ 1 h)
 - Qué: `npx eslint --fix admin/js` sin los bloques de línea base de `eslint.config.mjs` (se borran en este commit), luego los 31 restantes de §Contexto. Cualquiera que no sea mecánico: para y pregunta.

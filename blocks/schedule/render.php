@@ -21,7 +21,7 @@ defined( 'ABSPATH' ) || exit;
  * @param WP_Block $block      Block instance.
  * @return string HTML output.
  */
-function radplapag_render_schedule_block( $attributes, $content, $block ) {
+function radplapag_render_schedule_block( $attributes, $content, $block ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by render_callback.
 	$station_index             = (int) ( $attributes['stationIndex'] ?? 0 );
 	$day_order                 = ( $attributes['dayOrder'] ?? '' ) === 'natural' ? 'natural' : 'current_first';
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );

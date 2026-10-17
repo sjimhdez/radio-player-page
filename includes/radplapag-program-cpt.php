@@ -69,7 +69,7 @@ add_action( 'init', 'radplapag_register_program_post_type' );
  * @param WP_User $user  User object.
  * @return array Filtered capabilities.
  */
-function radplapag_grant_program_caps_to_manage_options( $allcaps, $caps, $args, $user ) {
+function radplapag_grant_program_caps_to_manage_options( $allcaps, $caps, $args, $user ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by user_has_cap (4 arguments).
 	if ( ! empty( $allcaps['manage_options'] ) ) {
 		$allcaps['edit_radplapag_programs']             = true;
 		$allcaps['edit_others_radplapag_programs']      = true;

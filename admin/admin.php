@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
  * @param string $hook_suffix Current admin page (e.g. post-new.php, post.php).
  * @return void
  */
-function radplapag_admin_scripts( $hook_suffix ) {
+function radplapag_admin_scripts( $hook_suffix ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Signature fixed by admin_enqueue_scripts (SPEC.md §3.4).
 	$screen     = get_current_screen();
 	$is_station = $screen && isset( $screen->id ) && 'radplapag_station' === $screen->id;
 	$is_program = $screen && isset( $screen->id ) && 'radplapag_program' === $screen->id;
