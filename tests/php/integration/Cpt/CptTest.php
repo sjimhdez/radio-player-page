@@ -436,4 +436,69 @@ final class CptTest extends WP_UnitTestCase {
 		$this->assertFalse( use_block_editor_for_post( $station ) );
 		$this->assertFalse( use_block_editor_for_post( $program ) );
 	}
+
+	// REST.
+
+	/**
+	 * Both types are private (`public => false`) but in REST, and the posts
+	 * controller lets anyone read a published post: an anonymous visitor lists the
+	 * published stations and programs with title, slug, dates and link, also a
+	 * station whose player page is a draft. The meta is not in the response
+	 * (the types do not support custom-fields), and drafts are not listed. K22 of
+	 * docs/known-issues.md.
+	 */
+	public function test_currently_rest_lists_published_posts_to_anonymous_visitors() {
+		$draft_page = self::factory()->post->create(
+			array(
+				'post_type'   => 'page',
+				'post_status' => 'draft',
+			)
+		);
+		$station    = $this->factory_rpp->station(
+			'Hidden Station',
+			array(
+				'stream_url'  => 'https://stream.example.com/live.mp3',
+				'player_page' => $draft_page,
+			)
+		);
+		$this->factory_rpp->station( 'Draft Station', array( 'status' => 'draft' ) );
+		$program = $this->factory_rpp->program( 'Show' );
+		wp_set_current_user( 0 );
+
+		$stations = rest_do_request( new \WP_REST_Request( 'GET', '/wp/v2/radplapag_station' ) );
+		$programs = rest_do_request( new \WP_REST_Request( 'GET', '/wp/v2/radplapag_program' ) );
+
+		$this->assertSame( 200, $stations->get_status() );
+		$this->assertSame( array( $station ), array_column( $stations->get_data(), 'id' ) );
+		$this->assertSame( 'Hidden Station', $stations->get_data()[0]['title']['rendered'] );
+		$this->assertArrayNotHasKey( 'meta', $stations->get_data()[0] );
+		$this->assertSame( 200, $programs->get_status() );
+		$this->assertSame( array( $program ), array_column( $programs->get_data(), 'id' ) );
+	}
+
+	/**
+	 * `current_user_can( 'edit_post', $post )` with a WP_Post (core accepts an
+	 * object or an ID): the map_meta_cap filter casts the object to int, which
+	 * raises a PHP notice/warning and gives 1, so it does not see the station and
+	 * leaves the capabilities of core. K25 of docs/known-issues.md.
+	 */
+	public function test_currently_map_meta_cap_casts_a_post_object_with_a_warning() {
+		$station = get_post( $this->factory_rpp->station( 'Station' ) );
+		$errors  = array();
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Captures the notice/warning of the cast instead of failing the test.
+		set_error_handler(
+			static function ( $errno, $errstr ) use ( &$errors ) {
+				$errors[] = $errstr;
+				return true;
+			}
+		);
+		try {
+			$caps = radplapag_map_cpt_meta_cap( array( 'x' ), 'edit_post', 1, array( $station ) );
+		} finally {
+			restore_error_handler();
+		}
+
+		$this->assertSame( array( 'x' ), $caps );
+		$this->assertSame( array( 'Object of class WP_Post could not be converted to int' ), $errors );
+	}
 }

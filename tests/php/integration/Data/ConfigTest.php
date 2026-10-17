@@ -383,6 +383,28 @@ final class ConfigTest extends WP_UnitTestCase {
 		$this->assertSame( 'Station', radplapag_get_station_for_current_page()['station_title'] );
 	}
 
+	/**
+	 * Outside a page the queried object ID is compared as if it were a page: on a
+	 * category archive whose term ID equals a player page ID, that station is
+	 * returned. K24 of docs/known-issues.md.
+	 */
+	public function test_currently_station_for_current_page_matches_a_term_with_the_page_id() {
+		$term = self::factory()->category->create( array( 'name' => 'Rock' ) );
+		self::factory()->post->create( array( 'post_category' => array( $term ) ) );
+		$this->factory_rpp->station(
+			'Station',
+			array(
+				'stream_url'  => self::STREAM,
+				'player_page' => $term,
+			)
+		);
+		$this->go_to( get_category_link( $term ) );
+
+		$this->assertTrue( is_category() );
+		$this->assertSame( $term, get_queried_object_id() );
+		$this->assertSame( 'Station', radplapag_get_station_for_current_page()['station_title'] );
+	}
+
 	// Player pages assigned to other stations.
 
 	/**
@@ -615,5 +637,32 @@ final class ConfigTest extends WP_UnitTestCase {
 		$this->factory_rpp->station( 'Station' );
 
 		$this->assertSame( array(), radplapag_get_all_programs_for_select() );
+	}
+
+	/**
+	 * A user without unfiltered_html (a site administrator in a network, or with
+	 * DISALLOW_UNFILTERED_HTML) saves titles through kses, which stores `&` as
+	 * `&amp;`. The readers return the stored title as is, so the clean page passes
+	 * `Rock &amp; Roll` to the player, which shows it literally (the `<title>` does
+	 * not, because esc_html() does not encode twice). K21 of docs/known-issues.md.
+	 */
+	public function test_currently_titles_saved_through_kses_keep_their_entities() {
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap ) {
+				return 'unfiltered_html' === $cap ? array( 'do_not_allow' ) : $caps;
+			},
+			10,
+			2
+		);
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+		$this->assertFalse( current_user_can( 'unfiltered_html' ) );
+
+		$station = $this->factory_rpp->station( 'Rock & Roll' );
+		$program = $this->factory_rpp->program( 'Drum & Bass' );
+
+		$this->assertSame( $station, radplapag_get_stations()[0]['id'] );
+		$this->assertSame( 'Rock &amp; Roll', radplapag_get_stations()[0]['station_title'] );
+		$this->assertSame( 'Drum &amp; Bass', radplapag_get_program_data( $program, true )['name'] );
 	}
 }

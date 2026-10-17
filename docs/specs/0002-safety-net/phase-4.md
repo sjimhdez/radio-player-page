@@ -54,6 +54,10 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 - Archivos: `docs/specs/0002-safety-net/audit/core.md`, `docs/known-issues.md`, tests `currently` en `tests/php/{unit,integration}/` o `tests/e2e/`.
 - Test: caracterización (`characterize`): un test `currently` por hallazgo confirmado, visto fallar con una mutación temporal.
 - Verificación: `npm run check && npm run test:php:integration`
+- Resultado (2026-10-18):
+  - Informe en [`audit/core.md`](audit/core.md). PHPCS limpio (seis supresiones, todas justificadas); de las entradas de la baseline de PHPStan de la zona, ninguna es un bug (`switch_to_blog( string )` funciona). Revisores: `wp-security-reviewer`, `wporg-reviewer`, `backcompat-reviewer` y un code review a esfuerzo alto en un subagente.
+  - Confirmados: K21–K28 (K21, K22, K24 y K25 con un test `currently` de integración; K23, K26, K27 y K28 con reproducción en el informe) y una variante de C10 en el player (reproducción). 20 descartados, abajo y en el informe.
+  - Mutación: `is_page()` en `radplapag_get_station_for_current_page()`, `instanceof WP_Post` en `radplapag_map_cpt_meta_cap()`, `html_entity_decode()` del título y `show_in_rest => false` en el CPT de emisora → los cuatro tests en rojo; revertida.
 - [ ] hecha · commit: —
 
 ### 4.3 Auditoría · zona 2, migración y actualización (≤ 1 h)
@@ -98,6 +102,27 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 
 ## Descartados
 (Se rellena durante la fase: «descartado: … porque …», uno por línea.)
+
+Zona 1 (4.2; detalle en [`audit/core.md`](audit/core.md) §5):
+- descartado: la REST expone la meta de emisoras y programas a anónimos, porque los CPT no soportan `custom-fields` y la respuesta no lleva `meta` (medido; lo que sí sale es K22).
+- descartado: saltarse por REST la regla de una página por emisora, porque la meta no se escribe por REST (sin `custom-fields`).
+- descartado: tema, visualizador y horario sin lista blanca ni saneador al guardar por `register_post_meta`, porque solo se alcanza con código que ya escribe meta y al leer se filtra (fijado en `CptTest`).
+- descartado: claves de día, `program_id` raros y orden de `RADPLAPAG_PROGRAMS` según el JSON, porque solo pasan con meta escrita por terceros.
+- descartado: `TypeError` por la firma tipada de `radplapag_map_cpt_meta_cap()`, porque core siempre pasa arrays.
+- descartado: `lang` con `esc_html()`, porque da la misma salida que `esc_attr()`.
+- descartado (sospecha para el triage): `<html>` sin `dir` en sitios RTL, porque no se reproduce sin un paquete de idioma RTL.
+- descartado: `radplapag_get_program_data()` devuelve borradores por defecto, porque todos los llamadores públicos pasan `true`.
+- descartado: medios de posts privados con su URL en la página, porque los uploads son públicos.
+- descartado: sitio principal dos veces y `wp_cache_flush()` en la desinstalación multisite, porque es idempotente y el vaciado es contrato (§3.7).
+- descartado: `switch_to_blog( string )`, `json_decode()` de un manifiesto ilegible y `esc_url( false )` de PHPStan, porque funcionan o son inalcanzables.
+- descartado: `user_has_cap` sin `edit_published_*`/`edit_private_*`, porque `map_meta_cap` resuelve con `manage_options`.
+- descartado (sospecha para el triage): el `exit` en `template_redirect` se salta otros plugins enganchados después, porque es el diseño del ADR 0008 y depende del plugin de terceros.
+- descartado: desempate del orden de `radplapag_get_stations()`, porque no se ha visto inestable.
+- descartado: solo `css[0]` del manifiesto, porque el build tiene un único CSS.
+- descartado: emisora titulada «0» toma el nombre del sitio, porque es artificial.
+- descartado: §3.3 no cita la condición «con `stream_url`», porque es redacción de `SPEC.md` y ya está fijada con un test (se apunta para el cierre).
+- descartado: la cabecera `Tags:` del archivo principal, porque es inocua.
+- descartado (pasa a 4.5): el índice de emisora sin `sprintf` ni `translators` en los datos del editor de los bloques, porque es de la zona 4.
 
 ## Verificación de la fase
 - `npm run check` en verde (incluye PHPStan).
