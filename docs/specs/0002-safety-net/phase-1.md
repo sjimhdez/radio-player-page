@@ -316,7 +316,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: — (revisión de `spec-conformance-reviewer` en `close-phase`).
 - Verificación: `npm run check`
 - Nota: una tabla por apartado de `SPEC.md` §3 más las invariantes de §4, con estado cubierto / parcial / fase 2 / herramienta / n/a. Lo que queda para la fase 2 es la página limpia y la impresión de las globales (snapshot HTTP), el guardado con URL y el aviso tras guardar (C13), y el comportamiento del player en el navegador (sueño, modales, detección de idioma, horario informativo, visualizadores). Hueco menor apuntado: la caducidad de 120 s de `radplapag_migrating` no se comprueba. `known-issues.md`: todas las filas de esta fase tienen test o «no se reproduce»; C13 apunta ya al escenario 10.
-- [x] hecha · commit: —
+- [x] hecha · commit: 5eead13
 
 ## Decisiones abiertas → ADR
 - Ninguna de contrato. Desviaciones de la spec ya decididas (se apuntan en `status.md`):
