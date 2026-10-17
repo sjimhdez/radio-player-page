@@ -2,16 +2,16 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 20 tareas, 2.1–2.19 hechas. PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 20 tareas, todas hechas. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 2.20 Estabilidad del e2e (login de `global-setup` y vista previa del editor en WebKit + WP 6.6, intermitentes en el suite completo).
-2. `close-phase` de la fase 2 (última de la spec 0002: deja el PR #37 listo).
+1. `close-phase` de la fase 2 (última de la spec 0002: deja el PR #37 listo).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
 
 ## Verificación manual pendiente
+- E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright, tarea 2.7).
 
 ## Desviaciones de la spec (→ ADR)

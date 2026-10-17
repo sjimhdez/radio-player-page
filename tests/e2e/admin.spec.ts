@@ -401,7 +401,7 @@ test.describe( 'admin: validation and notices', () => {
 			expect( await submitOutcome( page ) ).toBe( 'blocked' );
 		} );
 
-		test( 'currently a time with seconds is blocked by the browser before the plugin checks the format (K19)', async ( {
+		test( 'a time with seconds shows the format error when the focus leaves the slot (K19)', async ( {
 			page,
 		} ) => {
 			const row = await addMondaySlot( page, 3 );
@@ -410,6 +410,27 @@ test.describe( 'admin: validation and notices', () => {
 				.selectOption( programId );
 			// A time input only holds valid times; seconds are the one way a
 			// browser value misses `HH:MM`.
+			await row.locator( '.radplapag-program-start' ).fill( '14:00:30' );
+			await row.locator( '.radplapag-program-end' ).fill( '15:00' );
+
+			// The row validates on focusout, after a 10 ms timeout, if the
+			// focus is still outside it.
+			await page.locator( '#title' ).focus();
+
+			await expect(
+				row.locator( '.radplapag-program-error-message.show' )
+			).toHaveText(
+				'Invalid time format. Times must be in HH:MM format.'
+			);
+		} );
+
+		test( 'currently a time with seconds is blocked by the browser before the submit event (K19)', async ( {
+			page,
+		} ) => {
+			const row = await addMondaySlot( page, 3 );
+			await row
+				.locator( '.radplapag-program-id' )
+				.selectOption( programId );
 			const start = row.locator( '.radplapag-program-start' );
 			await start.fill( '14:00:30' );
 			await row.locator( '.radplapag-program-end' ).fill( '15:00' );
@@ -419,7 +440,9 @@ test.describe( 'admin: validation and notices', () => {
 
 			// The default `step` (60 s) makes the value invalid, so the
 			// browser's constraint validation stops the submit: the event
-			// never fires and the plugin's own message never shows.
+			// never fires. Whether the row's own message shows depends on a
+			// race (the click blurs the row, the browser focuses the invalid
+			// field back), so it is not checked here.
 			expect(
 				await start.evaluate(
 					( el: HTMLInputElement ) => el.validity.stepMismatch
@@ -427,9 +450,6 @@ test.describe( 'admin: validation and notices', () => {
 			).toBe( true );
 			await expect( page ).toHaveURL( /action=edit$/ );
 			expect( await submitOutcome( page ) ).toBeUndefined();
-			await expect(
-				row.locator( '.radplapag-program-error-message.show' )
-			).toHaveCount( 0 );
 		} );
 
 		test( 'an incomplete slot shows its error and blocks the submit', async ( {

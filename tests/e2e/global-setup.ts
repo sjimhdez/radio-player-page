@@ -1,10 +1,13 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { chromium, type FullConfig } from '@playwright/test';
+import { chromium, expect, type FullConfig } from '@playwright/test';
 import { ADMIN_STATE, SEED_FILE, type Seed } from './seed';
 import { wpCli } from './support/wp-cli';
 
 const PLUGIN_DIR = 'wp-content/plugins/radio-player-page';
+
+// Outside test-results/e2e, which Playwright empties when the tests start.
+const DIAGNOSTICS_DIR = 'test-results/global-setup';
 
 /**
  * Logs in as admin and saves the session to ADMIN_STATE.
@@ -13,15 +16,55 @@ const PLUGIN_DIR = 'wp-content/plugins/radio-player-page';
  */
 async function saveAdminState( baseURL: string ) {
 	const browser = await chromium.launch();
+	const page = await browser.newPage( { baseURL } );
+	const documents: string[] = [];
+	page.on( 'response', ( response ) => {
+		if ( response.request().resourceType() === 'document' ) {
+			documents.push(
+				`${ Date.now() } ${ response.status() } ${ response.url() }`
+			);
+		}
+	} );
+	page.on( 'requestfailed', ( request ) =>
+		documents.push(
+			`${ Date.now() } FAILED ${ request.url() } ${
+				request.failure()?.errorText
+			}`
+		)
+	);
 	try {
-		const page = await browser.newPage( { baseURL } );
 		await page.goto( '/wp-login.php' );
-		await page.locator( '#user_login' ).fill( 'admin' );
-		await page.locator( '#user_pass' ).fill( 'password' );
+		// wp_attempt_focus() focuses and selects #user_login 200 ms after the
+		// page loads. If it fires while the password is being typed, the
+		// password replaces the user name and the form is never sent.
+		const user = page.locator( '#user_login' );
+		const password = page.locator( '#user_pass' );
+		await expect( user ).toBeFocused();
+		await user.fill( 'admin' );
+		await password.fill( 'password' );
+		await expect( user ).toHaveValue( 'admin' );
+		await expect( password ).toHaveValue( 'password' );
+		documents.push( `${ Date.now() } submit` );
 		await page.locator( '#wp-submit' ).click();
 		await page.waitForURL( '**/wp-admin/**' );
 		mkdirSync( dirname( ADMIN_STATE ), { recursive: true } );
 		await page.context().storageState( { path: ADMIN_STATE } );
+	} catch ( error ) {
+		mkdirSync( DIAGNOSTICS_DIR, { recursive: true } );
+		await page
+			.screenshot( { path: `${ DIAGNOSTICS_DIR }/login.png` } )
+			.catch( () => undefined );
+		writeFileSync(
+			`${ DIAGNOSTICS_DIR }/login.txt`,
+			[
+				`url: ${ page.url() }`,
+				`cookies: ${ ( await page.context().cookies() )
+					.map( ( cookie ) => cookie.name )
+					.join( ', ' ) }`,
+				...documents,
+			].join( '\n' )
+		);
+		throw error;
 	} finally {
 		await browser.close();
 	}
