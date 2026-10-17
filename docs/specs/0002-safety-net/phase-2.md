@@ -79,7 +79,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
   - la página de bloques calcula `stationIndex` de `E2E MP3` en `radplapag_get_stations()` (orden `menu_order title`; sale 8). Un test que cree emisoras (2.15) puede desplazarlo mientras existan.
   
   También fija `show_avatars = 0`: la barra de admin pide el avatar a gravatar.com y `fixtures.ts` lo bloquea. Los IDs del mapa usan nombres estables (`page-mp3`, `station-mp3`, `program-A`, `attachment-artwork`…). La lista de emisoras pasa los títulos por `wptexturize`, así que el smoke solo compara el prefijo del título con `<>&`; el título guardado está intacto (comprobado con WP-CLI). Mutación: sin el borrado inicial, la segunda ejecución da 19 filas en vez de 17 y falla. Verificado en WP 6.6.10 + PHP 7.4.33.
-- [x] hecha · commit: —
+- [x] hecha · commit: 3b60fbe
 
 ### 2.4 Normalizador de snapshots (≤ 1 h)
 - Qué: `tests/e2e/support/normalize.mjs` (sale de `spike/clean-page/normalize.mjs`). Hace estos cambios:
