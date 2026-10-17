@@ -147,7 +147,8 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Archivos: `tests/e2e/hls-dash.spec.ts`.
 - Test: caracterización. Mutación: esperar el chunk de `dashjs` con HLS → falla.
 - Verificación: `npm run test:e2e -- hls-dash.spec.ts`
-- [ ] hecha · commit: —
+- Nota: medido en WP 7.1.3 + PHP 8.4 (el lado del navegador no depende de la punta). Riesgo 8: ningún navegador usa HLS nativo; el WebKit de escritorio no es iOS para el player y va por `hls.js`, como Chromium. DASH va por `dashjs` en los dos. Lo que cambia es cómo se engancha `hls.js`: en WebKit hay `ManagedMediaSource` y `hls.js` mete el `blob:` en un `<source>` hijo, así que `audio.src` queda **vacío** y el `blob:` solo está en `currentSrc`. Por eso el test lee `src`, `currentSrc` y los `<source>`, no solo `audio.src` (cuenta para la 2.10: el `crossOrigin` de la ruta MSE se mira en el elemento, no en `src`). `dashjs` en WebKit sí asigna el `blob:` a `audio.src`. Chunks: con HLS solo `-hls.min.js`, con DASH solo `-dash-all-min.min.js`, con MP3 ninguno. Sin rarezas nuevas. Mutación: esperar el chunk de `dashjs` con HLS → falla en los dos navegadores; revertida.
+- [x] hecha · commit: —
 
 ### 2.9 Escenario 3: bienvenida (≤ 1 h)
 - Qué: `tests/e2e/intro.spec.ts`. Con `E2E Intro`:
