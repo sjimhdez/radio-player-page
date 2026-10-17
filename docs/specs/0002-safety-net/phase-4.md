@@ -65,7 +65,11 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 - Archivos: `audit/migration.md`, `docs/known-issues.md`, tests en `tests/php/integration/Migration/`.
 - Test: caracterización, como en 4.2.
 - Verificación: `npm run check && npm run test:php:integration`
-- [ ] hecha · commit: —
+- Resultado (2026-10-18):
+  - Informe en [`audit/migration.md`](audit/migration.md). PHPCS limpio, pero las dos `phpcs:ignore` de `error_log` del migrador no llevan motivo (ADR 0021; para el triage, porque toca código publicado). De la baseline de PHPStan de la zona, ninguna entrada es un bug (`! $counts` es inocuo). Revisores: `wp-security-reviewer`, `wporg-reviewer`, `backcompat-reviewer` y un code review a esfuerzo alto en un subagente.
+  - Confirmados, todos con un test `currently` de integración en `UpgradeFlowTest`: K29 (el aviso de conflicto no se descarta), K30 (un solape entre días que la 3.2.0 guardaba bloquea la migración para siempre; reproducción con el saneador de la `v3.2.0` en el informe), K31 (barras invertidas perdidas), K32 (`stations` sin emisoras válidas da «éxito»), K33 (la página del player no se sirve hasta que un administrador abre el admin) y una variante de K21 (kses en la migración). 17 descartados, abajo y en el informe.
+  - Mutación: seis cambios temporales en `radplapag-upgrade.php` y el migrador → los seis tests en rojo; revertida.
+- [x] hecha · commit: —
 
 ### 4.4 Auditoría · zona 3, admin PHP + JS (≤ 1 h)
 - Qué: lo mismo sobre `admin/` y los meta boxes y guardados. Estáticas: PHPCS, PHPStan (baseline de la zona: `esc_attr( int )`, `isset( $screen->id )`), ESLint de la raíz. Revisión: `/code-review`, `wp-security-reviewer` (nonces, capacidades, saneado, transients de error), `wporg-reviewer` (avisos, i18n, `translators`), `a11y-reviewer` con la línea base de axe. Huecos del ADR 0023 de esta zona, cerrados con e2e en `tests/e2e/a11y.spec.ts`: axe sobre una franja añadida con «Add Time Slot» y sobre el meta box con errores de validación a la vista (las violaciones que ya están en la línea base no son nuevas; una nueva se apunta con su fila `axe` y se añade a la línea base con `RADPLAPAG_UPDATE_A11Y_BASELINE=1`, decisión del usuario apuntada aquí, ADR 0023). Contraste: filas C3, C10, C13, K5, K15, K16, K19, K20, AX2–AX4.
@@ -123,6 +127,25 @@ Zona 1 (4.2; detalle en [`audit/core.md`](audit/core.md) §5):
 - descartado: §3.3 no cita la condición «con `stream_url`», porque es redacción de `SPEC.md` y ya está fijada con un test (se apunta para el cierre).
 - descartado: la cabecera `Tags:` del archivo principal, porque es inocua.
 - descartado (pasa a 4.5): el índice de emisora sin `sprintf` ni `translators` en los datos del editor de los bloques, porque es de la zona 4.
+
+Zona 2 (4.3; detalle en [`audit/migration.md`](audit/migration.md) §5):
+- descartado (sospecha para el triage): el bloqueo `radplapag_migrating` no es atómico y dos peticiones simultáneas podrían migrar dos veces, porque la ventana es de microsegundos y no se ha reproducido.
+- descartado (sospecha para el triage): aviso de conflicto espurio por una petición concurrente con `alloptions` antiguo, porque es la misma carrera.
+- descartado (sospecha para el triage): migración cortada por un fatal o un timeout, sin rollback y con programas duplicados en el reintento, porque depende de terceros o de límites del servidor.
+- descartado: migración dentro del POST de una emisora que copia su meta, porque necesita un fallo transitorio previo y esa ventana exacta.
+- descartado: `upgrader_process_complete` no actúa desde la 3.2.x, porque su consecuencia es K33 (redacción del paso 3 de §3.2 para el cierre).
+- descartado: autor de reserva con ID 1, porque no se ha visto un sitio sin administradores con rol.
+- descartado: `radplapag_maybe_clear_migration_conflict_flag()` sin capacidad, porque solo borra la bandera en la condición correcta.
+- descartado: importación diferida al despublicar todas las emisoras, porque es lo que propone el aviso y está fijado.
+- descartado: `id` de programa repetido con datos distintos, porque lo fija el golden `shared-program` (precisión de §3.2 para el cierre).
+- descartado: la opción se borra habiendo descartado contenido, porque es el ADR 0010 y lo fijan los goldens.
+- descartado: aviso de éxito que caduca en AJAX, porque no se pierde nada.
+- descartado: títulos por defecto en el idioma del usuario, porque es inocuo.
+- descartado: versión futura sobrescrita por `radplapag_ensure_schema_version_option()`, porque es latente.
+- descartado: vuelta atrás a la 3.2, porque el ADR 0010 dice que no hay vuelta atrás.
+- descartado: listas blancas duplicadas en el migrador, porque hoy coinciden.
+- descartado: formatos 2.0.0 y 3.0.x sin fixture, porque no hay tags de esas versiones.
+- descartado: `wp_set_current_user()` sin restaurar ante una excepción, porque la petición muere.
 
 ## Verificación de la fase
 - `npm run check` en verde (incluye PHPStan).

@@ -2,15 +2,17 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 4 (auditoría) · Plan: [`phase-4.md`](specs/0002-safety-net/phase-4.md) · Actualizado: 2026-10-18
 
 ## En curso
-- Spec 0002, fase 4 (auditoría): plan aprobado el 2026-10-17, 4.1 hecha (PHPStan nivel 8 con baseline en `npm run check`), 4.2 hecha (zona 1: K21–K28 y una variante de C10, informe en `audit/core.md`); 4.3–4.7 por hacer. Fases 1–3 cerradas; queda la 5 (triage). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 4 (auditoría): plan aprobado el 2026-10-17, 4.1 hecha (PHPStan nivel 8 con baseline en `npm run check`), 4.2 hecha (zona 1: K21–K28 y una variante de C10, informe en `audit/core.md`), 4.3 hecha (zona 2: K29–K33 y una variante de K21, informe en `audit/migration.md`; K30 alta); 4.4–4.7 por hacer. Fases 1–3 cerradas; queda la 5 (triage). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 4.3–4.6: skill `audit` por zona (migración, admin, bloques, player), un informe por zona en `docs/specs/0002-safety-net/audit/`.
+1. 4.4–4.6: skill `audit` por zona (admin, bloques, player), un informe por zona en `docs/specs/0002-safety-net/audit/`.
 2. 4.7: PHPStan en la CI y ADR 0024.
 3. `close-phase` de la fase 4.
 
 ## Bloqueos / preguntas para el humano
 - Fase 3: el criterio del blame de la 3.8 se cumple solo para las líneas que ya existían (82 líneas nuevas de `station-admin.js` siguen en la 3.4, ver desviaciones). ¿Se acepta así?
+
+- Zona 2 (4.3): las dos `phpcs:ignore` de `error_log` del migrador no llevan motivo (ADR 0021). Añadirlo toca código publicado, que esta fase no toca: ¿al triage de la fase 5?
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.

@@ -523,6 +523,159 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertSame( '', $this->notices() );
 	}
 
+	/**
+	 * 3.1.x and 3.2.x saved a slot crossing midnight that overlaps the next day (3.2.0
+	 * only warned). The schedule sanitizer rejects it, so every admin request creates
+	 * and deletes the posts and shows the error again; the site never migrates.
+	 *
+	 * @see docs/known-issues.md K30
+	 */
+	public function test_currently_cross_day_overlap_from_3_2_never_migrates() {
+		$settings                                       = $this->legacy_settings();
+		$settings['stations'][0]['programs'][]          = array(
+			'id'      => 'prog_early0001',
+			'name'    => 'Early',
+			'logo_id' => 0,
+		);
+		$settings['stations'][0]['schedule']['monday']  = array(
+			array(
+				'program_id' => 'prog_morning01',
+				'start'      => '23:00',
+				'end'        => '02:00',
+			),
+		);
+		$settings['stations'][0]['schedule']['tuesday'] = array(
+			array(
+				'program_id' => 'prog_early0001',
+				'start'      => '01:00',
+				'end'        => '03:00',
+			),
+		);
+		update_option( 'radplapag_settings', $settings );
+
+		radplapag_run_legacy_migration_if_needed();
+		$this->assertStringContainsString( 'overlaps with "Early" on Tuesday', (string) get_transient( 'radplapag_migration_error_notice' ) );
+		delete_transient( 'radplapag_migration_error_notice' );
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( $settings, get_option( 'radplapag_settings' ) );
+		$this->assertFalse( get_option( 'radplapag_db_version' ) );
+		$this->assertSame( 0, $this->count_posts( 'radplapag_program' ) );
+		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
+		$this->assertStringContainsString( 'overlaps with "Early" on Tuesday', (string) get_transient( 'radplapag_migration_error_notice' ) );
+	}
+
+	/**
+	 * Dismissing the conflict notice deletes the flag, but the next admin request (the
+	 * redirect itself) raises it again: the notice cannot be dismissed.
+	 *
+	 * @see docs/known-issues.md K29
+	 */
+	public function test_currently_conflict_notice_reappears_after_dismissal() {
+		$this->legacy_settings();
+		$this->factory_rpp->station( 'Existing' );
+		radplapag_run_legacy_migration_if_needed();
+		$this->dismiss(
+			array(
+				'radplapag_dismiss' => 'migration_conflict',
+				'_wpnonce'          => wp_create_nonce( 'radplapag_dismiss_migration_conflict' ),
+			)
+		);
+		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+
+		radplapag_maybe_clear_migration_conflict_flag();
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( '1', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertStringContainsString( 'notice-warning', $this->notices() );
+	}
+
+	/**
+	 * The migration switches to the first administrator, which re-runs kses_init: if
+	 * that user lacks unfiltered_html (a site administrator in a network, or with
+	 * DISALLOW_UNFILTERED_HTML), titles go through kses and `&` is stored as `&amp;`.
+	 *
+	 * @see docs/known-issues.md K21
+	 */
+	public function test_currently_migration_without_unfiltered_html_stores_entities() {
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap ) {
+				return 'unfiltered_html' === $cap ? array( 'do_not_allow' ) : $caps;
+			},
+			10,
+			2
+		);
+		$settings                                       = $this->legacy_settings();
+		$settings['stations'][0]['station_title']       = 'Rock & Roll';
+		$settings['stations'][0]['programs'][0]['name'] = 'Drum & Bass';
+		update_option( 'radplapag_settings', $settings );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( 'Rock &amp; Roll', get_posts( array( 'post_type' => 'radplapag_station' ) )[0]->post_title );
+		$this->assertSame( 'Drum &amp; Bass', get_posts( array( 'post_type' => 'radplapag_program' ) )[0]->post_title );
+	}
+
+	/**
+	 * The migrator passes the legacy values to wp_insert_post() and update_post_meta()
+	 * without wp_slash(), and both unslash them: backslashes are lost.
+	 *
+	 * @see docs/known-issues.md K31
+	 */
+	public function test_currently_migration_strips_backslashes() {
+		$settings                                       = $this->legacy_settings();
+		$settings['stations'][0]['station_title']       = 'AC\\DC';
+		$settings['stations'][0]['programs'][0]['name'] = '\\o/';
+		$settings['stations'][0]['programs'][0]['description'] = 'C:\\x';
+		update_option( 'radplapag_settings', $settings );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$program = get_posts( array( 'post_type' => 'radplapag_program' ) )[0];
+		$this->assertSame( 'ACDC', get_posts( array( 'post_type' => 'radplapag_station' ) )[0]->post_title );
+		$this->assertSame( 'o/', $program->post_title );
+		$this->assertSame( 'C:x', get_post_meta( $program->ID, 'radplapag_program_description', true ) );
+	}
+
+	/**
+	 * A legacy option whose `stations` holds no array migrates nothing, but the option
+	 * is deleted, the version recorded and the success notice shown.
+	 *
+	 * @see docs/known-issues.md K32
+	 */
+	public function test_currently_stations_without_any_station_report_success() {
+		update_option( 'radplapag_settings', array( 'stations' => array( 'x' ) ) );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
+	}
+
+	/**
+	 * After an update (an automatic one runs from cron, off the admin), the migration
+	 * waits for an administrator to open the admin; meanwhile the station page no longer
+	 * serves the player, because only the CPT is read.
+	 *
+	 * @see docs/known-issues.md K33
+	 */
+	public function test_currently_station_page_is_not_served_until_an_admin_visits() {
+		$settings = $this->legacy_settings();
+		wp_set_current_user( 0 );
+		set_current_screen( 'front' );
+
+		radplapag_ensure_schema_version_option();
+		radplapag_run_legacy_migration_if_needed();
+		$this->go_to( get_permalink( $settings['stations'][0]['player_page'] ) );
+
+		$this->assertTrue( is_page() );
+		$this->assertFalse( radplapag_get_station_for_current_page() );
+		$this->assertSame( $settings, get_option( 'radplapag_settings' ) );
+	}
+
 	// Admin notices.
 
 	/**
