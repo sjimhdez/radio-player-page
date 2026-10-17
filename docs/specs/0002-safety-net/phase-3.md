@@ -1,5 +1,5 @@
 # Spec 0002 · Fase 3 — Formateo masivo
-Estado: en curso · Inicio: 2026-10-17 · ADRs: 0021, 0018, 0014, 0008
+Estado: cerrada (2026-10-17) · Inicio: 2026-10-17 · ADRs: 0021, 0018, 0014, 0008
 
 ## Contexto
 Medido al planificar (2026-10-17), con los estándares completos y sin líneas base:
@@ -34,7 +34,7 @@ Código formateado con los estándares completos y sin bloques de línea base (A
 - Resultado (2026-10-17):
   - El sniff también salta en la línea 99 (cabecera «Coming up» del programa siguiente), así que el `phpcs:disable` va en el bloque PHP de antes del `<div>` y el `phpcs:enable` en el bloque PHP final (`} )( $attributes );`), y cubren toda la plantilla. Los dos comentarios van dentro de bloques PHP que ya existían: el HTML no cambia.
   - `phpcbf` con el ruleset completo (copia de `phpcs.xml.dist` sin la línea base, en el scratchpad): 805 arreglos en los 18 archivos (los 808 medidos menos los 3 del sniff desactivado). Quedan 143 errores y 14 avisos para 3.2–3.3.
-  - Comparación de tokens (`tokcmp.php` en el scratchpad, con las normalizaciones de §Contexto) de los 18 archivos: `tokens=same html=same` en todos. El script detecta un cambio de operador y un cambio en el HTML (mutaciones de comprobación).
+  - Comparación de tokens (checklist manual cerrado: `tokcmp.php` vivía en el scratchpad y no se commitea, con las normalizaciones de §Contexto) de los 18 archivos: `tokens=same html=same` en todos. El script detecta un cambio de operador y un cambio en el HTML (mutaciones de comprobación).
   - `npm run check` en verde; integración 347/347; `clean-page.spec.ts` + `blocks.spec.ts`: 22 en verde y 18 omitidos (los casos HTTP solo corren en Chromium). Ningún snapshot reescrito.
 - [x] hecha · commit: `0b7ee8d`
 
@@ -89,7 +89,7 @@ Código formateado con los estándares completos y sin bloques de línea base (A
 - Test: caracterización (Vitest del player con cobertura).
 - Verificación: `npm run check:player && npm --prefix player run build && git status --porcelain player/dist` (vacío)
 - Resultado (2026-10-17):
-  - `.prettierignore` se queda con las entradas de siempre (`node_modules`, `dist`, …) y `src/config/visualizers.ts` bajo el comentario de la zona congelada. `prettier --write` reescribe justo los siete archivos previstos; `git diff -w` solo muestra saltos de línea, puntos y coma (en `global.ts`) y comas finales. `visualizers.ts` no cambia.
+  - `.prettierignore` se queda con las entradas de siempre (`node_modules`, `dist`, …) y `src/config/visualizers.ts` bajo el comentario de la zona congelada. `prettier --write` reescribe justo los siete archivos previstos; `git diff -w` solo muestra saltos de línea (la unión de días de `global.ts` en una línea, el tipo de retorno de `resolveProgram` en `program-schedule.ts` partido sin `;`) y comas finales. `visualizers.ts` no cambia.
   - `npm run check:player` en verde (tsc, ESLint, Prettier, Vitest 253/253 con cobertura); `npm --prefix player run build` y `git status --porcelain player/dist` vacío: `dist/` idéntico. `npm run check` en verde.
 - [x] hecha · commit: `f2edaa4`
 
@@ -102,7 +102,8 @@ Código formateado con los estándares completos y sin bloques de línea base (A
   - El caso nuevo escribe en `$SCRATCH/sample.php` una función con cuatro espacios y `[ 1, 2 ]`; con `PHPCBF_ENABLED=false` falla (35/36) y con `true` sale con tab y `array( 1, 2 )` (36/36). El de sintaxis sigue igual.
   - El hook pasado a mano sobre `includes/radplapag-upgrade.php`, `blocks/now-playing/render.php` y `radio-player-page.php` no cambia nada (ya formateados; el `phpcs:disable` de `now-playing` se respeta).
   - `npm run check` en verde.
-- [x] hecha · commit: `467642d`
+  - En `close-phase`, el caso nuevo falló en la CI: el job `hooks` no instalaba Composer y el hook se salta `phpcbf` si no existe `vendor/bin/phpcbf`. El job ya hace `composer install` (`8f6e8be`).
+- [x] hecha · commit: `467642d`, `8f6e8be`
 
 ### 3.8 `.git-blame-ignore-revs` y rules al día (≤ 1 h)
 - Qué: `.git-blame-ignore-revs` con los SHAs completos de 3.1–3.6, cada uno con su línea de comentario; nota de uso (`git config blame.ignoreRevsFile .git-blame-ignore-revs`) en el propio archivo. Quitar de `.claude/rules/{php,admin,player}.md` la mención a la línea base «hasta la 0002» (queda: estándar completo; en el player, `visualizers.ts` fuera de Prettier por ADR 0018). Comprobar que el zip no cambia.

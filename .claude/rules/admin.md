@@ -20,5 +20,5 @@ paths:
 - **Lógica pura fuera del DOM** (spec 0005): validación del horario, cálculo de solapes y formato de horas se extraen a módulos testeables con Vitest en `tests/js/admin/`. El archivo de `admin/js` queda como adaptador fino del DOM.
 - Mientras no exista ese refactor, los scripts se ejecutan con happy-dom sobre el HTML real del meta box (`tests/fixtures/admin/station-meta-box.html`, montado por `tests/js/admin/support/mount-station-screen.js`); lo que solo se ve en un navegador se cubre con e2e.
 - **Estándares JS de WordPress** (`eslint.config.mjs` de la raíz, con `wp-prettier`). Estándar completo, sin línea base (ADR 0021).
-- Sin dependencias de npm en runtime: el JS del admin se publica tal cual, sin build. Si algún día necesita build, eso es un ADR.
+- Sin dependencias de npm en runtime: el JS del admin se publica tal cual, sin build, así que su sintaxis no pasa de lo que soportan los navegadores de WP 6.6 (ES2019: `catch {}` sin variable sí; nada que exija transpilar). Si algún día necesita build, eso es un ADR.
 - Los avisos del admin se pueden descartar y solo aparecen en las pantallas del plugin (`wordpress-org.md`).

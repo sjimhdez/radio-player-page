@@ -5,10 +5,14 @@
 # style(0002): run phpcbf on the WordPress side (3.1)
 0b7ee8d9a1463707994f7c32acf40bb659c1dd1a
 # style(0002): fix Yoda conditions and comments by hand (3.2)
+# Not only whitespace: Yoda operand swaps and file comments moved above the ABSPATH guard.
 66d049f8f447bad28ba81e21f4ea06f977a94e3a
 # style(0002): add justified suppressions and drop the PHPCS baseline (3.3)
+# Not only whitespace: radplapag_ prefix on the globals of scripts/fixtures/seed.php.
 92d3f8a781e61c33786dfc551905abe82cb3395e
 # style(0002): format admin/js and drop its ESLint baseline (3.4)
+# Not only whitespace: var -> let/const, unused variables removed, reads moved after early
+# returns, inner programsList renamed to dayProgramsList, catch {} without binding.
 78c113f5c8e85f10b060857f8b91e8ca1ded7662
 # style(0002): format the blocks and drop their ESLint overrides (3.5)
 882ffa6b54b60b89b13ae25915d9970071ee9629

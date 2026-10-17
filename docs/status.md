@@ -1,14 +1,14 @@
 # Estado
-Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0002-safety-net/phase-3.md) · Actualizado: 2026-10-17
+Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 4 por empezar · Plan: — · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 3 (formateo masivo, §4.6): plan aprobado el 2026-10-17, 3.1–3.8 hechas; falta `close-phase`. Fases 1 y 2 cerradas; quedan la 4 (auditoría) y la 5 (triage). PR en borrador #37 contra `trunk`.
+- Spec 0002: fases 1–3 cerradas (la 3, formateo masivo, el 2026-10-17). Quedan la 4 (auditoría) y la 5 (triage). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 3 (red en las dos puntas, builds idénticos).
+1. `start-phase` de la fase 4 (auditoría), en una sesión nueva.
 
 ## Bloqueos / preguntas para el humano
-- Ninguno.
+- Fase 3: el criterio del blame de la 3.8 se cumple solo para las líneas que ya existían (82 líneas nuevas de `station-admin.js` siguen en la 3.4, ver desviaciones). ¿Se acepta así?
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
@@ -16,7 +16,7 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 3 en curso 
 
 ## Desviaciones de la spec (→ ADR)
 Spec 0002:
-- §4.6: además de las tres `phpcs:ignore` previstas, van en línea con su motivo `UnusedFunctionParameter` en cinco callbacks de firma fija y un `phpcs:disable`/`phpcs:enable` de `ControlSignature.NewlineAfterOpenBrace` alrededor de toda la plantilla de `blocks/now-playing/render.php` (`phpcbf` cambiaría su HTML; el sniff salta en las dos cabeceras). La parte WordPress va en tres commits (`phpcbf`, a mano, supresiones) en lugar de uno, para comparar por tokens el de `phpcbf`.
+- §4.6: además de las tres `phpcs:ignore` previstas, van en línea con su motivo `UnusedFunctionParameter` en cinco callbacks de firma fija y `SlowDBQuery` en `scripts/fixtures/seed.php` (como en `seed-e2e.php`), y un `phpcs:disable`/`phpcs:enable` de `ControlSignature.NewlineAfterOpenBrace` alrededor de toda la plantilla de `blocks/now-playing/render.php` (`phpcbf` cambiaría su HTML; el sniff salta en las dos cabeceras). La parte WordPress va en tres commits (`phpcbf`, a mano, supresiones) en lugar de uno, para comparar por tokens el de `phpcbf`. Con `.git-blame-ignore-revs`, las líneas que ya existían devuelven su commit anterior, pero las 82 que creó la 3.4 en `station-admin.js` (llaves de `curly`, líneas partidas por Prettier) siguen atribuidas a ella: no tienen commit anterior.
 - §3: K17 (`RADPLAPAG_SCHEDULE` sale `[]` sin franjas, `SPEC.md` §3 dice objeto) queda como fila de `known-issues.md`. Si es bug o redacción de `SPEC.md` (con su ADR) se decide en el triage de la fase 5.
 - §4.4: huecos de e2e anotados en las desviaciones de `contract-map.md` (i18n en el navegador, visualizadores, OGG, DASH sin CORS) y de la línea base de axe en el ADR 0023 (`now-playing` según la hora, filas añadidas por JS, errores de validación, contraste). Los revisa la fase 4.
 - §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).

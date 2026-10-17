@@ -63,5 +63,5 @@ Entornos (Docker, wp-env): desarrollo con `npm run env:start` → <http://localh
 - Subir los requisitos mínimos (WP 6.6, PHP 7.4).
 - Corregir un bug sin su test de regresión, o fuera de una spec de correcciones.
 - Editar un test de caracterización para que pase.
-- Añadir entradas a las líneas base de PHPCS, ESLint o Prettier (ADR 0021): se arregla el código.
+- Desactivar reglas de PHPCS, ESLint o Prettier por archivo (ADR 0021): se arregla el código, o la excepción va en su línea con su motivo.
 - Hacer peticiones reales a internet en los tests.
