@@ -2,13 +2,12 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0002-safety-net/phase-3.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 3 (formateo masivo, §4.6): plan aprobado el 2026-10-17, tareas 3.1–3.8 por hacer. Fases 1 y 2 cerradas; quedan la 4 (auditoría) y la 5 (triage). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 3 (formateo masivo, §4.6): plan aprobado el 2026-10-17, 3.1 hecha, 3.2–3.8 por hacer. Fases 1 y 2 cerradas; quedan la 4 (auditoría) y la 5 (triage). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 3.1: `phpcbf` en la parte WordPress, con la comparación de tokens.
-2. Tareas 3.2–3.6: lo que `phpcbf` no arregla, `admin/js`, bloques y player, sin líneas base.
-3. Tareas 3.7–3.8: `phpcbf` en el hook y `.git-blame-ignore-revs`.
-4. `close-phase` de la fase 3 (red en las dos puntas, builds idénticos).
+1. Tareas 3.2–3.6: lo que `phpcbf` no arregla, `admin/js`, bloques y player, sin líneas base.
+2. Tareas 3.7–3.8: `phpcbf` en el hook y `.git-blame-ignore-revs`.
+3. `close-phase` de la fase 3 (red en las dos puntas, builds idénticos).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
@@ -19,7 +18,7 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 3 en curso 
 
 ## Desviaciones de la spec (→ ADR)
 Spec 0002:
-- §4.6: además de las tres `phpcs:ignore` previstas, van en línea con su motivo `UnusedFunctionParameter` en cinco callbacks de firma fija y un `phpcs:disable` de `ControlSignature.NewlineAfterOpenBrace` en `blocks/now-playing/render.php` (`phpcbf` cambiaría su HTML). La parte WordPress va en tres commits (`phpcbf`, a mano, supresiones) en lugar de uno, para comparar por tokens el de `phpcbf`.
+- §4.6: además de las tres `phpcs:ignore` previstas, van en línea con su motivo `UnusedFunctionParameter` en cinco callbacks de firma fija y un `phpcs:disable`/`phpcs:enable` de `ControlSignature.NewlineAfterOpenBrace` alrededor de toda la plantilla de `blocks/now-playing/render.php` (`phpcbf` cambiaría su HTML; el sniff salta en las dos cabeceras). La parte WordPress va en tres commits (`phpcbf`, a mano, supresiones) en lugar de uno, para comparar por tokens el de `phpcbf`.
 - §3: K17 (`RADPLAPAG_SCHEDULE` sale `[]` sin franjas, `SPEC.md` §3 dice objeto) queda como fila de `known-issues.md`. Si es bug o redacción de `SPEC.md` (con su ADR) se decide en el triage de la fase 5.
 - §4.4: huecos de e2e anotados en las desviaciones de `contract-map.md` (i18n en el navegador, visualizadores, OGG, DASH sin CORS) y de la línea base de axe en el ADR 0023 (`now-playing` según la hora, filas añadidas por JS, errores de validación, contraste). Los revisa la fase 4.
 - §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).

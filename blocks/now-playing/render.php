@@ -29,15 +29,15 @@ defined( 'ABSPATH' ) || exit;
 
 ( function ( $attributes ) {
 	$station_index = (int) ( $attributes['stationIndex'] ?? 0 );
-	$show_logo      = (bool) ( $attributes['showLogo'] ?? true );
-	$now_playing    = radplapag_get_now_playing_for_station( $station_index );
+	$show_logo     = (bool) ( $attributes['showLogo'] ?? true );
+	$now_playing   = radplapag_get_now_playing_for_station( $station_index );
 
 	if ( $now_playing === null || $now_playing['current'] === null ) {
 		if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
 			return;
 		}
 
-		echo '<div ' . wp_kses_post( get_block_wrapper_attributes( [ 'class' => 'wp-block-radplapag-now-playing is-empty' ] ) ) . '>' .
+		echo '<div ' . wp_kses_post( get_block_wrapper_attributes( array( 'class' => 'wp-block-radplapag-now-playing is-empty' ) ) ) . '>' .
 			'<div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;">' .
 			'<p><em>' . esc_html__( 'Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.', 'radio-player-page' ) . '</em></p>' .
 			'</div>' .
@@ -45,11 +45,12 @@ defined( 'ABSPATH' ) || exit;
 		return;
 	}
 
-	$current           = $now_playing['current'];
-	$upcoming          = $now_playing['upcoming'];
-	$station_page_url  = $now_playing['station_page_url'];
+	$current          = $now_playing['current'];
+	$upcoming         = $now_playing['upcoming'];
+	$station_page_url = $now_playing['station_page_url'];
+	// phpcs:disable Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace -- Inline markup: a line break here would change the block's HTML output.
 	?>
-	<div <?php echo wp_kses_post( get_block_wrapper_attributes( [ 'class' => 'wp-block-radplapag-now-playing' ] ) ); ?>>
+	<div <?php echo wp_kses_post( get_block_wrapper_attributes( array( 'class' => 'wp-block-radplapag-now-playing' ) ) ); ?>>
 		<article class="wp-block-group" data-program-id="<?php echo esc_attr( $current['id'] ); ?>">
 			<header class="wp-block-title" style="font-size: 1.5rem;">
 				
@@ -68,10 +69,10 @@ defined( 'ABSPATH' ) || exit;
 								$current['logo_id'],
 								'medium',
 								false,
-								[
+								array(
 									'alt'   => esc_attr( $current['name'] !== '' ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
 									'style' => 'max-width: 100%; height: auto;',
-								]
+								)
 							);
 							?>
 						</a>
@@ -81,10 +82,10 @@ defined( 'ABSPATH' ) || exit;
 							$current['logo_id'],
 							'medium',
 							false,
-							[
+							array(
 								'alt'   => esc_attr( $current['name'] !== '' ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
 								'style' => 'max-width: 100%; height: auto;',
-							]
+							)
 						);
 						?>
 					<?php endif; ?>
@@ -104,4 +105,5 @@ defined( 'ABSPATH' ) || exit;
 		<?php endif; ?>
 	</div>
 	<?php
+	// phpcs:enable Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace
 } )( $attributes );

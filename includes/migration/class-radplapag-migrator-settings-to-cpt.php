@@ -39,15 +39,15 @@ class Radplapag_Migrator_Settings_To_Cpt {
 		$stations = $raw['stations'];
 		$map      = self::build_program_id_map( $stations );
 
-		$created_post_ids = [];
-		$program_posts    = [];
+		$created_post_ids = array();
+		$program_posts    = array();
 		foreach ( $map['unique_programs'] as $old_id => $def ) {
 			$post_id = self::insert_program_post( $def, $author_user_id );
 			if ( is_wp_error( $post_id ) ) {
 				self::rollback_created_posts( $created_post_ids );
 				return $post_id;
 			}
-			$created_post_ids[] = $post_id;
+			$created_post_ids[]       = $post_id;
 			$program_posts[ $old_id ] = $post_id;
 		}
 
@@ -62,7 +62,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 				return $station_id;
 			}
 			$created_post_ids[] = $station_id;
-			$menu_order++;
+			++$menu_order;
 		}
 
 		delete_option( 'radplapag_settings' );
@@ -79,7 +79,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @return array Map with key 'unique_programs' => old_id => program row.
 	 */
 	private static function build_program_id_map( array $stations ): array {
-		$unique = [];
+		$unique = array();
 		foreach ( $stations as $station ) {
 			if ( ! is_array( $station ) || ! isset( $station['programs'] ) || ! is_array( $station['programs'] ) ) {
 				continue;
@@ -101,7 +101,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 				$unique[ $old_id ] = $prog;
 			}
 		}
-		return [ 'unique_programs' => $unique ];
+		return array( 'unique_programs' => $unique );
 	}
 
 	/**
@@ -133,13 +133,13 @@ class Radplapag_Migrator_Settings_To_Cpt {
 		$logo_id              = absint( $prog['logo_id'] ?? 0 );
 
 		$post_id = wp_insert_post(
-			[
+			array(
 				'post_type'    => 'radplapag_program',
 				'post_status'  => 'publish',
 				'post_title'   => $name,
 				'post_author'  => $author_user_id,
 				'post_content' => '',
-			],
+			),
 			true
 		);
 		if ( is_wp_error( $post_id ) ) {
@@ -171,8 +171,8 @@ class Radplapag_Migrator_Settings_To_Cpt {
 		$theme         = sanitize_key( (string) ( $station['theme_color'] ?? 'neutral' ) );
 		$visualizer    = sanitize_key( (string) ( $station['visualizer'] ?? 'oscilloscope' ) );
 
-		$valid_themes      = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
-		$valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
+		$valid_themes      = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
+		$valid_visualizers = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
 		if ( ! in_array( $theme, $valid_themes, true ) ) {
 			$theme = 'neutral';
 		}
@@ -180,7 +180,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 			$visualizer = 'oscilloscope';
 		}
 
-		$schedule_input = [];
+		$schedule_input = array();
 		if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) ) {
 			$schedule_input = self::translate_schedule_for_cpt( $station['schedule'], $program_posts );
 		}
@@ -199,14 +199,14 @@ class Radplapag_Migrator_Settings_To_Cpt {
 		$schedule_json = wp_json_encode( $schedule_sanitized );
 
 		$post_id = wp_insert_post(
-			[
+			array(
 				'post_type'    => 'radplapag_station',
 				'post_status'  => 'publish',
 				'post_title'   => $title,
 				'post_author'  => $author_user_id,
 				'menu_order'   => (int) $menu_order,
 				'post_content' => '',
-			],
+			),
 			true
 		);
 		if ( is_wp_error( $post_id ) ) {
@@ -233,12 +233,12 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * @return array
 	 */
 	private static function translate_schedule_for_cpt( array $legacy_schedule, array $program_posts ): array {
-		$out = [];
+		$out = array();
 		foreach ( $legacy_schedule as $day => $slots ) {
 			if ( ! is_array( $slots ) ) {
 				continue;
 			}
-			$day_rows = [];
+			$day_rows = array();
 			foreach ( $slots as $slot ) {
 				if ( ! is_array( $slot ) ) {
 					continue;
@@ -256,11 +256,11 @@ class Radplapag_Migrator_Settings_To_Cpt {
 					}
 					continue;
 				}
-				$day_rows[] = [
+				$day_rows[] = array(
 					'program_id' => (int) $program_posts[ $legacy_pid ],
 					'start'      => $start,
 					'end'        => $end,
-				];
+				);
 			}
 			if ( ! empty( $day_rows ) ) {
 				$out[ $day ] = $day_rows;

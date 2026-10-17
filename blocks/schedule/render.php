@@ -19,11 +19,11 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	$day_order                 = ( $attributes['dayOrder'] ?? '' ) === 'natural' ? 'natural' : 'current_first';
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? false );
-	$data             = radplapag_get_schedule_for_station( $station_index, $day_order );
-	$wrapper_attributes = get_block_wrapper_attributes(
-		[
+	$data                      = radplapag_get_schedule_for_station( $station_index, $day_order );
+	$wrapper_attributes        = get_block_wrapper_attributes(
+		array(
 			'class' => 'wp-block-radplapag-schedule',
-		]
+		)
 	);
 
 	if ( $data === null ) {
@@ -34,7 +34,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			'</div>';
 	}
 
-	$days = $data['days'] ?? [];
+	$days          = $data['days'] ?? array();
 	$has_any_slots = false;
 	foreach ( $days as $day_data ) {
 		if ( ! empty( $day_data['slots'] ) ) {
@@ -55,15 +55,15 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	$html = '<div ' . $wrapper_attributes . '>';
 
 	foreach ( $days as $day_data ) {
-		$slots = $day_data['slots'] ?? [];
+		$slots = $day_data['slots'] ?? array();
 		if ( empty( $slots ) ) {
 			continue;
 		}
 		$day_key = (string) ( $day_data['day_key'] ?? '' );
 		$label   = (string) ( $day_data['label'] ?? $day_key );
-		$html    .= '<section class="wp-block-group" data-day="' . esc_attr( $day_key ) . '">';
-		$html    .= '<header class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</header>';
-		$html    .= '<ul class="wp-block-list">';
+		$html   .= '<section class="wp-block-group" data-day="' . esc_attr( $day_key ) . '">';
+		$html   .= '<header class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</header>';
+		$html   .= '<ul class="wp-block-list">';
 
 		foreach ( $slots as $slot ) {
 			$program_name = (string) ( $slot['program_name'] ?? '' );
@@ -74,7 +74,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			if ( $is_live ) {
 				$slot_class .= ' is-live';
 			}
-			$html .= '<li class="' . esc_attr( $slot_class ) . '"' . ( $is_live ? ' data-is-live="true"' : '' ) . '>';
+			$html        .= '<li class="' . esc_attr( $slot_class ) . '"' . ( $is_live ? ' data-is-live="true"' : '' ) . '>';
 			$slot_content = '<span>' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
 			if ( $is_rerun ) {
 				$slot_content .= ' <span>' . esc_html__( '(Rerun)', 'radio-player-page' ) . '</span>';

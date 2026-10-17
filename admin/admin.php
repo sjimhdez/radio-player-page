@@ -21,52 +21,52 @@ defined( 'ABSPATH' ) || exit;
  * @return void
  */
 function radplapag_admin_scripts( $hook_suffix ) {
-    $screen = get_current_screen();
-    $is_station = $screen && isset( $screen->id ) && $screen->id === 'radplapag_station';
-    $is_program = $screen && isset( $screen->id ) && $screen->id === 'radplapag_program';
-    if ( ! $is_station && ! $is_program ) {
-        return;
-    }
+	$screen     = get_current_screen();
+	$is_station = $screen && isset( $screen->id ) && $screen->id === 'radplapag_station';
+	$is_program = $screen && isset( $screen->id ) && $screen->id === 'radplapag_program';
+	if ( ! $is_station && ! $is_program ) {
+		return;
+	}
 
-    $admin_url = plugin_dir_url( __FILE__ );
-    wp_enqueue_style(
-        'radplapag-admin',
-        $admin_url . 'css/admin.css',
-        [],
-        '3.4.2'
-    );
+	$admin_url = plugin_dir_url( __FILE__ );
+	wp_enqueue_style(
+		'radplapag-admin',
+		$admin_url . 'css/admin.css',
+		array(),
+		'3.4.2'
+	);
 
-    if ( $is_station ) {
-        wp_enqueue_media();
-        wp_enqueue_script(
-            'radplapag-station-admin',
-            $admin_url . 'js/station-admin.js',
-            [ 'jquery', 'media-editor' ],
-            '3.4.2',
-            true
-        );
-        $post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
-        $post_id = $post_id ? absint( $post_id ) : 0;
-        wp_localize_script(
-            'radplapag-station-admin',
-            'radplapagAdmin',
-            array_merge(
-                radplapag_get_admin_strings(),
-                [
-                    'assignedPlayerPages' => function_exists( 'radplapag_get_player_pages_assigned_to_other_stations' )
-                        ? radplapag_get_player_pages_assigned_to_other_stations( $post_id )
-                        : [],
-                ]
-            )
-        );
-        wp_enqueue_script(
-            'radplapag-program-admin',
-            $admin_url . 'js/program-admin.js',
-            [ 'jquery', 'media-editor' ],
-            '3.4.2',
-            true
-        );
-    }
+	if ( $is_station ) {
+		wp_enqueue_media();
+		wp_enqueue_script(
+			'radplapag-station-admin',
+			$admin_url . 'js/station-admin.js',
+			array( 'jquery', 'media-editor' ),
+			'3.4.2',
+			true
+		);
+		$post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
+		$post_id = $post_id ? absint( $post_id ) : 0;
+		wp_localize_script(
+			'radplapag-station-admin',
+			'radplapagAdmin',
+			array_merge(
+				radplapag_get_admin_strings(),
+				array(
+					'assignedPlayerPages' => function_exists( 'radplapag_get_player_pages_assigned_to_other_stations' )
+						? radplapag_get_player_pages_assigned_to_other_stations( $post_id )
+						: array(),
+				)
+			)
+		);
+		wp_enqueue_script(
+			'radplapag-program-admin',
+			$admin_url . 'js/program-admin.js',
+			array( 'jquery', 'media-editor' ),
+			'3.4.2',
+			true
+		);
+	}
 }
 add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts', 10, 1 );
 
@@ -83,15 +83,15 @@ add_action( 'admin_enqueue_scripts', 'radplapag_admin_scripts', 10, 1 );
  * @return void
  */
 function radplapag_admin_menu() {
-    add_menu_page(
-        __( 'Radio Stations', 'radio-player-page' ),
-        __( 'RPP', 'radio-player-page' ),
-        'manage_options',
-        'radplapag',
-        'radplapag_menu_redirect_to_stations',
-        'dashicons-microphone',
-        30
-    );
+	add_menu_page(
+		__( 'Radio Stations', 'radio-player-page' ),
+		__( 'RPP', 'radio-player-page' ),
+		'manage_options',
+		'radplapag',
+		'radplapag_menu_redirect_to_stations',
+		'dashicons-microphone',
+		30
+	);
 }
 add_action( 'admin_menu', 'radplapag_admin_menu', 5 );
 
@@ -104,7 +104,7 @@ add_action( 'admin_menu', 'radplapag_admin_menu', 5 );
  * @return void
  */
 function radplapag_remove_duplicate_rpp_submenu() {
-    remove_submenu_page( 'radplapag', 'radplapag' );
+	remove_submenu_page( 'radplapag', 'radplapag' );
 }
 add_action( 'admin_menu', 'radplapag_remove_duplicate_rpp_submenu', 99 );
 
@@ -115,8 +115,8 @@ add_action( 'admin_menu', 'radplapag_remove_duplicate_rpp_submenu', 99 );
  * @return void
  */
 function radplapag_menu_redirect_to_stations() {
-    wp_safe_redirect( admin_url( 'edit.php?post_type=radplapag_station' ) );
-    exit;
+	wp_safe_redirect( admin_url( 'edit.php?post_type=radplapag_station' ) );
+	exit;
 }
 
 $radplapag_admin_dir = plugin_dir_path( __FILE__ );

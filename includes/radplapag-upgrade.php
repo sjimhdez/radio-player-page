@@ -68,12 +68,12 @@ function radplapag_ensure_schema_version_option(): void {
  */
 function radplapag_migration_resolve_author_user_id(): int {
 	$users = get_users(
-		[
+		array(
 			'role'    => 'administrator',
 			'number'  => 20,
 			'orderby' => 'ID',
 			'order'   => 'ASC',
-		]
+		)
 	);
 	foreach ( $users as $user ) {
 		if ( $user instanceof WP_User && user_can( $user, 'manage_options' ) ) {
@@ -129,11 +129,11 @@ function radplapag_run_legacy_migration_if_needed(): void {
 
 	set_transient( 'radplapag_migrating', '1', 120 );
 
-	$author_id  = radplapag_migration_resolve_author_user_id();
-	$prev_user  = get_current_user_id();
+	$author_id = radplapag_migration_resolve_author_user_id();
+	$prev_user = get_current_user_id();
 	wp_set_current_user( $author_id );
 
-	require_once dirname( __FILE__ ) . '/migration/class-radplapag-migrator-settings-to-cpt.php';
+	require_once __DIR__ . '/migration/class-radplapag-migrator-settings-to-cpt.php';
 
 	$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
 
@@ -211,7 +211,7 @@ function radplapag_handle_migration_notice_dismiss(): void {
 	if ( $dismiss === 'migration_conflict' ) {
 		delete_option( 'radplapag_migration_skipped_cpt_conflict' );
 	}
-	wp_safe_redirect( remove_query_arg( [ 'radplapag_dismiss', '_wpnonce' ] ) );
+	wp_safe_redirect( remove_query_arg( array( 'radplapag_dismiss', '_wpnonce' ) ) );
 	exit;
 }
 

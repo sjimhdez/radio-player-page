@@ -21,9 +21,9 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? true );
 	$show_schedule             = (bool) ( $attributes['showSchedule'] ?? true );
 	$wrapper_attributes        = get_block_wrapper_attributes(
-		[
+		array(
 			'class' => 'wp-block-radplapag-programs-list',
-		]
+		)
 	);
 
 	$programs = radplapag_get_programs_list_for_station( $station_index );
@@ -34,18 +34,18 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 			'</div>';
 	}
 
-	$html   = '<div ' . $wrapper_attributes . '>';
-	$total  = count( $programs );
-	$index  = 0;
+	$html  = '<div ' . $wrapper_attributes . '>';
+	$total = count( $programs );
+	$index = 0;
 
 	foreach ( $programs as $prog ) {
-		$index++;
+		++$index;
 		$id          = (string) ( $prog['id'] ?? '' );
 		$name        = (string) ( $prog['name'] ?? '' );
 		$logo_id     = (int) ( $prog['logo_id'] ?? 0 );
 		$description = $prog['description'] ?? null;
 		$ext_desc    = $prog['extended_description'] ?? null;
-		$slots       = is_array( $prog['slots'] ?? null ) ? $prog['slots'] : [];
+		$slots       = is_array( $prog['slots'] ?? null ) ? $prog['slots'] : array();
 
 		$html .= '<article class="wp-block-group"' . ( $id !== '' ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
 
@@ -57,10 +57,10 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 				$logo_id,
 				'medium',
 				false,
-				[
+				array(
 					'alt'   => esc_attr( $img_alt ),
 					'style' => 'max-width: 100%; height: auto;',
-				]
+				)
 			) . '</figure>';
 		}
 

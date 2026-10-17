@@ -1,7 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-require_once dirname( __FILE__ ) . '/data/class-radplapag-station-config.php';
+require_once __DIR__ . '/data/class-radplapag-station-config.php';
 
 /**
  * Stations data: list of stations from CPT (used by blocks, player page, config).
@@ -23,15 +23,15 @@ require_once dirname( __FILE__ ) . '/data/class-radplapag-station-config.php';
  */
 function radplapag_get_stations(): array {
 	$posts = get_posts(
-		[
+		array(
 			'post_type'      => 'radplapag_station',
 			'post_status'    => 'publish',
 			'posts_per_page' => -1,
 			'orderby'        => 'menu_order title',
 			'order'          => 'ASC',
-		]
+		)
 	);
-	$out = [];
+	$out   = array();
 	foreach ( $posts as $post ) {
 		$config = Radplapag_Station_Config::from_post( $post );
 		if ( $config ) {
@@ -49,5 +49,5 @@ function radplapag_get_stations(): array {
  * @return array Config array with key 'stations' (ordered list from radplapag_get_stations()).
  */
 function radplapag_get_config(): array {
-	return [ 'stations' => radplapag_get_stations() ];
+	return array( 'stations' => radplapag_get_stations() );
 }

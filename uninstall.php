@@ -25,12 +25,14 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  * @return void
  */
 function radplapag_uninstall_delete_programs(): void {
-	$posts = get_posts( [
-		'post_type'      => 'radplapag_program',
-		'post_status'    => 'any',
-		'posts_per_page' => -1,
-		'fields'         => 'ids',
-	] );
+	$posts = get_posts(
+		array(
+			'post_type'      => 'radplapag_program',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		)
+	);
 	foreach ( $posts as $post_id ) {
 		wp_delete_post( (int) $post_id, true );
 	}
@@ -44,12 +46,14 @@ function radplapag_uninstall_delete_programs(): void {
  * @return void
  */
 function radplapag_uninstall_delete_stations(): void {
-	$posts = get_posts( [
-		'post_type'      => 'radplapag_station',
-		'post_status'    => 'any',
-		'posts_per_page' => -1,
-		'fields'         => 'ids',
-	] );
+	$posts = get_posts(
+		array(
+			'post_type'      => 'radplapag_station',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		)
+	);
 	foreach ( $posts as $post_id ) {
 		wp_delete_post( (int) $post_id, true );
 	}
@@ -75,7 +79,7 @@ function radplapag_uninstall_plugin(): void {
 	wp_cache_flush();
 
 	if ( is_multisite() ) {
-		$sites = get_sites( [ 'number' => 0 ] );
+		$sites = get_sites( array( 'number' => 0 ) );
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site->blog_id );
 			delete_option( 'radplapag_db_version' );

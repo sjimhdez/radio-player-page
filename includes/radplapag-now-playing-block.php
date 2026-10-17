@@ -39,7 +39,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 		return null;
 	}
 	$station      = $stations[ $idx ];
-	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
+	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
 
 	$station_page_url = '';
 	if ( isset( $station['player_page'] ) && $station['player_page'] ) {
@@ -84,19 +84,19 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 		}
 		$start = (string) ( $entry['start'] ?? '' );
 		$end   = (string) ( $entry['end'] ?? '' );
-		return [
+		return array(
 			'id'         => (string) (int) $program_id,
 			'name'       => $data['name'],
 			'logo_id'    => $data['logo_id'] > 0 ? $data['logo_id'] : 0,
 			'day_label'  => $day_label,
 			'time_range' => $start . '-' . $end,
 			'is_rerun'   => ! empty( $entry['is_rerun'] ),
-		];
+		);
 	};
 
 	// Current: today's slots first, then yesterday's slots that cross midnight into now.
 	$current = null;
-	foreach ( [ [ $today_key, false ], [ $prev_day_key, true ] ] as $candidate ) {
+	foreach ( array( array( $today_key, false ), array( $prev_day_key, true ) ) as $candidate ) {
 		if ( $current !== null ) {
 			break;
 		}
@@ -104,7 +104,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 		if ( $day_key === null ) {
 			continue;
 		}
-		$entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : [];
+		$entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : array();
 		foreach ( $entries as $entry ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
@@ -125,7 +125,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 	$upcoming       = null;
 	$upcoming_delta = null;
 
-	$today_entries = isset( $schedule_raw[ $today_key ] ) && is_array( $schedule_raw[ $today_key ] ) ? $schedule_raw[ $today_key ] : [];
+	$today_entries = isset( $schedule_raw[ $today_key ] ) && is_array( $schedule_raw[ $today_key ] ) ? $schedule_raw[ $today_key ] : array();
 	foreach ( $today_entries as $entry ) {
 		if ( ! is_array( $entry ) ) {
 			continue;
@@ -144,7 +144,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 
 	$minutes_to_midnight = 1440 - $current_minutes;
 	if ( $minutes_to_midnight <= RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES && $tomorrow_key !== null ) {
-		$tomorrow_entries = isset( $schedule_raw[ $tomorrow_key ] ) && is_array( $schedule_raw[ $tomorrow_key ] ) ? $schedule_raw[ $tomorrow_key ] : [];
+		$tomorrow_entries = isset( $schedule_raw[ $tomorrow_key ] ) && is_array( $schedule_raw[ $tomorrow_key ] ) ? $schedule_raw[ $tomorrow_key ] : array();
 		foreach ( $tomorrow_entries as $entry ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
@@ -166,9 +166,9 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 		unset( $upcoming['logo_id'] );
 	}
 
-	return [
+	return array(
 		'current'          => $current,
 		'upcoming'         => $upcoming,
 		'station_page_url' => $station_page_url,
-	];
+	);
 }

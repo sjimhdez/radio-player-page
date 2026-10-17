@@ -48,10 +48,10 @@ function radplapag_fixture_sideload( $path, $description ) {
 	copy( $path, $tmp_copy );
 
 	$attachment_id = media_handle_sideload(
-		[
+		array(
 			'name'     => basename( $path ),
 			'tmp_name' => $tmp_copy,
-		],
+		),
 		0,
 		$description
 	);
@@ -70,14 +70,14 @@ function radplapag_fixture_sideload( $path, $description ) {
 WP_CLI::log( 'Removing fixtures from a previous run (if any)...' );
 
 $previous_fixture_ids = get_posts(
-	[
-		'post_type'   => [ 'page', 'radplapag_station', 'radplapag_program', 'attachment' ],
+	array(
+		'post_type'   => array( 'page', 'radplapag_station', 'radplapag_program', 'attachment' ),
 		'post_status' => 'any',
 		'numberposts' => -1,
 		'fields'      => 'ids',
 		'meta_key'    => RADPLAPAG_FIXTURE_META,
 		'meta_value'  => RADPLAPAG_FIXTURE_TAG,
-	]
+	)
 );
 
 foreach ( $previous_fixture_ids as $previous_id ) {
@@ -99,11 +99,11 @@ WP_CLI::log( "Uploaded artwork (attachment #{$image_id}) and intro audio (attach
 // 3. Create the WP page the station will be assigned to.
 // -----------------------------------------------------------------------
 $page_id = wp_insert_post(
-	[
+	array(
 		'post_type'   => 'page',
 		'post_title'  => 'Fixture Radio Station',
 		'post_status' => 'publish',
-	],
+	),
 	true
 );
 
@@ -116,42 +116,42 @@ WP_CLI::log( "Created player page (post #{$page_id})." );
 // -----------------------------------------------------------------------
 // 4. Create 5 radio shows with full content.
 // -----------------------------------------------------------------------
-$programs_input = [
-	[
+$programs_input = array(
+	array(
 		'title'       => 'Morning Drive',
 		'description' => 'Wake up with news, traffic and the best music to start your day.',
 		'extended'    => 'Morning Drive is our flagship breakfast show, mixing top headlines, live traffic updates and a curated mix of hits to get you out the door. Hosted live every weekday.',
-	],
-	[
+	),
+	array(
 		'title'       => 'Indie Waves',
 		'description' => 'The best independent and alternative tracks, hand-picked weekly.',
 		'extended'    => "Indie Waves digs into the alternative and indie scene, spotlighting emerging artists alongside genre staples. Expect deep cuts you won't hear anywhere else.",
-	],
-	[
+	),
+	array(
 		'title'       => 'Late Night Jazz',
 		'description' => 'Smooth jazz and soul to wind down your evening.',
 		'extended'    => 'Late Night Jazz is a slow, warm mix of classic and contemporary jazz, perfect for unwinding after a long day.',
-	],
-	[
+	),
+	array(
 		'title'       => 'Weekend Sports Hour',
 		'description' => "Scores, highlights and analysis from the weekend's biggest games.",
 		'extended'    => "Weekend Sports Hour breaks down the week's biggest sporting moments with live analysis, interviews and listener call-ins.",
-	],
-	[
+	),
+	array(
 		'title'       => 'Sunday Chill',
 		'description' => 'Slow tempo, feel-good tracks for a relaxed Sunday.',
 		'extended'    => 'Sunday Chill closes out the week with mellow, feel-good tracks and no news, no traffic, just music.',
-	],
-];
+	),
+);
 
-$program_ids = [];
+$program_ids = array();
 foreach ( $programs_input as $program ) {
 	$program_id = wp_insert_post(
-		[
+		array(
 			'post_type'   => 'radplapag_program',
 			'post_title'  => $program['title'],
 			'post_status' => 'publish',
-		],
+		),
 		true
 	);
 
@@ -174,11 +174,11 @@ foreach ( $programs_input as $program ) {
 // 5. Create the station and set every field.
 // -----------------------------------------------------------------------
 $station_id = wp_insert_post(
-	[
+	array(
 		'post_type'   => 'radplapag_station',
 		'post_title'  => 'Fixture Radio Station',
 		'post_status' => 'publish',
-	],
+	),
 	true
 );
 
@@ -201,106 +201,106 @@ WP_CLI::log( "Created station \"Fixture Radio Station\" (post #{$station_id})." 
 
 // -----------------------------------------------------------------------
 // 6. Build a complete weekly schedule: every day filled, several reruns,
-//    and one slot that crosses midnight (Sunday 23:00 -> Monday 01:00).
+// and one slot that crosses midnight (Sunday 23:00 -> Monday 01:00).
 // -----------------------------------------------------------------------
-$schedule_input = [
-	'monday'    => [
-		[
+$schedule_input = array(
+	'monday'    => array(
+		array(
 			'program_id' => $morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
-		],
-		[
+		),
+		array(
 			'program_id' => $weekend_sports,
 			'start'      => '20:00',
 			'end'        => '21:00',
 			'is_rerun'   => true,
-		],
-	],
-	'tuesday'   => [
-		[
+		),
+	),
+	'tuesday'   => array(
+		array(
 			'program_id' => $morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
-		],
-		[
+		),
+		array(
 			'program_id' => $indie_waves,
 			'start'      => '19:00',
 			'end'        => '21:00',
 			'is_rerun'   => false,
-		],
-	],
-	'wednesday' => [
-		[
+		),
+	),
+	'wednesday' => array(
+		array(
 			'program_id' => $morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
-		],
-		[
+		),
+		array(
 			'program_id' => $late_night_jazz,
 			'start'      => '22:00',
 			'end'        => '23:30',
 			'is_rerun'   => false,
-		],
-	],
-	'thursday'  => [
-		[
+		),
+	),
+	'thursday'  => array(
+		array(
 			'program_id' => $morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
-		],
-		[
+		),
+		array(
 			'program_id' => $indie_waves,
 			'start'      => '19:00',
 			'end'        => '21:00',
 			'is_rerun'   => true,
-		],
-	],
-	'friday'    => [
-		[
+		),
+	),
+	'friday'    => array(
+		array(
 			'program_id' => $morning_drive,
 			'start'      => '07:00',
 			'end'        => '09:00',
 			'is_rerun'   => false,
-		],
-		[
+		),
+		array(
 			'program_id' => $late_night_jazz,
 			'start'      => '22:00',
 			'end'        => '23:30',
 			'is_rerun'   => true,
-		],
-	],
-	'saturday'  => [
-		[
+		),
+	),
+	'saturday'  => array(
+		array(
 			'program_id' => $weekend_sports,
 			'start'      => '10:00',
 			'end'        => '12:00',
 			'is_rerun'   => false,
-		],
-	],
-	'sunday'    => [
-		[
+		),
+	),
+	'sunday'    => array(
+		array(
 			'program_id' => $indie_waves,
 			'start'      => '10:00',
 			'end'        => '12:00',
 			'is_rerun'   => true,
-		],
+		),
 		// Crosses midnight into Monday. radplapag_sanitize_station_schedule()
 		// treats end <= start as "ends the next day" and checks it against
 		// Monday's slots below (07:00, 20:00) -- neither starts before 01:00,
 		// so this validates cleanly instead of failing as an overlap.
-		[
+		array(
 			'program_id' => $sunday_chill,
 			'start'      => '23:00',
 			'end'        => '01:00',
 			'is_rerun'   => false,
-		],
-	],
-];
+		),
+	),
+);
 
 $schedule_sanitized = radplapag_sanitize_station_schedule( $schedule_input );
 

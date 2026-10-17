@@ -42,7 +42,7 @@ require_once plugin_dir_path( __FILE__ ) . 'blocks/schedule/render.php';
 require_once plugin_dir_path( __FILE__ ) . 'blocks/programs-list/render.php';
 
 if ( is_admin() ) {
-    require_once plugin_dir_path( __FILE__ ) . 'admin/admin.php';
+	require_once plugin_dir_path( __FILE__ ) . 'admin/admin.php';
 }
 
 /**
@@ -56,7 +56,7 @@ if ( is_admin() ) {
  * @return array Mapped capabilities.
  */
 function radplapag_map_cpt_meta_cap( array $caps, string $cap, int $user_id, array $args ): array {
-	$post_meta_caps = [ 'edit_post', 'delete_post', 'read_post', 'publish_post' ];
+	$post_meta_caps = array( 'edit_post', 'delete_post', 'read_post', 'publish_post' );
 	if ( ! in_array( $cap, $post_meta_caps, true ) ) {
 		return $caps;
 	}
@@ -68,7 +68,7 @@ function radplapag_map_cpt_meta_cap( array $caps, string $cap, int $user_id, arr
 	if ( $post_type !== 'radplapag_station' && $post_type !== 'radplapag_program' ) {
 		return $caps;
 	}
-	return [ 'manage_options' ];
+	return array( 'manage_options' );
 }
 add_filter( 'map_meta_cap', 'radplapag_map_cpt_meta_cap', 10, 4 );
 
@@ -85,12 +85,12 @@ add_action( 'enqueue_block_editor_assets', 'radplapag_enqueue_now_playing_block_
  * @since 3.3.0
  */
 function radplapag_register_schedule_block() {
-    register_block_type(
-        plugin_dir_path( __FILE__ ) . 'blocks/schedule',
-        [
-            'render_callback' => 'radplapag_render_schedule_block',
-        ]
-    );
+	register_block_type(
+		plugin_dir_path( __FILE__ ) . 'blocks/schedule',
+		array(
+			'render_callback' => 'radplapag_render_schedule_block',
+		)
+	);
 }
 
 /**
@@ -99,20 +99,20 @@ function radplapag_register_schedule_block() {
  * @since 3.3.0
  */
 function radplapag_enqueue_schedule_block_editor_assets() {
-    $handle = 'radplapag-schedule-editor-script';
-    if ( ! wp_script_is( $handle, 'registered' ) ) {
-        return;
-    }
-    $config  = radplapag_get_config();
-    $stations = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
-    $station_labels = [];
-    foreach ( $stations as $index => $station ) {
-        $title = (string) ( $station['station_title'] ?? '' );
-        $station_labels[] = [
-            'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
-        ];
-    }
-    wp_localize_script( $handle, 'radplapagScheduleBlock', [ 'stations' => $station_labels ] );
+	$handle = 'radplapag-schedule-editor-script';
+	if ( ! wp_script_is( $handle, 'registered' ) ) {
+		return;
+	}
+	$config         = radplapag_get_config();
+	$stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : array();
+	$station_labels = array();
+	foreach ( $stations as $index => $station ) {
+		$title            = (string) ( $station['station_title'] ?? '' );
+		$station_labels[] = array(
+			'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+		);
+	}
+	wp_localize_script( $handle, 'radplapagScheduleBlock', array( 'stations' => $station_labels ) );
 }
 
 /**
@@ -121,12 +121,12 @@ function radplapag_enqueue_schedule_block_editor_assets() {
  * @since 3.3.0
  */
 function radplapag_register_programs_list_block() {
-    register_block_type(
-        plugin_dir_path( __FILE__ ) . 'blocks/programs-list',
-        [
-            'render_callback' => 'radplapag_render_programs_list_block',
-        ]
-    );
+	register_block_type(
+		plugin_dir_path( __FILE__ ) . 'blocks/programs-list',
+		array(
+			'render_callback' => 'radplapag_render_programs_list_block',
+		)
+	);
 }
 
 /**
@@ -135,20 +135,20 @@ function radplapag_register_programs_list_block() {
  * @since 3.3.0
  */
 function radplapag_enqueue_programs_list_block_editor_assets() {
-    $handle = 'radplapag-programs-list-editor-script';
-    if ( ! wp_script_is( $handle, 'registered' ) ) {
-        return;
-    }
-    $config         = radplapag_get_config();
-    $stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
-    $station_labels = [];
-    foreach ( $stations as $index => $station ) {
-        $title = (string) ( $station['station_title'] ?? '' );
-        $station_labels[] = [
-            'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
-        ];
-    }
-    wp_localize_script( $handle, 'radplapagProgramsListBlock', [ 'stations' => $station_labels ] );
+	$handle = 'radplapag-programs-list-editor-script';
+	if ( ! wp_script_is( $handle, 'registered' ) ) {
+		return;
+	}
+	$config         = radplapag_get_config();
+	$stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : array();
+	$station_labels = array();
+	foreach ( $stations as $index => $station ) {
+		$title            = (string) ( $station['station_title'] ?? '' );
+		$station_labels[] = array(
+			'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+		);
+	}
+	wp_localize_script( $handle, 'radplapagProgramsListBlock', array( 'stations' => $station_labels ) );
 }
 
 /**
@@ -160,7 +160,7 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
  * @since 3.4.0
  */
 function radplapag_register_now_playing_block() {
-    register_block_type( plugin_dir_path( __FILE__ ) . 'blocks/now-playing' );
+	register_block_type( plugin_dir_path( __FILE__ ) . 'blocks/now-playing' );
 }
 
 /**
@@ -169,20 +169,20 @@ function radplapag_register_now_playing_block() {
  * @since 3.4.0
  */
 function radplapag_enqueue_now_playing_block_editor_assets() {
-    $handle = 'radplapag-now-playing-editor-script';
-    if ( ! wp_script_is( $handle, 'registered' ) ) {
-        return;
-    }
-    $config         = radplapag_get_config();
-    $stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : [];
-    $station_labels = [];
-    foreach ( $stations as $index => $station ) {
-        $title = (string) ( $station['station_title'] ?? '' );
-        $station_labels[] = [
-            'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
-        ];
-    }
-    wp_localize_script( $handle, 'radplapagNowPlayingBlock', [ 'stations' => $station_labels ] );
+	$handle = 'radplapag-now-playing-editor-script';
+	if ( ! wp_script_is( $handle, 'registered' ) ) {
+		return;
+	}
+	$config         = radplapag_get_config();
+	$stations       = is_array( $config['stations'] ?? null ) ? $config['stations'] : array();
+	$station_labels = array();
+	foreach ( $stations as $index => $station ) {
+		$title            = (string) ( $station['station_title'] ?? '' );
+		$station_labels[] = array(
+			'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+		);
+	}
+	wp_localize_script( $handle, 'radplapagNowPlayingBlock', array( 'stations' => $station_labels ) );
 }
 
 /**
@@ -199,23 +199,23 @@ function radplapag_enqueue_now_playing_block_editor_assets() {
  *                     Returns false if no matching station is found for the current page.
  */
 function radplapag_get_station_for_current_page() {
-    $config = radplapag_get_config();
-    $current_page_id = get_queried_object_id();
+	$config          = radplapag_get_config();
+	$current_page_id = get_queried_object_id();
 
-    if ( isset( $config['stations'] ) && is_array( $config['stations'] ) ) {
-        foreach ( $config['stations'] as $station ) {
-            if (
-                isset( $station['player_page'] ) &&
-                isset( $station['stream_url'] ) &&
-                intval( $station['player_page'] ) === $current_page_id &&
-                ! empty( $station['stream_url'] )
-            ) {
-                return $station;
-            }
-        }
-    }
+	if ( isset( $config['stations'] ) && is_array( $config['stations'] ) ) {
+		foreach ( $config['stations'] as $station ) {
+			if (
+				isset( $station['player_page'] ) &&
+				isset( $station['stream_url'] ) &&
+				intval( $station['player_page'] ) === $current_page_id &&
+				! empty( $station['stream_url'] )
+			) {
+				return $station;
+			}
+		}
+	}
 
-    return false;
+	return false;
 }
 
 /**
@@ -240,219 +240,219 @@ function radplapag_get_station_for_current_page() {
  * @return void Exits execution after outputting HTML.
  */
 function radplapag_output_clean_page() {
-    if ( ! is_page() ) {
-        return;
-    }
+	if ( ! is_page() ) {
+		return;
+	}
 
-    $page_id = get_queried_object_id();
-    if ( $page_id <= 0 ) {
-        return;
-    }
+	$page_id = get_queried_object_id();
+	if ( $page_id <= 0 ) {
+		return;
+	}
 
-    $page = get_post( $page_id );
-    if ( ! $page || $page->post_type !== 'page' ) {
-        return;
-    }
-    if ( $page->post_status !== 'publish' || post_password_required( $page ) ) {
-        return;
-    }
+	$page = get_post( $page_id );
+	if ( ! $page || $page->post_type !== 'page' ) {
+		return;
+	}
+	if ( $page->post_status !== 'publish' || post_password_required( $page ) ) {
+		return;
+	}
 
-    $station = radplapag_get_station_for_current_page();
+	$station = radplapag_get_station_for_current_page();
 
-    if ( ! $station ) {
-        return;
-    }
+	if ( ! $station ) {
+		return;
+	}
 
-    $stream_url = $station['stream_url'];
-    $station_title = isset( $station['station_title'] ) ? $station['station_title'] : '';
-    $background_id = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
-    $logo_id = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
-    $intro_audio_id = isset( $station['intro_audio_id'] ) ? intval( $station['intro_audio_id'] ) : 0;
-    $theme_color = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
-    $visualizer = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
-    
-    // Validate theme color against whitelist for security
-    $valid_themes = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
-    if ( ! in_array( $theme_color, $valid_themes, true ) ) {
-        $theme_color = 'neutral';
-    }
-    
-    // Validate visualizer against whitelist for security
-    $valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
-    if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
-        $visualizer = 'oscilloscope';
-    }
+	$stream_url     = $station['stream_url'];
+	$station_title  = isset( $station['station_title'] ) ? $station['station_title'] : '';
+	$background_id  = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
+	$logo_id        = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
+	$intro_audio_id = isset( $station['intro_audio_id'] ) ? intval( $station['intro_audio_id'] ) : 0;
+	$theme_color    = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
+	$visualizer     = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
 
-    $background_url = $background_id ? wp_get_attachment_image_url( $background_id, 'full' ) : '';
-    $logo_url = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
-    $intro_audio_url = $intro_audio_id ? wp_get_attachment_url( $intro_audio_id ) : '';
+	// Validate theme color against whitelist for security
+	$valid_themes = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
+	if ( ! in_array( $theme_color, $valid_themes, true ) ) {
+		$theme_color = 'neutral';
+	}
 
-    $manifest_path = plugin_dir_path( __FILE__ ) . 'player/dist/manifest.json';
-    if ( ! file_exists( $manifest_path ) ) {
-        wp_die( esc_html__( 'The player compilation file (manifest.json) could not be found.', 'radio-player-page' ) );
-    }
+	// Validate visualizer against whitelist for security
+	$valid_visualizers = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
+	if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
+		$visualizer = 'oscilloscope';
+	}
 
-    $manifest     = json_decode( file_get_contents( $manifest_path ), true );
-    $main_entry   = isset( $manifest['src/main.tsx'] ) ? $manifest['src/main.tsx'] : null;
-    $main_js      = isset( $main_entry['file'] ) ? $main_entry['file'] : null;
-    $main_css     = isset( $main_entry['css'][0] ) ? $main_entry['css'][0] : null;
+	$background_url  = $background_id ? wp_get_attachment_image_url( $background_id, 'full' ) : '';
+	$logo_url        = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
+	$intro_audio_url = $intro_audio_id ? wp_get_attachment_url( $intro_audio_id ) : '';
 
-    if ( ! $main_js ) {
-        wp_die( esc_html__( 'The main JS file was not found in the Vite manifest.', 'radio-player-page' ) );
-    }
+	$manifest_path = plugin_dir_path( __FILE__ ) . 'player/dist/manifest.json';
+	if ( ! file_exists( $manifest_path ) ) {
+		wp_die( esc_html__( 'The player compilation file (manifest.json) could not be found.', 'radio-player-page' ) );
+	}
 
-    $favicon_url = function_exists('get_site_icon_url') ? get_site_icon_url() : '';
-    if (!$favicon_url && get_option('site_icon')) {
-        $favicon_url = wp_get_attachment_image_url(get_option('site_icon'), 'full');
-    }
+	$manifest   = json_decode( file_get_contents( $manifest_path ), true );
+	$main_entry = isset( $manifest['src/main.tsx'] ) ? $manifest['src/main.tsx'] : null;
+	$main_js    = isset( $main_entry['file'] ) ? $main_entry['file'] : null;
+	$main_css   = isset( $main_entry['css'][0] ) ? $main_entry['css'][0] : null;
 
-    $dist_url   = plugin_dir_url( __FILE__ ) . 'player/dist/';
-    
-    // Determine the title to display
-    $display_title = ! empty( $station_title ) ? $station_title : get_bloginfo( 'name' );
+	if ( ! $main_js ) {
+		wp_die( esc_html__( 'The main JS file was not found in the Vite manifest.', 'radio-player-page' ) );
+	}
 
-    echo '<!DOCTYPE html>';
-    echo '<html lang="' . esc_html( get_bloginfo( 'language' ) ) . '">';
-    echo '<head>';
-    echo '<meta charset="utf-8">';
-    echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
-    echo '<title>' . esc_html( $display_title ) . '</title>';
-    if ($favicon_url) {
-        echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
-    }
+	$favicon_url = function_exists( 'get_site_icon_url' ) ? get_site_icon_url() : '';
+	if ( ! $favicon_url && get_option( 'site_icon' ) ) {
+		$favicon_url = wp_get_attachment_image_url( get_option( 'site_icon' ), 'full' );
+	}
 
-    // Meta description (SEO + social fallback)
-    /* translators: %s: station or page title for meta description */
-    $meta_description = sprintf( __( 'Listen to %s live', 'radio-player-page' ), $display_title );
-    echo '<meta name="description" content="' . esc_attr( $meta_description ) . '">';
+	$dist_url = plugin_dir_url( __FILE__ ) . 'player/dist/';
 
-    // Open Graph
-    echo '<meta property="og:title" content="' . esc_attr( $display_title ) . '">';
-    echo '<meta property="og:description" content="' . esc_attr( $meta_description ) . '">';
-    echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . '">';
-    echo '<meta property="og:type" content="website">';
-    echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">';
-    echo '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', get_bloginfo( 'language' ) ) ) . '">';
+	// Determine the title to display
+	$display_title = ! empty( $station_title ) ? $station_title : get_bloginfo( 'name' );
 
-    // Social image: logo first, then background, then favicon
-    $social_image_url = $logo_url ? $logo_url : ( $background_url ? $background_url : ( $favicon_url ? $favicon_url : '' ) );
-    if ( $social_image_url ) {
-        echo '<meta property="og:image" content="' . esc_url( $social_image_url ) . '">';
-        echo '<meta name="twitter:card" content="summary_large_image">';
-        echo '<meta name="twitter:image" content="' . esc_url( $social_image_url ) . '">';
-    } else {
-        echo '<meta name="twitter:card" content="summary">';
-    }
+	echo '<!DOCTYPE html>';
+	echo '<html lang="' . esc_html( get_bloginfo( 'language' ) ) . '">';
+	echo '<head>';
+	echo '<meta charset="utf-8">';
+	echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
+	echo '<title>' . esc_html( $display_title ) . '</title>';
+	if ( $favicon_url ) {
+		echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
+	}
 
-    // Twitter Card (title and description shared with OG)
-    echo '<meta name="twitter:title" content="' . esc_attr( $display_title ) . '">';
-    echo '<meta name="twitter:description" content="' . esc_attr( $meta_description ) . '">';
-    
-    // Get WordPress timezone object and calculate numeric offset
-    // This ensures we always have a numeric value (handles DST automatically)
-    $timezone_obj = wp_timezone();
-    
-    // Calculate current offset in hours (numeric, handles DST)
-    // getOffset() returns seconds, convert to hours
-    $now = new DateTime();
-    $offset_seconds = $timezone_obj->getOffset( $now );
-    $timezone_offset = $offset_seconds / 3600; // Convert to hours (float)
-    
-    // Build configuration object (no schedule or programs; those are passed separately)
-    $config = [
-        'streamUrl' => $stream_url,
-        'siteTitle' => $display_title,
-        'backgroundImage' => $background_url ? $background_url : null,
-        'logoImage' => $logo_url ? $logo_url : null,
-        'introAudioUrl' => $intro_audio_url ? $intro_audio_url : null,
-        'themeColor' => $theme_color,
-        'visualizer' => $visualizer,
-        'timezoneOffset' => $timezone_offset, // Numeric offset in hours from UTC
-    ];
+	// Meta description (SEO + social fallback)
+	/* translators: %s: station or page title for meta description */
+	$meta_description = sprintf( __( 'Listen to %s live', 'radio-player-page' ), $display_title );
+	echo '<meta name="description" content="' . esc_attr( $meta_description ) . '">';
 
-    // Programs list: id + name + logoUrl (same format for frontend). Built from CPT via schedule program_id.
-    $programs_for_player = [];
-    $schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
-    $program_ids_seen = [];
-    foreach ( $schedule_raw as $day_entries ) {
-        if ( ! is_array( $day_entries ) ) {
-            continue;
-        }
-        foreach ( $day_entries as $entry ) {
-            if ( ! is_array( $entry ) ) {
-                continue;
-            }
-            $pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
-            if ( $pid !== null && $pid !== '' && is_numeric( $pid ) ) {
-                $pid_int = (int) $pid;
-                if ( $pid_int > 0 && ! isset( $program_ids_seen[ $pid_int ] ) ) {
-                    $program_ids_seen[ $pid_int ] = true;
-                }
-            }
-        }
-    }
-    foreach ( array_keys( $program_ids_seen ) as $post_id ) {
-        $data = radplapag_get_program_data( $post_id, true );
-        if ( $data ) {
-            $programs_for_player[] = [
-                'id'                 => (string) $post_id,
-                'name'               => $data['name'],
-                'description'        => $data['description'] !== '' ? $data['description'] : null,
-                'extendedDescription' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
-                'logoUrl'            => $data['logo_url'] ? $data['logo_url'] : null,
-            ];
-        }
-    }
+	// Open Graph
+	echo '<meta property="og:title" content="' . esc_attr( $display_title ) . '">';
+	echo '<meta property="og:description" content="' . esc_attr( $meta_description ) . '">';
+	echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . '">';
+	echo '<meta property="og:type" content="website">';
+	echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">';
+	echo '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', get_bloginfo( 'language' ) ) ) . '">';
 
-    // Schedule: program_id as string for frontend resolution in RADPLAPAG_PROGRAMS
-    $schedule_for_player = [];
-    if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
-        foreach ( $station['schedule'] as $day => $day_programs ) {
-            if ( ! is_array( $day_programs ) ) {
-                continue;
-            }
-            $day_entries = [];
-            foreach ( $day_programs as $entry ) {
-                if ( ! is_array( $entry ) ) {
-                    continue;
-                }
-                $program_id = isset( $entry['program_id'] ) ? $entry['program_id'] : '';
-                $program_id = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
-                $start = isset( $entry['start'] ) ? $entry['start'] : '';
-                $end = isset( $entry['end'] ) ? $entry['end'] : '';
-                $is_rerun = ! empty( $entry['is_rerun'] );
-                if ( $program_id === '' || empty( $start ) || empty( $end ) ) {
-                    continue;
-                }
-                $day_entries[] = [
-                    'program_id' => $program_id,
-                    'start'      => $start,
-                    'end'        => $end,
-                    'is_rerun'   => $is_rerun,
-                ];
-            }
-            if ( ! empty( $day_entries ) ) {
-                $schedule_for_player[ $day ] = $day_entries;
-            }
-        }
-    }
+	// Social image: logo first, then background, then favicon
+	$social_image_url = $logo_url ? $logo_url : ( $background_url ? $background_url : ( $favicon_url ? $favicon_url : '' ) );
+	if ( $social_image_url ) {
+		echo '<meta property="og:image" content="' . esc_url( $social_image_url ) . '">';
+		echo '<meta name="twitter:card" content="summary_large_image">';
+		echo '<meta name="twitter:image" content="' . esc_url( $social_image_url ) . '">';
+	} else {
+		echo '<meta name="twitter:card" content="summary">';
+	}
 
-    $json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
-    echo '<script>';
-    echo 'window.RADPLAPAG_CONFIG = ' . wp_json_encode( $config, $json_flags ) . ';';
-    echo 'window.RADPLAPAG_PROGRAMS = ' . wp_json_encode( $programs_for_player, $json_flags ) . ';';
-    echo 'window.RADPLAPAG_SCHEDULE = ' . wp_json_encode( $schedule_for_player, $json_flags ) . ';';
-    echo '</script>';
-    if ( $main_css ) {
-        echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
-    }
-    echo '</head>';
-    echo '<body>';
-    echo '<div id="root"></div>';
-    echo '<script type="module" src="' . esc_url( $dist_url . $main_js ) . '"></script>';
-    echo '</body>';
-    echo '</html>';
+	// Twitter Card (title and description shared with OG)
+	echo '<meta name="twitter:title" content="' . esc_attr( $display_title ) . '">';
+	echo '<meta name="twitter:description" content="' . esc_attr( $meta_description ) . '">';
 
-    exit;
+	// Get WordPress timezone object and calculate numeric offset
+	// This ensures we always have a numeric value (handles DST automatically)
+	$timezone_obj = wp_timezone();
+
+	// Calculate current offset in hours (numeric, handles DST)
+	// getOffset() returns seconds, convert to hours
+	$now             = new DateTime();
+	$offset_seconds  = $timezone_obj->getOffset( $now );
+	$timezone_offset = $offset_seconds / 3600; // Convert to hours (float)
+
+	// Build configuration object (no schedule or programs; those are passed separately)
+	$config = array(
+		'streamUrl'       => $stream_url,
+		'siteTitle'       => $display_title,
+		'backgroundImage' => $background_url ? $background_url : null,
+		'logoImage'       => $logo_url ? $logo_url : null,
+		'introAudioUrl'   => $intro_audio_url ? $intro_audio_url : null,
+		'themeColor'      => $theme_color,
+		'visualizer'      => $visualizer,
+		'timezoneOffset'  => $timezone_offset, // Numeric offset in hours from UTC
+	);
+
+	// Programs list: id + name + logoUrl (same format for frontend). Built from CPT via schedule program_id.
+	$programs_for_player = array();
+	$schedule_raw        = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$program_ids_seen    = array();
+	foreach ( $schedule_raw as $day_entries ) {
+		if ( ! is_array( $day_entries ) ) {
+			continue;
+		}
+		foreach ( $day_entries as $entry ) {
+			if ( ! is_array( $entry ) ) {
+				continue;
+			}
+			$pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
+			if ( $pid !== null && $pid !== '' && is_numeric( $pid ) ) {
+				$pid_int = (int) $pid;
+				if ( $pid_int > 0 && ! isset( $program_ids_seen[ $pid_int ] ) ) {
+					$program_ids_seen[ $pid_int ] = true;
+				}
+			}
+		}
+	}
+	foreach ( array_keys( $program_ids_seen ) as $post_id ) {
+		$data = radplapag_get_program_data( $post_id, true );
+		if ( $data ) {
+			$programs_for_player[] = array(
+				'id'                  => (string) $post_id,
+				'name'                => $data['name'],
+				'description'         => $data['description'] !== '' ? $data['description'] : null,
+				'extendedDescription' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
+				'logoUrl'             => $data['logo_url'] ? $data['logo_url'] : null,
+			);
+		}
+	}
+
+	// Schedule: program_id as string for frontend resolution in RADPLAPAG_PROGRAMS
+	$schedule_for_player = array();
+	if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
+		foreach ( $station['schedule'] as $day => $day_programs ) {
+			if ( ! is_array( $day_programs ) ) {
+				continue;
+			}
+			$day_entries = array();
+			foreach ( $day_programs as $entry ) {
+				if ( ! is_array( $entry ) ) {
+					continue;
+				}
+				$program_id = isset( $entry['program_id'] ) ? $entry['program_id'] : '';
+				$program_id = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
+				$start      = isset( $entry['start'] ) ? $entry['start'] : '';
+				$end        = isset( $entry['end'] ) ? $entry['end'] : '';
+				$is_rerun   = ! empty( $entry['is_rerun'] );
+				if ( $program_id === '' || empty( $start ) || empty( $end ) ) {
+					continue;
+				}
+				$day_entries[] = array(
+					'program_id' => $program_id,
+					'start'      => $start,
+					'end'        => $end,
+					'is_rerun'   => $is_rerun,
+				);
+			}
+			if ( ! empty( $day_entries ) ) {
+				$schedule_for_player[ $day ] = $day_entries;
+			}
+		}
+	}
+
+	$json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+	echo '<script>';
+	echo 'window.RADPLAPAG_CONFIG = ' . wp_json_encode( $config, $json_flags ) . ';';
+	echo 'window.RADPLAPAG_PROGRAMS = ' . wp_json_encode( $programs_for_player, $json_flags ) . ';';
+	echo 'window.RADPLAPAG_SCHEDULE = ' . wp_json_encode( $schedule_for_player, $json_flags ) . ';';
+	echo '</script>';
+	if ( $main_css ) {
+		echo '<link rel="stylesheet" href="' . esc_url( $dist_url . $main_css ) . '">';
+	}
+	echo '</head>';
+	echo '<body>';
+	echo '<div id="root"></div>';
+	echo '<script type="module" src="' . esc_url( $dist_url . $main_js ) . '"></script>';
+	echo '</body>';
+	echo '</html>';
+
+	exit;
 }
 add_action( 'template_redirect', 'radplapag_output_clean_page' );

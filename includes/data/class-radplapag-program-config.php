@@ -74,7 +74,7 @@ class Radplapag_Program_Config {
 	 */
 	public function to_array(): array {
 		return array_merge(
-			[ 'id' => $this->post_id ],
+			array( 'id' => $this->post_id ),
 			$this->data
 		);
 	}
