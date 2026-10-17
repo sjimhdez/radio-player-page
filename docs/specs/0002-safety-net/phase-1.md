@@ -300,7 +300,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: primero (TDD) del script sobre el XML de muestra. Mutación: un umbral por encima de lo medido → sale con 1.
 - Verificación: `npm test && npm run test:php:integration:coverage && node scripts/check-php-coverage.mjs coverage/php-xml`
 - Nota: medido con PHP 8.4 + Xdebug 3.5: crítico 95,55 % (622/651 líneas), resto 90,81 % (978/1077). El XML da totales por función global, así que las zonas mezclan archivos enteros y funciones sueltas; el resto descuenta las líneas críticas de cada archivo. `radio-player-page.php` solo cuenta por `radplapag_get_station_for_current_page()` (crítico): `radplapag_output_clean_page()` es e2e (fase 2) y no está en la lista de «resto» de §4.5. El unit, ejecutado con cobertura en el mismo contenedor, solo añade una línea (`radplapag-schedule-block.php:36`): no se fusiona y no entra `phpcov`. El script también falla si una función o un archivo crítico no aparece en el informe (renombrado o no cargado), para que la zona no se vacíe en silencio. `vitest.config.mjs` no cambia: el proyecto `node` ya incluye `tests/js/**`. `.gitignore` ignoraba `coverage/` a cualquier profundidad: se añade `!tests/coverage/`. Mutaciones: con el mínimo crítico en 96 sale con 1; el test sin `--zones` destapó un fallo al leer los argumentos, ya corregido.
-- [x] hecha · commit: —
+- [x] hecha · commit: 22d4a35
 
 ### 1.21 Cobertura del player en la CI (≤ 1 h)
 - Qué: `coverage.thresholds` por glob en `player/vitest.config.ts` (`src/utils/**` ≥ 90 % líneas; `src/hooks/**` ≥ 70 %, con los visualizadores ya excluidos). `test:coverage` sustituye a `test` en el `check` del player (la CI ya lo ejecuta).
