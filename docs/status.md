@@ -2,14 +2,14 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.12 hechas. PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.13 hechas. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 2.13 Escenario 7: sueño.
-2. 2.14 Escenarios 8 y 9: visualizadores e i18n.
-3. 2.15 Escenario 10 (a): admin, crear y guardar (C13).
-4. 2.16 Escenario 10 (b): admin, validación, aviso tras guardar y K15.
-5. 2.17 Escenario 11: bloques en el frontend y en el editor.
+1. 2.14 Escenarios 8 y 9: visualizadores e i18n.
+2. 2.15 Escenario 10 (a): admin, crear y guardar (C13).
+3. 2.16 Escenario 10 (b): admin, validación, aviso tras guardar y K15.
+4. 2.17 Escenario 11: bloques en el frontend y en el editor.
+5. 2.18 Escenario 12: accesibilidad y su línea base.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.

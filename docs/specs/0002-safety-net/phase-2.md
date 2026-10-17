@@ -212,7 +212,8 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Archivos: `tests/e2e/sleep.spec.ts`.
 - Test: caracterización. Mutación: avanzar un segundo menos de lo necesario → no pausa (falla).
 - Verificación: `npm run test:e2e -- sleep.spec.ts`
-- [ ] hecha · commit: —
+- Nota: sobre `live` (MP3 infinito). `runFor()` de minutos se cuelga (ejecuta cada `requestAnimationFrame` del visualizador): se avanza con `fastForward(1000)` segundo a segundo. El reloj se para con `pauseAt` tras empezar a sonar; si no, sigue en tiempo real mientras `expect` reintenta y añade ticks (la primera mutación pasaba por eso). Cada tick vuelve a crear el intervalo en un efecto; si ese render cae dentro del siguiente `fastForward()` (hace `await` entre temporizadores), el intervalo que tocaba se borra y el tick se pierde (visto en WebKit: `29:01` tras 60 s). Tras cada segundo, unas vueltas de `MessageChannel` dejan que React vacíe su cola. Medido: con 1799 ticks se ve `0:01` y sigue sonando; con 1800 pausa. Pausar a mano y el botón de cancelar quitan la cuenta atrás, y tras 30 min más sigue sonando. Sin filas nuevas en `known-issues.md`. `test.slow()`: unas 1800 idas y vueltas por caso (≈ 23 s en WebKit). Mutación: un segundo menos → falla en Chromium y WebKit (no sale Play). Revertida. `--repeat-each 3` en verde.
+- [x] hecha · commit: —
 
 ### 2.14 Escenarios 8 y 9: visualizadores e i18n (≤ 1 h)
 - Qué:
