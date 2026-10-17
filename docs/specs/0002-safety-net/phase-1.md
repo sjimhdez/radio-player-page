@@ -308,7 +308,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: mutación: subir un umbral por encima de lo medido → falla; se revierte.
 - Verificación: `npm --prefix player run check`
 - Nota: medido: `src/utils/**` 98,08 % de líneas y `src/hooks/**` 96,5 % (sin los dos hooks de visualizadores, ya excluidos). Cada glob se comprueba sobre el total de sus archivos, no archivo por archivo. Mutaciones: utils a 99 → «Coverage for lines (98.08%) does not meet "src/utils/**" threshold (99%)» y sale con 1; hooks a 97 → igual con 96,5 %; revertidas. La CI no cambia: el job `Player` ya ejecuta `test:coverage`.
-- [x] hecha · commit: —
+- [x] hecha · commit: 8d5385a
 
 ### 1.22 Mapa del contrato (parte PHP/TS) (≤ 1 h)
 - Qué: `contract-map.md`, con una fila por punto de `SPEC.md` §3–§4 → test. Las filas de e2e quedan como «fase 2». Repaso de `known-issues.md`: cada fila de esta fase tiene su test o «no se reproduce». Se apuntan las desviaciones (C13 y el aviso tras guardar → fase 2; C9 PHP → fase 2; cobertura por `--coverage-xml`).
