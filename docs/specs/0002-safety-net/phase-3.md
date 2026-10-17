@@ -48,7 +48,7 @@ Código formateado con los estándares completos y sin bloques de línea base (A
   - Los file comments de `admin/admin.php`, `admin/admin-strings.php` e `includes/radplapag-stations.php` ya existían, pero detrás de `defined( 'ABSPATH' ) || exit;` (y del `require_once` en `radplapag-stations.php`): suben a la cabecera y el código va debajo, sin cambiar. Los dos `render.php` reciben un file comment nuevo; el docblock de la función se queda como estaba.
   - Con el ruleset completo quedan 38 violaciones, todas de 3.3 (`seed.php`, `UnusedFunctionParameter`, `NonEnqueued*`, `file_get_contents`).
   - `npm run check` en verde; integración 347/347; `clean-page.spec.ts` + `blocks.spec.ts`: 22 en verde y 18 omitidos. Ningún snapshot reescrito.
-- [x] hecha · commit: —
+- [x] hecha · commit: `66d049f`
 
 ### 3.3 Supresiones justificadas, `seed.php` y fuera la línea base de PHPCS (≤ 1 h)
 - Qué: `// phpcs:ignore` en su línea, con el motivo, para `NonEnqueuedScript`/`NonEnqueuedStylesheet` (página limpia sin tema, ADR 0008), `file_get_contents` (`manifest.json` local) y `UnusedFunctionParameter` en los cinco callbacks de firma fija. En `scripts/fixtures/seed.php`: prefijo `radplapag_` en sus globales, los `@param` que faltan y `phpcs:ignore` de `SlowDBQuery` como en `seed-e2e.php`. Borrar el bloque de línea base de `phpcs.xml.dist`.
