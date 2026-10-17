@@ -314,6 +314,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
   - **C8:** WebKitGTK no dispara `stalled`. Da `error` de red (código 2) y, 1,5 s después, `pause` y `ended`; vuelve a 0 y el player muestra Play, sin aviso y sin reintentos. Test nuevo: `currently stops with a network error and no message when the stream is cut in WebKitGTK (C8)`. El de siempre se salta en WebKitGTK.
   - **Editor:** la guía de bienvenida pide `https://s.w.org/images/block-editor/welcome-canvas.gif` en cuanto se pinta, antes de que `openNewPost` la cierre. `global-setup` guarda ahora `welcomeGuide: false` en `wp_persisted_preferences` del admin. Comprobado quitando el cierre en JS: el editor abre sin la guía (6/6).
   - En local: 148 en verde y 22 omitidos (+2: el test nuevo no corre en Chromium ni en macOS).
+  - CI del PR #37 (run 39062804557, `040ce94`): los 18 checks en verde; E2E con 148 en verde, 22 omitidos y ningún *flaky* en las dos puntas.
 - [x] hecha · commit: `0c28149`
 
 ## Decisiones abiertas → ADR
