@@ -286,7 +286,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `player/src/config/locales.test.ts`.
 - Test: primero (es nuevo; se ve en rojo quitando una clave en una copia temporal).
 - Verificación: `npm --prefix player test -- src/config`
-- [ ] hecha · commit: —
+- [x] hecha · commit: 56f7a42
 
 ### 1.20 Cobertura de PHP en la CI (≤ 1 h)
 - Qué:
