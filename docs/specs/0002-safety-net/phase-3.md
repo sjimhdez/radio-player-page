@@ -91,7 +91,7 @@ Código formateado con los estándares completos y sin bloques de línea base (A
 - Resultado (2026-10-17):
   - `.prettierignore` se queda con las entradas de siempre (`node_modules`, `dist`, …) y `src/config/visualizers.ts` bajo el comentario de la zona congelada. `prettier --write` reescribe justo los siete archivos previstos; `git diff -w` solo muestra saltos de línea, puntos y coma (en `global.ts`) y comas finales. `visualizers.ts` no cambia.
   - `npm run check:player` en verde (tsc, ESLint, Prettier, Vitest 253/253 con cobertura); `npm --prefix player run build` y `git status --porcelain player/dist` vacío: `dist/` idéntico. `npm run check` en verde.
-- [x] hecha · commit: —
+- [x] hecha · commit: `f2edaa4`
 
 ### 3.7 `phpcbf` en el hook de formato (≤ 1 h)
 - Qué: test primero en `tests/hooks/format-edited-file.test.sh`: el caso «leaves a valid legacy PHP file untouched» pasa a «formats PHP with phpcbf» (un PHP mal sangrado en `$SCRATCH` sale con tabs y `array()`), en rojo; luego `PHPCBF_ENABLED=true` y el comentario de cabecera al día.
