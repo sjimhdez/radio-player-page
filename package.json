@@ -8,11 +8,12 @@
 		"node": ">=22.22.2"
 	},
 	"scripts": {
-		"check": "npm run lint:php && npm run test:php:unit && npm run lint:js && npm test && npm run test:hooks && npm run check:player && npm run check:blocks && npm run check:zip",
+		"check": "npm run lint:php && npm run lint:phpstan && npm run test:php:unit && npm run lint:js && npm test && npm run test:hooks && npm run check:player && npm run check:blocks && npm run check:zip",
 		"check:player": "npm --prefix player run check",
 		"check:blocks": "npm --prefix blocks/schedule run check && npm --prefix blocks/programs-list run check && npm --prefix blocks/now-playing run check",
 		"check:zip": "bash tests/zip/compare-with-v3.4.2.sh",
 		"lint:php": "vendor/bin/phpcs -q",
+		"lint:phpstan": "vendor/bin/phpstan analyse --no-progress --memory-limit=1G",
 		"format:php": "vendor/bin/phpcbf -q",
 		"lint:js": "eslint .",
 		"test": "TZ=UTC vitest run",
