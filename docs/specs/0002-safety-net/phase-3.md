@@ -78,7 +78,10 @@ Código formateado con los estándares completos y sin bloques de línea base (A
 - Archivos: `blocks/*/src/*.js`, `blocks/*/.eslintrc.json`.
 - Test: caracterización (snapshots de render en integración, `blocks.spec.ts`).
 - Verificación: `npm run check:blocks && git status --porcelain blocks/*/build` (vacío)
-- [ ] hecha · commit: —
+- Resultado (2026-10-17):
+  - Los tres `.eslintrc.json` se quedan solo con `root` y `extends`. `@package` sin valor en los tres `src/index.js` (`jsdoc/empty-tags`); `lint-js --fix` arregla el resto (`prettier/prettier`: saltos de línea y comillas simples en los `import` de `now-playing`). Sin errores restantes ni cambios a mano en el código; `git diff -w` solo muestra saltos de línea, comillas y comas finales.
+  - `npm run check:blocks` en verde y `git status --porcelain blocks/*/build` vacío: builds idénticos. `npm run check` en verde; `blocks.spec.ts` 4/4 (Chromium y WebKit). Los `render.php` no cambian, así que los snapshots de integración no se tocan.
+- [x] hecha · commit: —
 
 ### 3.6 Player: `prettier --write` y `.prettierignore` solo con la zona congelada (≤ 1 h)
 - Qué: quitar de `player/.prettierignore` los siete archivos que no son visualizadores; dejar `src/config/visualizers.ts` con un comentario («Frozen zone (ADR 0018): not reformatted»). `npm --prefix player run format`. Rebuild; `dist/` idéntico.

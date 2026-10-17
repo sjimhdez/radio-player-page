@@ -2,16 +2,5 @@
 	"root": true,
 	"extends": [
 		"plugin:@wordpress/eslint-plugin/recommended"
-	],
-	"overrides": [
-		{
-			"files": [
-				"src/index.js"
-			],
-			"rules": {
-				"jsdoc/empty-tags": "off",
-				"prettier/prettier": "off"
-			}
-		}
 	]
 }
