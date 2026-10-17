@@ -105,25 +105,41 @@ export function waitForAudioEvent( page: Page, name: string ) {
 	);
 }
 
+/** One of the two media origins of media-server.mjs. */
+export type MediaOrigin = 'cors' | 'nocors';
+
 /**
- * Port of the media origin with CORS (dynamic import: see global-setup.ts).
+ * Port of a media origin (dynamic import: see global-setup.ts).
+ *
+ * @param origin The origin with CORS headers or the one without.
  */
-async function mediaPort(): Promise< number > {
-	const { MEDIA_PORT } = await import( '../media-server.mjs' );
-	return MEDIA_PORT;
+async function mediaPort( origin: MediaOrigin ): Promise< number > {
+	const { MEDIA_NOCORS_PORT, MEDIA_PORT } =
+		await import( '../media-server.mjs' );
+	return origin === 'cors' ? MEDIA_PORT : MEDIA_NOCORS_PORT;
 }
 
-/** Request count by path on the media origin with CORS. */
-export async function mediaRequests(): Promise< Record< string, number > > {
+/**
+ * Request count by path on a media origin.
+ *
+ * @param origin The origin with CORS headers (default) or the one without.
+ */
+export async function mediaRequests(
+	origin: MediaOrigin = 'cors'
+): Promise< Record< string, number > > {
 	const response = await fetch(
-		`http://localhost:${ await mediaPort() }/__requests`
+		`http://localhost:${ await mediaPort( origin ) }/__requests`
 	);
 	return ( await response.json() ) as Record< string, number >;
 }
 
-/** Resets the request count of the media origin with CORS. */
-export async function resetMediaRequests() {
-	await fetch( `http://localhost:${ await mediaPort() }/__requests`, {
+/**
+ * Resets the request count of a media origin.
+ *
+ * @param origin The origin with CORS headers (default) or the one without.
+ */
+export async function resetMediaRequests( origin: MediaOrigin = 'cors' ) {
+	await fetch( `http://localhost:${ await mediaPort( origin ) }/__requests`, {
 		method: 'DELETE',
 	} );
 }
