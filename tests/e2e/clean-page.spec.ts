@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { APIRequestContext } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { readSeed } from './seed';
+import { ADMIN_STATE, readSeed, type SeedUrlKey } from './seed';
 import { wpCli } from './support/wp-cli';
 
 /**
@@ -387,4 +387,93 @@ test.describe( 'clean page (HTTP)', () => {
 			);
 		}
 	} );
+} );
+
+/**
+ * Asserts that the response is the theme's page, not the clean page.
+ *
+ * @param html Response body.
+ */
+function expectThemePage( html: string ) {
+	// wp_generator() runs on wp_head.
+	expect( html ).toContain( '<meta name="generator" content="WordPress' );
+	expect( html ).not.toContain( 'id="root"' );
+	expect( html ).not.toContain( 'RADPLAPAG_CONFIG' );
+}
+
+test.describe( 'pages the plugin does not intercept (HTTP)', () => {
+	test.skip(
+		( { browserName } ) => browserName !== 'chromium',
+		'HTTP only: the response does not depend on the browser'
+	);
+
+	// Each one has a valid station except no-station.
+	for ( const key of [
+		'password',
+		'not-a-page',
+		'no-station',
+	] as SeedUrlKey[] ) {
+		test( `serves the theme for ${ key }`, async ( { request } ) => {
+			expectThemePage( await getHtml( request, readSeed().urls[ key ] ) );
+		} );
+	}
+
+	test( 'serves the theme for a draft, even to the admin', async ( {
+		playwright,
+		baseURL,
+	} ) => {
+		const admin = await playwright.request.newContext( {
+			baseURL,
+			storageState: ADMIN_STATE,
+		} );
+		try {
+			const html = await getHtml( admin, readSeed().urls.draft );
+			expect( html ).toContain( 'E2E Draft Page' );
+			expectThemePage( html );
+		} finally {
+			await admin.dispose();
+		}
+	} );
+} );
+
+/**
+ * The wp_die() paths need another player/dist: .wp-env.tests.json mounts the
+ * repo again as two inactive plugins, each with its player/dist replaced by
+ * tests/fixtures/player-dist/<case>/. The test swaps the active plugin.
+ */
+test.describe( 'clean page without a usable manifest (HTTP)', () => {
+	test.skip(
+		( { browserName } ) => browserName !== 'chromium',
+		'HTTP only: the response does not depend on the browser'
+	);
+
+	for ( const [ variant, message ] of [
+		[
+			'radplapag-no-manifest',
+			'The player compilation file (manifest.json) could not be found.',
+		],
+		[
+			'radplapag-no-main-entry',
+			'The main JS file was not found in the Vite manifest.',
+		],
+	] ) {
+		test( `dies with ${ variant }`, async ( { request } ) => {
+			try {
+				wpCli( 'plugin', 'deactivate', 'radio-player-page' );
+				wpCli( 'plugin', 'activate', variant );
+				const response = await request.get( readSeed().urls.mp3 );
+				const html = await response.text();
+
+				expect( response.status() ).toBe( 500 );
+				expect( html ).toContain(
+					`<div class="wp-die-message">${ message }</div>`
+				);
+				expect( html ).not.toContain( 'id="root"' );
+				expect( html ).not.toContain( 'RADPLAPAG_CONFIG' );
+			} finally {
+				wpCli( 'plugin', 'deactivate', variant );
+				wpCli( 'plugin', 'activate', 'radio-player-page' );
+			}
+		} );
+	}
 } );
