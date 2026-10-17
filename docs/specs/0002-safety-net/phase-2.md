@@ -261,7 +261,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Test: caracterización. Mutación: esperar un bloque `radplapag/inexistente` → falla.
 - Verificación: `npm run test:e2e -- blocks.spec.ts`
 - Nota: frontend sobre la página sembrada (emisora `E2E MP3`): el horario tiene secciones `data-day` para lunes, martes, miércoles, sábado y domingo (lunes: A, B con «(Rerun)», C), la lista de programas un `article[data-program-id]` por programa de la parrilla (A, B, C, D, E, G, H) y no hay ningún `.is-empty`; `now-playing` depende del reloj real, así que solo se comprueba que, si aparece, muestra un programa de la parrilla. Editor: entrada nueva, los tres bloques con `wp.blocks.createBlock` + `insertBlocks`, la emisora se elige en el inspector (`E2E MP3` para horario y lista, `E2E Live`, sin horario, para `now-playing`) y se comprueban las vistas previas dentro del lienzo (iframe en 6.6 y 7.1): cinco días, siete programas y el aviso «Now Playing: nothing to show…» de la petición REST. Dos esperas necesarias: tras `selectBlock` el inspector puede seguir mostrando el bloque anterior (se espera la tarjeta del bloque y se comprueba el atributo `stationIndex`), y en WP 6.6 la petición de `ServerSideRender` (con *debounce*) se pierde si se cambia de bloque antes de que salga (se espera su respuesta `block-renderer/<bloque>?…stationIndex=N`). No es un fallo del plugin: un usuario no cambia de bloque en menos de medio segundo. Mutación: insertar `radplapag/inexistente` → falla; revertida. Verde en Chromium y WebKit con WP 7.1.3 + PHP 8.4 y WP 6.6.10 + PHP 7.4.
-- [x] hecha · commit: —
+- [x] hecha · commit: `060d492`
 
 ### 2.18 Escenario 12: accesibilidad y su línea base (≤ 1 h)
 - Qué:
