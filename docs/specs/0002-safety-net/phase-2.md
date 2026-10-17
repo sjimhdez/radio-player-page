@@ -190,7 +190,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Test: caracterización. Mutación: el helper con offset 5 en lugar de 5.5 → falla.
 - Verificación: `npm run test:e2e -- schedule.spec.ts`
 - Nota: `stationInstant()` pasa día y hora de la emisora a un instante UTC de una semana de referencia (lunes 2024-01-01). Casos: vector 2 (A), vector 5 (B con «(Rerun)»), vector 7 (C de ayer), jueves 12:00 sin programa ni «Next», vector 13 (`currently`: C, C16) y vector 3 («Next: B (Rerun) (in 10 minutes) 10:00-14:00»). Informativo: lunes 09:50 con el MP3 sonando, `clock.fastForward('10:00')` → se muestra B y desaparece «Next»; `paused`, `src` y `/__requests` no cambian. Con la mutación del plan (offset 5) solo fallaba el vector 3, porque el resto de horas cae en mitad de su franja y media hora no cambia el programa. Por eso el test fija `timezoneId: 'UTC'` en el navegador, para que se vea el reloj de la emisora (`TimezoneClock`, que solo aparece si la zona del navegador es distinta), y `openAt()` comprueba que marca la hora pedida con «+5.5». Con eso la mutación hace fallar los 14 tests (7 por navegador). Revertida. `--repeat-each 3` en verde.
-- [x] hecha · commit: —
+- [x] hecha · commit: `6ea31e1`
 
 ### 2.12 Escenario 6: modales (C4, C6) (≤ 1 h)
 - Qué: `tests/e2e/modals.spec.ts`:
