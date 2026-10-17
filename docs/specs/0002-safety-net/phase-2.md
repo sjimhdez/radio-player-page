@@ -202,7 +202,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Test: caracterización. Mutación: esperar «On Air» en C4 → falla.
 - Verificación: `npm run test:e2e -- modals.spec.ts`
 - Nota: el sembrador ya tenía H sin descripción larga (2.3); no cambia. Todo a martes 01:00 salvo los cierres (lunes 06:00). Días del modal del horario: martes, miércoles, sábado, domingo, lunes (desde hoy, sin los vacíos); la reposición sale en la tarjeta de B como «(Rerun)». C4: la tarjeta de C del lunes está, pero no hay ningún «On Air» en el modal; el de programas marca solo C. C6 se reproduce: H muestra «Show more», sin descripción larga, y «Broadcast Times» con «Wednesday 00:05-01:00» solo se ven al expandir. Mutación: esperar un «On Air» en el modal del horario → falla en Chromium y WebKit (`Received: 0`). Revertida. `--repeat-each 3` en verde.
-- [x] hecha · commit: —
+- [x] hecha · commit: `58cbe40`
 
 ### 2.13 Escenario 7: sueño (≤ 1 h)
 - Qué: `tests/e2e/sleep.spec.ts`, con `page.clock`. Casos:
