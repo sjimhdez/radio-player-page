@@ -181,7 +181,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `tests/php/integration/Cpt/CptTest.php`, `tests/php/integration/Cpt/SaveProgramMetaTest.php`, `docs/known-issues.md` (C12, K5 si procede).
 - Test: caracterización. Mutación: quitar `manage_options` en `radplapag_grant_station_caps_to_manage_options()`.
 - Verificación: `npm run test:php:integration -- --filter 'CptTest|SaveProgramMetaTest'`
-- [ ] hecha · commit: —
+- Nota: 33 tests (20 + 13). Además de los dos filtros `user_has_cap`, se fija `radplapag_map_cpt_meta_cap()` (`radio-player-page.php`), que es lo que de verdad resuelve `edit_post`/`delete_post`/`read_post`/`publish_post` con `manage_options`; las capacidades en singular (`edit_radplapag_station`…) son meta capacidades y se comprueban con un post. `WP_UnitTestCase` desregistra toda la meta al terminar cada test, así que los dos tests vuelven a llamar a `radplapag_register_*_meta()` en `set_up()` (en un sitio se registran en `init`). **C12 no se reproduce** (cambio respecto al plan, que pedía un `currently`): el programa solo soporta `title`, así que WordPress ya no le ofrece el editor de bloques; el test fija que los dos usan el clásico. **K5** confirmado: el corte por bytes dentro de un carácter multibyte deja el campo **vacío** (no el valor anterior), porque el saneador registrado rechaza el UTF-8 inválido. Mutaciones (fallan y se revierten): sin `manage_options` en `radplapag_grant_station_caps_to_manage_options()` (2 tests) y el límite de 256 a 300 en `radplapag_save_program_meta()` (2 tests). En verde en PHP 7.4 + WP 6.6.10 y en WP 7.1.3 (suite de integración completa, 307 tests).
+- [x] hecha · commit: —
 
 ### 1.12 Callbacks, admin PHP y fixture del meta box (≤ 1 h)
 - Qué:
