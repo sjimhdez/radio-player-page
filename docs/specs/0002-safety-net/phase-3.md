@@ -71,7 +71,7 @@ Código formateado con los estándares completos y sin bloques de línea base (A
   - Sin los dos bloques de línea base, `eslint --fix` deja 28 errores en `station-admin.js` (los 31 medidos contaban aparte avisos repetidos de las mismas líneas), todos de §Contexto y mecánicos: `catch {}` sin variable (2); fuera `nextEndForOverlap`/`nextEndMin` (sin uso) y `endMin` del día anterior; `allRows` tras el `return` temprano de `checkOverlaps()` (su único llamante ya usa `dayWrapper` antes, así que no cambia nada si fuera `null`) y `startMin` justo antes del bucle del día anterior; `errMsg` y `dayWrapper` pasan a `const` en su bloque; `p.id !== null && p.id !== undefined`; las `programsList` internas pasan a `dayProgramsList` (parámetro de `sortProgramsByStartTime()` y dos locales); `programRow.ownerDocument.activeElement`.
   - `program-admin.js` solo cambia por `--fix`.
   - `npm run lint:js`: 0 errores (los 2 avisos de `tests/js/admin/program-admin.test.js` ya estaban); Vitest 115/115; `admin.spec.ts` 24/24 (Chromium y WebKit); `npm run check` en verde.
-- [x] hecha · commit: —
+- [x] hecha · commit: `78c113f`
 
 ### 3.5 Bloques: lint `--fix`, `@package` vacío y fuera los `overrides` (≤ 1 h)
 - Qué: en cada bloque, `npx wp-scripts lint-js --fix src`, `@package` sin valor en `src/index.js` (comentario; no llega al build) y `.eslintrc.json` sin `overrides`. Rebuild; el build debe salir idéntico.
