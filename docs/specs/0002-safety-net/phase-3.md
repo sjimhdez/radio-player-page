@@ -109,7 +109,11 @@ Código formateado con los estándares completos y sin bloques de línea base (A
 - Archivos: `.git-blame-ignore-revs`, `.claude/rules/php.md`, `.claude/rules/admin.md`, `.claude/rules/player.md`.
 - Test: checklist manual: `git blame --ignore-revs-file .git-blame-ignore-revs admin/js/station-admin.js` no muestra commits de 3.4.
 - Verificación: `npm run check:zip && git blame --ignore-revs-file .git-blame-ignore-revs -- admin/js/station-admin.js | grep -c "$(git log -1 --format=%h --grep='(3.4)')"` (0)
-- [ ] hecha · commit: —
+- Resultado (2026-10-17):
+  - `.git-blame-ignore-revs` con los seis SHAs completos de 3.1–3.6, cada uno con su asunto en un comentario, y la nota de `git config blame.ignoreRevsFile`. Las rules de `php.md` y `admin.md` dicen «estándar completo, sin línea base (ADR 0021)»; `player.md`, que `.prettierignore` solo deja fuera `visualizers.ts` (ADR 0018).
+  - El blame de `station-admin.js` pasa de 1.037 líneas atribuidas a 3.4 a 82, no a 0: son líneas que no existían antes de 3.4 (76 `}` que añadió `curly` y 6 trozos de líneas que partió Prettier), y `git blame` no tiene a qué commit anterior atribuirlas. Todas las líneas que ya existían devuelven commits anteriores. La comprobación «(0)» no se puede cumplir con llaves nuevas; se acepta así.
+  - `npm run check:zip`: 39 archivos, la misma lista que `v3.4.2`. `npm run check` en verde.
+- [x] hecha · commit: `c1cabca`
 
 ## Decisiones abiertas → ADR
 - **Supresiones en línea en lugar de cambiar código** (`now-playing/render.php` y los cinco callbacks de firma fija): cumplen el ADR 0021 (sin línea base, cada excepción en su línea con su motivo) y el invariante 2; no hace falta ADR. Se apuntan como desviación de §4.6, que solo preveía tres `phpcs:ignore`.

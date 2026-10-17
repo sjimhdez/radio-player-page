@@ -2,11 +2,10 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0002-safety-net/phase-3.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 3 (formateo masivo, §4.6): plan aprobado el 2026-10-17, 3.1–3.7 hechas, 3.8 por hacer. Fases 1 y 2 cerradas; quedan la 4 (auditoría) y la 5 (triage). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 3 (formateo masivo, §4.6): plan aprobado el 2026-10-17, 3.1–3.8 hechas; falta `close-phase`. Fases 1 y 2 cerradas; quedan la 4 (auditoría) y la 5 (triage). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 3.8: `.git-blame-ignore-revs` y rules al día.
-2. `close-phase` de la fase 3 (red en las dos puntas, builds idénticos).
+1. `close-phase` de la fase 3 (red en las dos puntas, builds idénticos).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
