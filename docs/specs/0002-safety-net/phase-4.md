@@ -58,7 +58,7 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
   - Informe en [`audit/core.md`](audit/core.md). PHPCS limpio (seis supresiones, todas justificadas); de las entradas de la baseline de PHPStan de la zona, ninguna es un bug (`switch_to_blog( string )` funciona). Revisores: `wp-security-reviewer`, `wporg-reviewer`, `backcompat-reviewer` y un code review a esfuerzo alto en un subagente.
   - Confirmados: K21–K28 (K21, K22, K24 y K25 con un test `currently` de integración; K23, K26, K27 y K28 con reproducción en el informe) y una variante de C10 en el player (reproducción). 20 descartados, abajo y en el informe.
   - Mutación: `is_page()` en `radplapag_get_station_for_current_page()`, `instanceof WP_Post` en `radplapag_map_cpt_meta_cap()`, `html_entity_decode()` del título y `show_in_rest => false` en el CPT de emisora → los cuatro tests en rojo; revertida.
-- [ ] hecha · commit: —
+- [x] hecha · commit: `a3db593`
 
 ### 4.3 Auditoría · zona 2, migración y actualización (≤ 1 h)
 - Qué: lo mismo sobre `includes/migration/` y `includes/radplapag-upgrade.php`. Contraste: invariante 3 (unidireccional e idempotente; ADR 0005, 0010), bloqueo `radplapag_migrating`, avisos y descarte con nonce, `upgrader_process_complete`; filas K4 y C11. Candidato ya visto: la negación siempre falsa de `radplapag-upgrade.php:42`. Revisores: `/code-review`, `wp-security-reviewer`, `backcompat-reviewer` (`wporg-reviewer` solo si toca avisos del admin).
