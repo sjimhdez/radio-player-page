@@ -57,21 +57,9 @@ function useProgramSchedule(): ProgramScheduleResult {
     }
 
     const calculate = (): ProgramScheduleResult => {
-      const { dayOfWeek, currentTime } = getCurrentTimeInTimezone(
-        config.timezoneOffset
-      )
-      const active = findActiveProgram(
-        schedule,
-        programs,
-        dayOfWeek,
-        currentTime
-      )
-      const incoming = findIncomingProgram(
-        schedule,
-        programs,
-        dayOfWeek,
-        currentTime
-      )
+      const { dayOfWeek, currentTime } = getCurrentTimeInTimezone(config.timezoneOffset)
+      const active = findActiveProgram(schedule, programs, dayOfWeek, currentTime)
+      const incoming = findIncomingProgram(schedule, programs, dayOfWeek, currentTime)
       return { active, incoming }
     }
 
