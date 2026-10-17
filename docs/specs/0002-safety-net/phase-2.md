@@ -160,7 +160,8 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Archivos: `tests/e2e/intro.spec.ts`.
 - Test: caracterización. Mutación: esperar la intro dos veces → falla.
 - Verificación: `npm run test:e2e -- intro.spec.ts`
-- [ ] hecha · commit: —
+- Nota: medido en WP 7.1.3 + PHP 8.4 (el lado del navegador no depende de la punta). Igual en Chromium y WebKit, sin rarezas nuevas. La intro es un adjunto subido al sitio (`:8890/wp-content/uploads/…/intro.mp3`), no del servidor de medios. Mientras suena, el botón muestra Pausa **deshabilitado** (`introLocked`); al acabar pasa a `live.mp3` y se habilita. El test anota `loadstart` y `ended` con `audio.src` en fase de captura en `window`, porque el `ended` del player cambia `src` al directo antes que un listener en el elemento; secuencia: intro carga, intro termina, directo carga, y Pausa + Play no añade nada. Tras Pausa + Play espera el evento `play`, no la reproducción (en WebKit el directo se congela, K18). Con la intro rota (404) la secuencia es `broken-intro` → `live` y un `MutationObserver` confirma que no aparece ningún `role="alert"` en ningún momento. Mutación: esperar la intro dos veces → falla en los dos navegadores; revertida. `--repeat-each 3` en verde.
+- [x] hecha · commit: —
 
 ### 2.10 Escenario 4: `crossOrigin`, C1 y K1 (≤ 1 h)
 - Qué: `tests/e2e/cross-origin.spec.ts`:
