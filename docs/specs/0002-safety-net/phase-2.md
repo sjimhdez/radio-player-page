@@ -301,7 +301,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
   - **K19** (ejecución 5): el mensaje «Invalid time format» salió en WebKit. El `focusout` de la fila valida tras un `setTimeout` de 10 ms, y al pulsar Publicar compite con el foco que devuelve la validación nativa. Test partido en dos (ver arriba) y K19 reescrito en `known-issues.md`. Mutación: aceptar segundos en el regex de `validateTimeFormat()` → el test de `focusout` falla en Chromium y WebKit; revertida. `validation and notices` ×5 en verde.
   - **Vista previa del editor en WebKit + WP 6.6** (`blocks.spec.ts`, `waitForResponse` en `chooseStation`): no se volvió a ver en 15 repeticiones aisladas ni en 12 ejecuciones completas en min. Sin causa, no se toca; si vuelve, la traza queda en `test-results/e2e` (`trace: 'retain-on-failure'`).
   Estabilidad con los dos arreglos, `--retries=0 --repeat-each=1`: latest (WP 7.1.3 + PHP 8.4) 448, 439 y 443 s; min (WP 6.6.10 + PHP 7.4), justo tras el cambio de entorno, 420, 422 y 414 s. 148 en verde y 20 omitidos en cada una. `npm run check` en verde.
-- [x] hecha · commit: —
+- [x] hecha · commit: `e179c0e`
 
 ## Decisiones abiertas → ADR
 - **Línea base de axe** (2.18): el criterio es «ninguna violación nueva», no «cero».
