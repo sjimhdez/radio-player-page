@@ -36,6 +36,7 @@
 		"@wordpress/eslint-plugin": "27.1.0",
 		"@wordpress/prettier-config": "4.57.0",
 		"eslint": "10.13.0",
+		"happy-dom": "21.0.3",
 		"prettier": "npm:wp-prettier@3.9.6",
 		"vitest": "5.0.5"
 	},
