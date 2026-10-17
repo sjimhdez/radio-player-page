@@ -1,5 +1,5 @@
 # Spec 0002 · Fase 1 — Caracterización unit e integración
-Estado: en curso · Inicio: 2026-10-16 · ADRs: 0001, 0003, 0004, 0005, 0006, 0017, 0018, 0021
+Estado: cerrada (2026-10-17) · Inicio: 2026-10-16 · ADRs: 0001, 0003, 0004, 0005, 0006, 0017, 0018, 0021
 
 ## Contexto
 Esto es lo que se midió al planificar (2026-10-16) y da forma al plan:
@@ -264,7 +264,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `package.json`, `package-lock.json`, `vitest.config.mjs`, `tests/js/admin/support/mount-station-screen.js`, `tests/js/admin/station-validation.test.js`, `docs/known-issues.md` (C3).
 - Test: caracterización. Mutación: `>` → `>=` en `checkOverlaps`.
 - Verificación: `npm test`
-- Nota: el entorno se fija con `projects` de Vitest (`admin` con happy-dom, `node` para el resto), porque Vitest 5 ya no tiene `environmentMatchGlobs`. El script se ejecuta con `import()` tras `vi.resetModules()`, así cuenta para la cobertura de `admin/js`. El código de error de cada fila se lee de su mensaje con cadenas marcadoras (`[required]`, `[overlap] %s`…). Dos resultados `admin` de los vectores se corrigen con lo medido: `format-24-00` da `required` (el `<input type="time">` vacía `24:00`, así que la comprobación de formato del admin no se alcanza desde el campo) y `c3-start-equals-end-next-day-conflict` acaba mostrando `cross_midnight_overlap` (la comprobación del miércoles reemplaza el mensaje del martes); este último coincide con el correcto y deja de ser `currently`. Mutación `>` → `>=` en `checkOverlaps`: falla `grid-main`. Mutación sin `start === end`: fallan 4 tests (C3).
+- Nota: el entorno se fija con `projects` de Vitest (`admin` con happy-dom, `node` para el resto), porque Vitest 5 ya no tiene `environmentMatchGlobs`. El script se ejecuta con `import()` tras `vi.resetModules()`, así cuenta para la cobertura de `admin/js`. El código de error de cada fila se lee de su mensaje con cadenas marcadoras (`[required]`, `[overlap] %s`…). Dos resultados `admin` de los vectores se corrigen con lo medido: `format-24-00` da `required` (el `<input type="time">` vacía `24:00`, así que la comprobación de formato del admin no se alcanza desde el campo) y `c3-start-equals-end-next-day-conflict` acaba mostrando `cross_midnight_overlap` (la comprobación del miércoles reemplaza el mensaje del martes); este último coincide con el correcto y deja de ser `currently`. Mutación `>` → `>=` en `checkOverlaps`: falla `grid-main`. Mutación sin `start === end`: fallan 4 tests (C3). `tests/js/admin/smoke.test.js` (0001) entra en el proyecto `admin` y corre ahora con happy-dom en lugar de node; sigue en verde (no depende del entorno: usa su propio `vm`).
 - [x] hecha · commit: 230c166
 
 ### 1.18 Admin JS: campos y comportamiento del DOM (≤ 1 h)
@@ -317,6 +317,14 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Verificación: `npm run check`
 - Nota: una tabla por apartado de `SPEC.md` §3 más las invariantes de §4, con estado cubierto / parcial / fase 2 / herramienta / n/a. Lo que queda para la fase 2 es la página limpia y la impresión de las globales (snapshot HTTP), el guardado con URL y el aviso tras guardar (C13), y el comportamiento del player en el navegador (sueño, modales, detección de idioma, horario informativo, visualizadores). Hueco menor apuntado: la caducidad de 120 s de `radplapag_migrating` no se comprueba. `known-issues.md`: todas las filas de esta fase tienen test o «no se reproduce»; C13 apunta ya al escenario 10.
 - [x] hecha · commit: 5eead13
+
+## Cierre (revisión de `close-phase`)
+`spec-conformance-reviewer` y `backcompat-reviewer`. Backcompat: sin hallazgos. De conformidad se corrigió, en el commit de cierre:
+- **A5 en TS:** `schedule-vectors.test.ts` no fallaba con un vector de `resolution` sin `current`/`upcoming` (lo daba por `null`). Ahora lo exige, igual que PHP; también exige `correct` en los vectores `currently`. Mutación: quitar `current` del vector 1 → falla.
+- `station-validation.test.js`: los vectores `admin.currently` (C3) comprueban que difieren de `admin.correct`. Mutación: `correct` igual al resultado → falla.
+- `contract-map.md` §3.7 y el bloqueo de la migración pasan de «cubierto» sin test a tests nuevos: `test_flushes_the_object_cache`, `test_exits_without_wp_uninstall_plugin` (proceso PHP aparte), `test_nothing_is_hooked_on_deactivation` y `test_migration_lock_expires_in_120_seconds`. Mutaciones (en código publicado, revertidas): sin `wp_cache_flush()`, sin la guarda de `WP_UNINSTALL_PLUGIN` y el bloqueo a 121 s; cada una hace fallar su test.
+- **Horario de verano en PHP** (§4.2, `testing.md`): `Schedule/SiteTimezoneTest.php` fija que el programa en antena sigue el DST de un `timezone_string` (`Europe/Madrid` o `Australia/Sydney`, la que esté en horario de verano). Mutación: el sitio con el offset de la hora estándar → falla.
+- Pasajes de la spec que ya no describían lo hecho (A1, §4.1, §4.5, §5) actualizados con la desviación; dos desviaciones más en `status.md` (fixture de conflicto, globales en integración).
 
 ## Decisiones abiertas → ADR
 - Ninguna de contrato. Desviaciones de la spec ya decididas (se apuntan en `status.md`):

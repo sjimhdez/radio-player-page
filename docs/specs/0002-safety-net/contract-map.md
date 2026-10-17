@@ -21,7 +21,7 @@
 | Opción `radplapag_migration_skipped_cpt_conflict` | `PI/Migration/UpgradeFlowTest.php` (`test_published_station_skips_migration_and_flags_conflict`, `test_clear_conflict_flag_*`, `test_conflict_flag_is_cleared_and_migration_runs_without_published_stations`) | cubierto |
 | Transient `radplapag_station_schedule_errors_<id>` (45 s) | `PI/Station/SaveStationMetaTest.php` (`test_invalid_schedule_sets_transient_and_keeps_meta`, con la caducidad) | parcial: el cuerpo del aviso tras guardar → fase 2 (escenario 10; `filter_input()` en CLI) |
 | Transient `radplapag_station_field_errors_<id>` (45 s) | `PI/Station/SaveStationMetaTest.php` (`test_missing_player_page_is_reported`, `test_page_assigned_to_another_station_is_reported`, `test_field_errors_expire_in_45_seconds`) | parcial: errores de la URL del stream y aviso tras guardar → fase 2 (escenario 10) |
-| Transient `radplapag_migrating` (bloqueo, 120 s) | `PI/Migration/UpgradeFlowTest.php` (`test_migration_does_not_run_while_locked`, `test_successful_migration_records_outcome_and_releases_lock`, `test_failed_migration_rolls_back_and_records_error`) | cubierto (la caducidad de 120 s no se comprueba: el bloqueo siempre se libera al terminar) |
+| Transient `radplapag_migrating` (bloqueo, 120 s) | `PI/Migration/UpgradeFlowTest.php` (`test_migration_does_not_run_while_locked`, `test_successful_migration_records_outcome_and_releases_lock`, `test_failed_migration_rolls_back_and_records_error`, `test_migration_lock_expires_in_120_seconds`) | cubierto |
 | Transients `radplapag_migration_success_notice` (60 s) y `radplapag_migration_error_notice` (120 s) | `PI/Migration/UpgradeFlowTest.php` (`test_successful_migration_records_outcome_and_releases_lock`, `test_failed_migration_rolls_back_and_records_error`, con la caducidad) | cubierto |
 | Formato del horario y validación del servidor (campos, programa, `HH:MM`, solapes, medianoche) | `PI/Schedule/SanitizeScheduleTest.php` (`test_validation_vector` sobre los vectores de validación y el resto del archivo; C3 y C10 como `currently`); `PI/Station/SaveStationMetaTest.php` (`test_valid_schedule_is_saved_as_json`, `test_missing_schedule_stores_empty_json`, `test_invalid_schedule_sets_transient_and_keeps_meta`) | cubierto |
 
@@ -54,7 +54,7 @@
 | `radplapag_get_config()` | `PI/Data/ConfigTest.php` (`test_get_config_*`) | cubierto |
 | `radplapag_get_stations()` (lista, publicadas, orden, forma de cada fila, valores por defecto, horario inválido) | `PI/Data/ConfigTest.php` (`test_get_stations_*`, `test_station_row_*`) | cubierto |
 | `radplapag_get_station_for_current_page()` | ver §3.3 | cubierto |
-| `radplapag_get_now_playing_for_station()` (actual, siguiente a ≤ 10 min, índice inexistente → `null`, programa en borrador oculto; C16) | `PI/Schedule/ScheduleVectorsTest.php` (`test_resolution_vector` sobre los vectores 1–14 y C3, `test_currently_midnight_slot_is_active_early_on_its_own_day`, `test_invalid_station_index_gives_null`, `test_current_has_logo_and_upcoming_has_none`, `test_draft_program_is_hidden`); `PU/ScheduleHelpersTest.php` (helpers puros) | cubierto |
+| `radplapag_get_now_playing_for_station()` (actual, siguiente a ≤ 10 min, índice inexistente → `null`, programa en borrador oculto; C16) | `PI/Schedule/ScheduleVectorsTest.php` (`test_resolution_vector` sobre los vectores 1–14 y C3, `test_currently_midnight_slot_is_active_early_on_its_own_day`, `test_invalid_station_index_gives_null`, `test_current_has_logo_and_upcoming_has_none`, `test_draft_program_is_hidden`); `PI/Schedule/SiteTimezoneTest.php` (zona del sitio con horario de verano); `PU/ScheduleHelpersTest.php` (helpers puros) | cubierto |
 | Callbacks enganchados (hook, prioridad, nº de argumentos), exactamente los de la tabla | `PI/Admin/HooksTest.php` (`test_hooked_callbacks_match_the_contract_exactly`, `test_no_callback_is_hooked_twice_on_a_hook`, `test_every_callback_can_be_unhooked_by_name`, `test_same_priority_callbacks_run_in_registration_order`); `PI/SupportTest.php` (`test_every_contract_callback_is_hooked`) | cubierto |
 | Funciones `radplapag_*`, clases `Radplapag_*` y constantes `RADPLAPAG_*` (existen) | cubiertas por los tests de cada zona; `PU/SmokeTest.php` (`Radplapag_Program_Config` sin WordPress) | cubierto en lo que se usa; una lista exhaustiva de nombres la vigila `backcompat-reviewer` en cada diff |
 
@@ -86,8 +86,10 @@
 | Punto | Test(s) | Estado |
 |---|---|---|
 | Borra las dos opciones y los posts de los dos CPT con su meta, sin tocar otros posts | `PI/Uninstall/UninstallTest.php` (`test_deletes_*`, `test_does_not_touch_other_posts`); C11 y K7 como `currently` | cubierto |
+| Solo con `WP_UNINSTALL_PLUGIN` | `PI/Uninstall/UninstallTest.php` (`test_exits_without_wp_uninstall_plugin`, en un proceso PHP aparte) | cubierto |
+| Vacía la caché de objetos | `PI/Uninstall/UninstallTest.php` (`test_flushes_the_object_cache`) | cubierto |
 | En cada sitio si es multisite | `PI/Uninstall/UninstallMultisiteTest.php` | cubierto |
-| Desactivar no borra nada | — (el plugin no engancha `register_deactivation_hook`; lo fija `test_hooked_callbacks_match_the_contract_exactly`) | cubierto (indirecto) |
+| Desactivar no borra nada | `PI/Uninstall/UninstallTest.php` (`test_nothing_is_hooked_on_deactivation`: ningún `deactivate_*` enganchado) | cubierto |
 
 ## §3.8 Reproductor (comportamiento)
 

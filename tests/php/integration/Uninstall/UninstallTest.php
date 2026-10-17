@@ -134,6 +134,47 @@ final class UninstallTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Uninstalling flushes the object cache, so no cached copy of the deleted data survives.
+	 */
+	public function test_flushes_the_object_cache() {
+		wp_cache_set( 'probe', 'cached', 'radplapag_uninstall_test' );
+
+		self::uninstall();
+
+		$this->assertFalse( wp_cache_get( 'probe', 'radplapag_uninstall_test' ) );
+	}
+
+	/**
+	 * Loaded outside an uninstall (no WP_UNINSTALL_PLUGIN), the file exits before doing
+	 * anything. Run in a separate PHP process without WordPress: past the guard it would
+	 * die on the first WordPress function.
+	 */
+	public function test_exits_without_wp_uninstall_plugin() {
+		$output = array();
+		$status = null;
+		exec( escapeshellarg( PHP_BINARY ) . ' ' . escapeshellarg( dirname( __DIR__, 4 ) . '/uninstall.php' ) . ' 2>&1', $output, $status ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.system_calls_exec
+
+		$this->assertSame( 0, $status );
+		$this->assertSame( array(), $output );
+	}
+
+	/**
+	 * Deactivating removes nothing: the plugin hooks nothing on deactivation.
+	 */
+	public function test_nothing_is_hooked_on_deactivation() {
+		global $wp_filter;
+
+		$deactivation = array_filter(
+			array_keys( $wp_filter ),
+			static function ( $hook ) {
+				return 0 === strpos( $hook, 'deactivate_' );
+			}
+		);
+
+		$this->assertSame( array(), array_values( $deactivation ) );
+	}
+
+	/**
 	 * Runs uninstall.php as WordPress does. The file declares functions, so it is
 	 * loaded once per process; later calls run its entry point again.
 	 */

@@ -416,6 +416,25 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The lock is taken for 120 s while the migration runs, so a request that dies
+	 * mid-migration does not block it for good.
+	 */
+	public function test_migration_lock_expires_in_120_seconds() {
+		$this->legacy_settings();
+		$expirations = array();
+		$capture     = static function ( $value, $expiration ) use ( &$expirations ) {
+			$expirations[] = $expiration;
+		};
+		add_action( 'set_transient_radplapag_migrating', $capture, 10, 2 );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		remove_action( 'set_transient_radplapag_migrating', $capture, 10 );
+		$this->assertSame( array( 120 ), $expirations );
+		$this->assertFalse( get_transient( 'radplapag_migrating' ) );
+	}
+
+	/**
 	 * The created posts belong to the lowest-ID administrator, not to the current user.
 	 */
 	public function test_migrated_posts_belong_to_the_first_administrator() {

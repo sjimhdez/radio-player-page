@@ -95,6 +95,29 @@ describe( 'station-admin.js: validation vectors', () => {
 			rowMarked: ! vector.admin.valid,
 		} );
 	} );
+
+	const currentlyVectors = VECTORS.validation
+		.filter( ( vector ) => vector.admin && vector.admin.currently )
+		.map( ( vector ) => [
+			`${ vector.id } (${ vector.admin.issue })`,
+			vector,
+		] );
+
+	it.each( currentlyVectors )(
+		'currently differs from the correct result in %s',
+		( _title, vector ) => {
+			expect( vector.admin.correct ).toBeDefined();
+			expect( {
+				valid: vector.admin.valid,
+				error: vector.admin.valid ? null : vector.admin.error,
+			} ).not.toEqual( {
+				valid: vector.admin.correct.valid,
+				error: vector.admin.correct.valid
+					? null
+					: vector.admin.correct.error,
+			} );
+		}
+	);
 } );
 
 describe( 'station-admin.js: rows and submit', () => {

@@ -85,6 +85,9 @@ describe('schedule vectors: resolution', () => {
     const currentTime = toMinutes(vector.now.time)
 
     it(label, () => {
+      // A vector without a result fails here, as in PHP (spec 0002 A5).
+      expect(result, 'Vector without a result.').toHaveProperty('current')
+      expect(result, 'Vector without a result.').toHaveProperty('upcoming')
       expect(findActiveProgram(schedule, programs, dayOfWeek, currentTime)).toEqual(
         expectedCurrent(result.current),
       )
@@ -93,14 +96,15 @@ describe('schedule vectors: resolution', () => {
       )
     })
 
-    if (result.currently && correct) {
+    if (result.currently) {
       // docs/known-issues.md C16: a slot crossing midnight counts as active
       // early on its own day and hides the previous day's slot.
       // docs/known-issues.md K8: on a day without slots, the previous day's
       // slot crossing midnight is not looked at.
       it(`currently differs from the correct result in vector ${vector.id} (${result.issue})`, () => {
+        expect(correct, 'Currently vector without a correct result.').toBeDefined()
         expect(findActiveProgram(schedule, programs, dayOfWeek, currentTime)).not.toEqual(
-          expectedCurrent(correct.current),
+          expectedCurrent(correct!.current),
         )
       })
     }

@@ -27,7 +27,7 @@ Al cerrar esta spec: el comportamiento de la 3.4.2 está fijado con tests en tod
 
 | # | Criterio | Cómo se verifica |
 |---|---|---|
-| A1 | Mínimos de cobertura de la columna «al cerrar la 0002» | CI: umbrales de Vitest en `player/vitest.config.ts` y script de PHP sobre el clover (§4.5); falla si baja |
+| A1 | Mínimos de cobertura de la columna «al cerrar la 0002» | CI: umbrales de Vitest en `player/vitest.config.ts` y script de PHP sobre el informe `--coverage-xml` (§4.5; desviación de la fase 1, el clover no da funciones globales); falla si baja |
 | A2 | Los 12 escenarios de §4.4 pasan en Chromium y WebKit, en las dos puntas de la matriz | jobs `E2E (…)` de la CI |
 | A3 | Integración en verde con PHP 7.4 + WP 6.6 y PHP 8.4 + última WP | jobs `PHPUnit integration (…)` |
 | A4 | Cada punto de `SPEC.md` §3 y §4 tiene al menos un test | tabla de trazabilidad `docs/specs/0002-safety-net/contract-map.md` (punto → test), revisada por `spec-conformance-reviewer` |
@@ -54,7 +54,7 @@ ADRs previstos (de proceso, no de contrato):
 ### 4.1 Fixtures (`tests/fixtures/`)
 
 - `legacy-settings/`: los JSON de `spike/php/fixtures/legacy-settings/` de la 2.0 en adelante (`v2.0-branding`, `v3.1-schedule`, `v3.2-descriptions`) más formas nuevas: varias emisoras, sin horario, datos corruptos (tipos erróneos, días desconocidos, horas mal formadas), programa compartido entre emisoras, conflicto con CPT publicados y **adjuntos reales** (`logo_id`/`background_id` creados antes y normalizados como `{{ATTACHMENT:<nombre>}}`). `v1.1-flat` se conserva solo para fijar K4.
-- `schedule-vectors.json`: la parrilla y los vectores 1–14 de `known-issues.md`, los de validación y los de C3. Cada vector guarda el resultado **de la 3.4.2**; los que difieren del correcto (13, 14, C3) llevan `"currently": true` y el ID de la fila. Formato: `{ grid, resolution: [ { now: { day, time }, current, upcoming } ], validation: [ { schedule, valid, error? } ] }`. Añade casos de `timezoneOffset` negativo y fraccionario (+5:30) y de horario de verano.
+- `schedule-vectors.json`: la parrilla y los vectores 1–14 de `known-issues.md`, los de validación y los de C3. Cada vector guarda el resultado **de la 3.4.2**; los que difieren del correcto (13, 14, C3) llevan `"currently": true` y el ID de la fila. Formato: `{ grid, resolution: [ { now: { day, time }, current, upcoming } ], validation: [ { schedule, valid, error? } ] }`, ampliado en la fase 1 con parrillas con nombre (`grids`), resultados de validación por capa (`php`/`admin`) y un objeto `ts` donde el player difiere de PHP (desviación apuntada en `docs/status.md`). Añade casos de `timezoneOffset` negativo y fraccionario (+5:30) y de horario de verano.
 - `audio/`: los medios del spike (`spike/e2e/make-media.sh`) regenerados más cortos y **commiteados** (pocos KB; la CI no necesita ffmpeg): tono MP3 y OGG, HLS (`.m3u8` + segmentos), DASH (`.mpd` + segmentos) y una intro corta. El script generador se mueve a `scripts/fixtures/make-audio.sh`.
 
 ### 4.2 Capas y zonas
@@ -101,7 +101,7 @@ El PHP lee la hora con `new DateTime( 'now', wp_timezone() )` (`radplapag-now-pl
 ### 4.5 Cobertura en la CI
 
 - **Player:** `coverage.thresholds` por glob en `player/vitest.config.ts` (`src/utils/**` ≥ 90 % líneas; `src/hooks/**` sin visualizadores ≥ 70 %), y `test:coverage` en su `check` y en la CI.
-- **PHP:** Xdebug en el entorno de tests (`wp-env start --xdebug=coverage`), solo en la punta PHP 8.4 + última WP; clover de unit + integración (fusionados con `phpcov` si los dos aportan). Las zonas se declaran en `tests/coverage/php-zones.json` (crítico: las funciones de la primera fila de §4.2, migración, actualización, programa en antena y config; resto: lo demás de `includes/`, `admin/*.php`, `blocks/*/render.php`, `uninstall.php`). Un script (`scripts/check-php-coverage.mjs`) lee el clover y aplica 80 % / 60 %. Comprobar en la fase 1 que el clover de PHPUnit 9.6 da cobertura por función global; si no, la zona crítica se mide por archivo y se apunta.
+- **PHP:** Xdebug en el entorno de tests (`wp-env start --xdebug=coverage`), solo en la punta PHP 8.4 + última WP; clover de unit + integración (fusionados con `phpcov` si los dos aportan). **Fase 1:** se lee `--coverage-xml` (el clover de PHPUnit 9.6 no da funciones globales) y solo de la integración (el unit aporta una línea; sin `phpcov`). Las zonas se declaran en `tests/coverage/php-zones.json` (crítico: las funciones de la primera fila de §4.2, migración, actualización, programa en antena y config; resto: lo demás de `includes/`, `admin/*.php`, `blocks/*/render.php`, `uninstall.php`). Un script (`scripts/check-php-coverage.mjs`) lee el clover y aplica 80 % / 60 %. Comprobar en la fase 1 que el clover de PHPUnit 9.6 da cobertura por función global; si no, la zona crítica se mide por archivo y se apunta.
 - Mutación: bajar un umbral por encima de lo medido hace fallar la CI.
 
 ### 4.6 Formateo masivo (fase 3)
@@ -122,7 +122,7 @@ Cada fase termina con la CI en verde, sus criterios verificados y `close-phase`.
 - `characterize` sobre las zonas de §4.2 que no son e2e, en ese orden, con el reloj de §4.3.
 - Paridad de claves de los locales (A11).
 - Cobertura en la CI (§4.5), con los umbrales de la 0002.
-- Las filas del catálogo de estas capas (C2, C3, C9, C10, C11, C12, C13, C16 en PHP/TS) quedan con su test `currently` o «no se reproduce».
+- Las filas del catálogo de estas capas (C2, C3, C9, C10, C11, C12, C13, C16 en PHP/TS) quedan con su test `currently` o «no se reproduce». **Hecho:** C13 y la parte PHP de C9 pasan a la fase 2 (`filter_input()` en CLI y snapshot de la página limpia; decisión del usuario, 2026-10-16).
 - ✅ **Criterios:** A1, A3, A5, A11; parte PHP/TS de A4 y A6.
 
 ### Fase 2 — E2E y cierre del catálogo
