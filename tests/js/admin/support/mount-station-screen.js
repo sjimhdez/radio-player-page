@@ -68,6 +68,15 @@ export function adminData( overrides = {} ) {
  */
 export async function mountStationScreen( admin = adminData() ) {
 	document.body.innerHTML = META_BOX_HTML;
+	// happy-dom 21 leaves a parsed <select> on its second option instead of the
+	// one marked `selected` (and has no `defaultSelected`); restore what a
+	// browser shows.
+	document.querySelectorAll( 'select' ).forEach( ( select ) => {
+		const marked = Array.from( select.options ).filter( ( option ) =>
+			option.hasAttribute( 'selected' )
+		);
+		select.selectedIndex = marked.length ? marked.pop().index : 0;
+	} );
 	if ( admin === null ) {
 		delete window.radplapagAdmin;
 	} else {

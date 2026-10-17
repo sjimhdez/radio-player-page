@@ -275,10 +275,11 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
   - reordenar por inicio;
   - revalidación de días adyacentes;
   - `program-admin.js` con un `wp.media` simulado: elegir y quitar imagen.
-- Archivos: `tests/js/admin/station-fields.test.js`, `tests/js/admin/program-admin.test.js`.
+- Archivos: `tests/js/admin/station-fields.test.js`, `tests/js/admin/program-admin.test.js`, `tests/js/admin/support/mount-station-screen.js`, `package.json`, `package-lock.json`, `docs/known-issues.md` (K15, K16).
 - Test: caracterización. Mutación: quitar `applyDisabledPlayerPages()`.
 - Verificación: `npm test`
-- [ ] hecha · commit: —
+- Nota: `program-admin.js` corre sobre jQuery real: `jquery` 3.7.1 (la de WP 6.6) entra como dev de la raíz y solo se simula `wp.media`. Los delegados de `<body>` se quitan con `.off()` antes de cada montaje. happy-dom 21 deja un `<select>` parseado en su segunda opción, sin mirar `selected` (y no tiene `defaultSelected`): el helper de la 1.17 restaura la opción marcada tras montar el HTML. Antes no se notaba porque los vectores vacían el horario y la página que quedaba (103) también era válida; los tests de la 1.17 siguen en verde. Mutaciones: sin `applyDisabledPlayerPages()` fallan 2 tests; sin `sortProgramsByStartTime()` tras el `focusout` fallan 2; sin `.val(att.id)` en la imagen fallan 2. Hallazgos: **K15** (al añadir tras quitar se reutiliza el índice de una fila que sigue, con `name` duplicados) y **K16** (quitar una franja no revalida a través del límite de la semana).
+- [x] hecha · commit: —
 
 ### 1.19 Paridad de locales (≤ 1 h)
 - Qué: cada locale tiene exactamente las claves de `en-US` y los mismos marcadores `{{…}}`, y los 14 están registrados en `src/config/i18n.ts`.
