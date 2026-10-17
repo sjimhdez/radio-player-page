@@ -1,11 +1,11 @@
 # Estado
-Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
+Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 3 por empezar · Plan anterior: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 20 tareas, todas hechas. PR en borrador #37 contra `trunk`.
+- Spec 0002: fases 1 y 2 cerradas (la 2 el 2026-10-17). Quedan la 3 (formateo masivo), la 4 (auditoría) y la 5 (triage). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 2 (última de la spec 0002: deja el PR #37 listo).
+1. `start-phase` de la fase 3 (formateo masivo, §4.6), en una sesión nueva.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
@@ -16,6 +16,8 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso 
 
 ## Desviaciones de la spec (→ ADR)
 Spec 0002:
+- §3: K17 (`RADPLAPAG_SCHEDULE` sale `[]` sin franjas, `SPEC.md` §3 dice objeto) queda como fila de `known-issues.md`. Si es bug o redacción de `SPEC.md` (con su ADR) se decide en el triage de la fase 5.
+- §4.4: huecos de e2e anotados en las desviaciones de `contract-map.md` (i18n en el navegador, visualizadores, OGG, DASH sin CORS) y de la línea base de axe en el ADR 0023 (`now-playing` según la hora, filas añadidas por JS, errores de validación, contraste). Los revisa la fase 4.
 - §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).
 - §4.5: la cobertura de PHP por función se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
 - §5 fase 1: C9 solo en TS. La parte PHP (offset por petición) la fija el snapshot de la página limpia en la fase 2 (`clean-page.spec.ts`). El horario de verano en PHP lo fija ya la integración (`SiteTimezoneTest`, `timezone_string` con DST); el snapshot sigue en `Asia/Kolkata`.

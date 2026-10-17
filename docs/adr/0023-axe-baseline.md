@@ -16,6 +16,11 @@ La spec 0002 (§4.4, escenario 12) pasa axe (`@axe-core/playwright`) por la pág
 - El escenario entra ya y protege lo que funciona: un cambio de UI que añada una violación lo para la CI.
 - Subir MUI o React (specs 0003/0004) puede cambiar los selectores aunque no cambie la accesibilidad. Entonces se reescribe la línea base y el diff muestra si solo cambian los selectores.
 - Al normalizar `.css-*`, dos nodos distintos de una misma regla pueden compartir clave, y una violación nueva en un nodo con la misma forma no se detecta. Es el precio de una clave estable entre builds.
+- Las claves de `label` llevan el valor sembrado (`input[value="06:00"]`): una franja nueva sin etiqueta con la misma hora que otra comparte clave y no se detecta, y cambiar la parrilla de `seed-e2e.php` reescribe esas claves sin que cambie la accesibilidad.
+- **Huecos conocidos de la línea base** (los mira la auditoría de la fase 4 con `a11y-reviewer`):
+  - el bloque `now-playing` solo se pinta en el frontend si hay un programa en antena según el reloj real del servidor (sin costura, spec 0002 §4.3). Cuando no hay, axe no lo analiza y el test lo deja en una anotación `warning`;
+  - solo se analiza el marcado del servidor: ni las franjas que añade «Add Time Slot» ni los meta boxes con un error de validación a la vista;
+  - el contraste se mide con un solo tema (`blue`) y se descartan los resultados `incomplete`, donde axe deja `color-contrast` sobre imágenes o degradados.
 - axe no comprueba la calidad del texto alternativo ni la visibilidad del foco: los cubren tests explícitos, no esta línea base.
 - La revisión de `a11y-reviewer` en `close-phase` compara con esta línea base.
 

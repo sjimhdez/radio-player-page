@@ -14,7 +14,7 @@ Plugin de WordPress (publicado en wordpress.org) que sirve una página limpia po
 | `npm run check` | PHPCS + PHPUnit unit + ESLint (raíz) + Vitest (raíz) + tests de hooks + `check` del player + `check` de cada bloque + lista del zip. Sin Docker. **Antes de cada commit.** |
 | `npm test` / `npm run test:php:unit` | Vitest de la raíz (`tests/js`) / PHPUnit sin WordPress |
 | `npm run test:php:integration` | PHPUnit sobre wp-env (entorno de tests, tablas `wptests_`) |
-| `npm run test:e2e` | Playwright (Chromium + WebKit) sobre el entorno de tests; antes siembra `scripts/fixtures/seed.php` |
+| `npm run test:e2e` | Playwright (Chromium + WebKit) sobre el entorno de tests; antes siembra `scripts/fixtures/seed.php` y `tests/e2e/fixtures/seed-e2e.php` |
 | `npm run test:hooks` | Tests de `.claude/hooks/` |
 | `npm run check:zip` | El zip lista los mismos archivos que `v3.4.2` y no lleva rutas de desarrollo |
 | `npm --prefix player run check` / `build` | tsc + ESLint + Prettier + Vitest del player / build a `player/dist/` |

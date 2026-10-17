@@ -147,3 +147,5 @@
 - **Cobertura de PHP por función** (§4.5): se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
 - **`schedule-vectors.json`** (§4.1): amplía el formato (parrillas con nombre, resultados por capa, `start_equals_end`, objeto `ts` en C3-2). Detalle en `docs/status.md`.
 - **Volumen oculto en iOS y HLS nativo** (§4.4): sin e2e. El WebKit de Playwright es de escritorio y el player no lo trata como iOS (2.8); lo fijan los tests del player.
+- **Filas «cubierto» con un hueco dentro** (revisión de `spec-conformance-reviewer` en el cierre de la fase 2): el paso al navegador del orden de detección i18n (`SPEC.md` §4) no se mide; de los visualizadores, la carga diferida y que solo se animen con el audio sonando no se miden (`visualizers.spec.ts` comprueba que suena y que hay `canvas`; zona congelada, ADR 0018); la existencia de funciones, clases y constantes se cubre en lo que usan los tests, y el resto lo revisa `backcompat-reviewer`.
+- **OGG y DASH sin CORS** (§4.4): `tests/fixtures/audio/tone.ogg` se sirve, pero ningún e2e reproduce un directo OGG; C1 se mide en e2e con MP3 y HLS, y DASH sin CORS queda con la medición del spike (fila K1).

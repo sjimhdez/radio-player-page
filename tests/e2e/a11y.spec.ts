@@ -226,6 +226,20 @@ test( 'a11y: blocks page', async ( { page }, testInfo ) => {
 		page.locator( '.wp-block-radplapag-schedule' )
 	).toBeVisible();
 
+	// The front end renders now-playing only while a program of the seeded
+	// grid is on air by the real server clock (no time seam, spec 0002 §4.3),
+	// and axe skips an include that matches nothing: say so instead.
+	if (
+		( await page.locator( '.wp-block-radplapag-now-playing' ).count() ) ===
+		0
+	) {
+		testInfo.annotations.push( {
+			type: 'warning',
+			description:
+				'now-playing not rendered (nothing on air): not scanned by axe',
+		} );
+	}
+
 	await expectNoNewViolations( page, testInfo, 'blocks page', [
 		'.wp-block-radplapag-now-playing',
 		'.wp-block-radplapag-schedule',

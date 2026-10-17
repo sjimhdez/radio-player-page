@@ -1,5 +1,5 @@
 # Spec 0002 · Fase 2 — E2E y cierre del catálogo
-Estado: en curso · Inicio: 2026-10-17 · ADRs: 0001, 0004, 0013, 0017, 0018, 0019, 0022 (+ nuevo: línea base de axe)
+Estado: cerrada (2026-10-17) · Inicio: 2026-10-17 · ADRs: 0001, 0004, 0013, 0017, 0018, 0019, 0022, 0023 (nuevo: línea base de axe)
 
 ## Contexto
 Lo medido al planificar (2026-10-17):
