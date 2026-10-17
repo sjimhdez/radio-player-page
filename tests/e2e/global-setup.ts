@@ -24,9 +24,11 @@ function wpCli( ...args: string[] ): string {
 
 /**
  * Seeds the e2e site (the wp_ tables of the test environment) with
- * scripts/fixtures/seed.php, which removes the previous run's fixtures first.
+ * scripts/fixtures/seed.php, which removes the previous run's fixtures first,
+ * and starts the media servers (:8901 with CORS, :8902 without). Returns the
+ * teardown that stops them.
  */
-export default function globalSetup() {
+export default async function globalSetup() {
 	wpCli( 'plugin', 'activate', 'radio-player-page' );
 	wpCli( 'eval-file', `${ PLUGIN_DIR }/scripts/fixtures/seed.php` );
 
@@ -43,4 +45,10 @@ export default function globalSetup() {
 
 	mkdirSync( dirname( SEED_FILE ), { recursive: true } );
 	writeFileSync( SEED_FILE, JSON.stringify( seed, null, '\t' ) );
+
+	// Dynamic import: Playwright compiles static imports to require(), which
+	// breaks import.meta in the ES module.
+	const { startMediaServers } = await import( './media-server.mjs' );
+	const media = await startMediaServers();
+	return () => media.close();
 }

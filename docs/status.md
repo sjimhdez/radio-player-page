@@ -2,14 +2,14 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1 hecha. PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.2 hechas. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 2.2 Servidor de medios.
-2. 2.3 Sembrador de e2e y sesión de admin.
-3. 2.4 Normalizador de snapshots.
-4. 2.5 Snapshot HTTP de la página limpia y de las globales.
-5. 2.6 Casos no interceptados y `wp_die`.
+1. 2.3 Sembrador de e2e y sesión de admin.
+2. 2.4 Normalizador de snapshots.
+3. 2.5 Snapshot HTTP de la página limpia y de las globales.
+4. 2.6 Casos no interceptados y `wp_die`.
+5. 2.7 Escenario 1: MP3, pausa y corte (C7, C8).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
