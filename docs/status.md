@@ -2,20 +2,20 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.6 hechas. PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.7 hechas. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 2.7 Escenario 1: MP3, pausa y corte (C7, C8).
-2. 2.8 Escenario 2: HLS y DASH.
-3. 2.9 Escenario 3: bienvenida.
-4. 2.10 Escenario 4: `crossOrigin`, C1 y K1.
-5. 2.11 Escenario 5: programa actual y siguiente.
+1. 2.8 Escenario 2: HLS y DASH.
+2. 2.9 Escenario 3: bienvenida.
+3. 2.10 Escenario 4: `crossOrigin`, C1 y K1.
+4. 2.11 Escenario 5: programa actual y siguiente.
+5. 2.12 Escenario 6: modales (C4, C6).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
 
 ## Verificación manual pendiente
-- Ninguna.
+- K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright, tarea 2.7).
 
 ## Desviaciones de la spec (→ ADR)
 Spec 0002:

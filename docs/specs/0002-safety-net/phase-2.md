@@ -134,7 +134,13 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Archivos: `tests/e2e/mp3.spec.ts`, `tests/e2e/support/player.ts`, `docs/known-issues.md` (C7, C8).
 - Test: caracterización. Mutación: el helper espera `currentTime > 1000` → falla por timeout (y se revierte).
 - Verificación: `npm run test:e2e -- mp3.spec.ts`
-- [ ] hecha · commit: —
+- Nota: el helper exporta `startPlayback`, `waitForPlayback` (evento `playing` + `timeupdate`), `waitForAudioEvent`, `audioState` y el contador del origen con CORS (`mediaRequests`, `resetMediaRequests`). Comprobar que algo **no** pasa necesita una ventana fija (`QUIET_MS`, 3 s). Medido en WP 7.1.3 + PHP 8.4 (el lado del navegador no depende de la punta):
+  - C7 confirmado en Chromium: sin petición nueva, la posición sigue desde la pausa;
+  - **K18 (nueva, alta):** en WebKit, Pausa + Play del directo se congela (buffer vacío, sin petición, sin error, la UI muestra Pausa). Reproducido en todas las ejecuciones, con pausas de 0,3 y 3 s. Sin comprobar en Safari: queda en «Verificación manual pendiente»;
+  - C8 confirmado: el player no recarga. Chromium reintenta solo desde su motor de medios con `Range: bytes=32768-` (el servidor no atiende `Range` en `/cut.mp3`, como un directo) y muestra el spinner; WebKit no reintenta, sigue en Pausa y lanza `stalled` antes de agotar el buffer. En ninguno hay error ni aviso.
+
+  WebKit hace dos peticiones al empezar (`bytes=0-1` y otra sin `Range`); por eso C7 y K18 comparan el contador antes y después, no con 1. El login de `global-setup` volvió a fallar una vez (timeout en `waitForURL`, como en la 2.5) y pasó al reintentar. Mutación: el helper espera `currentTime > 1000` → timeout; revertida.
+- [x] hecha · commit: —
 
 ### 2.8 Escenario 2: HLS y DASH (≤ 1 h)
 - Qué: `tests/e2e/hls-dash.spec.ts`. HLS y DASH reproducen. Se fija qué camino usa cada navegador: `audio.src` empieza por `blob:` (MSE: `hls.js`/`dashjs`) o es la URL (nativo). En WebKit de escritorio se espera `hls.js`; lo medido se apunta en la nota (riesgo 8). Los chunks de `hls.js`/`dashjs` solo se piden cuando el protocolo los necesita (con MP3, ninguno).
