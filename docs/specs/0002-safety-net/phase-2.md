@@ -41,7 +41,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Test: — (lo usan las 2.2 y siguientes). `npm run check:zip` confirma que no entra en el zip.
 - Verificación: `bash scripts/fixtures/make-audio.sh && du -sh tests/fixtures/audio && npm run check:zip`
 - Nota: mono, 44,1 kHz y 64 kbps en todo (también el AAC de HLS y DASH); salida *bit-exact* (`-fflags +bitexact`, sin metadatos), así que regenerar no ensucia el árbol (comprobado con dos ejecuciones). Pesan 240 KB, no ~130: HLS y DASH son ~90 KB cada uno. HLS sale con un último segmento de 23 ms (el retardo del codificador AAC). ESLint ignora `tests/fixtures/audio/**`: los segmentos `.ts` son MPEG-TS y los parseaba como TypeScript.
-- [x] hecha · commit: —
+- [x] hecha · commit: db4120b
 
 ### 2.2 Servidor de medios (≤ 1 h)
 - Qué: `tests/e2e/media-server.mjs` exporta `startMediaServers({ cors, noCors })` → `{ close() }`. Dos orígenes (con y sin `Access-Control-Allow-Origin`, `OPTIONS`, `Range`), que sirven `tests/fixtures/audio/` y tres rutas especiales:
