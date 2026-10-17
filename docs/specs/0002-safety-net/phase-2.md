@@ -285,7 +285,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Test: — (revisión de `spec-conformance-reviewer` en `close-phase`).
 - Verificación: `npm run check`
 - Nota: `known-issues.md` no cambia: las nueve filas ya tenían su test `currently` desde sus tareas, y C5 su nota. En el mapa no queda ninguna fila «fase 2» ni «parcial»; el volumen oculto en iOS y el HLS nativo se quedan sin e2e (el WebKit de Playwright es de escritorio y el player no lo trata como iOS, 2.8) y van a la lista de desviaciones del mapa. La prueba de estabilidad que traía esta tarea no salió: en latest (WP 7.1.3 + PHP 8.4), la primera ejecución falló en el login de `global-setup` (41 s) y las tres siguientes pasaron (146 en verde, 445–450 s); en min (WP 6.6.10 + PHP 7.4), la 1 falló en `blocks.spec.ts` › editor en WebKit (`waitForResponse` de la vista previa en `chooseStation`, 451 s), la 2 pasó (424 s) y la 3 volvió a fallar en el login. Ninguno de los dos se reproduce aislado: 25 logins seguidos, 12 `global-setup` con `smoke.spec.ts` y 15 repeticiones del test del editor en WebKit, todo en verde. Pasa a la 2.20 (decisión del usuario, 2026-10-17).
-- [x] hecha · commit: —
+- [x] hecha · commit: `234426a`
 
 ### 2.20 Estabilidad del e2e (≤ 1 h)
 - Qué:
