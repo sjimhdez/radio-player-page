@@ -115,7 +115,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
   - K17 (nueva): sin franjas, `RADPLAPAG_SCHEDULE` sale como `[]` y no como objeto (`SPEC.md` §3); el player lo acepta.
 
   `global-setup` ejecuta `wp core update-db` y vuelve a fijar la contraseña de `admin`. Las dos puntas comparten la base de datos. Al subir a 7.1, el admin pide «Database Update Required». Al bajar a 6.6, el hash `$wp$` de WP 6.8+ no lo entiende `phpass` y el login falla («Cookies are blocked due to unexpected output», por el *Deprecated* de `crypt()`). Con el cambio, el ciclo latest → min pasa a la primera en las dos. Antes de completar el arreglo hubo un fallo del login en la primera ejecución que no se volvió a reproducir. Mutación: quitar `JSON_HEX_APOS` y cambiar el orden de `og:type` y `og:site_name` → fallan los dos snapshots y el test de escapes; revertida.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 77719c8
 
 ### 2.6 Casos no interceptados y `wp_die` (≤ 1 h)
 - Qué: en `clean-page.spec.ts`, comprobar que el borrador (con sesión de admin), la página con contraseña, la página sin emisora y la entrada que no es página **sirven el tema**: hay `wp_head`, no hay `#root` y no hay `RADPLAPAG_CONFIG`. Para la ruta `wp_die`, añadir las dos variantes del plugin por `mappings` en `.wp-env.tests.json` (ver Contexto), con `tests/fixtures/player-dist/no-manifest/` (vacío con `.gitkeep`) y `tests/fixtures/player-dist/no-main-entry/manifest.json`. El test cambia el plugin activo con WP-CLI, comprueba el estado HTTP y el mensaje de `wp_die`, y restaura el plugin en `finally`. Se mide si la integración ve las variantes (no deberían cargarse: no están activas).
