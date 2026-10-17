@@ -93,7 +93,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Test: primero (TDD), `normalize.test.js`: URL plana y escapada, puertos distintos, uploads, IDs con y sin mapa (un ID sin nombre falla, para que no se cuele), idempotencia.
 - Verificación: `npm test -- tests/js/e2e/normalize.test.js`
 - Nota: `normalize( html, { site, media, mediaNoCors, ids } )`. Los orígenes se reciben exactos (no un `localhost:\d+` genérico) y solo casan si no les sigue otro dígito (`:890` no toca `:8901`); otro puerto queda intacto. Los IDs se cambian en `"id"` y `"program_id"` (con o sin comillas) y en `?page_id=`/`&page_id=`; un ID fuera del mapa lanza un error. El `-123x` de imagen no aparece en la página limpia (las URLs son del tamaño completo) y no se normaliza. El corte de etiquetas es `><` → `>\n<`, como en el spike: no colapsa espacios, para que el snapshot vea los cambios de espacio del HTML. Probado sobre `E2E MP3` y `E2E Minimal` sembradas: no lanza y es idempotente. Para la 2.5: las imágenes salen como `station-artwork-1.jpg` porque `scripts/fixtures/seed.php` sube antes la misma imagen; el sufijo es estable mientras se siembre en ese orden. Mutación: devolver el ID sin lanzar → falla «throws on an ID missing from the map».
-- [x] hecha · commit: —
+- [x] hecha · commit: 08b2681
 
 ### 2.5 Snapshot HTTP de la página limpia y de las globales (≤ 1 h)
 - Qué: `tests/e2e/clean-page.spec.ts` (`request`, solo `chromium`; `snapshotPathTemplate` sin plataforma en `playwright.config.ts`). Snapshot normalizado de `E2E MP3` (completa) y de `E2E Minimal`. Además, asserts explícitos sobre:
