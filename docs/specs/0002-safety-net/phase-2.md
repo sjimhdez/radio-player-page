@@ -124,7 +124,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Verificación: `npm run env:start:latest && npm run test:e2e -- clean-page.spec.ts --project=chromium && npm run test:php:integration`
 - Si el montaje anidado no funciona en una punta: parar y preguntar.
 - Nota: el montaje anidado funciona en las dos puntas (WP 6.6.10 + PHP 7.4.33 y WP 7.1.3 + PHP 8.4), en `cli` y en `wordpress`. Las variantes salen en `wp plugin list` como inactivas; la integración no las ve (la carga el *bootstrap* desde la ruta del repo, y `HooksTest`, que exige los callbacks exactos, sigue en verde: 347 tests en las dos). El borrador se pide con la sesión de admin (`storageState`) y el título sale en el tema. «Sirve el tema» = hay `<meta name="generator" content="WordPress…">` (`wp_head`), sin `id="root"` ni `RADPLAPAG_CONFIG`. Los dos `wp_die()` responden 500 con el mensaje en `<div class="wp-die-message">`, igual en las dos puntas. `no-main-entry/manifest.json` tiene otra entrada (`src/other.tsx`), no un JSON vacío. `wpCli` ya estaba en `tests/e2e/support/wp-cli.ts` (2.5). Sin rarezas nuevas. Mutaciones (fallan y se revierten): otro texto en el `wp_die` del manifiesto sin entrada (1 test) y quitar la condición de estado y contraseña (borrador y contraseña, 2 tests).
-- [x] hecha · commit: —
+- [x] hecha · commit: 75c5959
 
 ### 2.7 Escenario 1: MP3, pausa y corte (C7, C8) (≤ 1 h)
 - Qué: `tests/e2e/mp3.spec.ts`, con un helper `tests/e2e/support/player.ts` que pulsa Play y espera `playing` + `currentTime > 1` (eventos, no timeouts fijos). Casos:
