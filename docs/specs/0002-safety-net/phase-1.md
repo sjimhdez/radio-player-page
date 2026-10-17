@@ -222,7 +222,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: caracterización. Mutación: `<=` → `<` en la ventana de 10 minutos.
 - Verificación: `npm --prefix player test -- src/utils`
 - Nota: 93 tests en `src/utils` (26 de vectores, 33 de `program-schedule`, 34 de `timezone`); cobertura de `src/utils/**`: 98 % líneas, 97 % ramas. **PHP y TS sí difieren en un vector:** C3-2 (miércoles 07:59, franja del martes `08:00–08:00`). `findActiveProgram()` sale con `null` si hoy no tiene franjas sin mirar la de ayer (rareza nueva **K8**; PHP da F). El vector lleva ahora un objeto `ts` con el resultado del player, `currently` y la incidencia; el de primer nivel sigue siendo el de PHP y el correcto (PHP ignora la clave; `ScheduleVectorsTest` y `BlockDataTest` siguen en verde). Rarezas nuevas **K9** (`formatTimeInTimezone(NaN)` → `'NaN:NaN:NaN'`, no alcanzable) y **K10** (`formatTimezoneDifference()` redondea las diferencias de 45 minutos según el signo). C4 confirmado en el util, C9 en el player y C16 también en TS. `getBrowserTimezoneOffset()` da `-0` en UTC (inocuo). Mutaciones (fallan y se revierten): `<=` → `<` en la ventana de 10 minutos (2 tests), `isToday` siempre cierto en `getProgramsForDay()` (3), sin orden alfabético en `getAllProgramsWithSlots()` (1), signo del offset (12) y sin redondeo en `formatTimezoneDifference()` (1).
-- [x] hecha · commit: —
+- [x] hecha · commit: `45b4496`
 
 ### 1.15 `use-audio-player` (≤ 1 h)
 - Qué: `src/test/fake-audio.ts` (*FakeAudioElement*, idea del spike R4 reescrita) y `vi.mock` de `hls.js`/`dashjs`. Casos:
