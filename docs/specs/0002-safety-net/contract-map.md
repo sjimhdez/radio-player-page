@@ -1,10 +1,10 @@
 # Spec 0002 · Mapa del contrato (punto → test)
 
-> Trazabilidad del criterio **A4**: cada punto de `SPEC.md` §3 y §4 tiene al menos un test. Parte PHP/TS hecha en la fase 1 (2026-10-17); las filas de e2e quedan como «fase 2» y se completan al cerrarla. Lo revisa `spec-conformance-reviewer` en `close-phase`.
+> Trazabilidad del criterio **A4**: cada punto de `SPEC.md` §3 y §4 tiene al menos un test. Parte PHP/TS hecha en la fase 1 y e2e en la fase 2 (2026-10-17): ya no queda ninguna fila «fase 2» ni «parcial». Lo revisa `spec-conformance-reviewer` en `close-phase`.
 
-**Estado:** cubierto = un test fija el punto · parcial = lo que falta se indica (casi siempre e2e de la fase 2) · fase 2 = solo e2e (§4.4 de la spec, escenario *n*) · herramienta = lo fija la CI o un hook, no un test de comportamiento · n/a = aún no existe.
+**Estado:** cubierto = un test fija el punto · parcial = lo que falta se indica · herramienta = lo fija la CI o un hook, no un test de comportamiento · n/a = aún no existe.
 
-**Rutas:** `PI/` = `tests/php/integration/`, `PU/` = `tests/php/unit/`, `JS/` = `tests/js/`, `PL/` = `player/src/`. Los vectores son los de `tests/fixtures/schedule-vectors.json`.
+**Rutas:** `PI/` = `tests/php/integration/`, `PU/` = `tests/php/unit/`, `JS/` = `tests/js/`, `PL/` = `player/src/`, `E2E/` = `tests/e2e/`. Los vectores son los de `tests/fixtures/schedule-vectors.json`.
 
 ## §3.1 Datos
 
@@ -19,8 +19,8 @@
 | Opción `radplapag_settings` (origen, se borra al migrar) | `PI/Migration/MigrationGoldenTest.php`; `PI/Migration/UpgradeFlowTest.php` (`test_successful_migration_records_outcome_and_releases_lock`) | cubierto |
 | Opción `radplapag_db_version` (`'330'`) | `PI/Migration/UpgradeFlowTest.php` (`test_ensure_schema_version_*`, `test_successful_migration_records_outcome_and_releases_lock`) | cubierto |
 | Opción `radplapag_migration_skipped_cpt_conflict` | `PI/Migration/UpgradeFlowTest.php` (`test_published_station_skips_migration_and_flags_conflict`, `test_clear_conflict_flag_*`, `test_conflict_flag_is_cleared_and_migration_runs_without_published_stations`) | cubierto |
-| Transient `radplapag_station_schedule_errors_<id>` (45 s) | `PI/Station/SaveStationMetaTest.php` (`test_invalid_schedule_sets_transient_and_keeps_meta`, con la caducidad) | parcial: el cuerpo del aviso tras guardar → fase 2 (escenario 10; `filter_input()` en CLI) |
-| Transient `radplapag_station_field_errors_<id>` (45 s) | `PI/Station/SaveStationMetaTest.php` (`test_missing_player_page_is_reported`, `test_page_assigned_to_another_station_is_reported`, `test_field_errors_expire_in_45_seconds`) | parcial: errores de la URL del stream y aviso tras guardar → fase 2 (escenario 10) |
+| Transient `radplapag_station_schedule_errors_<id>` (45 s) | `PI/Station/SaveStationMetaTest.php` (`test_invalid_schedule_sets_transient_and_keeps_meta`, con la caducidad); el aviso tras guardar, `E2E/admin.spec.ts` (`an overlap shows the schedule notice and keeps the saved schedule`, `an incomplete slot and an overlap join their messages in one notice`) | cubierto |
+| Transient `radplapag_station_field_errors_<id>` (45 s) | `PI/Station/SaveStationMetaTest.php` (`test_missing_player_page_is_reported`, `test_page_assigned_to_another_station_is_reported`, `test_field_errors_expire_in_45_seconds`); la URL del stream y el aviso tras guardar, `E2E/admin.spec.ts` (`an empty stream URL shows its notice once and keeps the saved URL`) | cubierto |
 | Transient `radplapag_migrating` (bloqueo, 120 s) | `PI/Migration/UpgradeFlowTest.php` (`test_migration_does_not_run_while_locked`, `test_successful_migration_records_outcome_and_releases_lock`, `test_failed_migration_rolls_back_and_records_error`, `test_migration_lock_expires_in_120_seconds`) | cubierto |
 | Transients `radplapag_migration_success_notice` (60 s) y `radplapag_migration_error_notice` (120 s) | `PI/Migration/UpgradeFlowTest.php` (`test_successful_migration_records_outcome_and_releases_lock`, `test_failed_migration_rolls_back_and_records_error`, con la caducidad) | cubierto |
 | Formato del horario y validación del servidor (campos, programa, `HH:MM`, solapes, medianoche) | `PI/Schedule/SanitizeScheduleTest.php` (`test_validation_vector` sobre los vectores de validación y el resto del archivo; C3 y C10 como `currently`); `PI/Station/SaveStationMetaTest.php` (`test_valid_schedule_is_saved_as_json`, `test_missing_schedule_stores_empty_json`, `test_invalid_schedule_sets_transient_and_keeps_meta`) | cubierto |
@@ -42,10 +42,10 @@
 | Punto | Test(s) | Estado |
 |---|---|---|
 | `radplapag_get_station_for_current_page()`: solo una página asignada a una emisora publicada | `PI/Data/ConfigTest.php` (`test_station_for_current_page_*`) | cubierto |
-| `template_redirect` → `radplapag_output_clean_page()`; casos no interceptados (borrador, contraseña, sin emisora, no página) | `PI/Admin/HooksTest.php` (solo el enganche) | fase 2 (snapshot HTTP, ADR 0001) |
-| HTML mínimo sin `wp_head()`/`wp_footer()`; `<head>` (`lang`, `<title>`, favicon, `description`, Open Graph, Twitter Card, imagen social) | `tests/e2e/smoke.spec.ts` (solo que monta) | fase 2 (snapshot HTTP) |
-| Assets desde `player/dist/manifest.json`; `wp_die()` sin manifiesto o sin JS | — | fase 2 (`player/dist` alternativo en el entorno de test) |
-| `window.RADPLAPAG_CONFIG` / `PROGRAMS` / `SCHEDULE`: forma, escapes `JSON_HEX_*`, orden de primera aparición, `timezoneOffset` por petición (C9, parte PHP) | Lado del player: `PL/hooks/use-config.test.tsx` (lectura y validación de las tres globales) | parcial: la impresión en PHP → fase 2 (snapshot HTTP de las globales) |
+| `template_redirect` → `radplapag_output_clean_page()`; casos no interceptados (borrador, contraseña, sin emisora, no página) | `PI/Admin/HooksTest.php` (el enganche); `E2E/clean-page.spec.ts` (`matches the snapshot of …`, `serves the theme for password` / `not-a-page` / `no-station`, `serves the theme for a draft, even to the admin`) | cubierto |
+| HTML mínimo sin `wp_head()`/`wp_footer()`; `<head>` (`lang`, `<title>`, favicon, `description`, Open Graph, Twitter Card, imagen social) | `E2E/clean-page.spec.ts` (snapshots `E2E/snapshots/minimal.html` y `mp3.html`; `prints a bare document, without wp_head() or wp_footer()`, `prints the language, title, description and social tags`, `escapes the title in the tags and in the globals`, `prints no social image without logo, background or favicon`, `falls back from logo to background to favicon for the social image`); `E2E/smoke.spec.ts` | cubierto |
+| Assets desde `player/dist/manifest.json`; `wp_die()` sin manifiesto o sin JS | `E2E/clean-page.spec.ts` (`loads the stylesheet and the entry named in the manifest`; `dies with radplapag-no-manifest`, `dies with radplapag-no-main-entry`, con el `player/dist` alternativo de `tests/fixtures/player-dist/` montado en `.wp-env.tests.json`) | cubierto |
+| `window.RADPLAPAG_CONFIG` / `PROGRAMS` / `SCHEDULE`: forma, escapes `JSON_HEX_*`, orden de primera aparición, `timezoneOffset` por petición (C9, parte PHP) | Lado del player: `PL/hooks/use-config.test.tsx` (lectura y validación de las tres globales); impresión en PHP: `E2E/clean-page.spec.ts` (snapshots; `escapes the title in the tags and in the globals`, `lists the programs in order of first appearance in the schedule`, `omits the empty days from the schedule`, `currently prints an empty schedule as a JSON array (K17)`, `prints timezoneOffset as a number fixed per request (C9)`) | cubierto |
 
 ## §3.4 API PHP
 
@@ -67,16 +67,16 @@
 | Datos de los bloques: días, orden, franjas, en directo, lista de programas (C10, C16) | `PI/Schedule/BlockDataTest.php` | cubierto |
 | `stationIndex` inválido | `PI/Blocks/BlockRenderTest.php` (`test_*_invalid_index*`); `PI/Schedule/BlockDataTest.php` (`test_invalid_station_index_gives_null`) | cubierto |
 | `now-playing` vacío en el front sin programa en antena | `PI/Blocks/BlockRenderTest.php` (`test_now_playing_empty_on_front`, `test_now_playing_empty_in_rest_request`) | cubierto |
-| Datos del editor `{ stations: [ etiquetas ] }` | `PI/Blocks/BlockRenderTest.php` (`test_editor_data`, `test_editor_data_needs_registered_script`) | parcial: insertar y previsualizar en el editor → fase 2 (escenario 11) |
+| Datos del editor `{ stations: [ etiquetas ] }` | `PI/Blocks/BlockRenderTest.php` (`test_editor_data`, `test_editor_data_needs_registered_script`); insertar y previsualizar, `E2E/blocks.spec.ts` (`the three blocks are inserted and preview the chosen station`) | cubierto |
 
 ## §3.6 Admin
 
 | Punto | Test(s) | Estado |
 |---|---|---|
 | Menú «RPP» y submenú duplicado | `PI/Admin/AdminScreensTest.php` (`test_admin_menu_adds_the_rpp_top_level_page`, `test_duplicate_rpp_submenu_is_removed`, `test_menu_page_redirects_to_the_stations_list`) | cubierto |
-| Meta boxes de emisora y de programa, nonces | `PI/Admin/AdminScreensTest.php` (`test_meta_boxes_are_registered`, `test_station_details_box_*`, `test_schedule_box_*`, `test_program_box*`, `test_station_meta_box_fixture`); `PI/Station/SaveStationMetaTest.php` y `PI/Cpt/SaveProgramMetaTest.php` (nonce, capacidad, autoguardado, otro tipo; K5) | parcial: guardado correcto de URL y página → fase 2 (escenario 10) |
+| Meta boxes de emisora y de programa, nonces | `PI/Admin/AdminScreensTest.php` (`test_meta_boxes_are_registered`, `test_station_details_box_*`, `test_schedule_box_*`, `test_program_box*`, `test_station_meta_box_fixture`); `PI/Station/SaveStationMetaTest.php` y `PI/Cpt/SaveProgramMetaTest.php` (nonce, capacidad, autoguardado, otro tipo; K5); guardado correcto, `E2E/admin.spec.ts` (`creates a program with a description`, `creates a station with an http stream, page, theme, visualizer and a slot, without any notice (C13)`, `the player page reflects the saved station`, `the assigned page is disabled in another station`; K15 `currently`) | cubierto |
 | Validación en el cliente (solapes, medianoche, campos) | `JS/admin/station-validation.test.js` (vectores de validación, C3); `JS/admin/station-fields.test.js` (K15, K16) | cubierto |
-| Validación en el servidor y aviso tras guardar | ver §3.1 (horario y transients); `PI/Station/SaveStationMetaTest.php` (`test_notice_*`) | parcial: cuerpo del aviso y C13 → fase 2 (escenario 10) |
+| Validación en el servidor y aviso tras guardar | ver §3.1 (horario y transients); `PI/Station/SaveStationMetaTest.php` (`test_notice_*`); `E2E/admin.spec.ts` (`server, without the client validation`: los tres avisos; C13 en `creates a station with an http stream…`; validación del cliente: `an overlapping slot…`, `an incomplete slot…`, K19 `currently`) | cubierto |
 | Páginas asignadas a otra emisora desactivadas | `PI/Data/ConfigTest.php` (`test_assigned_pages_*`); `PI/Admin/AdminScreensTest.php` (`test_player_pages_assigned_to_other_stations`); `JS/admin/station-fields.test.js` (`pages assigned to other stations`) | cubierto |
 | Cadenas del JS (`radplapag_get_admin_strings()`, `radplapagAdmin`) | `PI/Admin/AdminScreensTest.php` (`test_admin_strings_keys`, `test_admin_strings_programs`, `test_station_screen_localizes_radplapag_admin`) | cubierto |
 | Scripts del admin (encolado por pantalla, selectores de medios) | `PI/Admin/AdminScreensTest.php` (`test_admin_scripts_*`, `test_station_edit_scripts_enqueue_media_on_the_station_screen`); `JS/admin/program-admin.test.js`; `JS/admin/smoke.test.js` | cubierto |
@@ -96,25 +96,25 @@
 | Punto | Test(s) | Estado |
 |---|---|---|
 | `use-config.tsx`, única entrada de datos, valida las tres globales | `PL/hooks/use-config.test.tsx` | cubierto |
-| Protocolo por la extensión (HLS, DASH, directo; C2) | `PL/hooks/use-audio-player.test.tsx` (`HLS`, `DASH`, `direct streams`, `protocol detection (C2)`) | parcial: reproducción real → fase 2 (escenarios 1 y 2) |
-| HLS nativo en iOS, `hls.js` en el resto, nativo como alternativa; DASH con autoplay; carga con `import()` | `PL/hooks/use-audio-player.test.tsx` (`uses native HLS on iOS…`, `falls back to native HLS…`, `uses dashjs with autoplay…`; `vi.mock` intercepta los `import()`); K11, K12 como `currently`; `PL/hooks/use-is-ios.test.tsx` (K13) | parcial: que se carguen solo cuando hacen falta → fase 2 (escenario 2) |
-| `crossOrigin = 'anonymous'` en las fuentes directas, `null` en MSE (ADR 0004) | `PL/hooks/use-audio-player.test.tsx` (`plays an MP3 by assigning src with crossOrigin anonymous`, `uses hls.js … without crossOrigin`, `uses dashjs … without crossOrigin`, intro y HLS nativo con `crossOrigin`) | parcial: C1 y K1 en el navegador → fase 2 (escenario 4) |
-| Audio de bienvenida | `PL/hooks/use-audio-player.test.tsx` (`welcome audio (intro)`) | parcial: en el navegador → fase 2 (escenario 3) |
-| Volumen; oculto en iOS | `PL/hooks/use-audio-player.test.tsx` (`volume`) | parcial: que el control se oculte → fase 2 |
+| Protocolo por la extensión (HLS, DASH, directo; C2) | `PL/hooks/use-audio-player.test.tsx` (`HLS`, `DASH`, `direct streams`, `protocol detection (C2)`); reproducción real, `E2E/mp3.spec.ts` (`plays the finite MP3`, `plays the endless live MP3`; C7, C8 y K18 `currently`) y `E2E/hls-dash.spec.ts` (`plays HLS with hls.js (MSE)`, `plays DASH with dashjs (MSE)`) | cubierto |
+| HLS nativo en iOS, `hls.js` en el resto, nativo como alternativa; DASH con autoplay; carga con `import()` | `PL/hooks/use-audio-player.test.tsx` (`uses native HLS on iOS…`, `falls back to native HLS…`, `uses dashjs with autoplay…`; `vi.mock` intercepta los `import()`); K11, K12 como `currently`; `PL/hooks/use-is-ios.test.tsx` (K13); chunks solo cuando hacen falta, `E2E/hls-dash.spec.ts` (`plays HLS…` y `plays DASH…` piden solo su chunk, `requests neither hls.js nor dashjs for MP3`). HLS nativo no se mide en e2e: el WebKit de escritorio no es iOS para el player (2.8) | cubierto |
+| `crossOrigin = 'anonymous'` en las fuentes directas, `null` en MSE (ADR 0004) | `PL/hooks/use-audio-player.test.tsx` (`plays an MP3 by assigning src with crossOrigin anonymous`, `uses hls.js … without crossOrigin`, `uses dashjs … without crossOrigin`, intro y HLS nativo con `crossOrigin`); en el navegador, `E2E/cross-origin.spec.ts` (`sets crossOrigin anonymous on a direct MP3 source`, `… on the welcome audio and on the live stream after it`, `leaves crossOrigin unset on the MSE path (hls / dash)`; C1 y K1 `currently`) | cubierto |
+| Audio de bienvenida | `PL/hooks/use-audio-player.test.tsx` (`welcome audio (intro)`); `E2E/intro.spec.ts` (`plays the welcome audio once, unpausable, then the live stream`, `falls through to the live stream without an error when the welcome audio is broken`) | cubierto |
+| Volumen; oculto en iOS | `PL/hooks/use-audio-player.test.tsx` (`volume`); `PL/hooks/use-is-ios.test.tsx` (K13) | cubierto (sin e2e: el WebKit de Playwright es de escritorio y el player no lo trata como iOS; 2.8) |
 | Media Session (K14) | `PL/hooks/use-media-session.test.tsx` | cubierto |
-| Temporizador de sueño | — | fase 2 (escenario 7) |
-| Programa actual y siguiente (zona horaria, reposiciones, medianoche, 10 min; C16, K8) | `PL/utils/program-schedule.test.ts`; `PL/utils/schedule-vectors.test.ts` (vectores de resolución y de `tz`); `PL/hooks/use-program-schedule.test.tsx` | parcial: en la página → fase 2 (escenario 5) |
+| Temporizador de sueño | `E2E/sleep.spec.ts` (`counts down and pauses when the shortest option runs out`, `a manual pause cancels the timer`, `the cancel button stops the timer`) | cubierto |
+| Programa actual y siguiente (zona horaria, reposiciones, medianoche, 10 min; C16, K8) | `PL/utils/program-schedule.test.ts`; `PL/utils/schedule-vectors.test.ts` (vectores de resolución y de `tz`); `PL/hooks/use-program-schedule.test.tsx`; en la página, `E2E/schedule.spec.ts` (vectores 2, 3, 5 y 7, franja vacía; C16 `currently`, vector 13) | cubierto |
 | Reloj de la emisora (C9, K9, K10) | `PL/hooks/use-transmission-time.test.tsx`; `PL/utils/timezone.test.ts` | cubierto |
-| Modales del horario y de todos los programas (C4, C6) | `PL/utils/program-schedule.test.ts` (`getProgramsForDay`, `getProgramsForWeekOrdered`, `getAllProgramsWithSlots`; C4 en el util) | parcial: los modales → fase 2 (escenario 6) |
-| El horario es solo informativo | — (`use-program-schedule` no recibe el reproductor) | fase 2 (escenario 5: la reproducción no cambia al terminar un programa) |
-| Errores del stream («Unable to play the stream…»; K1) | `PL/hooks/use-audio-player.test.tsx` (`sets error when play() rejects`, `sets error on a fatal hls.js error only`, `sets error on a dashjs error`, `audio element events`) | parcial: el mensaje en pantalla y K1 → fase 2 (escenario 4) |
-| i18n: 14 locales, paridad de claves, reserva `en-US` | `PL/config/locales.test.ts` | parcial: orden de detección (`lang` → `localStorage` → navegador) → fase 2 (escenario 9) |
+| Modales del horario y de todos los programas (C4, C6) | `PL/utils/program-schedule.test.ts` (`getProgramsForDay`, `getProgramsForWeekOrdered`, `getAllProgramsWithSlots`; C4 en el util); `E2E/modals.spec.ts` (cierre con Escape y con el botón, días desde hoy sin los vacíos y la reposición marcada, «On Air» en el modal de programas; C4 y C6 `currently`) | cubierto |
+| El horario es solo informativo | `E2E/schedule.spec.ts` (`changes the program shown without touching playback`) | cubierto |
+| Errores del stream («Unable to play the stream…»; K1) | `PL/hooks/use-audio-player.test.tsx` (`sets error when play() rejects`, `sets error on a fatal hls.js error only`, `sets error on a dashjs error`, `audio element events`); en pantalla, `E2E/cross-origin.spec.ts` (C1 y K1 `currently`: sin mensaje con MP3 en Chromium, con mensaje en WebKit y con HLS); `E2E/intro.spec.ts` (sin mensaje con la intro rota) | cubierto |
+| i18n: 14 locales, paridad de claves, reserva `en-US` | `PL/config/locales.test.ts`; detección en la página, `E2E/i18n.spec.ts` (`translates the player to the site language`, `falls back to English for a language without translation`, `the page language wins over the one stored in localStorage`). El paso al navegador no se mide: la página limpia siempre imprime `lang` | cubierto |
 
 ## §3.9 Visualizadores (zona congelada)
 
 | Punto | Test(s) | Estado |
 |---|---|---|
-| Cuatro visualizadores, carga diferida, activos solo con audio | — (fuera de la cobertura, ADR 0018) | fase 2 (escenario 8, smoke sin píxeles); C5 sigue «sin confirmar» |
+| Cuatro visualizadores, carga diferida, activos solo con audio | `E2E/visualizers.spec.ts` (`plays with the … visualizer` ×4: dibuja en un `<canvas>` sin errores de consola; `an unknown visualizer falls back to the oscilloscope`). Smoke sin píxeles y fuera de la cobertura (ADR 0018); la carga diferida no se mide | cubierto (smoke); C5 sigue «sin confirmar» |
 
 ## §3.10 Release
 
@@ -129,10 +129,10 @@
 | # | Invariante | Test / verificación | Estado |
 |---|---|---|---|
 | 1 | PHP 7.4 y WP 6.6 | PHPCS con PHPCompatibilityWP `7.4-`; integración en las dos puntas (jobs `PHPUnit integration (…)`) | herramienta |
-| 2 | Nada de §3 cambia sin ADR | este mapa; `PI/Admin/HooksTest.php`; snapshots de bloques; `backcompat-reviewer` | cubierto (lo de §3.3 → fase 2) |
+| 2 | Nada de §3 cambia sin ADR | este mapa; `PI/Admin/HooksTest.php`; snapshots de bloques y de la página limpia (`E2E/snapshots/`); `backcompat-reviewer` | cubierto |
 | 3 | Migración unidireccional e idempotente | `PI/Migration/MigrationGoldenTest.php` (dos pasadas) | cubierto |
-| 4 | El horario es informativo | — | fase 2 (escenario 5) |
-| 5 | `crossOrigin` en las fuentes directas, no en MSE | ver §3.8 | parcial (fase 2, escenario 4) |
+| 4 | El horario es informativo | `E2E/schedule.spec.ts` (`changes the program shown without touching playback`) | cubierto |
+| 5 | `crossOrigin` en las fuentes directas, no en MSE | ver §3.8 (`E2E/cross-origin.spec.ts`) | cubierto |
 | 6 | Visualizadores solo con ADR | proceso (ADR 0018); `PL/vitest.config.ts` los excluye de la cobertura | herramienta |
 | 7 | El núcleo no importa React ni MUI | — (`player/src/core/` no existe hasta la spec 0006) | n/a |
 | 8 | Builds regenerados, nunca a mano | `.claude/hooks/protect-generated.sh` y su test | herramienta |
@@ -142,7 +142,8 @@
 
 ## Desviaciones de la spec en esta parte
 
-- **`filter_input()` en CLI** (§5, fase 1): devuelve `null`, así que la integración no ve la URL del stream. El guardado correcto de URL y página, el aviso tras guardar y **C13** pasan al escenario 10 de e2e (decisión del usuario, 2026-10-16).
-- **C9, parte PHP** (§5, fase 1): el offset por petición se fija con el snapshot de la página limpia (fase 2). La parte del player está en `PL/utils/timezone.test.ts`.
+- **`filter_input()` en CLI** (§5, fase 1): devuelve `null`, así que la integración no ve la URL del stream. El guardado correcto de URL y página, el aviso tras guardar y **C13** pasan al escenario 10 de e2e (decisión del usuario, 2026-10-16); los fija `E2E/admin.spec.ts`.
+- **C9, parte PHP** (§5, fase 1): el offset por petición lo fijan el snapshot de la página limpia y `E2E/clean-page.spec.ts` (`prints timezoneOffset as a number fixed per request (C9)`). La parte del player está en `PL/utils/timezone.test.ts`.
 - **Cobertura de PHP por función** (§4.5): se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
 - **`schedule-vectors.json`** (§4.1): amplía el formato (parrillas con nombre, resultados por capa, `start_equals_end`, objeto `ts` en C3-2). Detalle en `docs/status.md`.
+- **Volumen oculto en iOS y HLS nativo** (§4.4): sin e2e. El WebKit de Playwright es de escritorio y el player no lo trata como iOS (2.8); lo fijan los tests del player.

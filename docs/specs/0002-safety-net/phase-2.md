@@ -280,10 +280,21 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Qué:
   - `contract-map.md`: cada fila «fase 2» o «parcial» pasa a su test e2e;
   - `known-issues.md`: C1, C4, C6, C7, C8, C9, C13, C15 y K1 con test `currently` o «no se reproduce». C5 sigue «sin confirmar», con la nota de zona congelada (ADR 0018);
-  - estabilidad: el suite completo tres veces seguidas en local, en las dos puntas, sin reintentos (`--retries=0 --repeat-each=1`, tres ejecuciones); se apunta la duración.
+  - la estabilidad pasa a la 2.20.
 - Archivos: `docs/specs/0002-safety-net/contract-map.md`, `docs/known-issues.md`, `docs/status.md`.
 - Test: — (revisión de `spec-conformance-reviewer` en `close-phase`).
-- Verificación: `npm run check && npm run test:e2e -- --retries=0`
+- Verificación: `npm run check`
+- Nota: `known-issues.md` no cambia: las nueve filas ya tenían su test `currently` desde sus tareas, y C5 su nota. En el mapa no queda ninguna fila «fase 2» ni «parcial»; el volumen oculto en iOS y el HLS nativo se quedan sin e2e (el WebKit de Playwright es de escritorio y el player no lo trata como iOS, 2.8) y van a la lista de desviaciones del mapa. La prueba de estabilidad que traía esta tarea no salió: en latest (WP 7.1.3 + PHP 8.4), la primera ejecución falló en el login de `global-setup` (41 s) y las tres siguientes pasaron (146 en verde, 445–450 s); en min (WP 6.6.10 + PHP 7.4), la 1 falló en `blocks.spec.ts` › editor en WebKit (`waitForResponse` de la vista previa en `chooseStation`, 451 s), la 2 pasó (424 s) y la 3 volvió a fallar en el login. Ninguno de los dos se reproduce aislado: 25 logins seguidos, 12 `global-setup` con `smoke.spec.ts` y 15 repeticiones del test del editor en WebKit, todo en verde. Pasa a la 2.20 (decisión del usuario, 2026-10-17).
+- [x] hecha · commit: —
+
+### 2.20 Estabilidad del e2e (≤ 1 h)
+- Qué:
+  - diagnóstico primero: si falla el login de `global-setup`, guardar captura, URL y documentos recibidos en `test-results/`; repetir el suite completo hasta ver las dos causas (login y vista previa del editor en WebKit + WP 6.6);
+  - arreglo con causa confirmada, solo en código de test. Para el login, lo previsible es esperar la respuesta del POST a `wp-login.php` y la cookie `wordpress_logged_in_*` en lugar de la carga completa del escritorio;
+  - estabilidad: el suite completo tres veces seguidas en local, en las dos puntas, sin reintentos (`--retries=0 --repeat-each=1`); se apunta la duración.
+- Archivos: `tests/e2e/global-setup.ts`, `tests/e2e/blocks.spec.ts` (según la causa).
+- Test: los mismos e2e. Mutación: forzar el fallo que se arregla (p. ej. retrasar el escritorio) y ver que el test ya no depende de él.
+- Verificación: `npm run check && npm run test:e2e -- --retries=0` ×3 tras `env:start:min` y tras `env:start:latest`
 - [ ] hecha · commit: —
 
 ## Decisiones abiertas → ADR

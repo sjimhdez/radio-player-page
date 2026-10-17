@@ -2,10 +2,11 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0002-safety-net/phase-2.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 19 tareas, 2.1–2.18 hechas. PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 2 (E2E y cierre del catálogo), empezada el 2026-10-17: 20 tareas, 2.1–2.19 hechas. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 2.19 Cierre del catálogo y del mapa del contrato.
+1. 2.20 Estabilidad del e2e (login de `global-setup` y vista previa del editor en WebKit + WP 6.6, intermitentes en el suite completo).
+2. `close-phase` de la fase 2 (última de la spec 0002: deja el PR #37 listo).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
@@ -17,7 +18,7 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 2 en curso 
 Spec 0002:
 - §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).
 - §4.5: la cobertura de PHP por función se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
-- §5 fase 1: C9 solo en TS. La parte PHP (offset por petición) va con el snapshot de la página limpia en la fase 2. El horario de verano en PHP lo fija ya la integración (`SiteTimezoneTest`, `timezone_string` con DST); el snapshot sigue en `Asia/Kolkata`.
+- §5 fase 1: C9 solo en TS. La parte PHP (offset por petición) la fija el snapshot de la página limpia en la fase 2 (`clean-page.spec.ts`). El horario de verano en PHP lo fija ya la integración (`SiteTimezoneTest`, `timezone_string` con DST); el snapshot sigue en `Asia/Kolkata`.
 - §4.1: no hay fixture `legacy-settings` de «conflicto con CPT publicados»: el caso necesita una emisora publicada antes de migrar y lo cubre `UpgradeFlowTest::test_published_station_skips_migration_and_flags_conflict`.
 - §4.2: las globales `window.RADPLAPAG_*` no se pueden fijar en integración (las imprime `radplapag_output_clean_page()`, que termina con `exit`): van al snapshot HTTP de la fase 2.
 - §4.1: `schedule-vectors.json` amplía el formato: parrillas con nombre (`grids.main`, `grids.c3`), resultados de validación por capa (`php`/`admin`, porque C3 los separa) y el código `start_equals_end` (solo admin). La resolución solo se separa donde el player difiere de PHP: el vector C3-2 lleva un objeto `ts` (K8, día sin franjas tras una que cruza la medianoche); el resultado de primer nivel es el de PHP.
