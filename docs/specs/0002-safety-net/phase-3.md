@@ -36,7 +36,7 @@ Código formateado con los estándares completos y sin bloques de línea base (A
   - `phpcbf` con el ruleset completo (copia de `phpcs.xml.dist` sin la línea base, en el scratchpad): 805 arreglos en los 18 archivos (los 808 medidos menos los 3 del sniff desactivado). Quedan 143 errores y 14 avisos para 3.2–3.3.
   - Comparación de tokens (`tokcmp.php` en el scratchpad, con las normalizaciones de §Contexto) de los 18 archivos: `tokens=same html=same` en todos. El script detecta un cambio de operador y un cambio en el HTML (mutaciones de comprobación).
   - `npm run check` en verde; integración 347/347; `clean-page.spec.ts` + `blocks.spec.ts`: 22 en verde y 18 omitidos (los casos HTTP solo corren en Chromium). Ningún snapshot reescrito.
-- [x] hecha · commit: —
+- [x] hecha · commit: `0b7ee8d`
 
 ### 3.2 PHPCS a mano en el código publicado: Yoda, comentarios y docblocks (≤ 1 h)
 - Qué: las 90 Yoda (solo invertir los operandos de `===`, `!==`, `==`, `!=`), puntuación final de los comentarios en línea, short descriptions que faltan, file comments de `admin/admin.php`, `admin/admin-strings.php`, `includes/radplapag-stations.php`, `blocks/{programs-list,schedule}/render.php`, `@package` en el file comment de `radio-player-page.php` (debajo de la cabecera, sin tocar sus campos) y quitar el `@package` duplicado de `uninstall.php`. Ningún cambio fuera de comparaciones y comentarios.
