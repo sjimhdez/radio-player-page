@@ -102,7 +102,7 @@ Código formateado con los estándares completos y sin bloques de línea base (A
   - El caso nuevo escribe en `$SCRATCH/sample.php` una función con cuatro espacios y `[ 1, 2 ]`; con `PHPCBF_ENABLED=false` falla (35/36) y con `true` sale con tab y `array( 1, 2 )` (36/36). El de sintaxis sigue igual.
   - El hook pasado a mano sobre `includes/radplapag-upgrade.php`, `blocks/now-playing/render.php` y `radio-player-page.php` no cambia nada (ya formateados; el `phpcs:disable` de `now-playing` se respeta).
   - `npm run check` en verde.
-- [ ] hecha · commit: —
+- [x] hecha · commit: `467642d`
 
 ### 3.8 `.git-blame-ignore-revs` y rules al día (≤ 1 h)
 - Qué: `.git-blame-ignore-revs` con los SHAs completos de 3.1–3.6, cada uno con su línea de comentario; nota de uso (`git config blame.ignoreRevsFile .git-blame-ignore-revs`) en el propio archivo. Quitar de `.claude/rules/{php,admin,player}.md` la mención a la línea base «hasta la 0002» (queda: estándar completo; en el player, `visualizers.ts` fuera de Prettier por ADR 0018). Comprobar que el zip no cambia.
