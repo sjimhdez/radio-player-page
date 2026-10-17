@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<phpunit xmlns="https://schema.phpunit.de/coverage/1.0">
+  <file name="critical.php" path="/includes">
+    <totals>
+      <lines total="30" comments="5" code="25" executable="10" executed="9" percent="90.00"/>
+      <methods count="2" tested="1" percent="50.00"/>
+      <functions count="0" tested="0" percent="0"/>
+      <classes count="1" tested="0" percent="0.00"/>
+      <traits count="0" tested="0" percent="0"/>
+    </totals>
+    <class name="Critical_Class" start="3" executable="10" executed="9" crap="3">
+      <namespace name=""/>
+      <method name="run" signature="run(): void" start="5" end="15" crap="2" executable="6" executed="6" coverage="100"/>
+      <method name="other" signature="other(): void" start="17" end="28" crap="1" executable="4" executed="3" coverage="75"/>
+    </class>
+  </file>
+</phpunit>

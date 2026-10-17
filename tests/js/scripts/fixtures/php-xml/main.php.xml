@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<phpunit xmlns="https://schema.phpunit.de/coverage/1.0">
+  <file name="main.php" path="/">
+    <totals>
+      <lines total="120" comments="20" code="100" executable="50" executed="5" percent="10.00"/>
+      <methods count="0" tested="0" percent="0"/>
+      <functions count="2" tested="1" percent="50.00"/>
+      <classes count="0" tested="0" percent="0"/>
+      <traits count="0" tested="0" percent="0"/>
+    </totals>
+    <function name="main_critical" signature="main_critical()" start="10" crap="1" executable="4" executed="4" coverage="100"/>
+    <function name="main_page" signature="main_page(): void" start="20" crap="90" executable="46" executed="1" coverage="2.1739130434783"/>
+  </file>
+</phpunit>
