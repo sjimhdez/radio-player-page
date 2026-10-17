@@ -54,7 +54,7 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Test: primero (TDD), `tests/js/e2e/media-server.test.js` en puertos libres. Comprueba las cabeceras CORS solo en un origen, que `Range` da 206, que `live.mp3` sigue mandando datos pasado el tamaño del archivo, que `cut.mp3` se cierra, el contador y que no sirve nada fuera de `audio/` (`../`).
 - Verificación: `npm test -- tests/js/e2e/media-server.test.js`
 - Nota: además de `{ close() }` devuelve los puertos (`cors`, `noCors`; `0` elige uno libre) y acepta `cutAfterMs` (2000 por defecto; el test usa 300). `DELETE /__requests` pone el contador a cero (para usarlo entre tests); el contador no cuenta los `OPTIONS` y `/__requests` no lleva CORS: se lee desde Node, no desde la página. Escucha sin host (doble pila): `localhost` resuelve a `::1` o a `127.0.0.1` según el cliente. Playwright compila los `import` estáticos de los `.ts` a `require()`, que rompe `import.meta` en el `.mjs`: `global-setup.ts` y `fixtures.ts` lo cargan con `import()` dinámico. Los servidores se arrancan después de sembrar, para no dejarlos abiertos si la siembra falla. Comprobado en Chromium con un spec temporal (borrado): `:8901` responde a `fetch` desde la página y `:8902` lo bloquea el CORS. El test de `live.mp3` tarda ~4 s (el ritmo es el real ×2).
-- [x] hecha · commit: —
+- [x] hecha · commit: f91b1c7
 
 ### 2.3 Sembrador de e2e y sesión de admin (≤ 1 h)
 - Qué: `tests/e2e/fixtures/seed-e2e.php` (WP-CLI), idempotente, con títulos fijos y una etiqueta propia para borrar lo de la ejecución anterior. Fija `timezone_string = Asia/Kolkata`. Crea una página + emisora por variante:
