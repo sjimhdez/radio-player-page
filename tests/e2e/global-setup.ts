@@ -1,27 +1,10 @@
-import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { chromium, type FullConfig } from '@playwright/test';
 import { ADMIN_STATE, SEED_FILE, type Seed } from './seed';
+import { wpCli } from './support/wp-cli';
 
 const PLUGIN_DIR = 'wp-content/plugins/radio-player-page';
-
-function wpCli( ...args: string[] ): string {
-	return execFileSync(
-		'npx',
-		[
-			'wp-env',
-			'--config',
-			'.wp-env.tests.json',
-			'run',
-			'cli',
-			'--',
-			'wp',
-			...args,
-		],
-		{ encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'pipe' ] }
-	).trim();
-}
 
 /**
  * Logs in as admin and saves the session to ADMIN_STATE.
@@ -59,6 +42,12 @@ export default async function globalSetup( config: FullConfig ) {
 	const { MEDIA_NOCORS_PORT, MEDIA_PORT, startMediaServers } =
 		await import( './media-server.mjs' );
 
+	// env:start:min and env:start:latest share the database. Going up, the
+	// admin asks for "Database Update Required"; going down, WP 6.6 cannot read
+	// the `$wp$` password hash of WP 6.8+ and the login fails ("Cookies are
+	// blocked due to unexpected output"). Both are no-ops on a fresh site.
+	wpCli( 'core', 'update-db' );
+	wpCli( 'user', 'update', 'admin', '--user_pass=password' );
 	wpCli( 'plugin', 'activate', 'radio-player-page' );
 	wpCli( 'eval-file', `${ PLUGIN_DIR }/scripts/fixtures/seed.php` );
 

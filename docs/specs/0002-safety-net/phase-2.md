@@ -109,6 +109,12 @@ Fijar en el navegador y por HTTP el comportamiento de la 3.4.2 que no cabe en un
 - Archivos: `tests/e2e/clean-page.spec.ts`, `tests/e2e/snapshots/*.html`, `playwright.config.ts`, `docs/known-issues.md` (C9).
 - Test: caracterización. Mutación: quitar `JSON_HEX_APOS` y cambiar el orden de dos `<meta>` en `radio-player-page.php` → falla; se revierte.
 - Verificación: `npm run test:e2e -- clean-page.spec.ts --project=chromium`
+- Nota: `snapshotPathTemplate` es global (`{testDir}/snapshots/{arg}{ext}`) y el `describe` se salta fuera de Chromium. Los snapshots `mp3.html` y `minimal.html` son idénticos en WP 6.6.10 + PHP 7.4.33 y en WP 7.1.3 + PHP 8.4: no ha hecho falta normalizar nada más. Los assets salen con la versión (`radio-player-page-3.4.2.min.js`), no con un hash, así que el snapshot cambia con cada versión; se deja así (los nombres de assets son contrato). Además de lo previsto:
+  - la cadena de la imagen social: `E2E MP3` usa el mismo adjunto como logo y fondo, así que el test cambia `E2E Minimal` con WP-CLI (`site_icon`, luego fondo con la imagen de `scripts/fixtures/seed.php`, que tiene otra URL, y luego logo) y lo restaura en `finally`;
+  - `wpCli` sale ya a `tests/e2e/support/wp-cli.ts` (estaba previsto en la 2.6);
+  - K17 (nueva): sin franjas, `RADPLAPAG_SCHEDULE` sale como `[]` y no como objeto (`SPEC.md` §3); el player lo acepta.
+
+  `global-setup` ejecuta `wp core update-db` y vuelve a fijar la contraseña de `admin`. Las dos puntas comparten la base de datos. Al subir a 7.1, el admin pide «Database Update Required». Al bajar a 6.6, el hash `$wp$` de WP 6.8+ no lo entiende `phpass` y el login falla («Cookies are blocked due to unexpected output», por el *Deprecated* de `crypt()`). Con el cambio, el ciclo latest → min pasa a la primera en las dos. Antes de completar el arreglo hubo un fallo del login en la primera ejecución que no se volvió a reproducir. Mutación: quitar `JSON_HEX_APOS` y cambiar el orden de `og:type` y `og:site_name` → fallan los dos snapshots y el test de escapes; revertida.
 - [ ] hecha · commit: —
 
 ### 2.6 Casos no interceptados y `wp_die` (≤ 1 h)
