@@ -1,12 +1,12 @@
 <?php
-defined( 'ABSPATH' ) || exit;
-
 /**
  * Admin strings and config for JavaScript localization (station-admin.js).
  *
  * @package radio-player-page
  * @since 3.3.0
  */
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Returns admin strings and config for JavaScript localization.

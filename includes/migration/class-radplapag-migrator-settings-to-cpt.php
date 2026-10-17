@@ -89,7 +89,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 					continue;
 				}
 				$old_id = (string) ( $prog['id'] ?? '' );
-				if ( $old_id === '' ) {
+				if ( '' === $old_id ) {
 					continue;
 				}
 				$fingerprint = self::program_fingerprint( $prog );
@@ -105,6 +105,8 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	}
 
 	/**
+	 * Fingerprint of a legacy program's data, used to detect duplicate ids with differing data.
+	 *
 	 * @since 3.3.0
 	 * @param array $prog Legacy program row.
 	 * @return string
@@ -118,6 +120,8 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	}
 
 	/**
+	 * Creates the radplapag_program post of a legacy program.
+	 *
 	 * @since 3.3.0
 	 * @param array $prog    Legacy program row.
 	 * @param int   $author_user_id Post author.
@@ -125,7 +129,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 */
 	private static function insert_program_post( array $prog, int $author_user_id ) {
 		$name = sanitize_text_field( (string) ( $prog['name'] ?? '' ) );
-		if ( $name === '' ) {
+		if ( '' === $name ) {
 			$name = __( 'Program', 'radio-player-page' );
 		}
 		$description          = sanitize_text_field( (string) ( $prog['description'] ?? '' ) );
@@ -152,6 +156,8 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	}
 
 	/**
+	 * Creates the radplapag_station post of a legacy station.
+	 *
 	 * @since 3.3.0
 	 * @param array $station        Legacy station row.
 	 * @param int   $menu_order     Menu order index.
@@ -161,7 +167,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 */
 	private static function insert_station_post( array $station, int $menu_order, array $program_posts, int $author_user_id ) {
 		$title = sanitize_text_field( (string) ( $station['station_title'] ?? '' ) );
-		if ( $title === '' ) {
+		if ( '' === $title ) {
 			$title = __( 'Radio Station', 'radio-player-page' );
 		}
 		$stream_url    = esc_url_raw( trim( (string) ( $station['stream_url'] ?? '' ) ) );
@@ -246,7 +252,7 @@ class Radplapag_Migrator_Settings_To_Cpt {
 				$legacy_pid = (string) ( $slot['program_id'] ?? '' );
 				$start      = trim( (string) ( $slot['start'] ?? '' ) );
 				$end        = trim( (string) ( $slot['end'] ?? '' ) );
-				if ( $legacy_pid === '' || $start === '' || $end === '' ) {
+				if ( '' === $legacy_pid || '' === $start || '' === $end ) {
 					continue;
 				}
 				if ( ! isset( $program_posts[ $legacy_pid ] ) ) {

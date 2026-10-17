@@ -11,6 +11,8 @@
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: radio-player-page
+ *
+ * @package radio-player-page
  */
 
 defined( 'ABSPATH' ) || exit;
@@ -65,7 +67,7 @@ function radplapag_map_cpt_meta_cap( array $caps, string $cap, int $user_id, arr
 		return $caps;
 	}
 	$post_type = get_post_type( $post_id );
-	if ( $post_type !== 'radplapag_station' && $post_type !== 'radplapag_program' ) {
+	if ( 'radplapag_station' !== $post_type && 'radplapag_program' !== $post_type ) {
 		return $caps;
 	}
 	return array( 'manage_options' );
@@ -109,7 +111,7 @@ function radplapag_enqueue_schedule_block_editor_assets() {
 	foreach ( $stations as $index => $station ) {
 		$title            = (string) ( $station['station_title'] ?? '' );
 		$station_labels[] = array(
-			'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+			'label' => '' !== $title ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
 		);
 	}
 	wp_localize_script( $handle, 'radplapagScheduleBlock', array( 'stations' => $station_labels ) );
@@ -145,7 +147,7 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
 	foreach ( $stations as $index => $station ) {
 		$title            = (string) ( $station['station_title'] ?? '' );
 		$station_labels[] = array(
-			'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+			'label' => '' !== $title ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
 		);
 	}
 	wp_localize_script( $handle, 'radplapagProgramsListBlock', array( 'stations' => $station_labels ) );
@@ -179,7 +181,7 @@ function radplapag_enqueue_now_playing_block_editor_assets() {
 	foreach ( $stations as $index => $station ) {
 		$title            = (string) ( $station['station_title'] ?? '' );
 		$station_labels[] = array(
-			'label' => $title !== '' ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+			'label' => '' !== $title ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
 		);
 	}
 	wp_localize_script( $handle, 'radplapagNowPlayingBlock', array( 'stations' => $station_labels ) );
@@ -250,10 +252,10 @@ function radplapag_output_clean_page() {
 	}
 
 	$page = get_post( $page_id );
-	if ( ! $page || $page->post_type !== 'page' ) {
+	if ( ! $page || 'page' !== $page->post_type ) {
 		return;
 	}
-	if ( $page->post_status !== 'publish' || post_password_required( $page ) ) {
+	if ( 'publish' !== $page->post_status || post_password_required( $page ) ) {
 		return;
 	}
 
@@ -271,13 +273,13 @@ function radplapag_output_clean_page() {
 	$theme_color    = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
 	$visualizer     = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
 
-	// Validate theme color against whitelist for security
+	// Validate theme color against whitelist for security.
 	$valid_themes = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
 	if ( ! in_array( $theme_color, $valid_themes, true ) ) {
 		$theme_color = 'neutral';
 	}
 
-	// Validate visualizer against whitelist for security
+	// Validate visualizer against whitelist for security.
 	$valid_visualizers = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
 	if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
 		$visualizer = 'oscilloscope';
@@ -308,7 +310,7 @@ function radplapag_output_clean_page() {
 
 	$dist_url = plugin_dir_url( __FILE__ ) . 'player/dist/';
 
-	// Determine the title to display
+	// Determine the title to display.
 	$display_title = ! empty( $station_title ) ? $station_title : get_bloginfo( 'name' );
 
 	echo '<!DOCTYPE html>';
@@ -321,12 +323,12 @@ function radplapag_output_clean_page() {
 		echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
 	}
 
-	// Meta description (SEO + social fallback)
+	// Meta description (SEO + social fallback).
 	/* translators: %s: station or page title for meta description */
 	$meta_description = sprintf( __( 'Listen to %s live', 'radio-player-page' ), $display_title );
 	echo '<meta name="description" content="' . esc_attr( $meta_description ) . '">';
 
-	// Open Graph
+	// Open Graph.
 	echo '<meta property="og:title" content="' . esc_attr( $display_title ) . '">';
 	echo '<meta property="og:description" content="' . esc_attr( $meta_description ) . '">';
 	echo '<meta property="og:url" content="' . esc_url( get_permalink( $page_id ) ) . '">';
@@ -334,7 +336,7 @@ function radplapag_output_clean_page() {
 	echo '<meta property="og:site_name" content="' . esc_attr( get_bloginfo( 'name' ) ) . '">';
 	echo '<meta property="og:locale" content="' . esc_attr( str_replace( '-', '_', get_bloginfo( 'language' ) ) ) . '">';
 
-	// Social image: logo first, then background, then favicon
+	// Social image: logo first, then background, then favicon.
 	$social_image_url = $logo_url ? $logo_url : ( $background_url ? $background_url : ( $favicon_url ? $favicon_url : '' ) );
 	if ( $social_image_url ) {
 		echo '<meta property="og:image" content="' . esc_url( $social_image_url ) . '">';
@@ -344,21 +346,21 @@ function radplapag_output_clean_page() {
 		echo '<meta name="twitter:card" content="summary">';
 	}
 
-	// Twitter Card (title and description shared with OG)
+	// Twitter Card (title and description shared with OG).
 	echo '<meta name="twitter:title" content="' . esc_attr( $display_title ) . '">';
 	echo '<meta name="twitter:description" content="' . esc_attr( $meta_description ) . '">';
 
 	// Get WordPress timezone object and calculate numeric offset
-	// This ensures we always have a numeric value (handles DST automatically)
+	// This ensures we always have a numeric value (handles DST automatically).
 	$timezone_obj = wp_timezone();
 
 	// Calculate current offset in hours (numeric, handles DST)
-	// getOffset() returns seconds, convert to hours
+	// getOffset() returns seconds, convert to hours.
 	$now             = new DateTime();
 	$offset_seconds  = $timezone_obj->getOffset( $now );
-	$timezone_offset = $offset_seconds / 3600; // Convert to hours (float)
+	$timezone_offset = $offset_seconds / 3600; // Convert to hours (float).
 
-	// Build configuration object (no schedule or programs; those are passed separately)
+	// Build configuration object (no schedule or programs; those are passed separately).
 	$config = array(
 		'streamUrl'       => $stream_url,
 		'siteTitle'       => $display_title,
@@ -367,7 +369,7 @@ function radplapag_output_clean_page() {
 		'introAudioUrl'   => $intro_audio_url ? $intro_audio_url : null,
 		'themeColor'      => $theme_color,
 		'visualizer'      => $visualizer,
-		'timezoneOffset'  => $timezone_offset, // Numeric offset in hours from UTC
+		'timezoneOffset'  => $timezone_offset, // Numeric offset in hours from UTC.
 	);
 
 	// Programs list: id + name + logoUrl (same format for frontend). Built from CPT via schedule program_id.
@@ -383,7 +385,7 @@ function radplapag_output_clean_page() {
 				continue;
 			}
 			$pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
-			if ( $pid !== null && $pid !== '' && is_numeric( $pid ) ) {
+			if ( null !== $pid && '' !== $pid && is_numeric( $pid ) ) {
 				$pid_int = (int) $pid;
 				if ( $pid_int > 0 && ! isset( $program_ids_seen[ $pid_int ] ) ) {
 					$program_ids_seen[ $pid_int ] = true;
@@ -397,14 +399,14 @@ function radplapag_output_clean_page() {
 			$programs_for_player[] = array(
 				'id'                  => (string) $post_id,
 				'name'                => $data['name'],
-				'description'         => $data['description'] !== '' ? $data['description'] : null,
-				'extendedDescription' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
+				'description'         => '' !== $data['description'] ? $data['description'] : null,
+				'extendedDescription' => '' !== $data['extended_description'] ? $data['extended_description'] : null,
 				'logoUrl'             => $data['logo_url'] ? $data['logo_url'] : null,
 			);
 		}
 	}
 
-	// Schedule: program_id as string for frontend resolution in RADPLAPAG_PROGRAMS
+	// Schedule: program_id as string for frontend resolution in RADPLAPAG_PROGRAMS.
 	$schedule_for_player = array();
 	if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
 		foreach ( $station['schedule'] as $day => $day_programs ) {
@@ -421,7 +423,7 @@ function radplapag_output_clean_page() {
 				$start      = isset( $entry['start'] ) ? $entry['start'] : '';
 				$end        = isset( $entry['end'] ) ? $entry['end'] : '';
 				$is_rerun   = ! empty( $entry['is_rerun'] );
-				if ( $program_id === '' || empty( $start ) || empty( $end ) ) {
+				if ( '' === $program_id || empty( $start ) || empty( $end ) ) {
 					continue;
 				}
 				$day_entries[] = array(

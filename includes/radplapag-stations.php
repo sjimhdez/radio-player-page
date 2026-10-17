@@ -1,14 +1,14 @@
 <?php
-defined( 'ABSPATH' ) || exit;
-
-require_once __DIR__ . '/data/class-radplapag-station-config.php';
-
 /**
  * Stations data: list of stations from CPT (used by blocks, player page, config).
  *
  * @package radio-player-page
  * @since 3.3.0
  */
+
+defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/data/class-radplapag-station-config.php';
 
 /**
  * Retrieves all stations from the radplapag_station CPT as an indexed array.

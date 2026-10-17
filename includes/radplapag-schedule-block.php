@@ -32,7 +32,7 @@ $radplapag_schedule_day_map = array(
  * @return int Minutes since midnight (0-1439), or 0 if invalid.
  */
 function radplapag_parse_time_to_minutes( $time ): int {
-	if ( ! is_string( $time ) || $time === '' ) {
+	if ( ! is_string( $time ) || '' === $time ) {
 		return 0;
 	}
 	$parts = array_map( 'intval', explode( ':', $time, 2 ) );
@@ -116,7 +116,7 @@ function radplapag_build_programs_map( array $station ): array {
 				continue;
 			}
 			$pid = $entry['program_id'] ?? null;
-			if ( $pid === null || $pid === '' ) {
+			if ( null === $pid || '' === $pid ) {
 				continue;
 			}
 			$pid_int = is_numeric( $pid ) ? (int) $pid : 0;
@@ -131,8 +131,8 @@ function radplapag_build_programs_map( array $station ): array {
 			$key         = (string) $post_id;
 			$map[ $key ] = array(
 				'name'                 => $data['name'],
-				'description'          => $data['description'] !== '' ? $data['description'] : null,
-				'extended_description' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
+				'description'          => '' !== $data['description'] ? $data['description'] : null,
+				'extended_description' => '' !== $data['extended_description'] ? $data['extended_description'] : null,
 				'logo_url'             => $data['logo_url'],
 			);
 		}
@@ -187,7 +187,7 @@ function radplapag_get_schedule_for_station( $station_index, string $day_order =
 			$program_id = sanitize_text_field( (string) ( $entry['program_id'] ?? '' ) );
 			$start      = (string) ( $entry['start'] ?? '' );
 			$end        = (string) ( $entry['end'] ?? '' );
-			if ( $program_id === '' || $start === '' || $end === '' ) {
+			if ( '' === $program_id || '' === $start || '' === $end ) {
 				continue;
 			}
 			$prog    = $programs_map[ $program_id ] ?? array(
@@ -198,9 +198,9 @@ function radplapag_get_schedule_for_station( $station_index, string $day_order =
 			);
 			$day_num = array_search( $day_key, $day_keys_order, true );
 			// day_num: monday=0 .. sunday=6. WordPress day_of_week: sunday=0, monday=1, ...
-			$wp_day      = $day_num === 6 ? 0 : $day_num + 1;
+			$wp_day      = 6 === $day_num ? 0 : $day_num + 1;
 			$is_today    = ( $wp_day === $day_of_week );
-			$is_prev_day = ( $wp_day === ( $day_of_week - 1 + 7 ) % 7 );
+			$is_prev_day = ( ( ( $day_of_week - 1 + 7 ) % 7 ) === $wp_day );
 			$is_live     = false;
 			if ( $is_today ) {
 				$is_live = radplapag_is_slot_active( $start, $end, $current_minutes, false );
@@ -234,9 +234,9 @@ function radplapag_get_schedule_for_station( $station_index, string $day_order =
 	}
 
 	// Reorder days: current day first (default) or keep Monday–Sunday.
-	if ( $day_order === 'current_first' && count( $days_out ) === 7 ) {
+	if ( 'current_first' === $day_order && count( $days_out ) === 7 ) {
 		// WordPress day_of_week: 0=Sunday, 1=Monday, ..., 6=Saturday. days_out: 0=Monday, ..., 6=Sunday.
-		$start_index = ( $day_of_week === 0 ) ? 6 : ( $day_of_week - 1 );
+		$start_index = ( 0 === $day_of_week ) ? 6 : ( $day_of_week - 1 );
 		$reordered   = array();
 		for ( $i = 0; $i < 7; $i++ ) {
 			$reordered[] = $days_out[ ( $start_index + $i ) % 7 ];

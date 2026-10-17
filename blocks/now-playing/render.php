@@ -32,7 +32,7 @@ defined( 'ABSPATH' ) || exit;
 	$show_logo     = (bool) ( $attributes['showLogo'] ?? true );
 	$now_playing   = radplapag_get_now_playing_for_station( $station_index );
 
-	if ( $now_playing === null || $now_playing['current'] === null ) {
+	if ( null === $now_playing || null === $now_playing['current'] ) {
 		if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
 			return;
 		}
@@ -54,7 +54,7 @@ defined( 'ABSPATH' ) || exit;
 		<article class="wp-block-group" data-program-id="<?php echo esc_attr( $current['id'] ); ?>">
 			<header class="wp-block-title" style="font-size: 1.5rem;">
 				
-				<?php if ( $station_page_url !== '' ) : ?>
+				<?php if ( '' !== $station_page_url ) : ?>
 					<a href="<?php echo esc_url( $station_page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'On Air', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $current['name'] ); ?></strong><?php if ( ! empty( $current['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?></a>
 				<?php else : ?>
 					<strong><?php echo esc_html( $current['name'] ); ?></strong><?php if ( ! empty( $current['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?>
@@ -62,7 +62,7 @@ defined( 'ABSPATH' ) || exit;
 			</header>
 			<?php if ( $show_logo && $current['logo_id'] > 0 ) : ?>
 				<figure class="wp-block-image" style="margin-top: 0.5em;margin-bottom: 0.5em; max-width: 15rem;">
-					<?php if ( $station_page_url !== '' ) : ?>
+					<?php if ( '' !== $station_page_url ) : ?>
 						<a href="<?php echo esc_url( $station_page_url ); ?>" target="_blank" rel="noopener noreferrer">
 							<?php
 							echo wp_get_attachment_image(
@@ -70,7 +70,7 @@ defined( 'ABSPATH' ) || exit;
 								'medium',
 								false,
 								array(
-									'alt'   => esc_attr( $current['name'] !== '' ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
+									'alt'   => esc_attr( '' !== $current['name'] ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
 									'style' => 'max-width: 100%; height: auto;',
 								)
 							);
@@ -83,7 +83,7 @@ defined( 'ABSPATH' ) || exit;
 							'medium',
 							false,
 							array(
-								'alt'   => esc_attr( $current['name'] !== '' ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
+								'alt'   => esc_attr( '' !== $current['name'] ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
 								'style' => 'max-width: 100%; height: auto;',
 							)
 						);
@@ -95,7 +95,7 @@ defined( 'ABSPATH' ) || exit;
 				<?php echo esc_html( $current['time_range'] ); ?>
 			</p>
 		</article>
-		<?php if ( $upcoming !== null ) : ?>
+		<?php if ( null !== $upcoming ) : ?>
 			<article class="wp-block-group" data-program-id="<?php echo esc_attr( $upcoming['id'] ); ?>" style="padding-top: 1em; font-size: 90%;">
 				<header class="wp-block-title" style="font-size: 1.5rem;"><?php esc_html_e( 'Coming up', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $upcoming['name'] ); ?></strong><?php if ( ! empty( $upcoming['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?></header>
 				<p class="wp-block-paragraph" style="font-size: 90%;">

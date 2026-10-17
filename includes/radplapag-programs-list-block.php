@@ -51,22 +51,22 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 		$day_entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : array();
 		$label       = $day_labels[ $day_key ] ?? $day_key;
 		$day_num     = array_search( $day_key, $day_keys, true );
-		$wp_day      = $day_num === 6 ? 0 : $day_num + 1;
+		$wp_day      = 6 === $day_num ? 0 : $day_num + 1;
 		$is_today    = ( $wp_day === $day_of_week );
-		$is_prev_day = ( $wp_day === ( ( $day_of_week - 1 + 7 ) % 7 ) );
+		$is_prev_day = ( ( ( $day_of_week - 1 + 7 ) % 7 ) === $wp_day );
 
 		foreach ( $day_entries as $entry ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
 			$program_id = $entry['program_id'] ?? '';
-			if ( $program_id === '' ) {
+			if ( '' === $program_id ) {
 				continue;
 			}
 			$program_id_key = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
 			$start          = (string) ( $entry['start'] ?? '' );
 			$end            = (string) ( $entry['end'] ?? '' );
-			if ( $start === '' || $end === '' ) {
+			if ( '' === $start || '' === $end ) {
 				continue;
 			}
 			$is_live = false;
@@ -114,7 +114,7 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 				continue;
 			}
 			$pid = $entry['program_id'] ?? null;
-			if ( $pid !== null && $pid !== '' && is_numeric( $pid ) ) {
+			if ( null !== $pid && '' !== $pid && is_numeric( $pid ) ) {
 				$pid_int = (int) $pid;
 				if ( $pid_int > 0 && ! in_array( $pid_int, $program_ids_ordered, true ) ) {
 					$program_ids_ordered[] = $pid_int;
@@ -135,8 +135,8 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 			'id'                   => $key,
 			'name'                 => $data['name'],
 			'logo_id'              => $data['logo_id'] > 0 ? $data['logo_id'] : 0,
-			'description'          => $data['description'] !== '' ? $data['description'] : null,
-			'extended_description' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
+			'description'          => '' !== $data['description'] ? $data['description'] : null,
+			'extended_description' => '' !== $data['extended_description'] ? $data['extended_description'] : null,
 			'slots'                => $slots,
 		);
 	}

@@ -8,8 +8,6 @@
  *
  * @package radio-player-page
  * @since      3.1.0
- *
- * @package    radio-player-page
  */
 
 // If uninstall not called from WordPress, then exit.
@@ -91,5 +89,5 @@ function radplapag_uninstall_plugin(): void {
 	}
 }
 
-// Run uninstall function
+// Run uninstall function.
 radplapag_uninstall_plugin();

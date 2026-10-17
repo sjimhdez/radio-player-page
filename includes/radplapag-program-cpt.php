@@ -165,10 +165,10 @@ function radplapag_get_program_data( $post_id, $require_published = false ) {
 		return null;
 	}
 	$post = get_post( $post_id );
-	if ( ! $post || $post->post_type !== 'radplapag_program' ) {
+	if ( ! $post || 'radplapag_program' !== $post->post_type ) {
 		return null;
 	}
-	if ( $require_published && $post->post_status !== 'publish' ) {
+	if ( $require_published && 'publish' !== $post->post_status ) {
 		return null;
 	}
 	$description          = get_post_meta( $post_id, 'radplapag_program_description', true );
@@ -319,7 +319,7 @@ function radplapag_save_program_meta( $post_id ) {
  */
 function radplapag_program_edit_scripts() {
 	$screen = get_current_screen();
-	if ( ! $screen || $screen->id !== 'radplapag_program' ) {
+	if ( ! $screen || 'radplapag_program' !== $screen->id ) {
 		return;
 	}
 	wp_enqueue_media();

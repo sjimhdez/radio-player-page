@@ -1,4 +1,11 @@
 <?php
+/**
+ * Server-side render for the Programs List block.
+ *
+ * @package radio-player-page
+ * @since 3.3.0
+ */
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -28,7 +35,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 
 	$programs = radplapag_get_programs_list_for_station( $station_index );
 
-	if ( $programs === null || ! is_array( $programs ) || count( $programs ) === 0 ) {
+	if ( null === $programs || ! is_array( $programs ) || count( $programs ) === 0 ) {
 		return '<div ' . $wrapper_attributes . '>' .
 			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No radio shows for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
@@ -47,12 +54,12 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 		$ext_desc    = $prog['extended_description'] ?? null;
 		$slots       = is_array( $prog['slots'] ?? null ) ? $prog['slots'] : array();
 
-		$html .= '<article class="wp-block-group"' . ( $id !== '' ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
+		$html .= '<article class="wp-block-group"' . ( '' !== $id ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
 
-		$html .= '<header class="wp-block-title" style="font-size:1.5em;">' . esc_html( $name !== '' ? $name : '—' ) . '</header>';
+		$html .= '<header class="wp-block-title" style="font-size:1.5em;">' . esc_html( '' !== $name ? $name : '—' ) . '</header>';
 
 		if ( $show_image && $logo_id > 0 ) {
-			$img_alt = $name !== '' ? $name : __( 'Radio Show image', 'radio-player-page' );
+			$img_alt = '' !== $name ? $name : __( 'Radio Show image', 'radio-player-page' );
 			$html   .= '<figure class="wp-block-image has-small-padding-bottom" style="max-width: 15rem;">' . wp_get_attachment_image(
 				$logo_id,
 				'medium',
@@ -64,11 +71,11 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 			) . '</figure>';
 		}
 
-		if ( $show_description && $description !== null && $description !== '' ) {
+		if ( $show_description && null !== $description && '' !== $description ) {
 			$html .= '<div class="wp-block-group"><p class="wp-block-paragraph">' . esc_html( $description ) . '</p></div>';
 		}
 
-		if ( $show_extended_description && $ext_desc !== null && $ext_desc !== '' ) {
+		if ( $show_extended_description && null !== $ext_desc && '' !== $ext_desc ) {
 			$html .= '<div class="wp-block-group"><p class="wp-block-paragraph">' . esc_html( $ext_desc ) . '</p></div>';
 		}
 

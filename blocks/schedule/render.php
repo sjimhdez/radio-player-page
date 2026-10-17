@@ -1,4 +1,11 @@
 <?php
+/**
+ * Server-side render for the Radio Schedule block.
+ *
+ * @package radio-player-page
+ * @since 3.3.0
+ */
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -26,7 +33,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 		)
 	);
 
-	if ( $data === null ) {
+	if ( null === $data ) {
 		return '<div ' . $wrapper_attributes . '>' .
 			'<div class="wp-block-group is-empty">' .
 			'<p>' . esc_html__( 'No radio schedule for this station.', 'radio-player-page' ) . '</p>' .
@@ -50,7 +57,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	}
 
 	$station_page_url = $data['station_page_url'] ?? '';
-	$station_page_url = ( is_string( $station_page_url ) && $station_page_url !== '' ) ? $station_page_url : '';
+	$station_page_url = ( is_string( $station_page_url ) && '' !== $station_page_url ) ? $station_page_url : '';
 
 	$html = '<div ' . $wrapper_attributes . '>';
 
@@ -75,7 +82,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 				$slot_class .= ' is-live';
 			}
 			$html        .= '<li class="' . esc_attr( $slot_class ) . '"' . ( $is_live ? ' data-is-live="true"' : '' ) . '>';
-			$slot_content = '<span>' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
+			$slot_content = '<span>' . esc_html( '' !== $program_name ? $program_name : '—' ) . '</span>';
 			if ( $is_rerun ) {
 				$slot_content .= ' <span>' . esc_html__( '(Rerun)', 'radio-player-page' ) . '</span>';
 			}
@@ -84,7 +91,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 				$slot_content = '<span>' . esc_html__( 'On Air', 'radio-player-page' ) . '</span>: ' . $slot_content;
 			}
 			$html .= '<p class="wp-block-paragraph">';
-			if ( $is_live && $station_page_url !== '' ) {
+			if ( $is_live && '' !== $station_page_url ) {
 				$html .= '<a href="' . esc_url( $station_page_url ) . '" target="_blank" rel="noopener noreferrer">' . $slot_content . '</a>';
 			} else {
 				$html .= $slot_content;
@@ -92,13 +99,13 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			$html .= '</p>';
 			if ( $show_description ) {
 				$program_description = (string) ( $slot['program_description'] ?? '' );
-				if ( $program_description !== '' ) {
+				if ( '' !== $program_description ) {
 					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_description ) . '</p></div>';
 				}
 			}
 			if ( $show_extended_description ) {
 				$program_extended_description = (string) ( $slot['program_extended_description'] ?? '' );
-				if ( $program_extended_description !== '' ) {
+				if ( '' !== $program_extended_description ) {
 					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_extended_description ) . '</p></div>';
 				}
 			}

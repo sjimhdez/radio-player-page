@@ -1,6 +1,4 @@
 <?php
-defined( 'ABSPATH' ) || exit;
-
 /**
  * Admin bootstrap: hooks and module loading.
  *
@@ -8,11 +6,13 @@ defined( 'ABSPATH' ) || exit;
  * @since 1.0.0
  */
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Enqueues styles and station script only on station/program CPT screens.
  *
- * station-admin.js loads only on radplapag_station (new/edit). program-admin.js
- * loads only on radplapag_program (see radplapag-program-cpt.php).
+ * The station script (station-admin.js) loads only on radplapag_station (new/edit);
+ * program-admin.js loads only on radplapag_program (see radplapag-program-cpt.php).
  *
  * @since 2.0.1
  * @since 3.3.0 Split: station-admin.js on station screen only; CSS on station + program.
@@ -22,8 +22,8 @@ defined( 'ABSPATH' ) || exit;
  */
 function radplapag_admin_scripts( $hook_suffix ) {
 	$screen     = get_current_screen();
-	$is_station = $screen && isset( $screen->id ) && $screen->id === 'radplapag_station';
-	$is_program = $screen && isset( $screen->id ) && $screen->id === 'radplapag_program';
+	$is_station = $screen && isset( $screen->id ) && 'radplapag_station' === $screen->id;
+	$is_program = $screen && isset( $screen->id ) && 'radplapag_program' === $screen->id;
 	if ( ! $is_station && ! $is_program ) {
 		return;
 	}

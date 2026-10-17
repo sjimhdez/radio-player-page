@@ -63,7 +63,7 @@ add_action( 'init', 'radplapag_register_station_post_type' );
  * @return bool
  */
 function radplapag_station_use_classic_editor( $use_block_editor, $post_type ) {
-	if ( $post_type === 'radplapag_station' ) {
+	if ( 'radplapag_station' === $post_type ) {
 		return false;
 	}
 	return $use_block_editor;
@@ -409,7 +409,7 @@ function radplapag_sanitize_station_schedule( $schedule_input ) {
 		}
 	}
 
-	// Cross-day overlap for midnight-crossing slots
+	// Cross-day overlap for midnight-crossing slots.
 	$days_array = $valid_days;
 	foreach ( $days_array as $day_idx => $day ) {
 		if ( ! isset( $schedule_out[ $day ] ) || empty( $schedule_out[ $day ] ) ) {
@@ -620,7 +620,7 @@ function radplapag_render_station_details_meta_box( $post ) {
 function radplapag_render_station_schedule_meta_box( $post ) {
 	$schedule_json = get_post_meta( $post->ID, 'radplapag_station_schedule', true );
 	$schedule      = array();
-	if ( is_string( $schedule_json ) && $schedule_json !== '' ) {
+	if ( is_string( $schedule_json ) && '' !== $schedule_json ) {
 		$decoded = json_decode( $schedule_json, true );
 		if ( is_array( $decoded ) ) {
 			$schedule = $decoded;
@@ -761,7 +761,7 @@ function radplapag_save_station_meta( $post_id ) {
 	}
 
 	$field_errors = array();
-	if ( $stream_url === '' ) {
+	if ( '' === $stream_url ) {
 		$field_errors[] = __( 'Streaming URL is required.', 'radio-player-page' );
 	}
 	if ( $player_page <= 0 ) {
@@ -814,7 +814,7 @@ function radplapag_save_station_meta( $post_id ) {
  */
 function radplapag_station_schedule_errors_notice() {
 	$screen = get_current_screen();
-	if ( ! $screen || $screen->id !== 'radplapag_station' ) {
+	if ( ! $screen || 'radplapag_station' !== $screen->id ) {
 		return;
 	}
 	$post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
@@ -823,7 +823,7 @@ function radplapag_station_schedule_errors_notice() {
 		return;
 	}
 	$field_message = get_transient( 'radplapag_station_field_errors_' . $post_id );
-	if ( is_string( $field_message ) && $field_message !== '' ) {
+	if ( is_string( $field_message ) && '' !== $field_message ) {
 		delete_transient( 'radplapag_station_field_errors_' . $post_id );
 		?>
 		<div class="notice notice-error is-dismissible">
@@ -832,7 +832,7 @@ function radplapag_station_schedule_errors_notice() {
 		<?php
 	}
 	$message = get_transient( 'radplapag_station_schedule_errors_' . $post_id );
-	if ( ! is_string( $message ) || $message === '' ) {
+	if ( ! is_string( $message ) || '' === $message ) {
 		return;
 	}
 	delete_transient( 'radplapag_station_schedule_errors_' . $post_id );
@@ -883,7 +883,7 @@ function radplapag_get_player_pages_assigned_to_other_stations( $exclude_post_id
  */
 function radplapag_station_edit_scripts() {
 	$screen = get_current_screen();
-	if ( ! $screen || $screen->id !== 'radplapag_station' ) {
+	if ( ! $screen || 'radplapag_station' !== $screen->id ) {
 		return;
 	}
 	wp_enqueue_media();

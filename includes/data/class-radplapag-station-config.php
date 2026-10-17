@@ -40,7 +40,7 @@ class Radplapag_Station_Config {
 	 * @return Radplapag_Station_Config|null
 	 */
 	public static function from_post( $post ): ?Radplapag_Station_Config {
-		if ( ! $post instanceof WP_Post || $post->post_type !== 'radplapag_station' ) {
+		if ( ! $post instanceof WP_Post || 'radplapag_station' !== $post->post_type ) {
 			return null;
 		}
 		return new self( $post );
@@ -57,7 +57,7 @@ class Radplapag_Station_Config {
 
 		$schedule_json = get_post_meta( $post_id, 'radplapag_station_schedule', true );
 		$schedule      = array();
-		if ( is_string( $schedule_json ) && $schedule_json !== '' ) {
+		if ( is_string( $schedule_json ) && '' !== $schedule_json ) {
 			$decoded = json_decode( $schedule_json, true );
 			if ( is_array( $decoded ) ) {
 				$schedule = $decoded;
