@@ -265,7 +265,7 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Test: caracterización. Mutación: `>` → `>=` en `checkOverlaps`.
 - Verificación: `npm test`
 - Nota: el entorno se fija con `projects` de Vitest (`admin` con happy-dom, `node` para el resto), porque Vitest 5 ya no tiene `environmentMatchGlobs`. El script se ejecuta con `import()` tras `vi.resetModules()`, así cuenta para la cobertura de `admin/js`. El código de error de cada fila se lee de su mensaje con cadenas marcadoras (`[required]`, `[overlap] %s`…). Dos resultados `admin` de los vectores se corrigen con lo medido: `format-24-00` da `required` (el `<input type="time">` vacía `24:00`, así que la comprobación de formato del admin no se alcanza desde el campo) y `c3-start-equals-end-next-day-conflict` acaba mostrando `cross_midnight_overlap` (la comprobación del miércoles reemplaza el mensaje del martes); este último coincide con el correcto y deja de ser `currently`. Mutación `>` → `>=` en `checkOverlaps`: falla `grid-main`. Mutación sin `start === end`: fallan 4 tests (C3).
-- [x] hecha · commit: —
+- [x] hecha · commit: 230c166
 
 ### 1.18 Admin JS: campos y comportamiento del DOM (≤ 1 h)
 - Qué:
