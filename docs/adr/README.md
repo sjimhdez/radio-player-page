@@ -26,3 +26,4 @@ Decisiones de arquitectura con formato de Michael Nygard: contexto, decisión, c
 | [0020](0020-independent-js-projects.md) | `player/` y cada bloque son proyectos JS independientes | aceptado | 0001 · fase 1 |
 | [0021](0021-legacy-code-standards-baseline.md) | Estándares sobre el código heredado: línea base por archivo | aceptado | 0001 · fase 1 |
 | [0022](0022-latest-stable-versions.md) | La última versión estable de todo, con excepciones documentadas | aceptado | 0001 · fase 1 |
+| [0023](0023-axe-baseline.md) | Línea base de axe: «ninguna violación nueva» | aceptado | 0002 · fase 2 |
