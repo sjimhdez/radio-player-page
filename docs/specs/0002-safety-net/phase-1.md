@@ -251,7 +251,8 @@ Fijar con tests unit, de integración y de Vitest el comportamiento de la 3.4.2 
 - Archivos: `player/src/hooks/*.test.tsx`.
 - Test: caracterización. Mutación: valor por defecto `'neutral'` → `'blue'` en `use-config`.
 - Verificación: `npm --prefix player test -- src/hooks`
-- [ ] hecha · commit: —
+- Nota: 78 tests nuevos en cinco archivos. Cobertura: `use-config`, `use-is-ios` 100 %; `use-media-session` 100 % líneas, 93 % ramas; `use-program-schedule` y `use-transmission-time` 89 % líneas: lo que falta es la limpieza de temporizadores al re-ejecutar el efecto, inalcanzable porque `useConfig()` memoiza con `[]` y sus dependencias no cambian nunca. `useConfig()` lee las globales una vez por montaje y deja pasar un horario vacío impreso como `[]` (inocuo: los consumidores lo leen como un horario sin franjas). La hora del navegador se fija con `process.env.TZ`, como en `timezone.test.ts`. Rarezas nuevas **K13** (iPadOS con UA de escritorio no se detecta como iOS) y **K14** (MIME del *artwork* con *query string*). Mutaciones (fallan y se revierten): por defecto `'neutral'` → `'blue'` (5 tests); `<= 14` → `< 14` (1); programas sin `Array.isArray` (1); sin alinear al minuto, en el horario (1); sin `clearInterval` (1); intervalo de 120 s en la hora (1); umbral de `hasDifference` (1); `playbackState` siempre `playing` (3); sin limpiar `metadata` (1); `jpg` → `image/png` (1); sin `ipad` (1). Una mutación equivalente (devolver una limpieza vacía sin horario) no falla.
+- [x] hecha · commit: —
 
 ### 1.17 Admin JS: arnés y vectores de validación (≤ 1 h)
 - Qué:

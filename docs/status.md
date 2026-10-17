@@ -2,10 +2,10 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 1 en curso · Plan: [docs/specs/0002-safety-net/phase-1.md](specs/0002-safety-net/phase-1.md) · Actualizado: 2026-10-17
 
 ## En curso
-- Spec 0002, fase 1: caracterización unit e integración (22 tareas, 1.1–1.15 hechas). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 1: caracterización unit e integración (22 tareas, 1.1–1.16 hechas). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tareas 1.16–1.19: Vitest (resto de hooks del player, admin JS, locales).
+1. Tareas 1.17–1.19: Vitest (admin JS, locales).
 2. Tareas 1.20–1.22: cobertura en la CI y `contract-map.md`; después `close-phase`.
 
 ## Bloqueos / preguntas para el humano
