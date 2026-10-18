@@ -370,6 +370,39 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		$this->assertEqualsCanonicalizing( array( $a, $b, $c ), radplapag_get_player_pages_assigned_to_other_stations() );
 	}
 
+	/**
+	 * Currently, the one-page-per-station rule has a hole: a trashed station does not
+	 * hold its page, so another station takes it, and restoring the first one (as a
+	 * draft) and publishing it from the list (Quick Edit, no meta box nonce) leaves two
+	 * published stations on the same page. Only the first by menu_order and title is
+	 * served there; the other one silently never is. K35 of docs/known-issues.md.
+	 */
+	public function test_currently_restoring_a_trashed_station_shares_its_page() {
+		$page  = $this->factory_rpp->page( 'Player' );
+		$args  = array(
+			'stream_url'  => 'https://example.com/stream.mp3',
+			'player_page' => $page,
+		);
+		$first = $this->factory_rpp->station( 'A first', $args );
+		wp_trash_post( $first );
+
+		$this->assertNotContains( $page, radplapag_get_player_pages_assigned_to_other_stations() );
+		$second = $this->factory_rpp->station( 'B second', $args );
+
+		wp_untrash_post( $first );
+		wp_update_post(
+			array(
+				'ID'          => $first,
+				'post_status' => 'publish',
+			)
+		);
+
+		$this->assertSame( array( $first, $second ), wp_list_pluck( radplapag_get_stations(), 'id' ) );
+		$this->assertSame( array( $page, $page ), array_map( 'intval', wp_list_pluck( radplapag_get_stations(), 'player_page' ) ) );
+		$this->go_to( get_permalink( $page ) );
+		$this->assertSame( $first, radplapag_get_station_for_current_page()['id'] );
+	}
+
 	// ── Admin strings ───────────────────────────────────────────────────────────
 
 	/**
@@ -527,6 +560,30 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Currently, when the assigned page stops being published (draft, private,
+	 * scheduled), the select does not list it and selects nothing, without saying so:
+	 * the meta still points to it, but the form shows "Select a Page" and its
+	 * validation asks for one, so any later save (a new stream URL) needs another
+	 * page. K36 of docs/known-issues.md.
+	 */
+	public function test_currently_details_box_drops_an_assigned_page_that_is_not_published() {
+		$page    = $this->factory_rpp->page( 'Player' );
+		$station = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $page ) );
+		wp_update_post(
+			array(
+				'ID'          => $page,
+				'post_status' => 'private',
+			)
+		);
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertSame( (string) $page, get_post_meta( $station, 'radplapag_station_player_page', true ) );
+		$this->assertStringNotContainsString( 'value="' . $page . '"', $this->select( $html, 'radplapag_station_player_page' ) );
+		$this->assertSame( array(), $this->selected( $html, 'radplapag_station_player_page' ) );
+	}
+
+	/**
 	 * Without a schedule, or with invalid JSON, the box prints the seven days, empty,
 	 * inside #radplapag-station-cpt-container.
 	 *
@@ -556,6 +613,41 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		$this->assertSame( 7, substr_count( $html, 'class="button radplapag-add-program"' ) );
 		$this->assertStringNotContainsString( 'radplapag-program-row', $html );
 		$this->assertStringNotContainsString( 'nonce', $html );
+	}
+
+	/**
+	 * Currently, a slot whose program is trashed (or private, pending or scheduled:
+	 * the select lists published and draft programs only) prints with nothing
+	 * selected but keeps its times, while the server would still accept the ID. The
+	 * client validation then asks for a program, so the station cannot be saved
+	 * until that slot is fixed, and the program name is no longer shown. K41 of
+	 * docs/known-issues.md.
+	 */
+	public function test_currently_schedule_box_empties_a_slot_whose_program_is_trashed() {
+		$program = $this->factory_rpp->program( 'Morning Show' );
+		$station = $this->factory_rpp->station(
+			'Test FM',
+			array(
+				'schedule' => array(
+					'monday' => array(
+						array(
+							'program_id' => $program,
+							'start'      => '07:00',
+							'end'        => '10:00',
+						),
+					),
+				),
+			)
+		);
+		wp_trash_post( $program );
+
+		$html = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
+		$name = 'radplapag_station_schedule[monday][0][program_id]';
+
+		$this->assertStringNotContainsString( 'Morning Show', $html );
+		$this->assertSame( array(), $this->selected( $html, $name ) );
+		$this->assertStringContainsString( 'name="radplapag_station_schedule[monday][0][start]" value="07:00"', $html );
+		$this->assertNotNull( radplapag_get_program_data( $program ) );
 	}
 
 	/**

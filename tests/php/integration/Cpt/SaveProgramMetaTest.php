@@ -275,4 +275,39 @@ final class SaveProgramMetaTest extends WP_UnitTestCase {
 		$this->assertSame( '', $this->meta( 'description' ) );
 		$this->assertSame( '', $this->meta( 'extended_description' ) );
 	}
+
+	/**
+	 * Currently, the backslashes of both descriptions are lost when saving from the
+	 * edit form: the value goes through wp_unslash() and then update_post_meta()
+	 * unslashes it again. K34 of docs/known-issues.md.
+	 */
+	public function test_currently_descriptions_lose_backslashes() {
+		$this->save(
+			array(
+				'description'          => 'AC\\DC \\o/',
+				'extended_description' => 'C:\\Temp',
+			)
+		);
+
+		$this->assertSame( 'ACDC o/', $this->meta( 'description' ) );
+		$this->assertSame( 'C:Temp', $this->meta( 'extended_description' ) );
+	}
+
+	/**
+	 * Currently, the sanitizers store a `<` glued to the next character as `&lt;`
+	 * (wp_pre_kses_less_than()). The player prints the descriptions of
+	 * RADPLAPAG_PROGRAMS as text, so it shows `I &lt;3 jazz`. K43 of
+	 * docs/known-issues.md.
+	 */
+	public function test_currently_less_than_is_stored_as_an_entity() {
+		$this->save(
+			array(
+				'description'          => 'I <3 jazz',
+				'extended_description' => 'Rock <3',
+			)
+		);
+
+		$this->assertSame( 'I &lt;3 jazz', $this->meta( 'description' ) );
+		$this->assertSame( 'Rock &lt;3', $this->meta( 'extended_description' ) );
+	}
 }

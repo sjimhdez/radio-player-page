@@ -403,6 +403,25 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
 	}
 
+	/**
+	 * Currently, a welcome audio that is not MP3 (the media frame offers any audio)
+	 * replaces the previous one with 0 and the only notice is the field errors one,
+	 * which says nothing about the audio. In the CLI the URL is always missing
+	 * (class docblock), so the transient holds exactly that message. K37 of
+	 * docs/known-issues.md.
+	 */
+	public function test_currently_non_mp3_welcome_audio_is_dropped_without_notice() {
+		$mp3 = $this->factory_rpp->audio( 'Mp3' );
+		$ogg = $this->factory_rpp->audio( 'Ogg', 'audio/ogg' );
+		update_post_meta( $this->station, 'radplapag_station_intro_audio_id', $mp3 );
+
+		$this->save( array( 'intro_audio_id' => (string) $ogg ) );
+
+		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
+		$this->assertSame( self::URL_REQUIRED . ' ' . self::PAGE_REQUIRED, $this->field_errors() );
+		$this->assertFalse( get_transient( 'radplapag_station_schedule_errors_' . $this->station ) );
+	}
+
 	// Schedule.
 
 	/**

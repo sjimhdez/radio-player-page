@@ -76,6 +76,12 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 - Archivos: `audit/admin.md`, `docs/known-issues.md`, `tests/js/admin/`, `tests/php/integration/`, `tests/e2e/{admin,a11y}.spec.ts`, `tests/e2e/a11y-baseline.json` (solo si el usuario lo aprueba).
 - Test: caracterización, como en 4.2.
 - Verificación: `npm run check && npm run test:php:integration && npx playwright test tests/e2e/admin.spec.ts tests/e2e/a11y.spec.ts`
+- Resultado (2026-10-18):
+  - Informe en [`audit/admin.md`](audit/admin.md). PHPCS y ESLint limpios (cuatro supresiones, todas con motivo); de las 32 entradas de la baseline de PHPStan de la zona, ninguna es un bug. Revisores: `wp-security-reviewer`, `wporg-reviewer`, `a11y-reviewer` y un code review a esfuerzo alto en un subagente.
+  - Confirmados: K34–K45 y AX5. K34, K35, K36, K37, K38 y K41 con un test `currently` de integración; K39, K40 y K42 con e2e (Chromium y WebKit; K40 también con reproducción); K43 con integración (el player por lectura); K44 y K45 con Vitest. Medias: K39 (foco), K41 (programa en la papelera bloquea el guardado), K42 (URL sin esquema), K45 (errores sin ARIA). Variantes anotadas en AX2–AX4 y un matiz de K31. 31 descartados, abajo y en el informe.
+  - Huecos del ADR 0023 cerrados en `a11y.spec.ts`: axe tras «Add Time Slot» y con errores de validación a la vista. Solo sale una regla nueva, `color-contrast` (AX5); lo demás es AX2–AX4. Línea base: 52 entradas nuevas con la decisión del usuario (abajo).
+  - Mutación: tres tandas de cambios temporales en `admin/` e `includes/` (detalle en el informe) → los 13 tests nuevos en rojo; revertida.
+  - Verificación: `npm run check` en verde; integración completa en verde en las dos puntas (364 tests; el de K38 tiene una rama para PHP 7.4, *warning*, y otra para PHP 8, `TypeError`); `admin.spec.ts` y `a11y.spec.ts` en verde en Chromium y WebKit (54 tests).
 - [ ] hecha · commit: —
 
 ### 4.5 Auditoría · zona 4, bloques (≤ 1 h)
@@ -102,6 +108,7 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 ## Decisiones abiertas → ADR
 - **Nivel de PHPStan:** 8 con baseline (83 entradas). → ADR 0024 en 4.7.
 - **Entradas nuevas en la línea base de axe** al cerrar los huecos (4.4–4.6): solo con la decisión del usuario, apuntada en esta sección (ADR 0023).
+  - 4.4 (2026-10-18): **el usuario aprueba** añadir las violaciones de `station meta boxes · added slot` y `station meta boxes · validation errors` con `RADPLAPAG_UPDATE_A11Y_BASELINE=1`: 52 entradas (AX2–AX4 con el nombre de página nuevo y AX5), en Chromium y WebKit, sin bajas.
 - **Huecos que no se puedan cerrar sin tocar código publicado:** se para y se pregunta (spec §0.4); se quedan anotados en el informe de la zona.
 
 ## Descartados
@@ -146,6 +153,34 @@ Zona 2 (4.3; detalle en [`audit/migration.md`](audit/migration.md) §5):
 - descartado: listas blancas duplicadas en el migrador, porque hoy coinciden.
 - descartado: formatos 2.0.0 y 3.0.x sin fixture, porque no hay tags de esas versiones.
 - descartado: `wp_set_current_user()` sin restaurar ante una excepción, porque la petición muere.
+
+Zona 3 (4.4; detalle en [`audit/admin.md`](audit/admin.md) §5):
+- descartado: `player_page` sin validar como página (POST a mano, `absint()` de un array), porque solo lo hace un administrador con su nonce.
+- descartado: transients de error por post y no por usuario, porque son dos administradores en 45 s, sin datos sensibles.
+- descartado (para la spec 0005): HTML a mano en `innerHTML` (traducciones, `&`, URL del adjunto), porque no hay vía de ataque con WordPress tal cual.
+- descartado: el guardado no compara `$post_id` con `post_ID`, porque no hay ningún caso en core.
+- descartado (sospecha para el triage): «Entrada publicada» junto al error y la emisora publicada sin URL, porque es el contrato (§3.1, §3.6).
+- descartado: el horario editado se pierde si el servidor lo rechaza, porque es el contrato (§3.1) y solo pasa sin JS o por una carrera.
+- descartado (sospecha para el triage): meta box contraído con un error que bloquea el envío sin mensaje, porque no se ha reproducido.
+- descartado: `:has()` sin soporte, porque los navegadores de WP 6.6 lo soportan.
+- descartado: programas sin título fuera de las filas nuevas, porque es artificial.
+- descartado: el horario no se valida si fallan los campos, porque está fijado y sale en el siguiente envío.
+- descartado: «Please enter a valid URL.» inalcanzable al enviar, porque es el patrón de K19 e inocuo.
+- descartado: `a < b and c > d` → `a d`, porque medido no se reproduce.
+- descartado: variante táctil de K20, porque no se ha probado en táctil.
+- descartado (para la spec 0005): mejoras de i18n (concatenación, «to»/«Rerun» sin contexto, 18 cadenas sin uso, textos de reserva), porque no hay bug visible.
+- descartado: marcos de `wp.media` sin título propio, porque salen los de core, traducidos.
+- descartado: assets encolados dos veces y versión a mano, porque no tiene efecto y la versión la sube `release`.
+- descartado: *placeholder* con `my.station.com`, porque es inocuo.
+- descartado (para la spec 0005): errores de los campos de la emisora sin `aria-invalid`, porque sí se anuncian (región viva).
+- descartado: avisos del servidor que no llevan el error al campo, porque es experiencia, no un incumplimiento medido.
+- descartado: contraste de «Remove» en *hover* sobre una fila con error, porque es AX5 (anotado en su fila).
+- descartado (para la spec 0005): «Remove Time Slot» como enlace con nombre repetido, asterisco sin explicar, bloques de imagen y audio sin grupo, sin `fieldset` por día, «Add Time Slot» sin mover el foco, porque son mejoras sin incumplimiento medido (el `fieldset`, con AX3/AX4).
+- descartado: `alt=""` en la vista previa, porque es discutible.
+- descartado: `scrollIntoView` suave, porque 2.3.3 es AAA.
+- descartado: clave de la línea base sensible al DOM, porque es el diseño del ADR 0023.
+- descartado: las entradas de PHPStan de la zona, porque son ruido.
+- descartado: `pleaseSelectProgram` con dos sentidos, porque es inocuo.
 
 ## Verificación de la fase
 - `npm run check` en verde (incluye PHPStan).

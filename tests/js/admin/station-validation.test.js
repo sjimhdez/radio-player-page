@@ -291,4 +291,61 @@ describe( 'station-admin.js: rows and submit', () => {
 			'start_equals_end'
 		);
 	} );
+
+	// docs/known-issues.md K44: String.prototype.replace() reads `$` patterns
+	// in the replacement, so `$$` in a program name prints as `$`.
+	it( 'currently collapses `$$` in the program name of an overlap message (K44)', async () => {
+		const screen = await mountStationScreen(
+			adminData( {
+				programs: [
+					{ id: 201, name: 'Money $$ Talk' },
+					{ id: 202, name: 'Night Owl' },
+				],
+			} )
+		);
+		screen.clearSchedule();
+		screen.addSlot( 'monday', {
+			programId: '201',
+			programLabel: 'Money $$ Talk',
+			start: '06:00',
+			end: '10:00',
+		} );
+		const second = screen.addSlot( 'monday', {
+			programId: '202',
+			programLabel: 'Night Owl',
+			start: '09:00',
+			end: '11:00',
+		} );
+
+		screen.submit();
+
+		expect(
+			second.querySelector( '.radplapag-program-error-message' )
+				.textContent
+		).toBe( '[overlap] Money $ Talk (Monday, 06:00 - 10:00)' );
+	} );
+
+	// docs/known-issues.md K45: nothing ties the message to its fields or
+	// announces it (WCAG 3.3.1, 4.1.3); axe does not see it.
+	it( 'currently shows a slot error without any ARIA (K45)', async () => {
+		const screen = await mountSchedule( {
+			monday: [
+				{ program: 'A', start: '06:00', end: '10:00' },
+				{ program: 'B', start: '09:00', end: '11:00' },
+			],
+		} );
+
+		screen.submit();
+
+		const row = screen.rows( 'monday' )[ 1 ];
+		const message = row.querySelector( '.radplapag-program-error-message' );
+		expect( message.textContent ).not.toBe( '' );
+		[ 'id', 'role', 'aria-live' ].forEach( ( attribute ) =>
+			expect( message.hasAttribute( attribute ) ).toBe( false )
+		);
+		row.querySelectorAll( 'select, input' ).forEach( ( control ) => {
+			expect( control.hasAttribute( 'aria-invalid' ) ).toBe( false );
+			expect( control.hasAttribute( 'aria-describedby' ) ).toBe( false );
+		} );
+	} );
 } );

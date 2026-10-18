@@ -247,6 +247,18 @@ test( 'a11y: blocks page', async ( { page }, testInfo ) => {
 	] );
 } );
 
+/**
+ * Opens the edit screen of the MP3 station.
+ *
+ * @param page Admin page.
+ */
+async function openStation( page: Page ) {
+	await page.goto(
+		`/wp-admin/post.php?post=${ seededId( 'station-mp3' ) }&action=edit`
+	);
+	await expect( page.locator( '#radplapag_station_schedule' ) ).toBeVisible();
+}
+
 test.describe( 'a11y: meta boxes', () => {
 	test.use( { storageState: ADMIN_STATE } );
 
@@ -285,6 +297,106 @@ test.describe( 'a11y: meta boxes', () => {
 				)
 				.first()
 		).toHaveCSS( 'opacity', '0' );
+	} );
+
+	// ADR 0023 gap: rows added by JS. The day has no slots, so the row is new.
+	test( 'station with an added slot', async ( { page }, testInfo ) => {
+		await openStation( page );
+		const thursday = page.locator(
+			'.radplapag-schedule-day[data-day="thursday"]'
+		);
+		await thursday.getByRole( 'button', { name: 'Add Time Slot' } ).click();
+		await expect(
+			thursday.locator( '.radplapag-program-row' )
+		).toHaveCount( 1 );
+
+		await expectNoNewViolations(
+			page,
+			testInfo,
+			'station meta boxes · added slot',
+			[ '#radplapag_station_details', '#radplapag_station_schedule' ]
+		);
+	} );
+
+	// ADR 0023 gap: validation errors on view. The slot error shows when the
+	// focus leaves its row; the submit then reports the empty stream URL and
+	// is blocked before the schedule is validated again.
+	test( 'station with validation errors', async ( { page }, testInfo ) => {
+		await openStation( page );
+		const monday = page.locator(
+			'.radplapag-schedule-day[data-day="monday"]'
+		);
+		await monday.getByRole( 'button', { name: 'Add Time Slot' } ).click();
+		const row = monday.locator( '.radplapag-program-row' ).last();
+		await row
+			.locator( '.radplapag-program-id' )
+			.selectOption( { index: 1 } );
+		await row.locator( '.radplapag-program-start' ).fill( '07:00' );
+		await row.locator( '.radplapag-program-end' ).fill( '08:00' );
+		await page.locator( '#radplapag_station_stream_url' ).focus();
+		// Leaving the row sorts the day: the new row moves to the top, and the
+		// overlapped one reports the overlap as well.
+		await expect(
+			monday.locator( '.radplapag-program-error-message.show' ).first()
+		).toBeVisible();
+		await page.locator( '#radplapag_station_stream_url' ).fill( '' );
+		await page.locator( '#publish' ).click();
+		await expect(
+			page.locator(
+				'[data-field="stream_url"] .radplapag-field-error-message'
+			)
+		).toHaveText( 'This field is required.' );
+
+		await expectNoNewViolations(
+			page,
+			testInfo,
+			'station meta boxes · validation errors',
+			[ '#radplapag_station_details', '#radplapag_station_schedule' ]
+		);
+	} );
+
+	// axe does not follow the keyboard focus (WCAG 2.4.3).
+	test( 'currently drops the keyboard focus when tabbing into the next slot of the day (K39)', async ( {
+		page,
+	} ) => {
+		await openStation( page );
+		const rows = page.locator(
+			'.radplapag-schedule-day[data-day="monday"] .radplapag-program-row'
+		);
+		await rows.nth( 0 ).locator( '.radplapag-remove-program' ).focus();
+
+		await page.keyboard.press( 'Tab' );
+
+		// Leaving the first row re-sorts the day 10 ms later with appendChild,
+		// which detaches the row that has just taken the focus.
+		await expect
+			.poll( () =>
+				rows
+					.nth( 0 )
+					.evaluate(
+						( row ) => row.ownerDocument.activeElement?.tagName
+					)
+			)
+			.toBe( 'BODY' );
+	} );
+
+	test( 'currently drops the keyboard focus when a slot is removed (K39)', async ( {
+		page,
+	} ) => {
+		await openStation( page );
+		const rows = page.locator(
+			'.radplapag-schedule-day[data-day="monday"] .radplapag-program-row'
+		);
+		await rows.nth( 0 ).locator( '.radplapag-remove-program' ).focus();
+
+		await page.keyboard.press( 'Enter' );
+
+		await expect( rows ).toHaveCount( 2 );
+		expect(
+			await rows
+				.nth( 0 )
+				.evaluate( ( row ) => row.ownerDocument.activeElement?.tagName )
+		).toBe( 'BODY' );
 	} );
 
 	test( 'program', async ( { page }, testInfo ) => {

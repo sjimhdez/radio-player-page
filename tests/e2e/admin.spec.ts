@@ -550,6 +550,26 @@ test.describe( 'admin: validation and notices', () => {
 		} );
 	} );
 
+	// `new URL()` and the browser's `type="url"` take `host:port/path` as a URL
+	// with the scheme `radio.example.com`; esc_url_raw() returns '' for it.
+	test( 'currently reports a stream URL without a scheme as missing (K42)', async ( {
+		page,
+	} ) => {
+		await page
+			.locator( '#radplapag_station_stream_url' )
+			.fill( 'radio.example.com:8000/stream' );
+
+		await page.locator( '#publish' ).click();
+		await page.waitForURL( /post\.php\?post=\d+&action=edit&message=/ );
+
+		await expect( page.locator( '.notice-error:visible p' ) ).toHaveText( [
+			'Validation failed: Streaming URL is required.',
+		] );
+		expect( meta( stationId, 'radplapag_station_stream_url' ) ).toBe(
+			VALIDATION_STREAM
+		);
+	} );
+
 	test( 'currently loses a slot and mixes another after removing a middle row and adding one (K15)', async ( {
 		page,
 	} ) => {
@@ -594,5 +614,24 @@ test.describe( 'admin: validation and notices', () => {
 				},
 			],
 		} );
+	} );
+} );
+
+test.describe( 'admin: menu', () => {
+	test.use( { storageState: ADMIN_STATE } );
+
+	// The menu links to the stations list; only a bookmark or a typed URL
+	// reaches the page callback, which runs after the admin header is sent.
+	test( 'currently does not redirect admin.php?page=radplapag to the stations list (K40)', async ( {
+		page,
+	} ) => {
+		const response = await page.goto(
+			'/wp-admin/admin.php?page=radplapag'
+		);
+
+		expect( response?.status() ).toBe( 200 );
+		await expect( page ).toHaveURL( /admin\.php\?page=radplapag$/ );
+		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
+		await expect( page.locator( '.wp-list-table' ) ).toHaveCount( 0 );
 	} );
 } );
