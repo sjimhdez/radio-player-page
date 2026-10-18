@@ -1,16 +1,15 @@
 # Estado
-Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 4 (auditoría) · Plan: [`phase-4.md`](specs/0002-safety-net/phase-4.md) · Actualizado: 2026-10-18
+Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 5 (triage) · Plan: por escribir (`phase-5.md`) · Actualizado: 2026-10-18
 
 ## En curso
-- Spec 0002, fase 4 (auditoría): plan aprobado el 2026-10-17, 4.1 hecha (PHPStan nivel 8 con baseline en `npm run check`), 4.2 hecha (zona 1: K21–K28 y una variante de C10, informe en `audit/core.md`), 4.3 hecha (zona 2: K29–K33 y una variante de K21, informe en `audit/migration.md`; K30 alta), 4.4 hecha (zona 3: K34–K45 y AX5, informe en `audit/admin.md`; huecos del ADR 0023 del admin cerrados, 52 entradas nuevas en la línea base de axe con la aprobación del usuario), 4.5 hecha (zona 4: K46–K54 y una variante de C10, informe en `audit/blocks.md`; hueco del ADR 0023 de `now-playing` cerrado con una emisora siempre en antena, sin entradas nuevas en la línea base); 4.6 hecha (zona 5: K55–K71 y AX6, informe en `audit/player.md`; K67 alta: `dashjs` llama a `time.akamai.com`; huecos de `contract-map.md` cerrados; sin entradas nuevas en la línea base de axe); 4.7 hecha (job `PHPStan` en la CI, en verde en el PR; ADR 0024: nivel 8, la baseline solo baja). Fases 1–3 cerradas; queda la 5 (triage). PR en borrador #37 contra `trunk`.
+- Spec 0002: fases 1–4 cerradas (la 4 el 2026-10-18: informes en `specs/0002-safety-net/audit/`, filas K21–K72, AX5 y AX6). Queda la 5 (triage). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 4.
+1. En una sesión nueva, `start-phase` de la fase 5 (triage de `known-issues.md`).
+2. Llevar al triage, además de las filas: las sospechas sin confirmar de `audit/core.md` §5 (`exit` en `template_redirect` frente a plugins de acceso restringido) y `audit/blocks.md` §5 (programas con contraseña en los bloques y en `RADPLAPAG_PROGRAMS`); el hueco de `withRules()` de `audit/player.md` §4; la gravedad de AX6 (media) frente a K59 (baja), que son el mismo estado; y el endurecimiento de `innerHTML` del admin (`audit/admin.md` §5, para la spec 0005).
 
 ## Bloqueos / preguntas para el humano
 - Fase 3: el criterio del blame de la 3.8 se cumple solo para las líneas que ya existían (82 líneas nuevas de `station-admin.js` siguen en la 3.4, ver desviaciones). ¿Se acepta así?
-
-- Zona 2 (4.3): las dos `phpcs:ignore` de `error_log` del migrador no llevan motivo (ADR 0021). Añadirlo toca código publicado, que esta fase no toca: ¿al triage de la fase 5?
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
@@ -19,6 +18,7 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 4 (auditor�
 
 ## Desviaciones de la spec (→ ADR)
 Spec 0002:
+- §5 fase 4: el `/code-review` de cada zona se hizo con un subagente general a esfuerzo alto, solo lectura, en lugar del comando; lo anota el «Resultado:» de cada tarea.
 - §4.6: además de las tres `phpcs:ignore` previstas, van en línea con su motivo `UnusedFunctionParameter` en cinco callbacks de firma fija y `SlowDBQuery` en `scripts/fixtures/seed.php` (como en `seed-e2e.php`), y un `phpcs:disable`/`phpcs:enable` de `ControlSignature.NewlineAfterOpenBrace` alrededor de toda la plantilla de `blocks/now-playing/render.php` (`phpcbf` cambiaría su HTML; el sniff salta en las dos cabeceras). La parte WordPress va en tres commits (`phpcbf`, a mano, supresiones) en lugar de uno, para comparar por tokens el de `phpcbf`. Con `.git-blame-ignore-revs`, las líneas que ya existían devuelven su commit anterior, pero las 82 que creó la 3.4 en `station-admin.js` (llaves de `curly`, líneas partidas por Prettier) siguen atribuidas a ella: no tienen commit anterior.
 - §3: K17 (`RADPLAPAG_SCHEDULE` sale `[]` sin franjas, `SPEC.md` §3 dice objeto) queda como fila de `known-issues.md`. Si es bug o redacción de `SPEC.md` (con su ADR) se decide en el triage de la fase 5.
 - §4.4: huecos de e2e anotados en las desviaciones de `contract-map.md` (i18n en el navegador, visualizadores, OGG, DASH sin CORS) y de la línea base de axe en el ADR 0023 (`now-playing` según la hora, filas añadidas por JS, errores de validación, contraste). Los revisa la fase 4.

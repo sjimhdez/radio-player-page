@@ -80,7 +80,7 @@ Resultado, en Chromium y WebKit: **ninguna violación**, así que la línea base
 
 ## 5. Descartados
 
-- Programas publicados con contraseña que se muestran en los bloques: la contraseña la pone un administrador y el CPT no es público; expectativa dudosa.
+- Programas publicados con contraseña que se muestran en los bloques: la contraseña la pone un administrador y el CPT no es público. El motivo no basta (cierre de fase, `wp-security-reviewer`): la contraseña dice que el contenido no es público, y falta mirar también `RADPLAPAG_PROGRAMS` en la página limpia. Sospecha para el triage.
 - Un colaborador lee por `/wp/v2/block-renderer` el horario de todas las emisoras publicadas: son los mismos datos que publican la página y los bloques; sin borradores ni `stream_url`.
 - `alt` con `esc_attr()` que `wp_get_attachment_image()` vuelve a escapar: `esc_attr()` no codifica dos veces; sobra, sin efecto.
 - El aviso del editor dice «or starting soon» y el render no muestra un «Coming up» sin programa en antena: es el contrato (§3.5); sospecha de texto para el triage. Con índice inválido dice lo mismo: inocuo.

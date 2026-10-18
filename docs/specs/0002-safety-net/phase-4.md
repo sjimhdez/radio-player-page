@@ -1,5 +1,5 @@
 # Spec 0002 · Fase 4 — Auditoría
-Estado: en curso · Inicio: 2026-10-17 · ADRs: 0021, 0023, 0018, 0019, 0004, 0013 (y uno nuevo: PHPStan con baseline)
+Estado: cerrada (2026-10-18) · Inicio: 2026-10-17 · ADRs: 0021, 0023, 0018, 0019, 0004, 0013 (y uno nuevo: PHPStan con baseline)
 
 ## Contexto
 Medido al planificar (2026-10-17), sin tocar el repo (herramientas en el scratchpad):
