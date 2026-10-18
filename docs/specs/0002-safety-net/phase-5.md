@@ -38,7 +38,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `.git-blame-ignore-revs`.
 - Test: — (comentario de documentación).
 - Verificación: `grep -n markUnblamableLines .git-blame-ignore-revs && npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: f4aa0ee
 
 ### 5.2 Triage · horario y programa en antena (≤ 1 h)
 - Qué: triage con el usuario según el «Método». Filas: C3, C4, C9, C10, C16, K8, K9, K10, K17 (bug o redacción de `SPEC.md` §3), K52.

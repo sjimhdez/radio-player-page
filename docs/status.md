@@ -5,10 +5,9 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 5 (triage) 
 - Spec 0002, fase 5 (triage, desde el 2026-10-18): 89 filas «pendiente» de `known-issues.md` y 8 sospechas de la auditoría, por zonas (tareas 5.2–5.8), con el usuario; la hoja de ruta 0007+ en 5.9. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 5.1: `blame.markUnblamableLines` en la cabecera de `.git-blame-ignore-revs`.
-2. 5.2–5.8: triage zona a zona (horario, player reproducción, player interfaz/a11y, migración, núcleo PHP, admin, bloques); la sesión propone, el usuario decide.
-3. Decisiones que cambien la redacción de `SPEC.md` (K17, K55, K29, K46, K53): `write-adr` en su tarea.
-4. 5.9: specs 0007+ en `docs/specs/README.md` con sus filas; después `close-phase` (última fase: cierra la spec y deja el PR listo).
+1. 5.3–5.8: triage zona a zona (player reproducción, player interfaz/a11y, migración, núcleo PHP, admin, bloques); la sesión propone, el usuario decide.
+2. Decisiones que cambien la redacción de `SPEC.md` (K55, K29, K46, K53): `write-adr` en su tarea.
+3. 5.9: specs 0007+ en `docs/specs/README.md` con sus filas; después `close-phase` (última fase: cierra la spec y deja el PR listo).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
@@ -22,7 +21,7 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 5 (triage) 
 Spec 0002:
 - §5 fase 4: el `/code-review` de cada zona se hizo con un subagente general a esfuerzo alto, solo lectura, en lugar del comando; lo anota el «Resultado:» de cada tarea.
 - §4.6: además de las tres `phpcs:ignore` previstas, van en línea con su motivo `UnusedFunctionParameter` en cinco callbacks de firma fija y `SlowDBQuery` en `scripts/fixtures/seed.php` (como en `seed-e2e.php`), y un `phpcs:disable`/`phpcs:enable` de `ControlSignature.NewlineAfterOpenBrace` alrededor de toda la plantilla de `blocks/now-playing/render.php` (`phpcbf` cambiaría su HTML; el sniff salta en las dos cabeceras). La parte WordPress va en tres commits (`phpcbf`, a mano, supresiones) en lugar de uno, para comparar por tokens el de `phpcbf`. Con `.git-blame-ignore-revs`, las líneas que ya existían devuelven su commit anterior, pero las 82 que creó la 3.4 en `station-admin.js` (llaves de `curly`, líneas partidas por Prettier) siguen atribuidas a ella: no tienen commit anterior. Aceptado por el usuario (2026-10-18), con `blame.markUnblamableLines` para marcarlas.
-- §3: K17 (`RADPLAPAG_SCHEDULE` sale `[]` sin franjas, `SPEC.md` §3 dice objeto) queda como fila de `known-issues.md`. Si es bug o redacción de `SPEC.md` (con su ADR) se decide en el triage de la fase 5.
+- §3: K17 (`RADPLAPAG_SCHEDULE` sale `[]` sin franjas, `SPEC.md` §3 dice objeto) queda como fila de `known-issues.md`. Triage 5.2 (2026-10-18): es bug, se corrige imprimiendo `{}` (sin ADR).
 - §4.4: huecos de e2e anotados en las desviaciones de `contract-map.md` (i18n en el navegador, visualizadores, OGG, DASH sin CORS) y de la línea base de axe en el ADR 0023 (`now-playing` según la hora, filas añadidas por JS, errores de validación, contraste). Los revisa la fase 4.
 - §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).
 - §4.5: la cobertura de PHP por función se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
