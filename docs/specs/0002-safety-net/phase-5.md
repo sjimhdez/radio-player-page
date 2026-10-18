@@ -66,7 +66,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `docs/known-issues.md` (+ ADR y `SPEC.md` si una decisión cambia el contrato); `phase-5.md` (sospechas y la tarea anterior).
 - Test: — (decisiones; sin código).
 - Verificación: `awk -F'|' '/^\| (K29|K30|K31|K32|K33|K72) / && $(NF-1) ~ /pendiente/' docs/known-issues.md` vacío
-- [ ] hecha · commit: —
+- [x] hecha · commit: f367536
 
 ### 5.6 Triage · núcleo PHP, CPT, desinstalación y guidelines (≤ 1 h)
 - Qué: triage con el usuario según el «Método». Filas: C11, K3, K7, K21, K22, K23, K24, K25, K26, K27, K28. Sospechas: `exit` en `template_redirect` frente a plugins de acceso restringido; `<html>` sin `dir` en RTL.
@@ -97,8 +97,8 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - [ ] hecha · commit: —
 
 ## Sospechas (decisión del usuario)
-- [ ] `exit` en `template_redirect` frente a plugins de acceso restringido (5.6)
-- [ ] `<html>` sin `dir` en sitios RTL (5.6)
+- [x] `exit` en `template_redirect` frente a plugins de acceso restringido (5.6) → no arreglar: es el diseño del ADR 0008 y no se reproduce sin un plugin de terceros; si llega un informe, se trata entonces
+- [x] `<html>` sin `dir` en sitios RTL (5.6) → corregir: núcleo (prioridad baja) — `dir="rtl"` con `is_rtl()`, test simulando la dirección; la maqueta del player en RTL queda fuera (otra fila si se ve mal)
 - [ ] Programas con contraseña en bloques y `RADPLAPAG_PROGRAMS` (5.8)
 - [x] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4) → corregir: interfaz, primera tarea de esa spec: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (ADR 0023) antes de arreglar AX6 y AX2
 - [x] Gravedad AX6 vs K59 (5.4) → K59 sube de baja a media; las dos, corregir: interfaz (prioridad media), juntas
