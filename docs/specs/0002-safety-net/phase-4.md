@@ -89,7 +89,14 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 - Archivos: `audit/blocks.md`, `docs/known-issues.md`, `tests/php/integration/Blocks/`, `tests/e2e/fixtures/seed-e2e.php`, `tests/e2e/{blocks,a11y}.spec.ts`.
 - Test: caracterización, como en 4.2.
 - Verificación: `npm run check && npm run test:php:integration && npx playwright test tests/e2e/blocks.spec.ts tests/e2e/a11y.spec.ts`
-- [ ] hecha · commit: —
+- Resultado (2026-10-18):
+  - Informe en [`audit/blocks.md`](audit/blocks.md). PHPCS y `lint-js` de los tres bloques limpios (supresiones con motivo); de las 17 entradas de la baseline de PHPStan de la zona, ninguna es un bug (`radplapag-programs-list-block.php:133` tampoco). Revisores: `wp-security-reviewer`, `wporg-reviewer`, `backcompat-reviewer`, `a11y-reviewer` y un code review a esfuerzo alto en un subagente.
+  - Confirmados: K46–K54 y una variante de C10 en «Coming up». K46, K48–K53 y la variante con un test `currently` de integración (`BlockAuditTest`); K47 con e2e (Chromium y WebKit); K54 con reproducción (mu-plugin temporal en el contenedor, borrado). Medias: K46 (`stationIndex` posicional) y K53 (sin encabezados). 21 descartados, abajo y en el informe.
+  - Hueco del ADR 0023 cerrado: `seed-e2e.php` siembra «E2E Always On Air» (franja `00:00`–`00:00` cada día) y su página de bloques; `a11y.spec.ts` pasa axe sobre ella tras comprobar que `now-playing` y las franjas `is-live` se pintan. Sin violaciones: la línea base no cambia.
+  - Mutación: ocho cambios temporales en `includes/` y `blocks/*/render.php`, y `safeIndex = stationIndex` en `blocks/schedule/src` con su build → los nueve tests en rojo; revertida.
+  - Estabilizado el escenario `station with an added slot` de la 4.4: en WebKit fallaba a veces con `color-contrast` de «Remove Time Slot» porque el puntero se queda sobre la fila nueva y axe medía el *hover* a mitad de la transición. El test aparta el puntero y espera a `opacity: 0` antes de axe; la línea base no cambia.
+  - Verificación: `npm run check` en verde; integración completa en verde en la punta última (372 tests); `blocks.spec.ts` y `a11y.spec.ts` en verde en Chromium y WebKit (34 tests, tres pasadas). La punta mínima queda para `close-phase`.
+- [x] hecha · commit: —
 
 ### 4.6 Auditoría · zona 5, player sin visualizadores (≤ 1 h)
 - Qué: skill `audit` sobre `player/src` menos el ADR 0018. Estáticas, **solo como informe** (configuración del player intacta): `tsc` con `noUncheckedIndexedAccess` y `exactOptionalPropertyTypes` desde un tsconfig temporal en el scratchpad (17 errores fuera de tests y zona congelada), y ESLint con `eslint-plugin-react-hooks@7` y sus reglas estrictas desde una configuración temporal en el scratchpad (`npx`); `npm --prefix player run lint`/`typecheck` normales. Revisión: `/code-review` a esfuerzo alto, `a11y-reviewer` (línea base de axe, C15, AX1, AX2), y comprobación de «ninguna petición a terceros» (`player.md`). Huecos de `contract-map.md` cerrados con e2e: orden de detección i18n en el navegador (`SPEC.md` §4), un directo OGG que suena (`tests/fixtures/audio/tone.ogg`, ya servido) y DASH sin CORS (`currently`, fila K1/C1). Contraste: C1, C2, C4, C6–C9, C15, C16, K1, K8–K14, K18.
@@ -108,6 +115,7 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 ## Decisiones abiertas → ADR
 - **Nivel de PHPStan:** 8 con baseline (83 entradas). → ADR 0024 en 4.7.
 - **Entradas nuevas en la línea base de axe** al cerrar los huecos (4.4–4.6): solo con la decisión del usuario, apuntada en esta sección (ADR 0023).
+  - 4.5 (2026-10-18): el escenario `blocks page · always on air` no da violaciones; la línea base no cambia y no hace falta decisión.
   - 4.4 (2026-10-18): **el usuario aprueba** añadir las violaciones de `station meta boxes · added slot` y `station meta boxes · validation errors` con `RADPLAPAG_UPDATE_A11Y_BASELINE=1`: 52 entradas (AX2–AX4 con el nombre de página nuevo y AX5), en Chromium y WebKit, sin bajas.
 - **Huecos que no se puedan cerrar sin tocar código publicado:** se para y se pregunta (spec §0.4); se quedan anotados en el informe de la zona.
 
@@ -181,6 +189,29 @@ Zona 3 (4.4; detalle en [`audit/admin.md`](audit/admin.md) §5):
 - descartado: clave de la línea base sensible al DOM, porque es el diseño del ADR 0023.
 - descartado: las entradas de PHPStan de la zona, porque son ruido.
 - descartado: `pleaseSelectProgram` con dos sentidos, porque es inocuo.
+
+Zona 4 (4.5; detalle en [`audit/blocks.md`](audit/blocks.md) §5):
+- descartado: programas publicados con contraseña visibles en los bloques, porque la contraseña la pone un administrador y el CPT no es público.
+- descartado: un colaborador lee por `block-renderer` el horario de todas las emisoras publicadas, porque son los mismos datos que ya se publican.
+- descartado: `esc_attr()` del `alt` antes de `wp_get_attachment_image()`, porque no codifica dos veces.
+- descartado (sospecha para el triage): el aviso del editor dice «or starting soon» y no se muestra un «Coming up» sin programa en antena, porque es el contrato (§3.5).
+- descartado (para la spec 0005): «Radio Station» + índice concatenado (el pendiente de la zona 1) y los dos puntos y el « - » fuera de las cadenas, porque no hay bug visible.
+- descartado: `alt` redundante, dos enlaces al mismo destino, `target="_blank"` sin aviso, «—» y sin `aria-current`, porque son mejoras sin incumplimiento medido de AA y tocan el markup.
+- descartado: contraste del aviso del editor (`opacity: 0.6`), porque solo sale en el editor, depende del tema y no se ha medido.
+- descartado: `$radplapag_schedule_day_map` sin uso, porque es inocua y un tercero podría leerla.
+- descartado: `version` 1.0.0 de los `block.json` y `package.json` sin `license`, porque es informativo.
+- descartado: `dayOrder` sin `enum`, porque el render y el editor normalizan.
+- descartado: defaults en tres sitios, porque coinciden.
+- descartado: consultas repetidas de `radplapag_get_config()`, porque es rendimiento sin efecto visible.
+- descartado: §3.5 (`[ etiquetas ]`) y §3.4 sin las funciones del horario y la lista, porque es redacción de `SPEC.md` (para el cierre).
+- descartado: `TypeError` con `$day_order` nulo, porque nadie la llama así.
+- descartado: `now-playing` sin `save`, porque core lo pone por defecto y el e2e pasa en WP 6.6.
+- descartado: la franja de ayer al final con `current_first`, porque la lista empieza por hoy.
+- descartado: `<figure>` vacío con el logo borrado, porque es cosmético y artificial.
+- descartado: la lista de programas no marca «(Rerun)», porque el player tampoco.
+- descartado: un programa no publicado en antena que tape a otro, porque sin solapes no puede pasar.
+- descartado: `now-playing` desfasado con caché de página, porque es el diseño de un bloque dinámico.
+- descartado: las entradas de PHPStan de la zona, porque son ruido.
 
 ## Verificación de la fase
 - `npm run check` en verde (incluye PHPStan).

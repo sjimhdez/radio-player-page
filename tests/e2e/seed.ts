@@ -22,6 +22,7 @@ export type SeedUrlKey =
 	| 'intro'
 	| 'broken-intro'
 	| 'minimal'
+	| 'always'
 	| 'visualizer-oscilloscope'
 	| 'visualizer-bars'
 	| 'visualizer-particles'
@@ -30,7 +31,8 @@ export type SeedUrlKey =
 	| 'password'
 	| 'not-a-page'
 	| 'no-station'
-	| 'blocks';
+	| 'blocks'
+	| 'blocks-always-on';
 
 export interface Seed {
 	/** The dev station of scripts/fixtures/seed.php. */

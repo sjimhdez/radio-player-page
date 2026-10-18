@@ -247,6 +247,34 @@ test( 'a11y: blocks page', async ( { page }, testInfo ) => {
 	] );
 } );
 
+// Gap of ADR 0023 (audit 4.5): a station with a 24-hour slot on each day, so
+// now-playing and the `is-live` branches of the other two always render.
+test( 'a11y: blocks page with a program always on air', async ( {
+	page,
+}, testInfo ) => {
+	await page.goto( readSeed().urls[ 'blocks-always-on' ] );
+	await expect(
+		page.locator( '.wp-block-radplapag-now-playing article' )
+	).toHaveCount( 1 );
+	await expect(
+		page.locator( '.wp-block-radplapag-schedule li.is-live' )
+	).not.toHaveCount( 0 );
+	await expect(
+		page.locator( '.wp-block-radplapag-programs-list li.is-live' )
+	).not.toHaveCount( 0 );
+
+	await expectNoNewViolations(
+		page,
+		testInfo,
+		'blocks page · always on air',
+		[
+			'.wp-block-radplapag-now-playing',
+			'.wp-block-radplapag-schedule',
+			'.wp-block-radplapag-programs-list',
+		]
+	);
+} );
+
 /**
  * Opens the edit screen of the MP3 station.
  *
@@ -309,6 +337,13 @@ test.describe( 'a11y: meta boxes', () => {
 		await expect(
 			thursday.locator( '.radplapag-program-row' )
 		).toHaveCount( 1 );
+		// The pointer stays on the new row after the click, and its :hover fades
+		// "Remove Time Slot" in: axe could measure it mid-fade (WebKit). The
+		// scenario is the row at rest; hover is out of axe's reach (AX5).
+		await page.mouse.move( 0, 0 );
+		await expect(
+			thursday.locator( '.radplapag-schedule-remove-cell' )
+		).toHaveCSS( 'opacity', '0' );
 
 		await expectNoNewViolations(
 			page,

@@ -3,8 +3,9 @@
  * E2E seeder for Radio Player Page (spec 0002, phase 2).
  *
  * Creates one page + station per e2e variant (MP3, live, cut, HLS, DASH, no
- * CORS, intro, each visualizer, minimal), the pages the plugin must not
- * intercept, and a page with the three blocks. Every post it creates carries
+ * CORS, intro, each visualizer, minimal, always on air), the pages the plugin
+ * must not intercept, and two pages with the three blocks (the MP3 grid, and
+ * the always-on-air station so that now-playing always renders). Every post it creates carries
  * its own tag, so a run first removes everything the previous run created.
  * scripts/fixtures/seed.php (the dev station) is left alone.
  *
@@ -234,6 +235,36 @@ function radplapag_e2e_schedule( array $programs ) {
 }
 
 /**
+ * Builds a grid with one 24-hour slot of Program A on each day (`start ==
+ * end`, which the server accepts, C3), so a program is always on air by the
+ * real clock (audit 4.5, gap of ADR 0023).
+ *
+ * @param array<string, int> $programs Program IDs by letter.
+ * @return string Schedule meta value (JSON).
+ */
+function radplapag_e2e_always_on_air_schedule( array $programs ) {
+	$days = array();
+	foreach ( array( 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ) as $day ) {
+		$days[ $day ] = array(
+			array(
+				'program_id' => $programs['A'],
+				'start'      => '00:00',
+				'end'        => '00:00',
+				'is_rerun'   => false,
+			),
+		);
+	}
+
+	$schedule = radplapag_sanitize_station_schedule( $days );
+
+	if ( is_wp_error( $schedule ) ) {
+		WP_CLI::error( 'Schedule validation failed: ' . $schedule->get_error_message() );
+	}
+
+	return wp_json_encode( $schedule );
+}
+
+/**
  * Creates a station assigned to $page_id.
  *
  * @param string $title   Station title.
@@ -334,6 +365,13 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 			'title' => 'E2E Minimal <>&\'"',
 			'meta'  => array( 'stream_url' => "{$media}/tone.mp3" ),
 		),
+		'always'       => array(
+			'title' => 'E2E Always On Air',
+			'meta'  => array(
+				'stream_url' => "{$media}/tone.mp3",
+				'schedule'   => radplapag_e2e_always_on_air_schedule( $programs ),
+			),
+		),
 		// Pages the plugin must not intercept: their station is valid.
 		'draft'        => array(
 			'title'  => 'E2E Draft Page',
@@ -385,22 +423,28 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 	);
 	radplapag_e2e_record( 'no-station', get_permalink( $no_station_id ) );
 
-	// The blocks select their station by position in radplapag_get_stations().
-	$mp3_id        = array_search( 'station-mp3', radplapag_e2e_record()['ids'], true );
-	$station_index = array_search( (int) $mp3_id, array_column( radplapag_get_stations(), 'id' ), true );
-	$attributes    = wp_json_encode( array( 'stationIndex' => $station_index ) );
-
-	$blocks_id = radplapag_e2e_insert(
-		array(
-			'post_type'    => 'page',
-			'post_title'   => 'E2E Blocks',
-			'post_content' => "<!-- wp:radplapag/now-playing {$attributes} /-->\n\n"
-				. "<!-- wp:radplapag/schedule {$attributes} /-->\n\n"
-				. "<!-- wp:radplapag/programs-list {$attributes} /-->",
-		),
-		'page-blocks'
+	$blocks_pages = array(
+		'blocks'           => array( 'E2E Blocks', 'station-mp3' ),
+		'blocks-always-on' => array( 'E2E Blocks Always On Air', 'station-always' ),
 	);
-	radplapag_e2e_record( 'blocks', get_permalink( $blocks_id ) );
+	foreach ( $blocks_pages as $key => list( $title, $station_name ) ) {
+		// The blocks select their station by position in radplapag_get_stations().
+		$station_id    = array_search( $station_name, radplapag_e2e_record()['ids'], true );
+		$station_index = array_search( (int) $station_id, array_column( radplapag_get_stations(), 'id' ), true );
+		$attributes    = wp_json_encode( array( 'stationIndex' => $station_index ) );
+
+		$blocks_id = radplapag_e2e_insert(
+			array(
+				'post_type'    => 'page',
+				'post_title'   => $title,
+				'post_content' => "<!-- wp:radplapag/now-playing {$attributes} /-->\n\n"
+					. "<!-- wp:radplapag/schedule {$attributes} /-->\n\n"
+					. "<!-- wp:radplapag/programs-list {$attributes} /-->",
+			),
+			"page-{$key}"
+		);
+		radplapag_e2e_record( $key, get_permalink( $blocks_id ) );
+	}
 
 	WP_CLI::line( wp_json_encode( radplapag_e2e_record(), JSON_UNESCAPED_SLASHES ) );
 }

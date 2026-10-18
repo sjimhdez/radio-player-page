@@ -281,4 +281,42 @@ test.describe( 'blocks: editor', () => {
 			)
 		).toContainText( 'Now Playing: nothing to show' );
 	} );
+
+	// Audit 4.5: a saved index past the last station (one was unpublished) is
+	// clamped for the select and the preview only; the front end gets the
+	// stored index and prints «No radio schedule for this station.».
+	test( 'currently previews the last station for an out-of-range station index (K47)', async ( {
+		page,
+	} ) => {
+		await openNewPost( page );
+		const preview = page.waitForResponse( ( response ) =>
+			decodeURIComponent( response.url() ).includes(
+				'/block-renderer/radplapag/schedule?'
+			)
+		);
+		const { clientId, last } = await page.evaluate( () => {
+			// @ts-expect-error -- wp is the editor global.
+			const { blocks, data } = window.wp;
+			const block = blocks.createBlock( 'radplapag/schedule', {
+				stationIndex: 999,
+			} );
+			data.dispatch( 'core/block-editor' ).insertBlocks( [ block ] );
+			return {
+				clientId: block.clientId as string,
+				last:
+					// @ts-expect-error -- the editor data of the block.
+					( window.radplapagScheduleBlock.stations
+						.length as number ) - 1,
+			};
+		} );
+
+		const url = decodeURIComponent( ( await preview ).url() );
+		expect( url ).toContain( `attributes[stationIndex]=${ last }&` );
+		expect( await stationIndexOf( page, clientId ) ).toBe( 999 );
+
+		const select = page
+			.locator( '.block-editor-block-inspector' )
+			.getByRole( 'combobox', { name: 'Radio Station', exact: true } );
+		await expect( select ).toHaveValue( String( last ) );
+	} );
 } );
