@@ -1,13 +1,14 @@
 # Estado
-Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 5 (triage) · Plan: por escribir (`phase-5.md`) · Actualizado: 2026-10-18
+Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 5 (triage) · Plan: [`phase-5.md`](specs/0002-safety-net/phase-5.md) · Actualizado: 2026-10-18
 
 ## En curso
-- Spec 0002: fases 1–4 cerradas (la 4 el 2026-10-18: informes en `specs/0002-safety-net/audit/`, filas K21–K72, AX5 y AX6). Queda la 5 (triage). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 5 (triage, desde el 2026-10-18): 89 filas «pendiente» de `known-issues.md` y 8 sospechas de la auditoría, por zonas (tareas 5.2–5.8), con el usuario; la hoja de ruta 0007+ en 5.9. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. En una sesión nueva, `start-phase` de la fase 5 (triage de `known-issues.md`).
-2. Llevar al triage, además de las filas: las sospechas sin confirmar de `audit/core.md` §5 (`exit` en `template_redirect` frente a plugins de acceso restringido) y `audit/blocks.md` §5 (programas con contraseña en los bloques y en `RADPLAPAG_PROGRAMS`); el hueco de `withRules()` de `audit/player.md` §4; la gravedad de AX6 (media) frente a K59 (baja), que son el mismo estado; y el endurecimiento de `innerHTML` del admin (`audit/admin.md` §5, para la spec 0005).
-3. Blame de la 3.8: el usuario acepta la desviación (opción B, 2026-10-18). En la fase 5, añadir a la cabecera de `.git-blame-ignore-revs` `git config blame.markUnblamableLines true`, que marca con `*` las líneas que creó un commit ignorado.
+1. 5.1: `blame.markUnblamableLines` en la cabecera de `.git-blame-ignore-revs`.
+2. 5.2–5.8: triage zona a zona (horario, player reproducción, player interfaz/a11y, migración, núcleo PHP, admin, bloques); la sesión propone, el usuario decide.
+3. Decisiones que cambien la redacción de `SPEC.md` (K17, K55, K29, K46, K53): `write-adr` en su tarea.
+4. 5.9: specs 0007+ en `docs/specs/README.md` con sus filas; después `close-phase` (última fase: cierra la spec y deja el PR listo).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
