@@ -11,7 +11,8 @@ Plugin de WordPress (publicado en wordpress.org) que sirve una página limpia po
 
 | Comando | Qué hace |
 |---|---|
-| `npm run check` | PHPCS + PHPUnit unit + ESLint (raíz) + Vitest (raíz) + tests de hooks + `check` del player + `check` de cada bloque + lista del zip. Sin Docker. **Antes de cada commit.** |
+| `npm run check` | PHPCS + PHPStan + PHPUnit unit + ESLint (raíz) + Vitest (raíz) + tests de hooks + `check` del player + `check` de cada bloque + lista del zip. Sin Docker. **Antes de cada commit.** |
+| `npm run lint:phpstan` | PHPStan nivel 8 con `phpstan-baseline.neon`; la baseline solo baja (ADR 0024) |
 | `npm test` / `npm run test:php:unit` | Vitest de la raíz (`tests/js`) / PHPUnit sin WordPress |
 | `npm run test:php:integration` | PHPUnit sobre wp-env (entorno de tests, tablas `wptests_`) |
 | `npm run test:e2e` | Playwright (Chromium + WebKit) sobre el entorno de tests; antes siembra `scripts/fixtures/seed.php` y `tests/e2e/fixtures/seed-e2e.php` |

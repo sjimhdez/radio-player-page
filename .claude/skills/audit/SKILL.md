@@ -12,7 +12,7 @@ Zona: `$ARGUMENTS`.
 
 ## 1. Herramientas estáticas de la zona
 
-- PHP: `npm run lint:php` (estándar completo, sin línea base desde la spec 0002; revisa también los `phpcs:ignore` de la zona y su motivo). PHPStan si ya está montado (spec 0002).
+- PHP: `npm run lint:php` (estándar completo, sin línea base desde la spec 0002; revisa también los `phpcs:ignore` de la zona y su motivo). PHPStan con `npm run lint:phpstan` (nivel 8 con baseline, ADR 0024): cada entrada de la baseline de la zona, ¿bug o ruido?
 - Player: `npm --prefix player run typecheck`, `lint`.
 - Admin/bloques: ESLint de su proyecto.
 - Seguridad y guidelines: lee `.claude/rules/security.md` y `wordpress-org.md` y recórrelas sobre la zona.

@@ -57,6 +57,21 @@ jobs:
       - name: Composer audit
         run: composer audit --no-interaction
 
+  phpstan:
+    name: PHPStan (level 8 with baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      # Same command as `npm run lint:phpstan` (no Node needed). The baseline
+      # only shrinks (ADR 0024): unmatched entries fail too.
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
   phpunit-unit:
     name: PHPUnit unit (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
