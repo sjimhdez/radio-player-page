@@ -1,12 +1,13 @@
 # Estado
-Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: cerrada (1–5, el 2026-10-18; PR #37 listo, pendiente de merge en `trunk`) · Plan: [`phase-5.md`](specs/0002-safety-net/phase-5.md) · Actualizado: 2026-10-18
+Spec activa: 0003 — Dependencias del player (React) · Fase: 1 por planificar · Plan: — (spec: [`spec.md`](specs/0003-player-dependencies/spec.md)) · Actualizado: 2026-10-18
 
 ## En curso
-- Nada. La spec 0002 está cerrada; el PR #37 espera el merge del usuario (merge commit, sin squash, título `Spec 0002: Red de seguridad, auditoría y triage`).
+- Nada. La spec 0003 está escrita (rama `spec/0003-player-dependencies`, sin push); la 0002 está cerrada y fusionada en `trunk` (PR #37).
 
 ## Siguiente (máx. 5)
-1. Tras el merge, sesión de diseño → `write-spec` de la 0003 (dependencias del player) y/o la 0004 (dependencias de la parte WordPress); son independientes, en paralelo si se quiere.
-2. Hoja de ruta completa y dependencias de las correcciones 0007–0013 en `docs/specs/README.md`.
+1. Sesión nueva → `start-phase` de la fase 1 de la 0003 (medición del bundle y capturas). Hace el primer push y abre el PR en borrador.
+2. En paralelo, si se quiere: sesión de diseño → `write-spec` de la 0004 (dependencias de la parte WordPress), en su worktree.
+3. Hoja de ruta completa y dependencias de las correcciones 0007–0013 en `docs/specs/README.md`.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.

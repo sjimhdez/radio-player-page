@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | cerrada (PR #36) | `spec/0001-bootstrap` | — |
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | cerrada (PR #37) | `spec/0002-safety-net` | 0001 |
-| 0003 | Dependencias del player (React) | pendiente de escribir | — | 0002 |
+| 0003 | [Dependencias del player (React)](0003-player-dependencies/spec.md) | propuesta | `spec/0003-player-dependencies` | 0002 |
 | 0004 | Dependencias de la parte WordPress (bloques, raíz, Composer, CI) | pendiente de escribir | — | 0002 |
 | 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0004 |
 | 0006 | Refactor del player | pendiente de escribir | — | 0003 |
@@ -64,13 +64,6 @@ Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec po
 
 Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec.
 
-- **0003 Dependencias del player:**
-  - todo a la última versión, una versión mayor por commit (skill `upgrade-dependency`);
-  - **MUI** (hoy 7.3.x) y Emotion con la guía oficial y `@mui/codemod`, versión mayor a versión mayor;
-  - React, `hls.js`, `dashjs`, i18next, `date-fns`, Vite, TypeScript, ESLint;
-  - presupuesto del bundle (más de un +10 % necesita un ADR): la 0003 monta la medición (bytes y gzip de `player/dist`), que hoy no existe;
-  - capturas antes y después para la revisión visual del usuario (Playwright; también por montar);
-  - los visualizadores, sin tocar o con un cambio mínimo y su ADR.
 - **0004 Dependencias de WordPress:**
   - `@wordpress/scripts` de **cada bloque por separado**;
   - las herramientas de la raíz, Composer y las Actions de GitHub;
@@ -86,6 +79,7 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - núcleo `player/src/core/` sin React ni MUI: máquina de estados del audio, adaptadores por protocolo, `crossOrigin`, intro, horario, sueño, Media Session y lectura de las globales;
   - los hooks, como adaptadores finos;
   - TDD;
+  - quitar las excepciones de `react-hooks` 7 que deja la 0003 (`set-state-in-effect` e `immutability`/`refs`, lista en su §4.4 y en el plan de su fase 2) y cambiar `process.env.NODE_ENV` por `import.meta.env.DEV` en `src/utils/timezone.ts`;
   - del triage de la 0002: K9 (el núcleo valida el offset), K14 (Media Session en el núcleo), K70 (cada adaptador por protocolo fija su `crossOrigin`) y las sospechas de dos `play()` concurrentes con HLS y de `pause()` durante la carga de un MP3 (el núcleo serializa `play()`/`pause()` y lo comprueba en sus tests; si se confirma un fallo visible, pasa como fila a la 0007).
 - **Correcciones (0007–0013), comunes a todas:**
   - cada fila se corrige con `fix-bug`: el test `currently` pasa a test de regresión en rojo y luego a verde; la fila de `known-issues.md` pasa a «corregido (versión)»;
