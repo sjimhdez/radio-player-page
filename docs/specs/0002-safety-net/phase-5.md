@@ -73,7 +73,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `docs/known-issues.md` (+ ADR y `SPEC.md` si una decisión cambia el contrato); `phase-5.md` (sospechas y la tarea anterior).
 - Test: — (decisiones; sin código).
 - Verificación: `awk -F'|' '/^\| (C11|K3|K7|K21|K22|K23|K24|K25|K26|K27|K28) / && $(NF-1) ~ /pendiente/' docs/known-issues.md` vacío
-- [ ] hecha · commit: —
+- [x] hecha · commit: aa75d9a
 
 ### 5.7 Triage · admin (≤ 1 h)
 - Qué: triage con el usuario según el «Método». Filas: C13, K5, K15, K16, K19, K20, K34, K35, K36, K37, K38, K39, K40, K41, K42, K43, K44, K45, AX3, AX4, AX5. Sospechas: endurecimiento de `innerHTML` (→ 0005); «Entrada publicada» junto al error; meta box contraído con un error.
@@ -102,9 +102,9 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - [ ] Programas con contraseña en bloques y `RADPLAPAG_PROGRAMS` (5.8)
 - [x] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4) → corregir: interfaz, primera tarea de esa spec: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (ADR 0023) antes de arreglar AX6 y AX2
 - [x] Gravedad AX6 vs K59 (5.4) → K59 sube de baja a media; las dos, corregir: interfaz (prioridad media), juntas
-- [ ] Endurecimiento de `innerHTML` del admin (5.7)
+- [x] Endurecimiento de `innerHTML` del admin (5.7) → otra spec: 0005 (endurecimiento, no bug: el refactor del admin construye el DOM con `textContent` / `createElement`)
 - [x] Dos `play()` concurrentes con HLS; `pause()` durante la carga de un MP3 (5.3) → otra spec: 0006 (el núcleo serializa `play()`/`pause()` y lo comprueba con sus tests; si se confirma un fallo visible, pasa como fila a la spec de reproducción)
-- [ ] «Entrada publicada» con error; meta box contraído con error (5.7)
+- [x] «Entrada publicada» con error; meta box contraído con error (5.7) → las dos, corregir: admin (prioridad baja). «Entrada publicada»: si hay error se quita el mensaje de core; la emisora se sigue publicando (contrato, §3.1 y §3.6). Meta box contraído: primero se reproduce con un test; si se confirma, se abre el meta box con el error, y si no, se cierra sin cambios
 - [x] Bloqueo `radplapag_migrating` no atómico; migración cortada a medias (5.5, auditoría 4.3) → corregir: migración (prioridad baja) — bloqueo atómico con `add_option()` y un reintento que no duplica lo ya creado, junto a K30
 
 ## Decisiones abiertas → ADR
