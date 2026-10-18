@@ -1,6 +1,7 @@
 # ADR 0021 — Estándares de código sobre el código heredado: línea base por archivo
 
 - Estado: aceptado · Fecha: 2026-10-16 · Spec: 0001 (fase 1)
+- Seguimiento: las líneas base se retiraron en la spec 0002, fase 3 (2026-10-17). Solo queda `player/src/config/visualizers.ts` fuera de Prettier (ADR 0018).
 
 ## Contexto
 

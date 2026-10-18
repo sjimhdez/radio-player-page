@@ -1,30 +1,36 @@
 # Estado
-Spec activa: 0001 — Bootstrap: spike, herramientas e ingeniería de contexto · Fase: cerrada (0 y 1) · Plan: docs/specs/0001-bootstrap/phase-1.md · Actualizado: 2026-10-16
+Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: cerrada (1–5, el 2026-10-18; PR #37 listo, pendiente de merge en `trunk`) · Plan: [`phase-5.md`](specs/0002-safety-net/phase-5.md) · Actualizado: 2026-10-18
 
 ## En curso
-- Nada. La spec 0001 está cerrada y el PR #36 (`spec/0001-bootstrap` → `trunk`) está listo para merge.
+- Nada. La spec 0002 está cerrada; el PR #37 espera el merge del usuario (merge commit, sin squash, título `Spec 0002: Red de seguridad, auditoría y triage`).
 
 ## Siguiente (máx. 5)
-1. Usuario: actualizar los checks obligatorios de los rulesets de `main` y `trunk` (ver «Bloqueos») y fusionar el PR #36 con merge commit, sin squash, título `Spec 0001: Bootstrap: spike, herramientas e ingeniería de contexto`. Antes puede lanzar `/code-review`.
-2. Tras el merge: sesión de diseño → `write-spec 0002` (red de seguridad, auditoría y triage), partiendo del borrador `docs/specs/0002-safety-net/spec.md`.
-3. Después, sesión nueva → `start-phase` de la 0002.
+1. Tras el merge, sesión de diseño → `write-spec` de la 0003 (dependencias del player) y/o la 0004 (dependencias de la parte WordPress); son independientes, en paralelo si se quiere.
+2. Hoja de ruta completa y dependencias de las correcciones 0007–0013 en `docs/specs/README.md`.
 
 ## Bloqueos / preguntas para el humano
-- **Checks obligatorios de los rulesets.** Los antiguos (`PHP Syntax (PHP 7.4)`, `PHP Syntax (PHP 8.4)`, `Player (lint, build, dist check)`, `WordPress blocks`) ya no existen, salvo los dos de sintaxis. Los jobs de `.github/workflows/ci.yml` son:
-  - `PHP Syntax (PHP 7.4)` · `PHP Syntax (PHP 8.4)` · `PHPCS (WPCS + PHPCompatibilityWP)`
-  - `PHPUnit unit (PHP 7.4)` · `PHPUnit unit (PHP 8.4)`
-  - `PHPUnit integration (PHP 7.4 + WP 6.6)` · `PHPUnit integration (PHP 8.4 + latest WP)`
-  - `WordPress JS (root lint + Vitest)` · `Player (typecheck, lint, format, Vitest, build, dist check)`
-  - `Block (schedule)` · `Block (programs-list)` · `Block (now-playing)`
-  - `Licenses and npm audit (bundled dependencies)` · `Claude Code hook tests`
-  - `E2E (PHP 7.4 + WP 6.6, Chromium + WebKit)` · `E2E (PHP 8.4 + latest WP, Chromium + WebKit)`
-  - `Release zip (file list and development paths)` · `Plugin Check (release zip)`
-- Los `php@7.4`/`php@8.4` de Homebrew ya no arrancan (faltan `libffi` y `net-snmp`). En local, la matriz de PHP se prueba con `docker run php:<v>-cli` o con wp-env. Arreglarlo es opcional (`brew reinstall php@7.4 php@8.4`).
+- Ninguno.
 
 ## Verificación manual pendiente
-- Ninguna.
+- E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
+- Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66) y los controles con `100vh` bajo la barra de Safari de iOS.
+- K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)
+Spec 0002:
+- §5 fase 4: el `/code-review` de cada zona se hizo con un subagente general a esfuerzo alto, solo lectura, en lugar del comando; lo anota el «Resultado:» de cada tarea.
+- §4.6: además de las tres `phpcs:ignore` previstas, van en línea con su motivo `UnusedFunctionParameter` en cinco callbacks de firma fija y `SlowDBQuery` en `scripts/fixtures/seed.php` (como en `seed-e2e.php`), y un `phpcs:disable`/`phpcs:enable` de `ControlSignature.NewlineAfterOpenBrace` alrededor de toda la plantilla de `blocks/now-playing/render.php` (`phpcbf` cambiaría su HTML; el sniff salta en las dos cabeceras). La parte WordPress va en tres commits (`phpcbf`, a mano, supresiones) en lugar de uno, para comparar por tokens el de `phpcbf`. Con `.git-blame-ignore-revs`, las líneas que ya existían devuelven su commit anterior, pero las 82 que creó la 3.4 en `station-admin.js` (llaves de `curly`, líneas partidas por Prettier) siguen atribuidas a ella: no tienen commit anterior. Aceptado por el usuario (2026-10-18), con `blame.markUnblamableLines` para marcarlas.
+- §3: K17 (`RADPLAPAG_SCHEDULE` sale `[]` sin franjas, `SPEC.md` §3 dice objeto) queda como fila de `known-issues.md`. Triage 5.2 (2026-10-18): es bug, se corrige imprimiendo `{}`; en el cierre, el usuario pidió un ADR corto en la 0009 (cambia la forma observable de una global).
+- §5 fase 5 (Método, paso 4): las decisiones que cambiarán `SPEC.md` §3 o un ADR al corregirse llevan su ADR en la spec de correcciones que las aplica, no en el triage; solo K55 (redacción, sin código) tuvo su ADR en la fase (0025). Lista en «Decisiones abiertas» de `phase-5.md`.
+- §4.4: huecos de e2e anotados en las desviaciones de `contract-map.md` (i18n en el navegador, visualizadores, OGG, DASH sin CORS) y de la línea base de axe en el ADR 0023 (`now-playing` según la hora, filas añadidas por JS, errores de validación, contraste). Los revisa la fase 4.
+- §5 fase 1: `filter_input()` devuelve `null` en CLI. El guardado correcto de URL y página, el aviso tras guardar y C13 se cubren con e2e en la fase 2 (decisión del usuario, 2026-10-16).
+- §4.5: la cobertura de PHP por función se lee de `--coverage-xml`; el clover de PHPUnit 9.6 no da funciones globales.
+- §5 fase 1: C9 solo en TS. La parte PHP (offset por petición) la fija el snapshot de la página limpia en la fase 2 (`clean-page.spec.ts`). El horario de verano en PHP lo fija ya la integración (`SiteTimezoneTest`, `timezone_string` con DST); el snapshot sigue en `Asia/Kolkata`.
+- §4.1: no hay fixture `legacy-settings` de «conflicto con CPT publicados»: el caso necesita una emisora publicada antes de migrar y lo cubre `UpgradeFlowTest::test_published_station_skips_migration_and_flags_conflict`.
+- §4.2: las globales `window.RADPLAPAG_*` no se pueden fijar en integración (las imprime `radplapag_output_clean_page()`, que termina con `exit`): van al snapshot HTTP de la fase 2.
+- §4.1: `schedule-vectors.json` amplía el formato: parrillas con nombre (`grids.main`, `grids.c3`), resultados de validación por capa (`php`/`admin`, porque C3 los separa) y el código `start_equals_end` (solo admin). La resolución solo se separa donde el player difiere de PHP: el vector C3-2 lleva un objeto `ts` (K8, día sin franjas tras una que cruza la medianoche); el resultado de primer nivel es el de PHP.
+
+Spec 0001:
 - §6: rama de integración `trunk`; `main` = lo publicado (ADR 0007).
 - §4.2: la migración cubre los formatos 2.0.x–3.2.x, no «cualquier versión anterior a la 3.3.0» (ADR 0005).
 - §4.8 / decisión 5: `crossOrigin` solo en las fuentes directas (ADR 0004).

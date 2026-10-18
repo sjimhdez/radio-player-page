@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<phpunit xmlns="https://schema.phpunit.de/coverage/1.0">
+  <project source="/var/www/html/wp-content/plugins/radio-player-page">
+    <directory name="/">
+      <directory name="includes">
+        <file name="critical.php" href="includes/critical.php.xml">
+          <totals>
+            <lines total="30" comments="5" code="25" executable="10" executed="9" percent="90.00"/>
+          </totals>
+        </file>
+        <file name="mixed.php" href="includes/mixed.php.xml">
+          <totals>
+            <lines total="60" comments="10" code="50" executable="20" executed="12" percent="60.00"/>
+          </totals>
+        </file>
+      </directory>
+      <file name="main.php" href="main.php.xml">
+        <totals>
+          <lines total="120" comments="20" code="100" executable="50" executed="5" percent="10.00"/>
+        </totals>
+      </file>
+      <file name="uninstall.php" href="uninstall.php.xml">
+        <totals>
+          <lines total="30" comments="5" code="25" executable="10" executed="7" percent="70.00"/>
+        </totals>
+      </file>
+    </directory>
+  </project>
+</phpunit>

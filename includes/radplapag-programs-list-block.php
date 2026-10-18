@@ -23,7 +23,7 @@ defined( 'ABSPATH' ) || exit;
  * @return array|null List of programs, each with 'id', 'name', 'logo_id' (attachment ID or 0), 'description', 'extended_description', 'slots'. Null if station invalid or index out of range.
  */
 function radplapag_get_programs_list_for_station( $station_index ) {
-	$config  = radplapag_get_config();
+	$config = radplapag_get_config();
 	if ( ! isset( $config['stations'] ) || ! is_array( $config['stations'] ) ) {
 		return null;
 	}
@@ -34,39 +34,39 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 	}
 	$station = $stations[ $idx ];
 
-	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
+	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
 
 	$day_data   = radplapag_get_schedule_day_keys_and_labels();
 	$day_keys   = $day_data['day_keys_order'];
 	$day_labels = $day_data['day_labels'];
 
-	$tz               = wp_timezone();
-	$now              = new DateTime( 'now', $tz );
-	$day_of_week      = (int) $now->format( 'w' );
-	$current_minutes  = (int) $now->format( 'G' ) * 60 + (int) $now->format( 'i' );
+	$tz              = wp_timezone();
+	$now             = new DateTime( 'now', $tz );
+	$day_of_week     = (int) $now->format( 'w' );
+	$current_minutes = (int) $now->format( 'G' ) * 60 + (int) $now->format( 'i' );
 
 	// Build slots per program_id: collect from schedule, then attach to each program.
-	$slots_by_program = [];
+	$slots_by_program = array();
 	foreach ( $day_keys as $day_key ) {
-		$day_entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : [];
+		$day_entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : array();
 		$label       = $day_labels[ $day_key ] ?? $day_key;
 		$day_num     = array_search( $day_key, $day_keys, true );
-		$wp_day      = $day_num === 6 ? 0 : $day_num + 1;
+		$wp_day      = 6 === $day_num ? 0 : $day_num + 1;
 		$is_today    = ( $wp_day === $day_of_week );
-		$is_prev_day = ( $wp_day === ( ( $day_of_week - 1 + 7 ) % 7 ) );
+		$is_prev_day = ( ( ( $day_of_week - 1 + 7 ) % 7 ) === $wp_day );
 
 		foreach ( $day_entries as $entry ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
 			$program_id = $entry['program_id'] ?? '';
-			if ( $program_id === '' ) {
+			if ( '' === $program_id ) {
 				continue;
 			}
 			$program_id_key = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
 			$start          = (string) ( $entry['start'] ?? '' );
 			$end            = (string) ( $entry['end'] ?? '' );
-			if ( $start === '' || $end === '' ) {
+			if ( '' === $start || '' === $end ) {
 				continue;
 			}
 			$is_live = false;
@@ -77,41 +77,44 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 			}
 			$time_range = $start . '-' . $end;
 			if ( ! isset( $slots_by_program[ $program_id_key ] ) ) {
-				$slots_by_program[ $program_id_key ] = [];
+				$slots_by_program[ $program_id_key ] = array();
 			}
-			$slots_by_program[ $program_id_key ][] = [
+			$slots_by_program[ $program_id_key ][] = array(
 				'day_key'    => $day_key,
 				'day_label'  => $label,
 				'time_range' => $time_range,
 				'is_live'    => $is_live,
-			];
+			);
 		}
 	}
 
 	// Sort slots within each program: by day order then by start time.
 	foreach ( array_keys( $slots_by_program ) as $pid ) {
-		usort( $slots_by_program[ $pid ], function ( $a, $b ) use ( $day_keys ) {
-			$pos_a = array_search( $a['day_key'], $day_keys, true );
-			$pos_b = array_search( $b['day_key'], $day_keys, true );
-			if ( $pos_a !== $pos_b ) {
-				return $pos_a - $pos_b;
+		usort(
+			$slots_by_program[ $pid ],
+			function ( $a, $b ) use ( $day_keys ) {
+				$pos_a = array_search( $a['day_key'], $day_keys, true );
+				$pos_b = array_search( $b['day_key'], $day_keys, true );
+				if ( $pos_a !== $pos_b ) {
+					return $pos_a - $pos_b;
+				}
+				$start_a = substr( $a['time_range'], 0, 5 );
+				$start_b = substr( $b['time_range'], 0, 5 );
+				return radplapag_parse_time_to_minutes( $start_a ) - radplapag_parse_time_to_minutes( $start_b );
 			}
-			$start_a = substr( $a['time_range'], 0, 5 );
-			$start_b = substr( $b['time_range'], 0, 5 );
-			return radplapag_parse_time_to_minutes( $start_a ) - radplapag_parse_time_to_minutes( $start_b );
-		} );
+		);
 	}
 
 	// Get unique program IDs in order of first appearance in schedule (Monday–Sunday).
-	$program_ids_ordered = [];
+	$program_ids_ordered = array();
 	foreach ( $day_keys as $day_key ) {
-		$day_entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : [];
+		$day_entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : array();
 		foreach ( $day_entries as $entry ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
 			$pid = $entry['program_id'] ?? null;
-			if ( $pid !== null && $pid !== '' && is_numeric( $pid ) ) {
+			if ( null !== $pid && '' !== $pid && is_numeric( $pid ) ) {
 				$pid_int = (int) $pid;
 				if ( $pid_int > 0 && ! in_array( $pid_int, $program_ids_ordered, true ) ) {
 					$program_ids_ordered[] = $pid_int;
@@ -120,22 +123,22 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 		}
 	}
 
-	$out = [];
+	$out = array();
 	foreach ( $program_ids_ordered as $post_id ) {
 		$data = radplapag_get_program_data( $post_id, true );
 		if ( ! $data ) {
 			continue;
 		}
-		$key  = (string) $post_id;
-		$slots = $slots_by_program[ $key ] ?? [];
-		$out[] = [
+		$key   = (string) $post_id;
+		$slots = $slots_by_program[ $key ] ?? array();
+		$out[] = array(
 			'id'                   => $key,
 			'name'                 => $data['name'],
 			'logo_id'              => $data['logo_id'] > 0 ? $data['logo_id'] : 0,
-			'description'          => $data['description'] !== '' ? $data['description'] : null,
-			'extended_description' => $data['extended_description'] !== '' ? $data['extended_description'] : null,
+			'description'          => '' !== $data['description'] ? $data['description'] : null,
+			'extended_description' => '' !== $data['extended_description'] ? $data['extended_description'] : null,
 			'slots'                => $slots,
-		];
+		);
 	}
 	return $out;
 }

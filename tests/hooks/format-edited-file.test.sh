@@ -16,14 +16,13 @@ else
 	ko "reports PHP syntax errors" "$OUT $ERR"
 fi
 
-# PHP: a legacy file is not reformatted (phpcbf stays off until spec 0002).
-LEGACY="$ROOT/includes/radplapag-upgrade.php"
-BEFORE="$(shasum "$LEGACY")"
-run_hook format-edited-file.sh "$(edit_json "$LEGACY")"
-if [ "$CODE" -eq 0 ] && [ -z "$OUT" ] && [ "$(shasum "$LEGACY")" = "$BEFORE" ]; then
-	ok "leaves a valid legacy PHP file untouched"
+# PHP: phpcbf formats the edited file with the project's ruleset.
+printf '<?php\nfunction radplapag_hook_sample() {\n    $value = [ 1, 2 ];\n    return $value;\n}\n' >"$SCRATCH/sample.php"
+run_hook format-edited-file.sh "$(edit_json "$SCRATCH/sample.php")"
+if [ "$CODE" -eq 0 ] && [ -z "$OUT" ] && grep -q "^	\$value = array( 1, 2 );$" "$SCRATCH/sample.php"; then
+	ok "formats PHP with phpcbf"
 else
-	ko "leaves a valid legacy PHP file untouched" "$OUT"
+	ko "formats PHP with phpcbf" "$OUT $(cat "$SCRATCH/sample.php")"
 fi
 
 # Player (its own Prettier + ESLint).

@@ -79,7 +79,12 @@ export function isProgramActive(
 function resolveProgram(
   programs: ProgramDefinition[] | undefined,
   programId: string,
-): { name: string; description: string | null; extendedDescription: string | null; logoUrl: string | null } {
+): {
+  name: string
+  description: string | null
+  extendedDescription: string | null
+  logoUrl: string | null
+} {
   if (!programs || !programId) {
     return { name: '', description: null, extendedDescription: null, logoUrl: null }
   }
@@ -380,7 +385,10 @@ export function getAllProgramsWithSlots(
       const slot: ProgramSlotDisplay = { dayOfWeek, timeRange }
       let acc = byId.get(programId)
       if (!acc) {
-        const { name, description, extendedDescription, logoUrl } = resolveProgram(programs, programId)
+        const { name, description, extendedDescription, logoUrl } = resolveProgram(
+          programs,
+          programId,
+        )
         acc = { name, description, extendedDescription, logoUrl, slots: [], entries: [] }
         byId.set(programId, acc)
       }
@@ -409,6 +417,8 @@ export function getAllProgramsWithSlots(
     })
   }
 
-  result.sort((a, b) => a.programName.localeCompare(b.programName, undefined, { sensitivity: 'base' }))
+  result.sort((a, b) =>
+    a.programName.localeCompare(b.programName, undefined, { sensitivity: 'base' }),
+  )
   return result
 }

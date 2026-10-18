@@ -5,13 +5,7 @@
 
 /** Day keys for the weekly schedule */
 export type ScheduleDayKey =
-  | 'monday'
-  | 'tuesday'
-  | 'wednesday'
-  | 'thursday'
-  | 'friday'
-  | 'saturday'
-  | 'sunday'
+  'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
 
 /**
  * Program definition (from RADPLAPAG_PROGRAMS).

@@ -11,10 +11,11 @@ Plugin de WordPress (publicado en wordpress.org) que sirve una página limpia po
 
 | Comando | Qué hace |
 |---|---|
-| `npm run check` | PHPCS + PHPUnit unit + ESLint (raíz) + Vitest (raíz) + tests de hooks + `check` del player + `check` de cada bloque + lista del zip. Sin Docker. **Antes de cada commit.** |
+| `npm run check` | PHPCS + PHPStan + PHPUnit unit + ESLint (raíz) + Vitest (raíz) + tests de hooks + `check` del player + `check` de cada bloque + lista del zip. Sin Docker. **Antes de cada commit.** |
+| `npm run lint:phpstan` | PHPStan nivel 8 con `phpstan-baseline.neon`; la baseline solo baja (ADR 0024) |
 | `npm test` / `npm run test:php:unit` | Vitest de la raíz (`tests/js`) / PHPUnit sin WordPress |
 | `npm run test:php:integration` | PHPUnit sobre wp-env (entorno de tests, tablas `wptests_`) |
-| `npm run test:e2e` | Playwright (Chromium + WebKit) sobre el entorno de tests; antes siembra `scripts/fixtures/seed.php` |
+| `npm run test:e2e` | Playwright (Chromium + WebKit) sobre el entorno de tests; antes siembra `scripts/fixtures/seed.php` y `tests/e2e/fixtures/seed-e2e.php` |
 | `npm run test:hooks` | Tests de `.claude/hooks/` |
 | `npm run check:zip` | El zip lista los mismos archivos que `v3.4.2` y no lleva rutas de desarrollo |
 | `npm --prefix player run check` / `build` | tsc + ESLint + Prettier + Vitest del player / build a `player/dist/` |
@@ -63,5 +64,5 @@ Entornos (Docker, wp-env): desarrollo con `npm run env:start` → <http://localh
 - Subir los requisitos mínimos (WP 6.6, PHP 7.4).
 - Corregir un bug sin su test de regresión, o fuera de una spec de correcciones.
 - Editar un test de caracterización para que pase.
-- Añadir entradas a las líneas base de PHPCS, ESLint o Prettier (ADR 0021): se arregla el código.
+- Desactivar reglas de PHPCS, ESLint o Prettier por archivo (ADR 0021): se arregla el código, o la excepción va en su línea con su motivo.
 - Hacer peticiones reales a internet en los tests.

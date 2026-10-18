@@ -18,11 +18,11 @@ export function getCurrentTimeInTimezone(timezoneOffset: number): {
     try {
       // Get current UTC time
       const now = new Date()
-      
+
       // Calculate local time by adding WordPress timezone offset (in milliseconds)
       const offsetMs = timezoneOffset * 60 * 60 * 1000
       const localTimeMs = now.getTime() + offsetMs
-      
+
       // Create a Date object representing the local time in WordPress timezone
       const localDate = new Date(localTimeMs)
 
@@ -40,7 +40,7 @@ export function getCurrentTimeInTimezone(timezoneOffset: number): {
       if (process.env.NODE_ENV === 'development') {
         console.error(
           '[Radio Player] Error calculating time with offset, falling back to UTC:',
-          error
+          error,
         )
       }
       // Fall through to UTC fallback
@@ -51,7 +51,7 @@ export function getCurrentTimeInTimezone(timezoneOffset: number): {
   if (process.env.NODE_ENV === 'development') {
     console.warn(
       '[Radio Player] Invalid timezone offset, using UTC fallback. Offset:',
-      timezoneOffset
+      timezoneOffset,
     )
   }
 
@@ -84,10 +84,7 @@ export function getBrowserTimezoneOffset(): number {
     return offsetHours
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error(
-        '[Radio Player] Error getting browser timezone offset, using UTC:',
-        error
-      )
+      console.error('[Radio Player] Error getting browser timezone offset, using UTC:', error)
     }
     return 0 // Fallback to UTC
   }
@@ -100,10 +97,7 @@ export function getBrowserTimezoneOffset(): number {
  * @param browserOffset Browser timezone offset in hours from UTC (optional, calculated if not provided)
  * @returns Difference in hours (positive if WordPress is ahead, negative if behind)
  */
-export function getTimezoneDifference(
-  wordPressOffset: number,
-  browserOffset?: number
-): number {
+export function getTimezoneDifference(wordPressOffset: number, browserOffset?: number): number {
   const browser = browserOffset ?? getBrowserTimezoneOffset()
   return wordPressOffset - browser
 }
@@ -117,7 +111,7 @@ export function getTimezoneDifference(
  */
 export function formatTimeInTimezone(
   timezoneOffset: number,
-  includeSeconds: boolean = true
+  includeSeconds: boolean = true,
 ): string {
   try {
     const now = new Date()
@@ -140,10 +134,7 @@ export function formatTimeInTimezone(
     return `${hourStr}:${minuteStr}`
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error(
-        '[Radio Player] Error formatting time in timezone, using current time:',
-        error
-      )
+      console.error('[Radio Player] Error formatting time in timezone, using current time:', error)
     }
     // Fallback to browser's local time
     const now = new Date()
@@ -170,11 +161,9 @@ export function formatTimezoneDifference(differenceHours: number): string {
   // Round to 1 decimal place to handle half-hour timezones
   const rounded = Math.round(differenceHours * 10) / 10
   const sign = rounded >= 0 ? '+' : ''
-  
+
   // Format with proper decimal handling
-  const formatted = rounded % 1 === 0 
-    ? rounded.toString() 
-    : rounded.toFixed(1)
-  
+  const formatted = rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1)
+
   return `${sign}${formatted}`
 }

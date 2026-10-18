@@ -68,12 +68,12 @@ function radplapag_ensure_schema_version_option(): void {
  */
 function radplapag_migration_resolve_author_user_id(): int {
 	$users = get_users(
-		[
+		array(
 			'role'    => 'administrator',
 			'number'  => 20,
 			'orderby' => 'ID',
 			'order'   => 'ASC',
-		]
+		)
 	);
 	foreach ( $users as $user ) {
 		if ( $user instanceof WP_User && user_can( $user, 'manage_options' ) ) {
@@ -129,11 +129,11 @@ function radplapag_run_legacy_migration_if_needed(): void {
 
 	set_transient( 'radplapag_migrating', '1', 120 );
 
-	$author_id  = radplapag_migration_resolve_author_user_id();
-	$prev_user  = get_current_user_id();
+	$author_id = radplapag_migration_resolve_author_user_id();
+	$prev_user = get_current_user_id();
 	wp_set_current_user( $author_id );
 
-	require_once dirname( __FILE__ ) . '/migration/class-radplapag-migrator-settings-to-cpt.php';
+	require_once __DIR__ . '/migration/class-radplapag-migrator-settings-to-cpt.php';
 
 	$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
 
@@ -176,7 +176,7 @@ function radplapag_schedule_legacy_migration(): void {
  * @return void
  */
 function radplapag_on_upgrader_process_complete( $upgrader, array $options ): void {
-	if ( ! isset( $options['action'], $options['type'] ) || $options['action'] !== 'update' || $options['type'] !== 'plugin' ) {
+	if ( ! isset( $options['action'], $options['type'] ) || 'update' !== $options['action'] || 'plugin' !== $options['type'] ) {
 		return;
 	}
 	if ( empty( $options['plugins'] ) || ! is_array( $options['plugins'] ) ) {
@@ -208,10 +208,10 @@ function radplapag_handle_migration_notice_dismiss(): void {
 	if ( ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['_wpnonce'] ) ), 'radplapag_dismiss_' . $dismiss ) ) {
 		return;
 	}
-	if ( $dismiss === 'migration_conflict' ) {
+	if ( 'migration_conflict' === $dismiss ) {
 		delete_option( 'radplapag_migration_skipped_cpt_conflict' );
 	}
-	wp_safe_redirect( remove_query_arg( [ 'radplapag_dismiss', '_wpnonce' ] ) );
+	wp_safe_redirect( remove_query_arg( array( 'radplapag_dismiss', '_wpnonce' ) ) );
 	exit;
 }
 
@@ -233,7 +233,7 @@ function radplapag_migration_admin_notices(): void {
 	}
 
 	$error = get_transient( 'radplapag_migration_error_notice' );
-	if ( is_string( $error ) && $error !== '' ) {
+	if ( is_string( $error ) && '' !== $error ) {
 		delete_transient( 'radplapag_migration_error_notice' );
 		echo '<div class="notice notice-error is-dismissible"><p><strong>' . esc_html__( 'Radio Player Page migration error', 'radio-player-page' ) . '</strong></p><p>' . esc_html( $error ) . '</p></div>';
 	}

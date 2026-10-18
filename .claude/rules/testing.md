@@ -17,9 +17,9 @@ paths:
 | Capa | Dónde | Herramienta | Comando |
 |---|---|---|---|
 | PHP unit (sin WP) | `tests/php/unit/` | PHPUnit 9.6 + polyfills 4 (ADR 0003) | `npm run test:php:unit` |
-| PHP integración | `tests/php/integration/` | `WP_UnitTestCase` sobre wp-env, tablas `wptests_` | `npm run test:php:integration` |
+| PHP integración | `tests/php/integration/` | `WP_UnitTestCase` sobre wp-env, tablas `wptests_` | `npm run test:php:integration` (multisite: `:ms`; cobertura: `:coverage` + `node scripts/check-php-coverage.mjs coverage/php-xml`) |
 | JS del player | `player/src/**/*.test.ts(x)` | Vitest + Testing Library + happy-dom (ADR 0006) | `npm --prefix player test` |
-| JS de WordPress | `tests/js/admin/` (o en el bloque, si se extrae lógica de un bloque) | Vitest | `npm test` |
+| JS de WordPress | `tests/js/admin/` (o en el bloque, si se extrae lógica de un bloque) | Vitest (proyecto `admin` con happy-dom; `node` para el resto) | `npm test` |
 | E2E | `tests/e2e/` | Playwright, Chromium + WebKit, entorno de tests | `npm run test:e2e` |
 | Hooks | `tests/hooks/*.test.sh` | bash | `npm run test:hooks` |
 | Zip | `tests/zip/` | bash | `npm run check:zip` |
@@ -32,8 +32,9 @@ paths:
 - **TDD** para la lógica nueva o extraída: el test primero y en rojo.
 - **Ningún test sale a internet.** PHP: `pre_http_request` si hace falta. E2E: el *fixture* de `tests/e2e/fixtures.ts` aborta cualquier petición fuera del origen de test y falla. Los medios se sirven en local.
 - **Tiempo determinista:** Vitest con `vi.useFakeTimers()` y `TZ=UTC` en el proceso (los scripts ya lo fijan); los casos de zona horaria se repiten con varias `TZ`. E2E con `page.clock`. Casos obligatorios del horario: cruce de medianoche, cambio de día, horario de verano y `timezoneOffset` negativo y fraccionario (+5:30).
-- **La integración nunca toca el sitio de desarrollo**: corre en `.wp-env.tests.json` con el prefijo `wptests_`. E2E usa el sitio `wp_` de ese mismo entorno y lo siembra `scripts/fixtures/seed.php`.
-- **Fixtures** en `tests/fixtures/` (spec 0002): `legacy-settings/` (formatos 2.0.x–3.2.x, ADR 0005), `schedule-vectors.json` (los pasan PHP y TS) y `audio/`.
+- **La integración nunca toca el sitio de desarrollo**: corre en `.wp-env.tests.json` con el prefijo `wptests_`. E2E usa el sitio `wp_` de ese mismo entorno y lo siembran `scripts/fixtures/seed.php` y `tests/e2e/fixtures/seed-e2e.php` (variantes de emisora y páginas; las URLs e IDs quedan en `test-results/e2e-seed.json`).
+- **Fixtures** en `tests/fixtures/` (spec 0002): `legacy-settings/` (formatos 2.0.x–3.2.x, ADR 0005), `schedule-vectors.json` (los pasan PHP, el admin JS y TS), `admin/station-meta-box.html` (lo escribe `AdminScreensTest` y lo monta Vitest) y `audio/`. Los snapshots de integración viven en `tests/php/integration/snapshots/` y solo se reescriben con `RADPLAPAG_UPDATE_SNAPSHOTS=1`. La línea base de axe (`tests/e2e/a11y-baseline.json`, ADR 0023) solo se reescribe con `RADPLAPAG_UPDATE_A11Y_BASELINE=1`, en los dos proyectos: el criterio es «ninguna violación nueva».
+- **Reloj del servidor en integración:** `Support/Clock` fija `gmt_offset` y rota la parrilla; el código publicado no tiene costura de tiempo (spec 0002 §4.3).
 - **Nombres:** PHP `*Test.php` con métodos `test_*` (en `tests/` no se aplica la regla de nombres de archivo de WPCS); TS/JS `*.test.ts(x)` / `*.test.js`. Un comportamiento por test.
 - **Mutación de comprobación:** un test nuevo se ve fallar al menos una vez (TDD en rojo o una mutación temporal que se revierte).
 

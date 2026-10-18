@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  * @return void
  */
 function radplapag_register_program_post_type() {
-	$labels = [
+	$labels = array(
 		'name'               => _x( 'Radio Shows', 'post type general name', 'radio-player-page' ),
 		'singular_name'      => _x( 'Radio Show', 'post type singular name', 'radio-player-page' ),
 		'menu_name'          => __( 'Radio Shows', 'radio-player-page' ),
@@ -31,26 +31,26 @@ function radplapag_register_program_post_type() {
 		'not_found'          => __( 'No Radio Shows found.', 'radio-player-page' ),
 		'not_found_in_trash' => __( 'No Radio Shows found in Trash.', 'radio-player-page' ),
 		'all_items'          => __( 'Radio Shows', 'radio-player-page' ),
-	];
+	);
 
 	// Use custom capability type so we grant caps only via user_has_cap (manage_options).
 	// Avoids WordPress 6.1+ "delete_post must be checked against a specific post" when using map_meta_cap with custom caps.
-	$args = [
-		'labels'              => $labels,
-		'public'               => false,
-		'publicly_queryable'   => false,
-		'show_ui'              => true,
-		'show_in_menu'         => 'radplapag',
-		'query_var'            => false,
-		'rewrite'              => false,
-		'capability_type'      => [ 'radplapag_program', 'radplapag_programs' ],
-		'map_meta_cap'         => true,
-		'has_archive'          => false,
-		'hierarchical'         => false,
-		'menu_position'        => 10,
-		'supports'             => [ 'title' ],
-		'show_in_rest'         => true,
-	];
+	$args = array(
+		'labels'             => $labels,
+		'public'             => false,
+		'publicly_queryable' => false,
+		'show_ui'            => true,
+		'show_in_menu'       => 'radplapag',
+		'query_var'          => false,
+		'rewrite'            => false,
+		'capability_type'    => array( 'radplapag_program', 'radplapag_programs' ),
+		'map_meta_cap'       => true,
+		'has_archive'        => false,
+		'hierarchical'       => false,
+		'menu_position'      => 10,
+		'supports'           => array( 'title' ),
+		'show_in_rest'       => true,
+	);
 
 	register_post_type( 'radplapag_program', $args );
 }
@@ -63,26 +63,26 @@ add_action( 'init', 'radplapag_register_program_post_type' );
  * "map_meta_cap delete_post must check against a specific post" notices.
  *
  * @since 3.3.0
- * @param array $allcaps All capabilities for the user.
- * @param array $caps    Requested capabilities.
- * @param array $args    Optional arguments (e.g. post ID).
+ * @param array   $allcaps All capabilities for the user.
+ * @param array   $caps    Requested capabilities.
+ * @param array   $args    Optional arguments (e.g. post ID).
  * @param WP_User $user  User object.
  * @return array Filtered capabilities.
  */
-function radplapag_grant_program_caps_to_manage_options( $allcaps, $caps, $args, $user ) {
+function radplapag_grant_program_caps_to_manage_options( $allcaps, $caps, $args, $user ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by user_has_cap (4 arguments).
 	if ( ! empty( $allcaps['manage_options'] ) ) {
-		$allcaps['edit_radplapag_programs']         = true;
-		$allcaps['edit_others_radplapag_programs']  = true;
-		$allcaps['publish_radplapag_programs']      = true;
-		$allcaps['read_private_radplapag_programs'] = true;
-		$allcaps['delete_radplapag_programs']       = true;
+		$allcaps['edit_radplapag_programs']             = true;
+		$allcaps['edit_others_radplapag_programs']      = true;
+		$allcaps['publish_radplapag_programs']          = true;
+		$allcaps['read_private_radplapag_programs']     = true;
+		$allcaps['delete_radplapag_programs']           = true;
 		$allcaps['delete_private_radplapag_programs']   = true;
-		$allcaps['delete_published_radplapag_programs']  = true;
-		$allcaps['delete_others_radplapag_programs']     = true;
-		$allcaps['edit_radplapag_program']          = true;
-		$allcaps['read_radplapag_program']          = true;
-		$allcaps['delete_radplapag_program']        = true;
-		$allcaps['create_radplapag_programs']       = true;
+		$allcaps['delete_published_radplapag_programs'] = true;
+		$allcaps['delete_others_radplapag_programs']    = true;
+		$allcaps['edit_radplapag_program']              = true;
+		$allcaps['read_radplapag_program']              = true;
+		$allcaps['delete_radplapag_program']            = true;
+		$allcaps['create_radplapag_programs']           = true;
 	}
 	return $allcaps;
 }
@@ -101,52 +101,52 @@ function radplapag_register_program_meta() {
 	register_post_meta(
 		$post_type,
 		'radplapag_program_description',
-		[
+		array(
 			'type'              => 'string',
 			'description'       => __( 'Short radio show description.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => 'sanitize_text_field',
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_program_extended_description',
-		[
+		array(
 			'type'              => 'string',
 			'description'       => __( 'Extended radio show description.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => 'sanitize_textarea_field',
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_program_logo_id',
-		[
+		array(
 			'type'              => 'integer',
 			'description'       => __( 'Attachment ID for radio show logo image.', 'radio-player-page' ),
 			'single'            => true,
-			'sanitize_callback' => function( $value ) {
+			'sanitize_callback' => function ( $value ) {
 				$id = absint( $value );
 				if ( $id > 0 && ! wp_attachment_is_image( $id ) ) {
 					return 0;
 				}
 				return $id;
 			},
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 }
 add_action( 'init', 'radplapag_register_program_meta', 20 );
@@ -165,23 +165,23 @@ function radplapag_get_program_data( $post_id, $require_published = false ) {
 		return null;
 	}
 	$post = get_post( $post_id );
-	if ( ! $post || $post->post_type !== 'radplapag_program' ) {
+	if ( ! $post || 'radplapag_program' !== $post->post_type ) {
 		return null;
 	}
-	if ( $require_published && $post->post_status !== 'publish' ) {
+	if ( $require_published && 'publish' !== $post->post_status ) {
 		return null;
 	}
-	$description         = get_post_meta( $post_id, 'radplapag_program_description', true );
+	$description          = get_post_meta( $post_id, 'radplapag_program_description', true );
 	$extended_description = get_post_meta( $post_id, 'radplapag_program_extended_description', true );
-	$logo_id             = (int) get_post_meta( $post_id, 'radplapag_program_logo_id', true );
-	$logo_url            = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'full' ) : null;
-	return [
+	$logo_id              = (int) get_post_meta( $post_id, 'radplapag_program_logo_id', true );
+	$logo_url             = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'full' ) : null;
+	return array(
 		'name'                 => $post->post_title,
 		'description'          => is_string( $description ) ? $description : '',
 		'extended_description' => is_string( $extended_description ) ? $extended_description : '',
 		'logo_id'              => $logo_id,
 		'logo_url'             => $logo_url ? $logo_url : null,
-	];
+	);
 }
 
 /**
@@ -191,19 +191,21 @@ function radplapag_get_program_data( $post_id, $require_published = false ) {
  * @return array Array of [ 'id' => int (post ID), 'name' => string (post_title) ], ordered by title.
  */
 function radplapag_get_all_programs_for_select() {
-	$posts = get_posts( [
-		'post_type'      => 'radplapag_program',
-		'post_status'    => [ 'publish', 'draft' ],
-		'posts_per_page' => -1,
-		'orderby'        => 'title',
-		'order'          => 'ASC',
-	] );
-	$out = [];
+	$posts = get_posts(
+		array(
+			'post_type'      => 'radplapag_program',
+			'post_status'    => array( 'publish', 'draft' ),
+			'posts_per_page' => -1,
+			'orderby'        => 'title',
+			'order'          => 'ASC',
+		)
+	);
+	$out   = array();
 	foreach ( $posts as $post ) {
-		$out[] = [
+		$out[] = array(
 			'id'   => (int) $post->ID,
 			'name' => $post->post_title,
-		];
+		);
 	}
 	return $out;
 }
@@ -236,13 +238,13 @@ function radplapag_add_program_meta_boxes() {
 function radplapag_render_program_meta_boxes( $post ) {
 	wp_nonce_field( 'radplapag_program_meta', 'radplapag_program_meta_nonce' );
 
-	$description         = get_post_meta( $post->ID, 'radplapag_program_description', true );
+	$description          = get_post_meta( $post->ID, 'radplapag_program_description', true );
 	$extended_description = get_post_meta( $post->ID, 'radplapag_program_extended_description', true );
-	$logo_id            = (int) get_post_meta( $post->ID, 'radplapag_program_logo_id', true );
+	$logo_id              = (int) get_post_meta( $post->ID, 'radplapag_program_logo_id', true );
 
-	$desc_value        = is_string( $description ) ? $description : '';
-	$ext_desc_value    = is_string( $extended_description ) ? $extended_description : '';
-	$logo_url          = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+	$desc_value     = is_string( $description ) ? $description : '';
+	$ext_desc_value = is_string( $extended_description ) ? $extended_description : '';
+	$logo_url       = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
 	?>
 	<p class="radplapag-field-wrap">
 		<label for="radplapag_program_description"><strong><?php esc_html_e( 'Description', 'radio-player-page' ); ?></strong></label><br>
@@ -291,8 +293,8 @@ function radplapag_save_program_meta( $post_id ) {
 	}
 
 	$description = isset( $_POST['radplapag_program_description'] ) ? sanitize_text_field( wp_unslash( $_POST['radplapag_program_description'] ) ) : '';
-	$extended   = isset( $_POST['radplapag_program_extended_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['radplapag_program_extended_description'] ) ) : '';
-	$logo_id    = isset( $_POST['radplapag_program_logo_id'] ) ? absint( $_POST['radplapag_program_logo_id'] ) : 0;
+	$extended    = isset( $_POST['radplapag_program_extended_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['radplapag_program_extended_description'] ) ) : '';
+	$logo_id     = isset( $_POST['radplapag_program_logo_id'] ) ? absint( $_POST['radplapag_program_logo_id'] ) : 0;
 
 	if ( strlen( $description ) > 256 ) {
 		$description = substr( $description, 0, 256 );
@@ -317,15 +319,15 @@ function radplapag_save_program_meta( $post_id ) {
  */
 function radplapag_program_edit_scripts() {
 	$screen = get_current_screen();
-	if ( ! $screen || $screen->id !== 'radplapag_program' ) {
+	if ( ! $screen || 'radplapag_program' !== $screen->id ) {
 		return;
 	}
 	wp_enqueue_media();
-	$admin_url = plugin_dir_url( dirname( __FILE__ ) ) . 'admin/';
+	$admin_url = plugin_dir_url( __DIR__ ) . 'admin/';
 	wp_enqueue_script(
 		'radplapag-program-admin',
 		$admin_url . 'js/program-admin.js',
-		[ 'jquery', 'media-editor' ],
+		array( 'jquery', 'media-editor' ),
 		'3.4.2',
 		true
 	);

@@ -1,0 +1,4 @@
+{
+	"_source": "v1.0.1–v1.1.4 admin-page.php: radplapag_sanitize_settings() stores a flat array",
+	"settings": { "stream_url": "https://stream.example.test/live.mp3", "player_page": "{{PAGE:Player 1}}" }
+}

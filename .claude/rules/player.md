@@ -9,10 +9,10 @@ paths:
 
 ## Herramientas
 
-- `npm --prefix player run check` = `tsc -b` + ESLint (typescript-eslint + react-hooks) + `prettier --check` (`player/.prettierrc`) + Vitest (happy-dom, ADR 0006).
+- `npm --prefix player run check` = `tsc -b` + ESLint (typescript-eslint + react-hooks) + `prettier --check` (`player/.prettierrc`) + Vitest con cobertura (`test:coverage`, happy-dom, ADR 0006; umbrales por glob en `vitest.config.ts`).
 - `npm --prefix player run build` → `player/dist/` (se commitea; nombres `radio-player-page-<versión>[-<chunk>].min.js|css`, que PHP lee de `manifest.json`).
 - TypeScript `strict`. Alias `src/*` (en `tsconfig.app.json`, `vite.config.ts` y `vitest.config.ts`).
-- Los archivos de `player/.prettierignore` son la línea base heredada (ADR 0021); no se añaden más.
+- Prettier cubre todo `src/` salvo `src/config/visualizers.ts`, la zona congelada (ADR 0018), que es lo único que lista `player/.prettierignore` además de lo generado; no se añaden más (ADR 0021).
 
 ## Frontera con WordPress
 
@@ -36,4 +36,4 @@ paths:
 ## i18n
 
 - 14 locales en `src/locales/*.json` (i18next). Todos tienen las mismas claves que `en-US.json` (test de paridad en la 0002).
-- Detección: `lang` del `<html>` → `localStorage` → navegador; reserva `en-US`.
+- Idioma: el del sitio, por el `lang` del `<html>`; reserva `en-US`. El navegador y `localStorage` no son contrato (ADR 0025).

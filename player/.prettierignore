@@ -4,13 +4,5 @@ build
 coverage
 .env
 
-# Baseline for legacy code (ADR 0021): not yet formatted. Spec 0002 formats them
-# and removes this block. Do not add entries.
+# Frozen zone (ADR 0018): not reformatted.
 src/config/visualizers.ts
-src/hooks/use-program-schedule.tsx
-src/types/global.ts
-src/utils/program-schedule.ts
-src/utils/timezone.ts
-eslint.config.js
-tsconfig.json
-vite.config.ts

@@ -57,6 +57,21 @@ jobs:
       - name: Composer audit
         run: composer audit --no-interaction
 
+  phpstan:
+    name: PHPStan (level 8 with baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      # Same command as `npm run lint:phpstan` (no Node needed). The baseline
+      # only shrinks (ADR 0024): unmatched entries fail too.
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
   phpunit-unit:
     name: PHPUnit unit (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest
@@ -83,7 +98,8 @@ jobs:
       matrix:
         env:
           - { name: "PHP 7.4 + WP 6.6", script: "env:start:min" }
-          - { name: "PHP 8.4 + latest WP", script: "env:start:latest" }
+          # Coverage only here (spec 0002 §4.5): Xdebug slows the run down.
+          - { name: "PHP 8.4 + latest WP", script: "env:start:latest", coverage: true }
     steps:
       - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
@@ -104,8 +120,15 @@ jobs:
           timeout_minutes: 10
           max_attempts: 3
           retry_wait_seconds: 10
-          command: npm run ${{ matrix.env.script }}
-      - run: npm run test:php:integration
+          command: npm run ${{ matrix.env.script }}${{ matrix.env.coverage && ' -- --xdebug=coverage' || '' }}
+      - if: ${{ !matrix.env.coverage }}
+        run: npm run test:php:integration
+      - if: ${{ matrix.env.coverage }}
+        run: npm run test:php:integration:coverage
+      - name: PHP coverage minimums (tests/coverage/php-zones.json)
+        if: ${{ matrix.env.coverage }}
+        run: node scripts/check-php-coverage.mjs coverage/php-xml
+      - run: npm run test:php:integration:ms
 
   # ---------------------------------------------------------------------------
   # JavaScript: one job per project, never unified (ADR 0020).
@@ -204,7 +227,8 @@ jobs:
         with:
           php-version: "8.4"
           coverage: none
-          tools: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc

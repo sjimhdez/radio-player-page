@@ -1,0 +1,15 @@
+# PHPStan for the published PHP (spec 0002, task 4.1). Development only: not in the zip.
+includes:
+	- phpstan-baseline.neon
+
+parameters:
+	level: 8
+	phpVersion: 70400
+	paths:
+		- radio-player-page.php
+		- uninstall.php
+		- includes
+		- admin
+		- blocks/now-playing/render.php
+		- blocks/programs-list/render.php
+		- blocks/schedule/render.php

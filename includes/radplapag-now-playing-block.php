@@ -39,7 +39,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 		return null;
 	}
 	$station      = $stations[ $idx ];
-	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : [];
+	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
 
 	$station_page_url = '';
 	if ( isset( $station['player_page'] ) && $station['player_page'] ) {
@@ -61,7 +61,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 
 	$day_key_for_wp_day = function ( $wp_day ) use ( $day_keys ) {
 		foreach ( $day_keys as $index => $day_key ) {
-			$key_wp_day = ( $index === 6 ) ? 0 : $index + 1;
+			$key_wp_day = ( 6 === $index ) ? 0 : $index + 1;
 			if ( $key_wp_day === $wp_day ) {
 				return $day_key;
 			}
@@ -75,7 +75,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 
 	$build_entry = function ( $entry, $day_label ) {
 		$program_id = $entry['program_id'] ?? '';
-		if ( $program_id === '' || ! is_numeric( $program_id ) ) {
+		if ( '' === $program_id || ! is_numeric( $program_id ) ) {
 			return null;
 		}
 		$data = radplapag_get_program_data( (int) $program_id, true );
@@ -84,34 +84,34 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 		}
 		$start = (string) ( $entry['start'] ?? '' );
 		$end   = (string) ( $entry['end'] ?? '' );
-		return [
+		return array(
 			'id'         => (string) (int) $program_id,
 			'name'       => $data['name'],
 			'logo_id'    => $data['logo_id'] > 0 ? $data['logo_id'] : 0,
 			'day_label'  => $day_label,
 			'time_range' => $start . '-' . $end,
 			'is_rerun'   => ! empty( $entry['is_rerun'] ),
-		];
+		);
 	};
 
 	// Current: today's slots first, then yesterday's slots that cross midnight into now.
 	$current = null;
-	foreach ( [ [ $today_key, false ], [ $prev_day_key, true ] ] as $candidate ) {
-		if ( $current !== null ) {
+	foreach ( array( array( $today_key, false ), array( $prev_day_key, true ) ) as $candidate ) {
+		if ( null !== $current ) {
 			break;
 		}
 		list( $day_key, $is_prev_day_crossing ) = $candidate;
-		if ( $day_key === null ) {
+		if ( null === $day_key ) {
 			continue;
 		}
-		$entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : [];
+		$entries = isset( $schedule_raw[ $day_key ] ) && is_array( $schedule_raw[ $day_key ] ) ? $schedule_raw[ $day_key ] : array();
 		foreach ( $entries as $entry ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
 			$start = (string) ( $entry['start'] ?? '' );
 			$end   = (string) ( $entry['end'] ?? '' );
-			if ( $start === '' || $end === '' ) {
+			if ( '' === $start || '' === $end ) {
 				continue;
 			}
 			if ( radplapag_is_slot_active( $start, $end, $current_minutes, $is_prev_day_crossing ) ) {
@@ -125,50 +125,50 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 	$upcoming       = null;
 	$upcoming_delta = null;
 
-	$today_entries = isset( $schedule_raw[ $today_key ] ) && is_array( $schedule_raw[ $today_key ] ) ? $schedule_raw[ $today_key ] : [];
+	$today_entries = isset( $schedule_raw[ $today_key ] ) && is_array( $schedule_raw[ $today_key ] ) ? $schedule_raw[ $today_key ] : array();
 	foreach ( $today_entries as $entry ) {
 		if ( ! is_array( $entry ) ) {
 			continue;
 		}
 		$start = (string) ( $entry['start'] ?? '' );
-		if ( $start === '' ) {
+		if ( '' === $start ) {
 			continue;
 		}
 		$delta = radplapag_parse_time_to_minutes( $start ) - $current_minutes;
 		if ( $delta > 0 && $delta <= RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES
-			&& ( $upcoming_delta === null || $delta < $upcoming_delta ) ) {
+			&& ( null === $upcoming_delta || $delta < $upcoming_delta ) ) {
 			$upcoming       = $build_entry( $entry, $day_labels[ $today_key ] ?? $today_key );
 			$upcoming_delta = $delta;
 		}
 	}
 
 	$minutes_to_midnight = 1440 - $current_minutes;
-	if ( $minutes_to_midnight <= RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES && $tomorrow_key !== null ) {
-		$tomorrow_entries = isset( $schedule_raw[ $tomorrow_key ] ) && is_array( $schedule_raw[ $tomorrow_key ] ) ? $schedule_raw[ $tomorrow_key ] : [];
+	if ( $minutes_to_midnight <= RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES && null !== $tomorrow_key ) {
+		$tomorrow_entries = isset( $schedule_raw[ $tomorrow_key ] ) && is_array( $schedule_raw[ $tomorrow_key ] ) ? $schedule_raw[ $tomorrow_key ] : array();
 		foreach ( $tomorrow_entries as $entry ) {
 			if ( ! is_array( $entry ) ) {
 				continue;
 			}
 			$start = (string) ( $entry['start'] ?? '' );
-			if ( $start === '' ) {
+			if ( '' === $start ) {
 				continue;
 			}
 			$delta = $minutes_to_midnight + radplapag_parse_time_to_minutes( $start );
 			if ( $delta > 0 && $delta <= RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES
-				&& ( $upcoming_delta === null || $delta < $upcoming_delta ) ) {
+				&& ( null === $upcoming_delta || $delta < $upcoming_delta ) ) {
 				$upcoming       = $build_entry( $entry, $day_labels[ $tomorrow_key ] ?? $tomorrow_key );
 				$upcoming_delta = $delta;
 			}
 		}
 	}
 
-	if ( $upcoming !== null ) {
+	if ( null !== $upcoming ) {
 		unset( $upcoming['logo_id'] );
 	}
 
-	return [
+	return array(
 		'current'          => $current,
 		'upcoming'         => $upcoming,
 		'station_page_url' => $station_page_url,
-	];
+	);
 }

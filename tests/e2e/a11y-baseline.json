@@ -1,0 +1,706 @@
+{
+	"player · playing · region · #_r_*_": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · playing · region · .MuiPaper-root": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · playing · region · .MuiTypography-h4": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · playing · region · .css-*": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · playing · region · canvas": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · playing · region · h1": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · playing · region · input": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · schedule modal · heading-order · .css-*.MuiStack-root:nth-child(1) > .css-*.MuiStack-root > h6": {
+		"impact": "moderate",
+		"help": "Heading levels should only increase by one",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · stopped · region · .MuiPaper-root": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · stopped · region · .MuiTypography-h4": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · stopped · region · .css-*": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · stopped · region · canvas": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · stopped · region · h1": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · stopped · region · input": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · heading-order · .radplapag-schedule-day[data-day=\"monday\"] > h4": {
+		"impact": "moderate",
+		"help": "Heading levels should only increase by one",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · .radplapag-program-end[value=\"\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · .radplapag-program-end[value=\"02:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · .radplapag-program-end[value=\"10:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · .radplapag-program-start[value=\"\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · .radplapag-program-start[value=\"02:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · .radplapag-program-start[value=\"10:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"00:05\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"00:30\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"01:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"04:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"06:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"14:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"22:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"23:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"23:50\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · label · input[value=\"23:55\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · select-name · .radplapag-schedule-day[data-day=\"monday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · select-name · .radplapag-schedule-day[data-day=\"saturday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · select-name · .radplapag-schedule-day[data-day=\"sunday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · select-name · .radplapag-schedule-day[data-day=\"thursday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · select-name · .radplapag-schedule-day[data-day=\"tuesday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · select-name · .radplapag-schedule-day[data-day=\"wednesday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · select-name · div[data-program-index=\"1\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · added slot · select-name · div[data-program-index=\"2\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · heading-order · .radplapag-schedule-day[data-day=\"monday\"] > h4": {
+		"impact": "moderate",
+		"help": "Heading levels should only increase by one",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · .radplapag-program-end[value=\"02:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · .radplapag-program-end[value=\"10:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · .radplapag-program-start[value=\"02:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · .radplapag-program-start[value=\"10:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"00:05\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"00:30\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"01:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"04:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"06:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"14:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"22:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"23:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"23:50\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · label · input[value=\"23:55\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · select-name · .radplapag-schedule-day[data-day=\"monday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · select-name · .radplapag-schedule-day[data-day=\"saturday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · select-name · .radplapag-schedule-day[data-day=\"sunday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · select-name · .radplapag-schedule-day[data-day=\"tuesday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · select-name · .radplapag-schedule-day[data-day=\"wednesday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · select-name · div[data-program-index=\"1\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · select-name · div[data-program-index=\"2\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · color-contrast · .radplapag-program-row.radplapag-error[data-program-index=\"0\"] > .show.radplapag-program-error-message": {
+		"impact": "serious",
+		"help": "Elements must meet minimum color contrast ratio thresholds",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · color-contrast · div[data-program-index=\"3\"] > .show.radplapag-program-error-message": {
+		"impact": "serious",
+		"help": "Elements must meet minimum color contrast ratio thresholds",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · heading-order · .radplapag-schedule-day[data-day=\"monday\"] > h4": {
+		"impact": "moderate",
+		"help": "Heading levels should only increase by one",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · .radplapag-program-end.radplapag-error[value=\"\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · .radplapag-program-end.radplapag-error[value=\"10:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · .radplapag-program-end[value=\"02:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · .radplapag-program-start.radplapag-error[value=\"\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · .radplapag-program-start[value=\"02:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · .radplapag-program-start[value=\"10:00\"][type=\"time\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"00:05\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"00:30\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"01:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"04:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"06:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"14:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"22:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"23:00\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"23:50\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · label · input[value=\"23:55\"]": {
+		"impact": "critical",
+		"help": "Form elements must have labels",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · select-name · .radplapag-program-row.radplapag-error[data-program-index=\"0\"] > .radplapag-program-id.radplapag-error": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · select-name · .radplapag-schedule-day[data-day=\"saturday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · select-name · .radplapag-schedule-day[data-day=\"sunday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · select-name · .radplapag-schedule-day[data-day=\"tuesday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · select-name · .radplapag-schedule-day[data-day=\"wednesday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · select-name · div[data-program-index=\"1\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · select-name · div[data-program-index=\"2\"] > .radplapag-program-id": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"station meta boxes · validation errors · select-name · div[data-program-index=\"3\"] > .radplapag-program-id.radplapag-error": {
+		"impact": "critical",
+		"help": "Select element must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	}
+}

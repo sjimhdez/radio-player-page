@@ -1,4 +1,11 @@
 <?php
+/**
+ * Server-side render for the Programs List block.
+ *
+ * @package radio-player-page
+ * @since 3.3.0
+ */
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -14,61 +21,61 @@ defined( 'ABSPATH' ) || exit;
  * @param WP_Block $block      Block instance.
  * @return string HTML output.
  */
-function radplapag_render_programs_list_block( $attributes, $content, $block ) {
+function radplapag_render_programs_list_block( $attributes, $content, $block ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by render_callback.
 	$station_index             = (int) ( $attributes['stationIndex'] ?? 0 );
 	$show_image                = (bool) ( $attributes['showImage'] ?? true );
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? true );
 	$show_schedule             = (bool) ( $attributes['showSchedule'] ?? true );
 	$wrapper_attributes        = get_block_wrapper_attributes(
-		[
+		array(
 			'class' => 'wp-block-radplapag-programs-list',
-		]
+		)
 	);
 
 	$programs = radplapag_get_programs_list_for_station( $station_index );
 
-	if ( $programs === null || ! is_array( $programs ) || count( $programs ) === 0 ) {
+	if ( null === $programs || ! is_array( $programs ) || count( $programs ) === 0 ) {
 		return '<div ' . $wrapper_attributes . '>' .
 			'<div class="wp-block-group is-empty"><p>' . esc_html__( 'No radio shows for this station.', 'radio-player-page' ) . '</p></div>' .
 			'</div>';
 	}
 
-	$html   = '<div ' . $wrapper_attributes . '>';
-	$total  = count( $programs );
-	$index  = 0;
+	$html  = '<div ' . $wrapper_attributes . '>';
+	$total = count( $programs );
+	$index = 0;
 
 	foreach ( $programs as $prog ) {
-		$index++;
+		++$index;
 		$id          = (string) ( $prog['id'] ?? '' );
 		$name        = (string) ( $prog['name'] ?? '' );
 		$logo_id     = (int) ( $prog['logo_id'] ?? 0 );
 		$description = $prog['description'] ?? null;
 		$ext_desc    = $prog['extended_description'] ?? null;
-		$slots       = is_array( $prog['slots'] ?? null ) ? $prog['slots'] : [];
+		$slots       = is_array( $prog['slots'] ?? null ) ? $prog['slots'] : array();
 
-		$html .= '<article class="wp-block-group"' . ( $id !== '' ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
+		$html .= '<article class="wp-block-group"' . ( '' !== $id ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
 
-		$html .= '<header class="wp-block-title" style="font-size:1.5em;">' . esc_html( $name !== '' ? $name : '—' ) . '</header>';
+		$html .= '<header class="wp-block-title" style="font-size:1.5em;">' . esc_html( '' !== $name ? $name : '—' ) . '</header>';
 
 		if ( $show_image && $logo_id > 0 ) {
-			$img_alt = $name !== '' ? $name : __( 'Radio Show image', 'radio-player-page' );
+			$img_alt = '' !== $name ? $name : __( 'Radio Show image', 'radio-player-page' );
 			$html   .= '<figure class="wp-block-image has-small-padding-bottom" style="max-width: 15rem;">' . wp_get_attachment_image(
 				$logo_id,
 				'medium',
 				false,
-				[
+				array(
 					'alt'   => esc_attr( $img_alt ),
 					'style' => 'max-width: 100%; height: auto;',
-				]
+				)
 			) . '</figure>';
 		}
 
-		if ( $show_description && $description !== null && $description !== '' ) {
+		if ( $show_description && null !== $description && '' !== $description ) {
 			$html .= '<div class="wp-block-group"><p class="wp-block-paragraph">' . esc_html( $description ) . '</p></div>';
 		}
 
-		if ( $show_extended_description && $ext_desc !== null && $ext_desc !== '' ) {
+		if ( $show_extended_description && null !== $ext_desc && '' !== $ext_desc ) {
 			$html .= '<div class="wp-block-group"><p class="wp-block-paragraph">' . esc_html( $ext_desc ) . '</p></div>';
 		}
 
