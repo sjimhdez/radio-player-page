@@ -213,3 +213,4 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 | Versión / spec | Cambio | ADR |
 |---|---|---|
 | 0001 | Contrato inicial documentado (3.4.2). Precisiones: `crossOrigin` solo en fuentes directas; migración desde 2.0.x. | 0004, 0005 |
+| 0002 | §3.8: el idioma del reproductor es el del sitio (reserva `en-US`); el navegador y `localStorage` no son contrato. | 0025 |

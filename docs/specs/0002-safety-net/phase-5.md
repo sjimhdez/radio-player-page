@@ -1,5 +1,5 @@
 # Spec 0002 · Fase 5 — Triage con el usuario
-Estado: en curso · Inicio: 2026-10-18 · ADRs: 0005, 0007, 0018, 0021, 0023 (y los que salgan de decisiones que cambien `SPEC.md`)
+Estado: cerrada (2026-10-18) · Inicio: 2026-10-18 · ADRs: 0005, 0007, 0018, 0021, 0023, 0025 (nuevo: idioma del reproductor, K55)
 
 ## Contexto
 - Fases 1–4 cerradas. `docs/known-issues.md` tiene 94 filas (C1–C16, K1–K72, AX1–AX6), 89 «pendiente»; ya decididas: C8 (replicar, mejora futura), K2 (tooling), K4 (no arreglar, ADR 0005), C12 y C14 (no se reproduce / no aplica → «—»). Los números de las verificaciones usan la penúltima columna (`$(NF-1)`): C16 y K13 llevan `\|` en la descripción.
@@ -67,6 +67,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Test: — (decisiones; sin código).
 - Verificación: `awk -F'|' '/^\| (K29|K30|K31|K32|K33|K72) / && $(NF-1) ~ /pendiente/' docs/known-issues.md` vacío
 - [x] hecha · commit: f367536
+- Resultado: entró una sospecha que no estaba en el Contexto, el bloqueo `radplapag_migrating` no atómico y la migración cortada a medias (auditoría 4.3, `audit/migration.md`); decidida en §Sospechas.
 
 ### 5.6 Triage · núcleo PHP, CPT, desinstalación y guidelines (≤ 1 h)
 - Qué: triage con el usuario según el «Método». Filas: C11, K3, K7, K21, K22, K23, K24, K25, K26, K27, K28. Sospechas: `exit` en `template_redirect` frente a plugins de acceso restringido; `<html>` sin `dir` en RTL.
@@ -94,13 +95,13 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `docs/specs/README.md`, `docs/known-issues.md`.
 - Test: — (hoja de ruta).
 - Verificación: el criterio A10 (awk vacío) y un script de una línea que lista los IDs con `corregir:` y comprueba que cada uno aparece en `docs/specs/README.md`: `for id in $(awk -F'|' '/^\| (C|K|AX)[0-9]/ && $(NF-1) ~ /corregir/ {gsub(/ /,"",$2); print $2}' docs/known-issues.md); do grep -q "\b$id\b" docs/specs/README.md || echo "falta $id"; done` sin salida
-- [ ] hecha · commit: —
+- [x] hecha · commit: 4e73712
 
 ## Sospechas (decisión del usuario)
 - [x] `exit` en `template_redirect` frente a plugins de acceso restringido (5.6) → no arreglar: es el diseño del ADR 0008 y no se reproduce sin un plugin de terceros; si llega un informe, se trata entonces
 - [x] `<html>` sin `dir` en sitios RTL (5.6) → corregir: 0012 núcleo (prioridad baja) — `dir="rtl"` con `is_rtl()`, test simulando la dirección; la maqueta del player en RTL queda fuera (otra fila si se ve mal)
 - [x] Programas con contraseña en bloques y `RADPLAPAG_PROGRAMS` (5.8) → corregir: 0009 horario (prioridad baja), junto a C10 — un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución); antes se fija con un test `currently`
-- [x] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4) → corregir: 0011 interfaz, primera tarea de esa spec: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (ADR 0023) antes de arreglar AX6 y AX2
+- [x] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4) → corregir: 0011 interfaz (prioridad media, la de AX6 y AX2 a las que precede), primera tarea de esa spec: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (ADR 0023) antes de arreglar AX6 y AX2
 - [x] Gravedad AX6 vs K59 (5.4) → K59 sube de baja a media; las dos, corregir: 0011 interfaz (prioridad media), juntas
 - [x] Endurecimiento de `innerHTML` del admin (5.7) → otra spec: 0005 (endurecimiento, no bug: el refactor del admin construye el DOM con `textContent` / `createElement`)
 - [x] Dos `play()` concurrentes con HLS; `pause()` durante la carga de un MP3 (5.3) → otra spec: 0006 (el núcleo serializa `play()`/`pause()` y lo comprueba con sus tests; si se confirma un fallo visible, pasa como fila a la spec de reproducción)
@@ -109,6 +110,10 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 
 ## Decisiones abiertas → ADR
 - Cualquier decisión que cambie la redacción de `SPEC.md` (candidatas: K17, K55, K29 —§3.2 dice descartable—, K46, K53) o un ADR: `write-adr` en su tarea.
+- Resultado (cierre, 2026-10-18):
+  - K55: ADR 0025 y `SPEC.md` §3.8 en la tarea 5.4.
+  - K29: alinea el código con §3.2; sin ADR salvo que necesite una opción nueva.
+  - Las decisiones que cambian §3 o un ADR al corregirse (C1, C9, C10, C11/K7, K17, K23 + `dir` RTL, K30, K33, K46/K53 con K49–K51, el bloqueo `radplapag_migrating`) llevan su ADR **en la spec que las corrige**, donde se decide el diseño, no en el triage (desviación del paso 4 del Método; `docs/status.md`). Las marcas de ADR de K17 y K23 y las de C10, C11/K7, K30, K49–K51 y el bloqueo las añadió el cierre a partir de los revisores; K17 y K23 por decisión del usuario.
 
 ## Verificación de la fase
 - `npm run check` en verde.

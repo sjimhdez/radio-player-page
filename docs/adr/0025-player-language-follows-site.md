@@ -3,7 +3,7 @@
 - Estado: aceptado · Fecha: 2026-10-18 · Spec: 0002 (fase 5)
 
 ## Contexto
-`SPEC.md` §3.8 decía que el reproductor detecta el idioma en este orden: `lang` del `<html>` → `localStorage` → navegador, con reserva `en-US`. La auditoría (K55 en `docs/known-issues.md`) midió otra cosa en la 3.4.2: la página limpia **siempre** imprime `lang` con el idioma del sitio (`SPEC.md` §3.1) y i18next (`player/src/config/i18n.ts`, `order: ['htmlTag', 'localStorage', 'navigator']`) se queda con el primero que encuentra, así que `localStorage` y el navegador nunca se alcanzan. Con un idioma del sitio sin traducción (`eu`, `fr-FR`, `ja`…) el player sale en inglés, la reserva, aunque el navegador esté en un idioma que sí tiene traducción. Medido en Chromium y WebKit (`tests/e2e/i18n.spec.ts`, `currently never uses the browser language…`).
+`SPEC.md` §3.8 decía que el reproductor detecta el idioma en este orden: `lang` del `<html>` → `localStorage` → navegador, con reserva `en-US`. La auditoría (K55 en `docs/known-issues.md`) midió otra cosa en la 3.4.2: la página limpia **siempre** imprime `lang` con el idioma del sitio (`SPEC.md` §3.3) y i18next (`player/src/config/i18n.ts`, `order: ['htmlTag', 'localStorage', 'navigator']`) se queda con el primero que encuentra, así que `localStorage` y el navegador nunca se alcanzan. Con un idioma del sitio sin traducción (`eu`, `fr-FR`, `ja`…) el player sale en inglés, la reserva, aunque el navegador esté en un idioma que sí tiene traducción. Medido en Chromium y WebKit (`tests/e2e/i18n.spec.ts`, `currently never uses the browser language…`).
 
 En el triage (tarea 5.4, 2026-10-18) el usuario decidió que es la redacción la que está mal, no el código: el idioma lo elige quien administra el sitio, como en el resto de WordPress.
 
@@ -15,6 +15,7 @@ En el triage (tarea 5.4, 2026-10-18) el usuario decidió que es la redacción la
 ## Consecuencias
 - K55 deja de ser un bug y su test `currently` describe el comportamiento del contrato; en la spec de correcciones de interfaz se renombra como test normal.
 - Un sitio en un idioma sin traducción muestra el player en inglés aunque el oyente use otro idioma. Que esa reserva vaya marcada con `lang="en"` es K62 (corregir), y que las variantes regionales (`de_AT`, `pt_PT`…) caigan en su idioma base es K68 (corregir); ninguna de las dos cambia esta decisión.
+- La línea «Detection» de `README.md` describe aún el orden antiguo; la corrige la release, con K3.
 - `caches: ['localStorage']` sigue escribiendo `i18nextLng` en el navegador del oyente aunque nunca se lea. No es contrato; puede quitarse al simplificar la configuración.
 
 ## Alternativas descartadas
