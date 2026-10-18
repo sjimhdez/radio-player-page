@@ -45,7 +45,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `docs/known-issues.md` (+ ADR y `SPEC.md` si K17 pasa a redacción); `phase-5.md`.
 - Test: — (decisiones; sin código).
 - Verificación: `awk -F'|' '/^\| (C3|C4|C9|C10|C16|K8|K9|K10|K17|K52) / && $(NF-1) ~ /pendiente/' docs/known-issues.md` vacío
-- [ ] hecha · commit: —
+- [x] hecha · commit: aa5a4c5
 
 ### 5.3 Triage · player, reproducción (≤ 1 h)
 - Qué: triage con el usuario según el «Método». Filas: C1, C2, C7, K1, K11, K12, K13, K14, K18, K63, K64, K65, K66, K67, K70. Sospechas: dos `play()` concurrentes con HLS; `pause()` durante la carga de un MP3.
@@ -103,7 +103,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - [ ] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4)
 - [ ] Gravedad AX6 vs K59 (5.4)
 - [ ] Endurecimiento de `innerHTML` del admin (5.7)
-- [ ] Dos `play()` concurrentes con HLS; `pause()` durante la carga de un MP3 (5.3)
+- [x] Dos `play()` concurrentes con HLS; `pause()` durante la carga de un MP3 (5.3) → otra spec: 0006 (el núcleo serializa `play()`/`pause()` y lo comprueba con sus tests; si se confirma un fallo visible, pasa como fila a la spec de reproducción)
 - [ ] «Entrada publicada» con error; meta box contraído con error (5.7)
 
 ## Decisiones abiertas → ADR
