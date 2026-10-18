@@ -108,7 +108,7 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
   - `smoke.spec.ts` contaba 17 emisoras «E2E»: la 4.5 añadió `always` sin actualizarlo (en rojo desde `94e0079`, no estaba en su verificación) y aquí se añaden `ogg` y `nocors-dash`; pasa a 20.
   - Mutación: Vitest en una copia del player en el scratchpad → los 17 casos `currently` nuevos en rojo. La de los e2e (mutar `player/src` y regenerar `dist/`) la bloqueó el clasificador de permisos; **el usuario la aprueba** (2026-10-18): 13 mutaciones en `player/src` con su build → los 16 e2e nuevos en rojo en los dos navegadores; revertida, `player/dist/` idéntico a HEAD y los 32 en verde.
   - Verificación: `npm run check` en verde; `i18n`, `cross-origin`, `mp3`, `player-a11y`, `hls-dash`, `a11y` y `smoke` en verde en Chromium y WebKit, y el caso K65 de `sleep.spec.ts`.
-- [ ] hecha · commit: —
+- [x] hecha · commit: `c3fc532`
 
 ### 4.7 PHPStan en la CI y su ADR (≤ 1 h)
 - Qué: job `PHPStan` en `ci.yml` (PHP 8.4, `composer install`, `npm run lint:phpstan`). Si la auditoría dejó entradas de la baseline que ahora son filas de `known-issues.md`, la baseline no cambia (se corrigen en una spec de correcciones). ADR 0024 con el nivel 8 (el salto a 9 duplica los errores por `mixed`, sin hallazgos nuevos), la regla «la baseline solo baja; una entrada nueva solo con la decisión del usuario en el plan», y `phpstan analyse --generate-baseline` solo al corregir. Actualizar `.claude/rules/php.md` (comando y regla), `CLAUDE.md` (tabla de comandos: `check` incluye PHPStan), spec §4/§5 si hace falta y `contract-map.md` (huecos cerrados).
