@@ -82,7 +82,7 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
   - Huecos del ADR 0023 cerrados en `a11y.spec.ts`: axe tras «Add Time Slot» y con errores de validación a la vista. Solo sale una regla nueva, `color-contrast` (AX5); lo demás es AX2–AX4. Línea base: 52 entradas nuevas con la decisión del usuario (abajo).
   - Mutación: tres tandas de cambios temporales en `admin/` e `includes/` (detalle en el informe) → los 13 tests nuevos en rojo; revertida.
   - Verificación: `npm run check` en verde; integración completa en verde en las dos puntas (364 tests; el de K38 tiene una rama para PHP 7.4, *warning*, y otra para PHP 8, `TypeError`); `admin.spec.ts` y `a11y.spec.ts` en verde en Chromium y WebKit (54 tests).
-- [ ] hecha · commit: —
+- [x] hecha · commit: `de7550c`
 
 ### 4.5 Auditoría · zona 4, bloques (≤ 1 h)
 - Qué: lo mismo sobre los tres bloques y sus `includes/radplapag-*-block.php`. Estáticas: PHPCS, PHPStan (zona: `is_array`/`is_string` redundantes, `radplapag-programs-list-block.php:133`), `wp-scripts lint-js` de cada bloque. Revisión: `/code-review`, `wp-security-reviewer` (escape en `render.php`), `wporg-reviewer` (dependencias de core no empaquetadas en `build/`), `backcompat-reviewer` (markup y atributos), `a11y-reviewer`. Hueco del ADR 0023: el bloque `now-playing` sin programa según el reloj real; se cierra sembrando en `tests/e2e/fixtures/seed-e2e.php` una emisora con una franja de 24 h en cada día (`start == end`, que el servidor acepta, C3), para que siempre haya programa en antena, y pasando axe sobre ella en `a11y.spec.ts`. Contraste: C10, C16 (variante en los tres bloques), K6.
