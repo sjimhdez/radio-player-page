@@ -479,3 +479,105 @@ describe('cleanup', () => {
     expect(media.load).toHaveBeenCalledTimes(2)
   })
 })
+
+// Audit of zone 5 (spec 0002, task 4.6): rows of docs/known-issues.md.
+describe('audit (spec 0002, 4.6)', () => {
+  it('currently stays locked in the welcome audio when the live stream fails after it (K63)', async () => {
+    media.failing.add(MP3)
+    const { api, audio } = mount(MP3, INTRO)
+    await act(() => api.current.play())
+
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+
+    expect(api.current.status).toBe('error')
+    // Play stays disabled and play() returns early: no retry is possible.
+    expect(api.current.introLocked).toBe(true)
+    media.failing.clear()
+    await act(() => api.current.play())
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    expect(api.current.status).toBe('error')
+  })
+
+  it('currently stays locked when both the welcome audio and the live stream fail (K63)', async () => {
+    media.failing.add(INTRO)
+    media.failing.add(MP3)
+    const { api } = mount(MP3, INTRO)
+
+    await act(() => api.current.play())
+
+    expect(api.current.status).toBe('error')
+    expect(api.current.introLocked).toBe(true)
+  })
+
+  it('currently cannot resume when something else pauses the welcome audio (K63)', async () => {
+    const { api, audio } = mount(MP3, INTRO)
+    await act(() => api.current.play())
+
+    act(() => {
+      audio.pause()
+    })
+    await act(() => api.current.play())
+
+    expect(api.current.status).toBe('paused')
+    expect(api.current.introLocked).toBe(true)
+    expect(media.play).toHaveBeenCalledTimes(1)
+  })
+
+  it('currently stays locked in error when the welcome audio errors while playing (K63)', async () => {
+    const { api, audio } = mount(MP3, INTRO)
+    await act(() => api.current.play())
+
+    act(() => {
+      audio.dispatchEvent(new Event('error'))
+    })
+
+    expect(api.current.status).toBe('error')
+    expect(api.current.introLocked).toBe(true)
+  })
+
+  it('currently keeps loading after a pause while buffering (K64)', async () => {
+    const { api, audio } = mount(MP3)
+    await act(() => api.current.play())
+    act(() => {
+      audio.dispatchEvent(new Event('waiting'))
+    })
+
+    act(() => api.current.pause())
+    act(() => {
+      audio.dispatchEvent(new Event('canplay'))
+    })
+
+    // The spinner replaces Play while paused.
+    expect(api.current.status).toBe('paused')
+    expect(api.current.loading).toBe(true)
+  })
+
+  it('currently plays HLS on MANIFEST_PARSED after a pause pressed while it loads (K11)', async () => {
+    const { api } = mount(HLS)
+    await act(() => api.current.play())
+    act(() => api.current.pause())
+    expect(api.current.status).toBe('paused')
+
+    await act(async () => {
+      hls.instances[0].handlers.hlsManifestParsed()
+    })
+
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(api.current.status).toBe('playing')
+  })
+
+  it('currently keeps crossOrigin anonymous on the hls.js path after the welcome audio (K70)', async () => {
+    const { api, audio } = mount(HLS, INTRO)
+    await act(() => api.current.play())
+
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+
+    expect(hls.instances).toHaveLength(1)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    expect(audio.crossOrigin).toBe('anonymous')
+  })
+})

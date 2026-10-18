@@ -129,3 +129,35 @@ test( 'the cancel button stops the timer', async ( { page } ) => {
 
 	await expectPlaying( page );
 } );
+
+test( 'currently cancels the timer when the welcome audio hands over to the live stream (K65)', async ( {
+	page,
+} ) => {
+	await page.goto( readSeed().urls.intro );
+	await page.getByRole( 'button', { name: 'Play' } ).click();
+	await page.waitForFunction( () => {
+		const audio = document.querySelector( 'audio' );
+		return !! audio && /intro/.test( audio.src ) && audio.currentTime > 0.2;
+	} );
+	await page.getByRole( 'button', { name: 'Sleep mode' } ).click();
+	await page.getByRole( 'menuitem', { name: '30 mins' } ).click();
+	await expect(
+		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+	).toBeVisible();
+
+	// The end of the welcome audio fires `pause` before `ended`: the status
+	// goes through `paused` and the timer clears itself.
+	await page.waitForFunction( () => {
+		const audio = document.querySelector( 'audio' );
+		return (
+			!! audio &&
+			/\/live\.mp3$/.test( audio.src ) &&
+			audio.currentTime > 1
+		);
+	} );
+
+	await expect(
+		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+	).toHaveCount( 0 );
+	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
+} );

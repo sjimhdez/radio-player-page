@@ -11,8 +11,8 @@ import {
 } from './support/player';
 
 /**
- * Scenario 1 (spec 0002 §4.4): direct MP3 streams, Pause + Play (C7) and a
- * stream cut by the server (C8).
+ * Scenario 1 (spec 0002 §4.4): direct MP3 and OGG streams, Pause + Play (C7)
+ * and a stream cut by the server (C8).
  */
 
 // Checking that nothing happens needs a quiet window: how long to watch a
@@ -59,6 +59,20 @@ test( 'plays the endless live MP3', async ( { page } ) => {
 	await startPlayback( page );
 
 	expect( ( await audioState( page ) ).src ).toMatch( /\/live\.mp3$/ );
+	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
+} );
+
+test( 'plays the OGG stream as a direct source', async ( { page } ) => {
+	await page.goto( readSeed().urls.ogg );
+
+	await startPlayback( page );
+
+	expect( ( await audioState( page ) ).src ).toMatch( /\/tone\.ogg$/ );
+	expect(
+		await page.evaluate(
+			() => document.querySelector( 'audio' )?.crossOrigin
+		)
+	).toBe( 'anonymous' );
 	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
 } );
 

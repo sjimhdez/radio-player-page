@@ -339,6 +339,10 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 			'title' => 'E2E DASH',
 			'meta'  => array( 'stream_url' => "{$media}/dash/manifest.mpd" ),
 		),
+		'ogg'          => array(
+			'title' => 'E2E OGG',
+			'meta'  => array( 'stream_url' => "{$media}/tone.ogg" ),
+		),
 		'nocors-mp3'   => array(
 			'title' => 'E2E No CORS MP3',
 			'meta'  => array( 'stream_url' => "{$media_nocors}/tone.mp3" ),
@@ -346,6 +350,10 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 		'nocors-hls'   => array(
 			'title' => 'E2E No CORS HLS',
 			'meta'  => array( 'stream_url' => "{$media_nocors}/hls/index.m3u8" ),
+		),
+		'nocors-dash'  => array(
+			'title' => 'E2E No CORS DASH',
+			'meta'  => array( 'stream_url' => "{$media_nocors}/dash/manifest.mpd" ),
 		),
 		'intro'        => array(
 			'title' => 'E2E Intro',

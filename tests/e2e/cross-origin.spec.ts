@@ -197,3 +197,31 @@ test( 'currently does not play HLS without CORS and shows the error (C1, K1)', a
 	expect( requests[ '/hls/index.m3u8' ] ).toBeGreaterThan( 0 );
 	expect( Object.keys( requests ) ).toEqual( [ '/hls/index.m3u8' ] );
 } );
+
+test( 'currently does not play DASH without CORS and shows the error (C1, K1)', async ( {
+	page,
+} ) => {
+	await resetMediaRequests( 'nocors' );
+	await page.goto( readSeed().urls[ 'nocors-dash' ] );
+	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+	await recordFailure( page );
+
+	await page.getByRole( 'button', { name: 'Play' } ).click();
+
+	// Like hls.js: dashjs reads the manifest with a request that CORS blocks
+	// (it retries it), and the alert shows in both browsers.
+	await expect( page.getByRole( 'alert' ) ).toHaveText( PLAY_ERROR );
+	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeEnabled();
+	expect( await audioState( page ) ).toMatchObject( {
+		currentTime: 0,
+		paused: true,
+		errorCode: null,
+		buffered: [],
+	} );
+	expect( await page.evaluate( () => window.e2eAudioEvents ) ).toEqual( [] );
+
+	// The manifest is requested; no segment ever is.
+	const requests = await mediaRequests( 'nocors' );
+	expect( requests[ '/dash/manifest.mpd' ] ).toBeGreaterThan( 0 );
+	expect( Object.keys( requests ) ).toEqual( [ '/dash/manifest.mpd' ] );
+} );

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import i18n from 'src/config/i18n'
 
 type Messages = { [key: string]: string | Messages }
@@ -100,5 +100,31 @@ describe('i18n resources', () => {
 
   it('falls back to en-US', () => {
     expect(i18n.options.fallbackLng).toEqual(['en-US'])
+  })
+})
+
+// Audit of zone 5 (spec 0002, task 4.6).
+describe('language resolution (K68, K69)', () => {
+  afterEach(async () => {
+    await i18n.changeLanguage('en-US')
+  })
+
+  it.each(['de-AT', 'de-CH', 'pt-PT', 'nl-BE', 'sv', 'ru'])(
+    'currently shows %s in English: only region-qualified resources exist (K68)',
+    async (language) => {
+      await i18n.changeLanguage(language)
+
+      expect(i18n.t('dashboard.play')).toBe('Play')
+    },
+  )
+
+  it('still finds Spanish for es-AR through the base es resources', async () => {
+    await i18n.changeLanguage('es-AR')
+
+    expect(i18n.t('dashboard.play')).toBe('Reproducir')
+  })
+
+  it('currently says "1 minutes": the countdown has no plural forms (K69)', () => {
+    expect(i18n.t('dashboard.upcomingInMinutes', { minutes: 1 })).toBe('(in 1 minutes)')
   })
 })

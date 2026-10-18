@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { Page, Request } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { readSeed } from './seed';
@@ -104,4 +106,46 @@ test( 'requests neither hls.js nor dashjs for MP3', async ( { page } ) => {
 
 	expect( ( await audioState( page ) ).src ).toMatch( /\/tone\.mp3$/ );
 	expect( [ ...chunks ] ).toEqual( [] );
+} );
+
+test( 'currently asks time.akamai.com for the time on a live DASH stream without UTCTiming (K67)', async ( {
+	page,
+} ) => {
+	// The fixture as a live (dynamic) manifest. dashjs syncs its clock with
+	// its default UTC source when the MPD names none.
+	const now = Date.now();
+	const manifest = readFileSync(
+		join( __dirname, '../fixtures/audio/dash/manifest.mpd' ),
+		'utf8'
+	)
+		.replace(
+			'type="static"',
+			`type="dynamic" availabilityStartTime="${ new Date(
+				now - 4000
+			).toISOString() }" publishTime="${ new Date(
+				now
+			).toISOString() }" minimumUpdatePeriod="PT2S" timeShiftBufferDepth="PT8S"`
+		)
+		.replace( 'mediaPresentationDuration="PT8.0S"', '' );
+	await page.route( '**/dash/manifest.mpd', ( route ) =>
+		route.fulfill( {
+			contentType: 'application/dash+xml',
+			headers: { 'Access-Control-Allow-Origin': '*' },
+			body: manifest,
+		} )
+	);
+	// Answered here, so it never leaves the machine (and the fixture that
+	// blocks external requests does not see it).
+	const timeRequests: string[] = [];
+	await page.route( 'https://time.akamai.com/**', ( route ) => {
+		timeRequests.push( route.request().url() );
+		return route.fulfill( { body: new Date().toISOString() } );
+	} );
+	await page.goto( readSeed().urls.dash );
+
+	await page.getByRole( 'button', { name: 'Play' } ).click();
+
+	await expect
+		.poll( () => timeRequests )
+		.toContain( 'https://time.akamai.com/?iso&ms' );
 } );

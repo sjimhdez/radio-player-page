@@ -98,3 +98,69 @@ test( 'the page language wins over the one stored in localStorage', async ( {
 		await page.evaluate( () => window.localStorage.getItem( 'i18nextLng' ) )
 	).toBe( 'es-ES' );
 } );
+
+test( 'currently never uses the browser language: the page language is always detected first (K55)', async ( {
+	browser,
+} ) => {
+	const context = await browser.newContext( { locale: 'de-DE' } );
+	const page = await context.newPage();
+	try {
+		// Not even with a page language that has no translation: `htmlTag`
+		// detects `eu`, i18next falls back to `en-US`, and `navigator`
+		// (German) is never read.
+		await withSiteLocale( 'eu', async () => {
+			await page.goto( readSeed().urls.mp3 );
+
+			expect( await page.evaluate( () => navigator.language ) ).toBe(
+				'de-DE'
+			);
+			await expect(
+				page.getByRole( 'button', { name: 'Play' } )
+			).toBeVisible();
+			await expect(
+				page.getByRole( 'button', { name: 'Abspielen' } )
+			).toHaveCount( 0 );
+		} );
+	} finally {
+		await context.close();
+	}
+} );
+
+test( 'currently leaves the English fallback marked with the page language (K62)', async ( {
+	page,
+} ) => {
+	await withSiteLocale( 'eu', async () => {
+		await page.goto( readSeed().urls.mp3 );
+
+		await expect(
+			page.getByRole( 'button', { name: 'Play' } )
+		).toBeVisible();
+		// The interface is English, but nothing says so: the only `lang` on
+		// the page is the site's.
+		expect(
+			await page.evaluate( () =>
+				[ ...document.querySelectorAll( '[lang]' ) ].map( ( element ) =>
+					element.getAttribute( 'lang' )
+				)
+			)
+		).toEqual( [ 'eu' ] );
+	} );
+} );
+
+test( 'currently prints the i18next support notice in the console (K71)', async ( {
+	page,
+} ) => {
+	const messages: string[] = [];
+	page.on( 'console', ( message ) => messages.push( message.text() ) );
+
+	await page.goto( readSeed().urls.mp3 );
+	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+
+	expect(
+		messages.some( ( text ) =>
+			text.includes(
+				'i18next is made possible by our own product, Locize'
+			)
+		)
+	).toBe( true );
+} );

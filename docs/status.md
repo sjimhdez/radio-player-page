@@ -2,12 +2,11 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 4 (auditoría) · Plan: [`phase-4.md`](specs/0002-safety-net/phase-4.md) · Actualizado: 2026-10-18
 
 ## En curso
-- Spec 0002, fase 4 (auditoría): plan aprobado el 2026-10-17, 4.1 hecha (PHPStan nivel 8 con baseline en `npm run check`), 4.2 hecha (zona 1: K21–K28 y una variante de C10, informe en `audit/core.md`), 4.3 hecha (zona 2: K29–K33 y una variante de K21, informe en `audit/migration.md`; K30 alta), 4.4 hecha (zona 3: K34–K45 y AX5, informe en `audit/admin.md`; huecos del ADR 0023 del admin cerrados, 52 entradas nuevas en la línea base de axe con la aprobación del usuario), 4.5 hecha (zona 4: K46–K54 y una variante de C10, informe en `audit/blocks.md`; hueco del ADR 0023 de `now-playing` cerrado con una emisora siempre en antena, sin entradas nuevas en la línea base); 4.6–4.7 por hacer. Fases 1–3 cerradas; queda la 5 (triage). PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 4 (auditoría): plan aprobado el 2026-10-17, 4.1 hecha (PHPStan nivel 8 con baseline en `npm run check`), 4.2 hecha (zona 1: K21–K28 y una variante de C10, informe en `audit/core.md`), 4.3 hecha (zona 2: K29–K33 y una variante de K21, informe en `audit/migration.md`; K30 alta), 4.4 hecha (zona 3: K34–K45 y AX5, informe en `audit/admin.md`; huecos del ADR 0023 del admin cerrados, 52 entradas nuevas en la línea base de axe con la aprobación del usuario), 4.5 hecha (zona 4: K46–K54 y una variante de C10, informe en `audit/blocks.md`; hueco del ADR 0023 de `now-playing` cerrado con una emisora siempre en antena, sin entradas nuevas en la línea base); 4.6 hecha (zona 5: K55–K71 y AX6, informe en `audit/player.md`; K67 alta: `dashjs` llama a `time.akamai.com`; huecos de `contract-map.md` cerrados; sin entradas nuevas en la línea base de axe); 4.7 por hacer. Fases 1–3 cerradas; queda la 5 (triage). PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 4.6: skill `audit` en la zona 5 (player), informe en `docs/specs/0002-safety-net/audit/player.md`.
-2. 4.7: PHPStan en la CI y ADR 0024.
-3. `close-phase` de la fase 4.
+1. 4.7: PHPStan en la CI y ADR 0024.
+2. `close-phase` de la fase 4.
 
 ## Bloqueos / preguntas para el humano
 - Fase 3: el criterio del blame de la 3.8 se cumple solo para las líneas que ya existían (82 líneas nuevas de `station-admin.js` siguen en la 3.4, ver desviaciones). ¿Se acepta así?
@@ -16,6 +15,7 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 4 (auditor�
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
+- Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66) y los controles con `100vh` bajo la barra de Safari de iOS.
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)

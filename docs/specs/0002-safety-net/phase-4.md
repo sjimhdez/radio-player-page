@@ -103,6 +103,11 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 - Archivos: `audit/player.md`, `docs/known-issues.md`, `player/src/**/*.test.ts(x)`, `tests/e2e/{i18n,cross-origin,mp3}.spec.ts` (o uno nuevo `ogg.spec.ts`), `tests/e2e/fixtures/seed-e2e.php` (variantes OGG y DASH sin CORS si faltan), `docs/specs/0002-safety-net/contract-map.md`.
 - Test: caracterización, como en 4.2 (e2e esperando a eventos, no a timeouts).
 - Verificación: `npm run check:player && npx playwright test tests/e2e/i18n.spec.ts tests/e2e/cross-origin.spec.ts tests/e2e/mp3.spec.ts`
+  - Resultado (2026-10-18): 17 filas nuevas (K55–K71) y AX6, variantes de K1, K11, K52 y AX2; informe en [`audit/player.md`](audit/player.md). Huecos de `contract-map.md` cerrados (variantes `ogg` y `nocors-dash` del seed). `tsc` estricto: 12 errores en la zona, no 17 (los otros son tests y zona congelada), todos ruido.
+  - Archivo nuevo fuera de la lista: `tests/e2e/player-a11y.spec.ts` (lo que axe no ve del player, aparte de los escenarios de la línea base); también se tocan `hls-dash.spec.ts` (K67), `sleep.spec.ts` (K65) y `player/src/components/dashboard/SleepMode.test.tsx` (K66).
+  - `smoke.spec.ts` contaba 17 emisoras «E2E»: la 4.5 añadió `always` sin actualizarlo (en rojo desde `94e0079`, no estaba en su verificación) y aquí se añaden `ogg` y `nocors-dash`; pasa a 20.
+  - Mutación: Vitest en una copia del player en el scratchpad → los 17 casos `currently` nuevos en rojo. La de los e2e (mutar `player/src` y regenerar `dist/`) la bloqueó el clasificador de permisos; **el usuario la aprueba** (2026-10-18): 13 mutaciones en `player/src` con su build → los 16 e2e nuevos en rojo en los dos navegadores; revertida, `player/dist/` idéntico a HEAD y los 32 en verde.
+  - Verificación: `npm run check` en verde; `i18n`, `cross-origin`, `mp3`, `player-a11y`, `hls-dash`, `a11y` y `smoke` en verde en Chromium y WebKit, y el caso K65 de `sleep.spec.ts`.
 - [ ] hecha · commit: —
 
 ### 4.7 PHPStan en la CI y su ADR (≤ 1 h)
@@ -115,6 +120,7 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 ## Decisiones abiertas → ADR
 - **Nivel de PHPStan:** 8 con baseline (83 entradas). → ADR 0024 en 4.7.
 - **Entradas nuevas en la línea base de axe** al cerrar los huecos (4.4–4.6): solo con la decisión del usuario, apuntada en esta sección (ADR 0023).
+  - 4.6 (2026-10-18): la línea base no cambia. Lo nuevo de axe (AX6 en el estado de carga y `heading-order` con un programa expandido) sale en estados que `a11y.spec.ts` no recorre y se fija en `player-a11y.spec.ts` con `withRules()`, sin tocar la línea base.
   - 4.5 (2026-10-18): el escenario `blocks page · always on air` no da violaciones; la línea base no cambia y no hace falta decisión.
   - 4.4 (2026-10-18): **el usuario aprueba** añadir las violaciones de `station meta boxes · added slot` y `station meta boxes · validation errors` con `RADPLAPAG_UPDATE_A11Y_BASELINE=1`: 52 entradas (AX2–AX4 con el nombre de página nuevo y AX5), en Chromium y WebKit, sin bajas.
 - **Huecos que no se puedan cerrar sin tocar código publicado:** se para y se pregunta (spec §0.4); se quedan anotados en el informe de la zona.
@@ -212,6 +218,26 @@ Zona 4 (4.5; detalle en [`audit/blocks.md`](audit/blocks.md) §5):
 - descartado: un programa no publicado en antena que tape a otro, porque sin solapes no puede pasar.
 - descartado: `now-playing` desfasado con caché de página, porque es el diseño de un bloque dinámico.
 - descartado: las entradas de PHPStan de la zona, porque son ruido.
+
+Zona 5 (4.6; detalle en [`audit/player.md`](audit/player.md) §5):
+- descartado: contraste de «On Air» a mitad del parpadeo, porque axe no da violación con la animación parada al 50 %.
+- descartado: `color-contrast` de «Connecting...» en WebKit durante la carga, porque es su parpadeo (K60).
+- descartado: botón del temporizador sin `aria-haspopup`/`aria-expanded`, porque el menú se anuncia y funciona con teclado.
+- descartado (para el triage o la spec 0005): `aria-valuetext` del volumen, anuncios de la cuenta atrás y del programa, nombre de los diálogos con «Close», `alt` redundantes, tarjetas sin lista ni encabezado, «Show more» genérico, «Back to today» sin foco, botones deshabilitados sin explicación y diferencia horaria sin unidad, porque son mejoras sin incumplimiento AA medido.
+- descartado: `prefers-reduced-motion` fuera del parpadeo, porque 2.3.3 es AAA.
+- descartado: foco visible que depende de `index.css`, porque hoy se ve.
+- descartado: contraste de los temas y objetivos táctiles, porque pasan.
+- descartado: canvas con nombre también parado, porque es C15 (canvas) y zona congelada.
+- descartado: horarios del modal de programas desde el domingo, porque ya está fijado y no hay contrato de orden.
+- descartado (sospecha para el triage): dos `play()` concurrentes con HLS dejan vivo el primer `Hls`, porque no se ha podido fijar ni ver en e2e.
+- descartado (sospecha): `pause()` durante la carga de un MP3 da «Unable to play», porque no se ha medido en navegador.
+- descartado (prueba manual): `play()` fuera del gesto con `hls.js` en Safari, temporizador con la pantalla bloqueada en iOS y `100vh` en Safari de iOS, porque necesitan un dispositivo o el Safari real.
+- descartado: Media Session que se reinicia en cada cambio de estado, porque no tiene efecto visible medido.
+- descartado: desmontaje durante el `import()`, porque el dashboard nunca se desmonta.
+- descartado (para la spec 0006): `use-config` sin validar la forma de programas y horario y sin ErrorBoundary, porque PHP siempre emite la forma del contrato.
+- descartado (para la spec 0005): `:` fuera de `t()` y decimales con punto, porque no hay bug visible con las traducciones actuales.
+- descartado: `timezoneOffset` limitado a −12…14, porque cubre todas las zonas reales.
+- descartado: errores de `tsc` estricto, `set-state-in-effect` y avisos de `player/coverage/`, porque son ruido.
 
 ## Verificación de la fase
 - `npm run check` en verde (incluye PHPStan).
