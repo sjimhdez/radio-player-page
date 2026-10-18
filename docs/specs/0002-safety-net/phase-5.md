@@ -80,7 +80,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `docs/known-issues.md` (+ ADR y `SPEC.md` si una decisión cambia el contrato); `phase-5.md` (sospechas y la tarea anterior).
 - Test: — (decisiones; sin código).
 - Verificación: `awk -F'|' '/^\| (C13|K5|K15|K16|K19|K20|K34|K35|K36|K37|K38|K39|K40|K41|K42|K43|K44|K45|AX3|AX4|AX5) / && $(NF-1) ~ /pendiente/' docs/known-issues.md` vacío
-- [ ] hecha · commit: —
+- [x] hecha · commit: 62e188a
 
 ### 5.8 Triage · bloques (≤ 1 h)
 - Qué: triage con el usuario según el «Método». Filas: K6, K46 (contrato §3.5: corregir pide ADR), K47, K48, K49, K50, K51, K53 (markup = contrato), K54. Sospecha: programas con contraseña en los bloques y en `RADPLAPAG_PROGRAMS`.
@@ -99,7 +99,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 ## Sospechas (decisión del usuario)
 - [x] `exit` en `template_redirect` frente a plugins de acceso restringido (5.6) → no arreglar: es el diseño del ADR 0008 y no se reproduce sin un plugin de terceros; si llega un informe, se trata entonces
 - [x] `<html>` sin `dir` en sitios RTL (5.6) → corregir: núcleo (prioridad baja) — `dir="rtl"` con `is_rtl()`, test simulando la dirección; la maqueta del player en RTL queda fuera (otra fila si se ve mal)
-- [ ] Programas con contraseña en bloques y `RADPLAPAG_PROGRAMS` (5.8)
+- [x] Programas con contraseña en bloques y `RADPLAPAG_PROGRAMS` (5.8) → corregir: horario (prioridad baja), junto a C10 — un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución); antes se fija con un test `currently`
 - [x] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4) → corregir: interfaz, primera tarea de esa spec: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (ADR 0023) antes de arreglar AX6 y AX2
 - [x] Gravedad AX6 vs K59 (5.4) → K59 sube de baja a media; las dos, corregir: interfaz (prioridad media), juntas
 - [x] Endurecimiento de `innerHTML` del admin (5.7) → otra spec: 0005 (endurecimiento, no bug: el refactor del admin construye el DOM con `textContent` / `createElement`)
