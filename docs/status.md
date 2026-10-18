@@ -5,8 +5,8 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 5 (triage) 
 - Spec 0002, fase 5 (triage, desde el 2026-10-18): 89 filas «pendiente» de `known-issues.md` y 8 sospechas de la auditoría, por zonas (tareas 5.2–5.8), con el usuario; la hoja de ruta 0007+ en 5.9. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 5.5–5.8: triage zona a zona (migración, núcleo PHP, admin, bloques); la sesión propone, el usuario decide. Hechas 5.2–5.4 (5.4: K55 → ADR 0025, redacción de `SPEC.md` §3.8).
-2. Decisiones que cambien la redacción de `SPEC.md` (K29, K46, K53): `write-adr` en su tarea.
+1. 5.6–5.8: triage zona a zona (núcleo PHP, admin, bloques); la sesión propone, el usuario decide. Hechas 5.2–5.5 (5.4: K55 → ADR 0025, redacción de `SPEC.md` §3.8; 5.5: K29 es bug sin ADR, K33 lleva ADR en la spec de migración).
+2. Decisiones que cambien la redacción de `SPEC.md` (K46, K53): `write-adr` en su tarea.
 3. 5.9: specs 0007+ en `docs/specs/README.md` con sus filas; después `close-phase` (última fase: cierra la spec y deja el PR listo).
 
 ## Bloqueos / preguntas para el humano

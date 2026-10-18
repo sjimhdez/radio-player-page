@@ -59,7 +59,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `docs/known-issues.md` (+ ADR y `SPEC.md` si una decisión cambia el contrato); `phase-5.md` (sospechas y la tarea anterior).
 - Test: — (decisiones; sin código).
 - Verificación: `awk -F'|' '/^\| (C5|C6|C15|K55|K56|K57|K58|K59|K60|K61|K62|K68|K69|K71|AX1|AX2|AX6) / && $(NF-1) ~ /pendiente/' docs/known-issues.md` vacío
-- [ ] hecha · commit: —
+- [x] hecha · commit: 32c27e2
 
 ### 5.5 Triage · migración y actualización (≤ 1 h)
 - Qué: triage con el usuario según el «Método». Filas: K29, K30, K31, K32, K33, K72.
@@ -105,6 +105,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - [ ] Endurecimiento de `innerHTML` del admin (5.7)
 - [x] Dos `play()` concurrentes con HLS; `pause()` durante la carga de un MP3 (5.3) → otra spec: 0006 (el núcleo serializa `play()`/`pause()` y lo comprueba con sus tests; si se confirma un fallo visible, pasa como fila a la spec de reproducción)
 - [ ] «Entrada publicada» con error; meta box contraído con error (5.7)
+- [x] Bloqueo `radplapag_migrating` no atómico; migración cortada a medias (5.5, auditoría 4.3) → corregir: migración (prioridad baja) — bloqueo atómico con `add_option()` y un reintento que no duplica lo ya creado, junto a K30
 
 ## Decisiones abiertas → ADR
 - Cualquier decisión que cambie la redacción de `SPEC.md` (candidatas: K17, K55, K29 —§3.2 dice descartable—, K46, K53) o un ADR: `write-adr` en su tarea.
