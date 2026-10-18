@@ -2,12 +2,11 @@
 Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: 5 (triage) · Plan: [`phase-5.md`](specs/0002-safety-net/phase-5.md) · Actualizado: 2026-10-18
 
 ## En curso
-- Spec 0002, fase 5 (triage, desde el 2026-10-18): 89 filas «pendiente» de `known-issues.md` y 8 sospechas de la auditoría, por zonas (tareas 5.2–5.8), con el usuario; la hoja de ruta 0007+ en 5.9. PR en borrador #37 contra `trunk`.
+- Spec 0002, fase 5 (triage, desde el 2026-10-18): tareas 5.1–5.9 hechas. Todas las filas de `known-issues.md` y las sospechas tienen decisión; la hoja de ruta 0007–0013 (una spec de correcciones por zona) está en `docs/specs/README.md`. PR en borrador #37 contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 5.6–5.8: triage zona a zona (núcleo PHP, admin, bloques); la sesión propone, el usuario decide. Hechas 5.2–5.5 (5.4: K55 → ADR 0025, redacción de `SPEC.md` §3.8; 5.5: K29 es bug sin ADR, K33 lleva ADR en la spec de migración).
-2. Decisiones que cambien la redacción de `SPEC.md` (K46, K53): `write-adr` en su tarea.
-3. 5.9: specs 0007+ en `docs/specs/README.md` con sus filas; después `close-phase` (última fase: cierra la spec y deja el PR listo).
+1. `close-phase` de la fase 5 (última fase: cierra la spec 0002 y deja el PR #37 listo).
+2. Después, 0003 y 0004 (independientes, en paralelo si se quiere); las correcciones van en dos pistas: player 0007 → 0011 tras la 0006, WordPress 0008 → 0012 tras la 0005; 0009 necesita las dos y 0013 va tras 0009 y 0010.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.

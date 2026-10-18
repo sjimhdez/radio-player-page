@@ -14,10 +14,18 @@
 | 0004 | Dependencias de la parte WordPress (bloques, raíz, Composer, CI) | pendiente de escribir | — | 0002 |
 | 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0004 |
 | 0006 | Refactor del player | pendiente de escribir | — | 0003 |
-| 0007+ | Correcciones por zona (lo aprobado en el triage de la 0002) | pendiente de escribir | — | 0005, 0006 |
+| 0007 | Correcciones: reproducción | pendiente de escribir | — | 0006 |
+| 0008 | Correcciones: migración y actualización | pendiente de escribir | — | 0005 |
+| 0009 | Correcciones: horario y programa en antena | pendiente de escribir | — | 0005, 0006 |
+| 0010 | Correcciones: admin | pendiente de escribir | — | 0005, 0009 |
+| 0011 | Correcciones: interfaz, i18n y accesibilidad del player | pendiente de escribir | — | 0006, 0007 |
+| 0012 | Correcciones: núcleo PHP y desinstalación | pendiente de escribir | — | 0005 |
+| 0013 | Correcciones: bloques | pendiente de escribir | — | 0009, 0010 |
 | último | Release | pendiente de escribir | — | todas |
 
 Las 0003 y 0004 son independientes entre sí, igual que las 0005 y 0006. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree y con su rama desde `trunk`.
+
+Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec por zona, numeradas por prioridad en dos pistas. La del player (0007 → 0011) arranca al cerrar la 0006; la de WordPress (0008 → 0012) al cerrar la 0005. La 0009 (horario) necesita las dos, y la 0013 (bloques) va detrás de la 0009 y la 0010. Cada fila de `docs/known-issues.md` con «corregir» está en exactamente una de ellas.
 
 ## Iniciativa en curso: base de calidad (versión 3.x siguiente)
 
@@ -72,19 +80,49 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - *strangler*: el código nuevo en el namespace `RadioPlayerPage\` con autoloader PSR-4 propio;
   - las funciones `radplapag_*` como envoltorios;
   - la lógica pura separada de los adaptadores de WP, con TDD;
-  - la lógica pura de `admin/js/*` extraída a módulos testeables, que pasan los mismos vectores del horario que PHP.
+  - la lógica pura de `admin/js/*` extraída a módulos testeables, que pasan los mismos vectores del horario que PHP;
+  - del triage de la 0002: K72 (las dos `phpcs:ignore` de `error_log()` del migrador llevan su motivo en la línea, ADR 0021) y el endurecimiento del `innerHTML` del admin (el DOM se construye con `textContent` / `createElement`).
 - **0006 Refactor del player:**
   - núcleo `player/src/core/` sin React ni MUI: máquina de estados del audio, adaptadores por protocolo, `crossOrigin`, intro, horario, sueño, Media Session y lectura de las globales;
   - los hooks, como adaptadores finos;
-  - TDD.
-- **0007+ Correcciones:** una spec por zona. Candidatas:
-  - horario: C3, C4, C16;
-  - player: C2, C6, C7, C15;
-  - admin: C10, C12, C13;
-  - desinstalación: C11;
-  - más los hallazgos `K*` aprobados.
+  - TDD;
+  - del triage de la 0002: K9 (el núcleo valida el offset), K14 (Media Session en el núcleo), K70 (cada adaptador por protocolo fija su `crossOrigin`) y las sospechas de dos `play()` concurrentes con HLS y de `pause()` durante la carga de un MP3 (el núcleo serializa `play()`/`pause()` y lo comprueba en sus tests; si se confirma un fallo visible, pasa como fila a la 0007).
+- **Correcciones (0007–0013), comunes a todas:**
+  - cada fila se corrige con `fix-bug`: el test `currently` pasa a test de regresión en rojo y luego a verde; la fila de `known-issues.md` pasa a «corregido (versión)»;
+  - la prioridad de cada fila (alta · media · baja) ordena las fases; los motivos y el detalle de cada decisión están en la columna «Decisión del usuario» de `known-issues.md`;
+  - una decisión que cambie `SPEC.md` o un ADR lleva su ADR en la spec que la corrige (se indica abajo).
+- **0007 Reproducción** (tras la 0006):
+  - alta: C1 (reintento sin `crossOrigin` en las fuentes directas; cambia ADR 0013/0004 → ADR), K18 (antes, verificar en Safari real; lo arregla C7), K67 (`dashjs` sin fuente de hora de terceros; **bloquea la release**);
+  - media: C2, C7 (Play recarga el directo; arregla K18 y absorbe K12), K1, K11, K63, K64;
+  - baja: K12, K13, K65, K66 (prioridad a revisar si iOS lo confirma).
+- **0008 Migración y actualización** (tras la 0005):
+  - alta: K29 (el descarte se recuerda; si necesita una opción nueva, ADR), K30 (se descarta solo la franja inválida);
+  - media: K33 (la migración corre sin un administrador delante; cambia el paso 2 de `SPEC.md` §3.2 → ADR);
+  - baja: K31, K32, y la sospecha de la auditoría 4.3: bloqueo `radplapag_migrating` atómico (`add_option()`) y reintento que no duplica lo ya creado, junto a K30.
+- **0009 Horario y programa en antena** (tras la 0005 y la 0006):
+  - alta: C16 (raíz de C4, K8 y K52; PHP, bloques y player con los mismos vectores);
+  - media: C10 (la resolución ignora los programas no publicados y el admin avisa), K8, K41 (junto a C10);
+  - baja: C3, C4, C9 (la zona al player: clave nueva en una global → ADR), K10, K17 (imprimir `{}`, sin ADR), K52, y la sospecha de 5.8: un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución), junto a C10, fijado antes con un test `currently`.
+- **0010 Admin** (tras la 0005 y la 0009, que también toca `station-admin.js`):
+  - alta: K15 (índice = mayor índice + 1);
+  - media: C13, K5, K20, K39, K42, K45, AX3, AX4 (K45, AX3, AX4 y AX5 juntas; salen de la línea base de axe);
+  - baja: K16, K27, K34 (junto a K5), K36 (coordinada con el enlace a páginas no servidas de la 0013), K37, K38, K44, AX5, y las sospechas de 5.7: quitar «Entrada publicada» cuando hay error (la emisora se sigue publicando) y el meta box contraído con un error (primero se reproduce con un test; si no se confirma, se cierra sin cambios).
+- **0011 Interfaz, i18n y accesibilidad del player** (tras la 0006 y la 0007, que fija los estados del audio):
+  - primera tarea: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (hueco de `withRules()`, ADR 0023), antes de AX6 y AX2;
+  - alta: K56 (botón estable que cambia de estado);
+  - media: C15 (el canvas no se toca, zona congelada), K57, K59 y AX6 (juntas, región `role="status"`), K60, K68;
+  - baja: C6, K58, K61 (con capturas antes y después, junto al `100vh` de iOS), K62, K69, K71, AX1, AX2;
+  - K55 no se corrige (manda el idioma del sitio, ADR 0025), pero su test `currently` pasa aquí a test normal.
+- **0012 Núcleo PHP y desinstalación** (tras la 0005):
+  - media: C11 y K7 (juntas: `uninstall.php` limpia opciones, transients y todos los estados en cada sitio), K21 y K43 (juntas: decodificar entidades de lo que va al player, sin ADR);
+  - baja: K23, K24, K25, K26 (sin ADR), y la sospecha de 5.6: `<html dir="rtl">` con `is_rtl()` (la maqueta del player en RTL queda fuera).
+- **0013 Bloques** (tras la 0009 y la 0010):
+  - media: K46 (atributo con el ID de la emisora, `stationIndex` de respaldo; cambia `SPEC.md` §3.5 → ADR), K53 (encabezados accesibles; el ADR elige la forma, con `SPEC.md` §3.5);
+  - baja: K6, K47 (con el atributo de K46), K48, K49 y K50 (juntas; K50 coordinada con la página asignada sin publicar de la 0010), K51, K54.
+- **Fuera de las correcciones:** C8 (sin reconexión automática) se replica, mejora futura; C5, K4, K19, K22, K35, K40 y la sospecha del `exit` en `template_redirect` (ADR 0008): no arreglar (motivos en `known-issues.md`).
 - **Release:**
   - Plugin Check sobre el zip, la checklist de las guidelines y la matriz PHP 7.4/8.4 × WP 6.6/última;
   - verificación manual: iOS y Android, una emisora real y una actualización desde la 3.4.2;
   - changelog y `== Upgrade Notice ==`;
+  - del triage de la 0002: K3 (los textos se revisan con el estado final) y K28 (`readme.txt`); comprobar que K67 (0007) está corregida;
   - merge en `trunk`, PR `trunk` → `main`, tag `vX.Y.Z` y pasos de SVN para el usuario.

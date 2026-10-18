@@ -87,7 +87,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `docs/known-issues.md` (+ ADR y `SPEC.md` si una decisión cambia el contrato); `phase-5.md` (sospechas y la tarea anterior).
 - Test: — (decisiones; sin código).
 - Verificación: `awk -F'|' '/^\| (K6|K46|K47|K48|K49|K50|K51|K53|K54) / && $(NF-1) ~ /pendiente/' docs/known-issues.md` vacío
-- [ ] hecha · commit: —
+- [x] hecha · commit: 017203b
 
 ### 5.9 Hoja de ruta de las specs de correcciones (≤ 1 h)
 - Qué: con el usuario, convertir las zonas «corregir» en specs 0007+ (número, nombre, orden, dependencias) y escribirlas en el índice y en «Lo que se sabe» de `docs/specs/README.md`, cada una con sus filas y prioridades; las filas «otra spec» se añaden a las notas de 0003–0006 / release. Sustituir en `known-issues.md` la zona por el número de spec. Sustituir la lista de candidatas 0007+ actual.
@@ -98,14 +98,14 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 
 ## Sospechas (decisión del usuario)
 - [x] `exit` en `template_redirect` frente a plugins de acceso restringido (5.6) → no arreglar: es el diseño del ADR 0008 y no se reproduce sin un plugin de terceros; si llega un informe, se trata entonces
-- [x] `<html>` sin `dir` en sitios RTL (5.6) → corregir: núcleo (prioridad baja) — `dir="rtl"` con `is_rtl()`, test simulando la dirección; la maqueta del player en RTL queda fuera (otra fila si se ve mal)
-- [x] Programas con contraseña en bloques y `RADPLAPAG_PROGRAMS` (5.8) → corregir: horario (prioridad baja), junto a C10 — un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución); antes se fija con un test `currently`
-- [x] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4) → corregir: interfaz, primera tarea de esa spec: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (ADR 0023) antes de arreglar AX6 y AX2
-- [x] Gravedad AX6 vs K59 (5.4) → K59 sube de baja a media; las dos, corregir: interfaz (prioridad media), juntas
+- [x] `<html>` sin `dir` en sitios RTL (5.6) → corregir: 0012 núcleo (prioridad baja) — `dir="rtl"` con `is_rtl()`, test simulando la dirección; la maqueta del player en RTL queda fuera (otra fila si se ve mal)
+- [x] Programas con contraseña en bloques y `RADPLAPAG_PROGRAMS` (5.8) → corregir: 0009 horario (prioridad baja), junto a C10 — un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución); antes se fija con un test `currently`
+- [x] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4) → corregir: 0011 interfaz, primera tarea de esa spec: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (ADR 0023) antes de arreglar AX6 y AX2
+- [x] Gravedad AX6 vs K59 (5.4) → K59 sube de baja a media; las dos, corregir: 0011 interfaz (prioridad media), juntas
 - [x] Endurecimiento de `innerHTML` del admin (5.7) → otra spec: 0005 (endurecimiento, no bug: el refactor del admin construye el DOM con `textContent` / `createElement`)
 - [x] Dos `play()` concurrentes con HLS; `pause()` durante la carga de un MP3 (5.3) → otra spec: 0006 (el núcleo serializa `play()`/`pause()` y lo comprueba con sus tests; si se confirma un fallo visible, pasa como fila a la spec de reproducción)
-- [x] «Entrada publicada» con error; meta box contraído con error (5.7) → las dos, corregir: admin (prioridad baja). «Entrada publicada»: si hay error se quita el mensaje de core; la emisora se sigue publicando (contrato, §3.1 y §3.6). Meta box contraído: primero se reproduce con un test; si se confirma, se abre el meta box con el error, y si no, se cierra sin cambios
-- [x] Bloqueo `radplapag_migrating` no atómico; migración cortada a medias (5.5, auditoría 4.3) → corregir: migración (prioridad baja) — bloqueo atómico con `add_option()` y un reintento que no duplica lo ya creado, junto a K30
+- [x] «Entrada publicada» con error; meta box contraído con error (5.7) → las dos, corregir: 0010 admin (prioridad baja). «Entrada publicada»: si hay error se quita el mensaje de core; la emisora se sigue publicando (contrato, §3.1 y §3.6). Meta box contraído: primero se reproduce con un test; si se confirma, se abre el meta box con el error, y si no, se cierra sin cambios
+- [x] Bloqueo `radplapag_migrating` no atómico; migración cortada a medias (5.5, auditoría 4.3) → corregir: 0008 migración (prioridad baja) — bloqueo atómico con `add_option()` y un reintento que no duplica lo ya creado, junto a K30
 
 ## Decisiones abiertas → ADR
 - Cualquier decisión que cambie la redacción de `SPEC.md` (candidatas: K17, K55, K29 —§3.2 dice descartable—, K46, K53) o un ADR: `write-adr` en su tarea.
