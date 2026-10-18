@@ -36,4 +36,4 @@ paths:
 ## i18n
 
 - 14 locales en `src/locales/*.json` (i18next). Todos tienen las mismas claves que `en-US.json` (test de paridad en la 0002).
-- Detección: `lang` del `<html>` → `localStorage` → navegador; reserva `en-US`.
+- Idioma: el del sitio, por el `lang` del `<html>`; reserva `en-US`. El navegador y `localStorage` no son contrato (ADR 0025).

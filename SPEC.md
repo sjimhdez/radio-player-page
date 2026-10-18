@@ -172,7 +172,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - **Modales** del horario semanal y de todos los programas.
 - **El horario es solo informativo:** nunca inicia, detiene ni cambia la reproducción.
 - **Errores:** si el stream falla, se muestra «Unable to play the stream. Try again later.» (traducido) (con las excepciones de K1 en `docs/known-issues.md`).
-- **i18n:** 14 locales en `player/src/locales/` (`cs`, `da-DK`, `de-DE`, `en-US`, `es`, `es-MX`, `gl-ES`, `hr`, `it-IT`, `nl-NL`, `pt-BR`, `ro-RO`, `ru-RU`, `sv-SE`). Detección: `lang` del `<html>` → `localStorage` → navegador; reserva `en-US`.
+- **i18n:** 14 locales en `player/src/locales/` (`cs`, `da-DK`, `de-DE`, `en-US`, `es`, `es-MX`, `gl-ES`, `hr`, `it-IT`, `nl-NL`, `pt-BR`, `ro-RO`, `ru-RU`, `sv-SE`). Idioma: el del sitio, por el `lang` del `<html>`; si no tiene traducción, reserva `en-US`. El idioma del navegador no se usa (ADR 0025).
 
 ### 3.9 Visualizadores (zona congelada, ADR 0018)
 

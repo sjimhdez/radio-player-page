@@ -52,7 +52,7 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - Archivos: `docs/known-issues.md` (+ ADR y `SPEC.md` si una decisión cambia el contrato); `phase-5.md` (sospechas y la tarea anterior).
 - Test: — (decisiones; sin código).
 - Verificación: `awk -F'|' '/^\| (C1|C2|C7|K1|K11|K12|K13|K14|K18|K63|K64|K65|K66|K67|K70) / && $(NF-1) ~ /pendiente/' docs/known-issues.md` vacío
-- [ ] hecha · commit: —
+- [x] hecha · commit: 9a3a04c
 
 ### 5.4 Triage · player, interfaz, i18n y accesibilidad (≤ 1 h)
 - Qué: triage con el usuario según el «Método». Filas: C5 (zona congelada, ADR 0018), C6, C15, K55 (bug o redacción de `SPEC.md` §3.8), K56, K57, K58, K59, K60, K61, K62, K68, K69, K71, AX1, AX2, AX6. Sospechas: gravedad AX6 vs K59; hueco de `withRules()` (dos escenarios nuevos en la línea base, ADR 0023: ¿en qué spec?).
@@ -100,8 +100,8 @@ Cada fila de `known-issues.md` y cada sospecha sale con una decisión del usuari
 - [ ] `exit` en `template_redirect` frente a plugins de acceso restringido (5.6)
 - [ ] `<html>` sin `dir` en sitios RTL (5.6)
 - [ ] Programas con contraseña en bloques y `RADPLAPAG_PROGRAMS` (5.8)
-- [ ] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4)
-- [ ] Gravedad AX6 vs K59 (5.4)
+- [x] Hueco de `withRules()` en `player-a11y.spec.ts` (5.4) → corregir: interfaz, primera tarea de esa spec: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (ADR 0023) antes de arreglar AX6 y AX2
+- [x] Gravedad AX6 vs K59 (5.4) → K59 sube de baja a media; las dos, corregir: interfaz (prioridad media), juntas
 - [ ] Endurecimiento de `innerHTML` del admin (5.7)
 - [x] Dos `play()` concurrentes con HLS; `pause()` durante la carga de un MP3 (5.3) → otra spec: 0006 (el núcleo serializa `play()`/`pause()` y lo comprueba con sus tests; si se confirma un fallo visible, pasa como fila a la spec de reproducción)
 - [ ] «Entrada publicada» con error; meta box contraído con error (5.7)
