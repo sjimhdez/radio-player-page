@@ -117,8 +117,8 @@ Buscar lo que la red de las fases 1–2 no vio, zona a zona, con herramientas es
 - Verificación: `npm run lint:phpstan && npm run check` y el job `PHPStan` del PR #37 en verde (`gh pr checks 37`)
   - Resultado (2026-10-18): job `phpstan` en `ci.yml` (PHP 8.4, `composer install`, el mismo comando que `lint:phpstan`, sin Node). La baseline no cambia: la auditoría no convirtió ninguna entrada en fila de `known-issues.md`. ADR 0024 y su fila en el índice; regla en `.claude/rules/php.md`, `CLAUDE.md` (`check` incluye PHPStan y fila de `lint:phpstan`) y, fuera de la lista, el paso de PHPStan de la skill `audit`. La spec (§4, §5) ya lo describe y `contract-map.md` no tenía huecos abiertos de esta tarea (los cerró la 4.6): no cambian.
   - Mutación en local: `esc_html( 1 );` al final de `uninstall.php` → `lint:phpstan` falla (`argument.type`); el `count` de una entrada subido a 2 → falla (`ignore.count`, la baseline no admite entradas sobrantes). Revertidas, «No errors».
-  - Verificación: `npm run check` en verde.
-- [ ] hecha · commit: —
+  - Verificación: `npm run check` en verde; job `PHPStan (level 8 with baseline)` del PR #37 en verde (22 s).
+- [x] hecha · commit: `857590e`
 
 ## Decisiones abiertas → ADR
 - **Nivel de PHPStan:** 8 con baseline (83 entradas). → ADR 0024 en 4.7.
