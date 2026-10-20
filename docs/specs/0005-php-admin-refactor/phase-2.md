@@ -92,7 +92,8 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `admin/js/station-admin.js`.
 - Test: caracterización: `admin-dom.test.js` (2.1), `station-fields.test.js`.
 - Verificación: `npm test && npm run lint:js && grep -nE 'innerHTML|insertAdjacentHTML' admin/js/station-admin.js; test $? -eq 1`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `buildProgramSelectHtml()` pasa a `buildProgramSelect()` y la fila entera sale de `buildProgramRow()`, con un helper `createElement( tag, attributes, children )` (atributos con `setAttribute` en el orden de antes, hijos con `append`) y `scheduleFieldName()`. `decodeEntities()` parsea `'<body>' + texto` con `DOMParser` y devuelve el `textContent` del `body`: sin el prefijo, el parser descarta los espacios iniciales (antes del `body`), y `innerHTML` los conservaba. Se aplica a las cuatro traducciones y, tras el escape de hoy (`<`, `>`, `"`, ahora en `escapeName()`), al nombre y al ID (en el atributo, `innerHTML` también decodificaba). Una traducción con etiquetas pasa a mostrar solo su texto (antes creaba elementos); no hay ninguna en el plugin. `station-admin.js`: 670 → 725 líneas. Un test nuevo en `admin-dom.test.js` (solo alta, pasa contra el código de antes): los espacios alrededor de una traducción. Mutaciones (revertidas): quitar la decodificación del nombre (fallan 2) y el prefijo `<body>` (falla el test nuevo; antes sobrevivía). 245 tests en la raíz; `lint:js` sin errores (los 2 avisos de `program-admin.test.js` ya estaban). E2E `admin.spec.ts` y `a11y.spec.ts` en `env:start:latest` (WP 7.1.3), Chromium y WebKit: 74 pasan.
 
 ### 2.9 Vistas previas de `program-admin.js` sin cadenas HTML (≤ 1 h)
 - Qué: `<img>` (`src`, luego `alt=""`) y `<audio>` (`controls`, luego `src`) con `createElement`, metidos con `.empty().append()`. Cierra A7 en `admin/js`; `admin.md` quita la nota «Mientras no exista ese refactor» y describe el adaptador.

@@ -356,38 +356,138 @@
 		}
 	}
 
-	function buildProgramSelectHtml( day, nextIndex ) {
+	// Text as the HTML strings of 3.4 showed it: entities decoded (risk 1 of spec
+	// 0005; K21 is for 0012). The inert document runs no scripts and loads
+	// nothing; `<body>` keeps leading whitespace.
+	function decodeEntities( text ) {
+		return new window.DOMParser().parseFromString(
+			'<body>' + text,
+			'text/html'
+		).body.textContent;
+	}
+
+	function escapeName( text ) {
+		return text
+			.replace( /</g, '&lt;' )
+			.replace( />/g, '&gt;' )
+			.replace( /"/g, '&quot;' );
+	}
+
+	function createElement( tag, attributes, children ) {
+		const el = document.createElement( tag );
+		Object.keys( attributes ).forEach( function ( name ) {
+			el.setAttribute( name, attributes[ name ] );
+		} );
+		( children || [] ).forEach( function ( child ) {
+			el.append( child );
+		} );
+		return el;
+	}
+
+	function scheduleFieldName( day, index, field ) {
+		return (
+			'radplapag_station_schedule[' +
+			day +
+			'][' +
+			index +
+			'][' +
+			field +
+			']'
+		);
+	}
+
+	function buildProgramSelect( day, nextIndex ) {
 		const selectProgramOpt = s.selectProgram || 'Select Radio Show';
-		let opts = '<option value="">' + selectProgramOpt + '</option>';
+		const options = [
+			createElement( 'option', { value: '' }, [
+				decodeEntities( selectProgramOpt ),
+			] ),
+		];
 		programsList.forEach( function ( p ) {
 			const id =
 				p.id !== null && p.id !== undefined ? String( p.id ) : '';
 			const name = p.name ? String( p.name ) : '';
 			if ( id !== '' && name !== '' ) {
-				opts +=
-					'<option value="' +
-					id.replace( /"/g, '&quot;' ) +
-					'">' +
-					name
-						.replace( /</g, '&lt;' )
-						.replace( />/g, '&gt;' )
-						.replace( /"/g, '&quot;' ) +
-					'</option>';
+				options.push(
+					createElement(
+						'option',
+						{ value: decodeEntities( escapeName( id ) ) },
+						[ decodeEntities( escapeName( name ) ) ]
+					)
+				);
 			}
 		} );
-		const nameAttr =
-			'radplapag_station_schedule[' +
-			day +
-			'][' +
-			nextIndex +
-			'][program_id]';
-		return (
-			'<select name="' +
-			nameAttr +
-			'" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">' +
-			opts +
-			'</select>'
+		return createElement(
+			'select',
+			{
+				name: scheduleFieldName( day, nextIndex, 'program_id' ),
+				class: 'radplapag-program-id',
+				style: 'width: 200px; margin-right: 24px;',
+			},
+			options
 		);
+	}
+
+	function buildProgramRow( day, nextIndex ) {
+		const toLabel = decodeEntities( s.to || 'to' );
+		const removeTimeSlot = decodeEntities(
+			s.removeTimeSlot || 'Remove Time Slot'
+		);
+		const rerunLabel = decodeEntities( s.scheduleRerun || 'Rerun' );
+		const newRow = document.createElement( 'div' );
+		newRow.className = 'radplapag-program-row';
+		newRow.setAttribute( 'data-program-index', nextIndex );
+		newRow.append(
+			buildProgramSelect( day, nextIndex ),
+			createElement( 'input', {
+				type: 'time',
+				name: scheduleFieldName( day, nextIndex, 'start' ),
+				value: '',
+				class: 'radplapag-program-start',
+				style: 'width: 100px; margin-right: 5px;',
+			} ),
+			createElement( 'span', { style: 'margin-right: 5px;' }, [
+				' ' + toLabel + ' ',
+			] ),
+			createElement( 'input', {
+				type: 'time',
+				name: scheduleFieldName( day, nextIndex, 'end' ),
+				value: '',
+				class: 'radplapag-program-end',
+				style: 'width: 100px; margin-right: 10px;',
+			} ),
+			createElement(
+				'label',
+				{
+					class: 'radplapag-program-is-rerun-label',
+					style: 'margin-right: 10px;',
+				},
+				[
+					createElement( 'input', {
+						type: 'checkbox',
+						name: scheduleFieldName( day, nextIndex, 'is_rerun' ),
+						value: '1',
+						class: 'radplapag-program-is-rerun',
+					} ),
+					' ' + rerunLabel,
+				]
+			),
+			createElement( 'div', { class: 'radplapag-schedule-remove-cell' }, [
+				createElement(
+					'a',
+					{
+						href: '#',
+						class: 'submitdelete radplapag-remove-program',
+					},
+					[ removeTimeSlot ]
+				),
+			] ),
+			createElement( 'div', {
+				class: 'radplapag-program-error-message',
+				style: 'display: none;',
+			} )
+		);
+		return newRow;
 	}
 
 	function initScheduleManagement() {
@@ -500,52 +600,7 @@
 					const nextIndex = existingPrograms
 						? existingPrograms.length
 						: 0;
-					const selectHtml = buildProgramSelectHtml( day, nextIndex );
-					const toLabel = s.to || 'to';
-					const removeTimeSlot =
-						s.removeTimeSlot || 'Remove Time Slot';
-					const rerunLabel = s.scheduleRerun || 'Rerun';
-					const startName =
-						'radplapag_station_schedule[' +
-						day +
-						'][' +
-						nextIndex +
-						'][start]';
-					const endName =
-						'radplapag_station_schedule[' +
-						day +
-						'][' +
-						nextIndex +
-						'][end]';
-					const isRerunName =
-						'radplapag_station_schedule[' +
-						day +
-						'][' +
-						nextIndex +
-						'][is_rerun]';
-					const newRow = document.createElement( 'div' );
-					newRow.className = 'radplapag-program-row';
-					newRow.setAttribute( 'data-program-index', nextIndex );
-					newRow.innerHTML =
-						selectHtml +
-						'<input type="time" name="' +
-						startName +
-						'" value="" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">' +
-						'<span style="margin-right: 5px;"> ' +
-						toLabel +
-						' </span>' +
-						'<input type="time" name="' +
-						endName +
-						'" value="" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">' +
-						'<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;"><input type="checkbox" name="' +
-						isRerunName +
-						'" value="1" class="radplapag-program-is-rerun"> ' +
-						rerunLabel +
-						'</label>' +
-						'<div class="radplapag-schedule-remove-cell"><a href="#" class="submitdelete radplapag-remove-program">' +
-						removeTimeSlot +
-						'</a></div>' +
-						'<div class="radplapag-program-error-message" style="display: none;"></div>';
+					const newRow = buildProgramRow( day, nextIndex );
 					dayProgramsList.appendChild( newRow );
 					setupGroupValidation( newRow );
 				}

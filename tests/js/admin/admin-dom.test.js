@@ -194,6 +194,16 @@ describe( 'station-admin.js: new schedule row', () => {
 			row.querySelector( '.radplapag-remove-program' ).textContent
 		).toBe( 'Don’t' );
 	} );
+
+	it( 'keeps the whitespace around translations', async () => {
+		const row = await addRow( 'sunday', {
+			strings: { ...MARKER_STRINGS, removeTimeSlot: '\n  Remove &amp; ' },
+		} );
+
+		expect(
+			row.querySelector( '.radplapag-remove-program' ).textContent
+		).toBe( '\n  Remove & ' );
+	} );
 } );
 
 const META_BOX_HTML = readFileSync(
