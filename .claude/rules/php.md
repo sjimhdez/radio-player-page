@@ -15,7 +15,6 @@ paths:
   - **Cada archivo nuevo de `includes/src/` va en `tests/zip/expected-additions.txt`** en el mismo commit (`npm run check:zip`).
   - **Tres capas:** núcleo puro (`includes/src/<zona>/`: recibe arrays, escalares y `DateTimeImmutable` —nunca lee la hora— y devuelve arrays u objetos de valor; sin funciones de WordPress ni `__()`, los errores son códigos con datos; lo vigila `PureCoreTest`; TDD en `tests/php/unit/`, cobertura ≥ 90 %), adaptadores de WordPress (`includes/src/wp/`: leen y escriben datos de WP, traducen los códigos, dan la hora; integración) y envoltorios (las funciones `radplapag_*` y clases `Radplapag_*` de siempre, en su archivo, con su firma y docblock y un `@since` que dice que delegan).
 - **Strangler:** las funciones `radplapag_*` y los callbacks enganchados son contrato (`SPEC.md`); al refactorizar se quedan como envoltorios finos que delegan en el código nuevo. Un tercero puede llamarlos o desengancharlos con `remove_action`.
-- **Lógica pura separada** de los adaptadores de WP: lo que no necesita WordPress se testea en `tests/php/unit/` sin Docker.
 - **Docblocks** en funciones, clases y archivos, con `@since` (versión del plugin en la que aparece) y `@param`/`@return` tipados.
 - Cada archivo empieza con `defined( 'ABSPATH' ) || exit;`.
 - `php -l` se ejecuta al editar (hook) y en la CI con PHP 7.4 y 8.4.

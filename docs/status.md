@@ -1,12 +1,11 @@
 # Estado
-Spec activa: 0005 — Refactor de PHP y admin · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0005-php-admin-refactor/phase-1.md) · Actualizado: 2026-10-20
+Spec activa: 0005 — Refactor de PHP y admin · Fase: 1 cerrada, 2 por empezar · Plan: [`phase-1.md`](specs/0005-php-admin-refactor/phase-1.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0005, fase 1 (cimientos y horario en PHP): plan aprobado (2026-10-20), 15 tareas, 15/15 hechas (1.1: ADR 0028; 1.2: `PublicApiTest`; 1.3: guarda del zip con altas; 1.4: autoloader; 1.5: `PureCoreTest`; 1.6: cobertura del núcleo, zona `core`, y caracterización de las entradas mal formadas del programa en antena; 1.7: `Schedule\Time` y `Schedule\Week`; 1.8: `Schedule\Slot_Validator`; 1.9: `radplapag_sanitize_station_schedule()` delega con `WP\Schedule_Messages`; 1.10: `Schedule\Now_Playing_Resolver` y caracterización de la vuelta a ayer del programa en antena; 1.11: `radplapag_get_now_playing_for_station()` delega con `WP\Clock`; 1.12: `Schedule\Schedule_View`; 1.13: envoltorios del bloque de horario; 1.14: `Schedule\Programs_List_View`; 1.15: envoltorio de la lista de programas, cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %); PR en borrador contra `trunk`.
-- Spec 0003 cerrada y fusionada en `trunk` (PR #38, 2026-10-20).
+- Spec 0005: fase 1 (cimientos y horario en PHP) cerrada el 2026-10-20 (16 tareas; cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 1, en una sesión nueva. La cobertura se mide con `npm run env:start:latest -- --xdebug=coverage`.
+1. `start-phase` de la fase 2 (reglas y DOM del admin), en una sesión nueva. Empieza por la tarea 2.1 (riesgo 1 de la spec: `innerHTML` frente a `textContent` con entidades).
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
@@ -18,6 +17,12 @@ Spec activa: 0005 — Refactor de PHP y admin · Fase: 1 en curso · Plan: [`pha
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)
+Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`; sin ADR, no cambian el contrato):
+- Fase 1, 1.8: `Slot_Validator` no emite `end_before_start` (§4.2): la rama era inalcanzable en la 3.4.2. `WP\Schedule_Messages` conserva el mensaje para el POT.
+- Fase 1, 1.6: `SmokeTest` pasa al grupo `no-wordpress` (solo la anotación) para que la suite unit corra dentro de la integración (ADR 0028).
+- Fase 1, 1.10 y 1.12: se quitan las guardas inalcanzables de la 3.4.2 (`count( $days_out ) === 7`, claves de día `null`).
+- Fase 1, 1.3: la guarda del zip con altas va en su propia tarea y no con el ADR (§4.5). La 1.16 (autoloader con identificadores válidos) sale de `close-phase`.
+
 Spec 0003:
 - Tarea 1.1: K71 (anuncio de i18next en la consola) lo corrigió la subida a i18next 26, fuera de una spec de correcciones; su test `currently` pasa a regresión en la misma fase. Aprobado por el usuario (2026-10-20).
 - Tarea 1.2b: K73 (fallo del test `BlockRenderTest`, depende del día de la semana) se arregla en la 0003 y no en la 0013, porque deja la CI en rojo los lunes y martes. Solo el test; los snapshots no cambian. Aprobado por el usuario (2026-10-20).

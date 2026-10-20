@@ -1,5 +1,5 @@
 # Spec 0005 · Fase 1 — Cimientos y horario en PHP
-Estado: en curso · Inicio: 2026-10-20 · ADRs: 0017, 0021, 0024, 0028 (nuevo)
+Estado: cerrada (2026-10-20) · Inicio: 2026-10-20 · ADRs: 0017, 0021, 0024, 0028 (nuevo)
 
 ## Contexto (medido al planificar)
 
@@ -20,10 +20,10 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 
 | Criterio | Cómo se verifica (test o checklist manual) |
 |---|---|
-| A1 Comportamiento sin cambios | `npm run check`; `npm run test:php:integration`, `:ms` y `npm run test:e2e` en `env:start:min` y `env:start:latest`; `git diff trunk -- tests/php/integration tests/e2e/snapshots tests/e2e/a11y-baseline.json` solo con altas (bootstrap y `PublicApiTest`) |
+| A1 Comportamiento sin cambios | `npm run check`; `npm run test:php:integration`, `:ms` y `npm run test:e2e` en `env:start:min` y `env:start:latest`; `git diff trunk -- tests/php/integration tests/e2e/snapshots tests/e2e/a11y-baseline.json` solo con altas (bootstrap, `PublicApiTest` y las dos caracterizaciones de `ScheduleVectorsTest` de 1.6 y 1.10) |
 | A2 Contrato PHP | `HooksTest` sin cambios; `tests/php/integration/Contract/PublicApiTest.php` (1.2) en verde en las dos puntas |
 | A3 Núcleo sin WordPress | `tests/php/unit/Architecture/PureCoreTest.php`; los tests del núcleo pasan con `npm run test:php:unit` (sin Docker) |
-| A4 (PHP) Vectores | `tests/php/unit/Schedule/ScheduleVectorsTest.php` (resolución, `tz` y validación capa `php`); `schedule-vectors.json` sin cambios (`git diff trunk -- tests/fixtures`) |
+| A4 (PHP) Vectores | `tests/php/unit/Schedule/ScheduleVectorsTest.php` (resolución y validación capa `php`) y `WeekTest::test_tz_vectors` (`tz`); `schedule-vectors.json` sin cambios (`git diff trunk -- tests/fixtures`) |
 | A5 (núcleo y zonas PHP) | `node scripts/check-php-coverage.mjs coverage/php-xml` con la zona `core` ≥ 90 % y `critical`/`rest` en verde |
 | A6 Estándares | `npm run lint:php` y `npm run lint:phpstan`; `git diff trunk -- phpstan-baseline.neon` solo con bajas; `grep -rn 'phpcs:' includes/src` vacío |
 | A9 Zip | `npm run check:zip` con `tests/zip/expected-additions.txt` = los archivos de `includes/src/` creados |
@@ -99,7 +99,7 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Archivos: `includes/radplapag-station-cpt.php`, `includes/src/wp/class-schedule-messages.php`, `tests/coverage/php-zones.json`, `expected-additions.txt`, `phpstan-baseline.neon`.
 - Test: caracterización: `SanitizeScheduleTest`, `SaveStationMetaTest` (existentes).
 - Verificación: `npm run lint:php && npm run lint:phpstan && npm run test:php:integration -- --filter 'Sanitize|SaveStation|AdminScreens'`
-- Resultado: el envoltorio recorre las filas, carga con `radplapag_get_program_data()` (sin exigir publicado: C10) el nombre de cada `program_id` numérico > 0 que exista y pasa el mapa a `Slot_Validator::validate()`; con errores devuelve `WP_Error( 'radplapag_schedule_validation', Schedule_Messages::join( … ) )`, si no, el horario. `WP\Schedule_Messages` (`message()`, `join()`) lleva los mismos `__()` y `/* translators: */` de la 3.4.2, con sus etiquetas de día; conserva el mensaje de `end_before_start` (el validador no lo emite) para que la cadena siga en el POT. Cargar los nombres de todas las filas, y no solo de las completas, no cambia el resultado (lecturas sin efectos). El adaptador entra en la zona `critical`. Salen siete entradas de la baseline de PHPStan de `radplapag-station-cpt.php` (las dos de tipos de la firma se quedan). `SanitizeScheduleTest` fija los mensajes exactos: una mutación del separador hace fallar 2 tests (revertida). Integración completa (563 tests) y `npm run check` en verde, en WP 7.1.3.
+- Resultado: el envoltorio recorre las filas, carga con `radplapag_get_program_data()` (sin exigir publicado: C10) el nombre de cada `program_id` numérico > 0 que exista y pasa el mapa a `Slot_Validator::validate()`; con errores devuelve `WP_Error( 'radplapag_schedule_validation', Schedule_Messages::join( … ) )`, si no, el horario. `WP\Schedule_Messages` (`message()`, `join()`) lleva los mismos `__()` y `/* translators: */` de la 3.4.2, con sus etiquetas de día; conserva el mensaje de `end_before_start` (el validador no lo emite) para que la cadena siga en el POT. Cargar los nombres de todas las filas, y no solo de las completas (también las de claves que no son días), no cambia el resultado (lecturas sin efectos). El adaptador entra en la zona `critical`. Salen siete entradas de la baseline de PHPStan de `radplapag-station-cpt.php` (las dos de tipos de la firma se quedan). `SanitizeScheduleTest` fija los mensajes exactos: una mutación del separador hace fallar 2 tests (revertida). Integración completa (563 tests) y `npm run check` en verde, en WP 7.1.3.
 - [x] hecha · commit: 6684bc0
 
 ### 1.10 `Schedule\Now_Playing_Resolver` (≤ 1 h)
@@ -124,7 +124,7 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Test: primero (TDD): `ScheduleViewTest`.
 - Verificación: `npm run test:php:unit && npm run lint:php && npm run lint:phpstan`
 - Resultado: `Schedule_View::program_ids()` devuelve la lista de IDs (enteros > 0, únicos, en el orden de primera aparición en la parrilla guardada, también de franjas sin `start`/`end`, como hoy). `days()` con la firma prevista; `$programs_map` es el mapa de `radplapag_build_programs_map()` (clave = ID en texto) y el saneador recibe el `program_id` como string; la búsqueda en el mapa usa el ID saneado, sin normalizar (`"1.7"` no es el programa 1, como hoy). Mismo `usort` por minutos de inicio (sin estabilizar: en PHP 7.4 los empates siguen como en la 3.4.2). Se quitan dos cosas inalcanzables: la guarda `count( $days_out ) === 7` (siempre son siete) y los `isset()` de las descripciones (el mapa siempre las trae, `string|null`). 20 casos en `ScheduleViewTest` (IDs, orden `natural`/`current_first`/desconocido, etiqueta ausente, forma de la franja, `is_rerun`, programa fuera del mapa, saneador, entradas incompletas, orden por inicio, límites, cruce de medianoche de ayer, domingo ↔ sábado, desfase `-05:00`, `Europe/Madrid` en el cambio de hora y C16 como `currently`); 20 errores de clase no encontrada antes de existir la clase. Unit (243 tests), PHPCS, PHPStan y `npm run check` en verde.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 4db0c8c
 
 ### 1.13 Envoltorios del bloque de horario (≤ 1 h)
 - Qué: `radplapag_build_programs_map()` y `radplapag_get_schedule_for_station()` delegan (`sanitize_text_field` como saneador, etiquetas de `radplapag_get_schedule_day_keys_and_labels()`, `get_permalink()` en el envoltorio). `BlockDataTest`, snapshots de bloques y e2e sin cambios.
@@ -132,7 +132,7 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Test: caracterización: `BlockDataTest`, `BlockRenderTest` (existentes).
 - Verificación: `npm run lint:php && npm run lint:phpstan && npm run test:php:integration -- --filter 'Block'`
 - Resultado: `radplapag_build_programs_map()` toma los IDs de `Schedule_View::program_ids()` y sigue cargando cada programa publicado con `radplapag_get_program_data( $id, true )`; `radplapag_get_schedule_for_station()` valida el índice, construye el mapa, llama a `Schedule_View::days()` con las etiquetas de `radplapag_get_schedule_day_keys_and_labels()`, `WP\Clock::now()`, `$day_order` y `'sanitize_text_field'`, y calcula `station_page_url` con `get_permalink()` como antes. Firmas y PHPDoc de tipos sin cambios (tiparlas a fondo arrastra a `blocks/schedule/render.php`, fuera de la tarea); la global `$radplapag_schedule_day_map` se queda (contrato). Sale de la baseline de PHPStan la entrada `binaryOp.invalid` del archivo; las de tipos de las firmas se quedan. `php-zones.json` sin cambios: no hay archivos nuevos y los envoltorios siguen en `rest`. Mutación (`'natural'` fijo en lugar de `$day_order`) hace fallar 5 tests; revertida. `--filter 'Block'` (86 tests), integración completa (628 tests) y `npm run check` en verde, en WP 7.1.3.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 65dd4e8
 
 ### 1.14 `Schedule\Programs_List_View` (≤ 1 h)
 - Qué: `program_ids_in_order( $schedule )` y `build( $schedule, $programs, $day_labels, $now, callable $sanitize_id )`: franjas por programa (orden por día e inicio), `is_live`, programas en orden de primera aparición, con `C16` replicado.
@@ -140,7 +140,7 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Test: primero (TDD): `ProgramsListViewTest`.
 - Verificación: `npm run test:php:unit && npm run lint:php && npm run lint:phpstan`
 - Resultado: `Programs_List_View::program_ids_in_order()` recorre la semana de lunes a domingo (no el orden guardado de los días, a diferencia de `Schedule_View::program_ids()`) y devuelve los IDs numéricos > 0, como enteros y únicos. `build()` con la firma prevista; `$programs` es `id => datos` de `radplapag_get_program_data( $id, true )` (un programa fuera del mapa se omite) y el saneador recibe el `program_id` guardado tal cual, solo si no es numérico (los numéricos se normalizan: `"1.7"` es el programa 1, como hoy). Mismo `usort` (día y luego minutos de `substr( time_range, 0, 5 )`). El mapa de franjas lleva un `@var` con clave `int|string` (PHP convierte las claves numéricas): sin él, PHPStan daba un `nullCoalesce.offset` falso. 16 casos en `ProgramsListViewTest` (IDs en orden, vacío, forma, programa fuera del mapa, etiqueta ausente, orden por día e inicio, ID normalizado, saneador, entradas incompletas, programa sin franjas completas, límites, cruce de medianoche de ayer, sábado → domingo, desfase `-05:00`, `Europe/Madrid` en el cambio de hora y C16 como `currently`); 16 errores de clase no encontrada antes de existir la clase. Mutación (sin el orden por día) hace fallar 1 test; revertida. Además, un contraste aleatorio fuera del repo (20 000 parrillas con IDs, horas y entradas mal formadas, con stubs de WordPress) da la misma salida que la función de la 3.4.2. La fila C16 apunta también a `ProgramsListViewTest` y a `ScheduleViewTest` (faltaba desde la 1.12). Unit (260 tests), PHPCS, PHPStan y `check:zip` en verde.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: d43a4cc
 
 ### 1.15 Envoltorio de la lista de programas y cierre de la medición (≤ 1 h)
 - Qué: `radplapag_get_programs_list_for_station()` delega. Cobertura completa con Xdebug: `core` ≥ 90 %, `critical` y `rest` en verde; si no, tests unitarios que falten. Apuntar las cifras en «Resultado:».
@@ -148,7 +148,20 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Test: caracterización: `BlockDataTest`, `BlockRenderTest` (existentes).
 - Verificación: `npm run check && npm run test:php:integration:coverage && node scripts/check-php-coverage.mjs coverage/php-xml`
 - Resultado: `radplapag_get_programs_list_for_station()` valida el índice, carga cada programa publicado de `Programs_List_View::program_ids_in_order()` con `radplapag_get_program_data( $id, true )` y llama a `Programs_List_View::build()` con las etiquetas de `radplapag_get_schedule_day_keys_and_labels()`, `WP\Clock::now()` y `'sanitize_text_field'`. Para que PHPStan acepte el mapa, el `@return` de `radplapag_get_program_data()` pasa de `array|null` a su forma exacta (solo PHPDoc, mismo comportamiento; sin errores nuevos en otros llamadores). Salen de la baseline cuatro entradas: las dos `binaryOp.invalid` y la `nullCoalesce.offset` del archivo, y la `missingType.iterableValue` del `@return` de `radplapag_get_program_data()`; la del `@return` del envoltorio se queda. `php-zones.json` sin cambios (el envoltorio sigue en `rest`). Mutación (mapa de programas vacío) hace fallar 34 tests; revertida. Cobertura con Xdebug (`env:start:latest -- --xdebug=coverage`, WP 7.1.3, 645 tests): `critical` 96,39 % (480/498), `core` 100 % (324/324), `rest` 89,77 % (869/968); no hizo falta ningún test más. `--filter 'Block|Program'` (160 tests) y `npm run check` en verde.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 069447c
+
+### 1.16 El autoloader solo acepta identificadores válidos (sale de `close-phase`)
+- Qué: `Autoloader::file_for()` devuelve `null` si lo que sigue al prefijo no son identificadores de PHP separados por `\`, para que un nombre como `RadioPlayerPage\..\x` nunca se convierta en una ruta. Endurecimiento del código nuevo de la fase, señalado por `wp-security-reviewer` (gravedad baja: hoy no es explotable).
+- Archivos: `includes/src/class-autoloader.php`, `tests/php/unit/AutoloaderTest.php`.
+- Test: primero (TDD): cinco casos nuevos en `AutoloaderTest` (`..`, `/`, segmento vacío, separador final, dígito inicial), en rojo antes del cambio.
+- Verificación: `npm run test:php:unit && npm run lint:php && npm run lint:phpstan`
+- Resultado: unit (265 tests), PHPCS y PHPStan en verde; `AutoloaderTest` y `PureCoreTest` también en `php:7.4-cli`.
+- [x] hecha · commit: 86139d2
+
+## Cierre (2026-10-20)
+
+- Verificación: `npm run check` en verde. WP 6.6 + PHP 7.4: integración 645 tests (unit incluida: A2 y A3 en la punta mínima), `:ms` 3, e2e 196 + 22 saltados por proyecto. WP 7.1.3 + PHP 8.4: integración 650 (con los 5 casos de 1.16), `:ms` 3, e2e 196 + 22. Builds del player y de los bloques sin diff; `check:zip` en verde (48 archivos). La punta mínima corrió antes de 1.16, que solo afecta a nombres de clase no válidos (sus tests pasan en `php:7.4-cli`).
+- Revisores: `spec-conformance-reviewer`, `backcompat-reviewer`, `wp-security-reviewer` y `wporg-reviewer` (sin UI en el diff, sin `a11y-reviewer`). Ningún bloqueante. Corregido: el autoloader con identificadores válidos (1.16), los hashes de 1.12–1.15, el texto de A1 y A4 y la fila de la zona `core` en los mínimos de cobertura. Sin corregir, por ser inalcanzables o ya anotados: el mensaje de `end_before_start` (se queda para el POT), el `default` vacío de `Schedule_Messages` y las lecturas de más de los envoltorios (1.9, 1.11; lecturas sin efectos, con caché de objetos). El changelog de la 3.5.0 lo escribe `release`. Sin filas nuevas en `known-issues.md`.
 
 ## Decisiones abiertas → ADR
 

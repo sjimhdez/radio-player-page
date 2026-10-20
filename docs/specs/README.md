@@ -12,7 +12,7 @@
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | cerrada (PR #37) | `spec/0002-safety-net` | 0001 |
 | 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | cerrada (PR #38) | `spec/0003-player-dependencies` | 0002 |
 | 0004 | ~~Dependencias de la parte WordPress~~: descartada; los bloques van en la 0003, y la raíz, Composer y las Actions fuera de una spec ([ADR 0026](../adr/0026-grouped-dependency-upgrades.md)) | descartada | — | — |
-| 0005 | [Refactor de PHP y admin](0005-php-admin-refactor/spec.md) | propuesta | `spec/0005-php-admin-refactor` | 0003 |
+| 0005 | [Refactor de PHP y admin](0005-php-admin-refactor/spec.md) | en curso | `spec/0005-php-admin-refactor` | 0003 |
 | 0006 | Refactor del player | pendiente de escribir | — | 0003 |
 | 0007 | Correcciones: reproducción | pendiente de escribir | — | 0006 |
 | 0008 | Correcciones: migración y actualización | pendiente de escribir | — | 0005 |
@@ -57,6 +57,7 @@ Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec po
 | Componentes `player/src/components/dashboard/**` | sin mínimo (los cubre e2e) | sin mínimo |
 | Visualizadores | excluidos | excluidos |
 | PHP crítico: saneado y validación del horario y de los campos, migración, actualización, programa en antena, config | ≥ 80 % | ≥ 90 % |
+| PHP núcleo: `includes/src/**` salvo `includes/src/wp/**` (zona `core`, desde la 0005; ADR 0028) | — | ≥ 90 % |
 | PHP resto (`includes/`, `admin/*.php`, `blocks/*/render.php`, `uninstall.php`) | ≥ 60 % | ≥ 80 % |
 | JS de admin: lógica extraída en la 0005 | — | ≥ 85 % |
 
