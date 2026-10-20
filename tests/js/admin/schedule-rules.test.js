@@ -1,6 +1,8 @@
 /**
  * External dependencies
  */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -9,6 +11,13 @@ import { describe, expect, it } from 'vitest';
 import rules from '../../../admin/js/schedule-rules.js';
 
 const PROGRAM_IDS = [ '501', '502', '503' ];
+
+const VECTORS = JSON.parse(
+	readFileSync(
+		resolve( __dirname, '../../fixtures/schedule-vectors.json' ),
+		'utf8'
+	)
+);
 
 /**
  * Builds a slot as the admin reads it from a row.
@@ -547,6 +556,334 @@ describe( 'checkSlot: previous day', () => {
 			'sunday',
 			'monday',
 		] );
+	} );
+} );
+
+describe( 'checkSchedule: submit', () => {
+	it( 'has no writes and no first error without slots', () => {
+		expect( rules.checkSchedule( {}, PROGRAM_IDS ) ).toEqual( {
+			writes: [],
+			first: null,
+		} );
+	} );
+
+	it( 'checks every visible slot from Monday to Sunday, in order', () => {
+		const result = rules.checkSchedule(
+			{
+				sunday: [ slot( '503', '08:00', '09:00' ) ],
+				monday: [
+					slot( '501', '08:00', '09:00' ),
+					slot( '502', '10:00', '11:00', { hidden: true } ),
+					slot( '', '', '' ),
+				],
+				wednesday: [ slot( '502', '08:00', '09:00' ) ],
+			},
+			PROGRAM_IDS
+		);
+		expect( result ).toEqual( {
+			writes: [
+				{ day: 'monday', index: 0, error: null },
+				{ day: 'monday', index: 2, error: null },
+				{ day: 'wednesday', index: 0, error: null },
+				{ day: 'sunday', index: 0, error: null },
+			],
+			first: null,
+		} );
+	} );
+
+	it( 'keeps the writes of each check, the other row included', () => {
+		const result = rules.checkSchedule(
+			{
+				monday: [ slot( '501', '22:00', '02:00' ) ],
+				tuesday: [ slot( '502', '01:00', '03:00' ) ],
+			},
+			PROGRAM_IDS
+		);
+		expect(
+			result.writes.map( ( w ) => [ w.day, w.error && w.error.code ] )
+		).toEqual( [
+			[ 'tuesday', 'cross_midnight_overlap' ],
+			[ 'monday', 'cross_midnight_overlap' ],
+			[ 'monday', 'cross_midnight_overlap' ],
+			[ 'tuesday', 'cross_midnight_overlap' ],
+		] );
+	} );
+
+	it( 'gives the first slot whose own check fails', () => {
+		const result = rules.checkSchedule(
+			{
+				monday: [ slot( '501', '08:00', '09:00' ) ],
+				tuesday: [
+					slot( '502', '08:00', '' ),
+					slot( '999', '10:00', '11:00' ),
+				],
+			},
+			PROGRAM_IDS
+		);
+		expect( result.first ).toEqual( { day: 'tuesday', index: 0 } );
+	} );
+
+	it( 'does not take a slot marked by another check as the first', () => {
+		// Monday's check marks Sunday first, but Monday fails first.
+		const result = rules.checkSchedule(
+			{
+				sunday: [ slot( '501', '23:55', '00:30' ) ],
+				monday: [ slot( '502', '00:15', '01:00' ) ],
+			},
+			PROGRAM_IDS
+		);
+		expect( result.writes[ 0 ] ).toMatchObject( {
+			day: 'sunday',
+			index: 0,
+		} );
+		expect( result.first ).toEqual( { day: 'monday', index: 0 } );
+	} );
+} );
+
+/**
+ * The value a slot time keeps in an <input type="time">: the browser empties
+ * anything that is not a valid time, such as 24:00.
+ *
+ * @param {string} time Time from the vector.
+ * @return {string} The value the admin reads.
+ */
+function timeInputValue( time ) {
+	return rules.isValidTime( time ) ? time : '';
+}
+
+describe( 'checkSchedule: validation vectors (admin layer)', () => {
+	// One program per vector key; a key missing from "programs" is a program
+	// that does not exist.
+	const vectorProgramIds = Object.fromEntries(
+		VECTORS.programs.map( ( key, i ) => [ key, String( 501 + i ) ] )
+	);
+
+	/**
+	 * Builds the schedule the admin reads from a vector.
+	 *
+	 * @param {Object|string} schedule Day → slots, or the name of a grid.
+	 * @return {Object} Day → slots.
+	 */
+	function readVector( schedule ) {
+		const days =
+			typeof schedule === 'string' ? VECTORS.grids[ schedule ] : schedule;
+		return Object.fromEntries(
+			Object.entries( days ).map( ( [ day, slots ] ) => [
+				day,
+				slots.map( ( s ) =>
+					slot(
+						vectorProgramIds[ s.program ] || '999',
+						timeInputValue( s.start ),
+						timeInputValue( s.end ),
+						{ name: s.program }
+					)
+				),
+			] )
+		);
+	}
+
+	/**
+	 * Applies the writes in order and reads what the screen ends up showing.
+	 *
+	 * @param {Object} schedule Day → slots.
+	 * @param {Object} result   Result of checkSchedule().
+	 * @return {Object} Error code of the first failing slot and of the first
+	 *                  slot showing an error.
+	 */
+	function finalState( schedule, result ) {
+		const shown = {};
+		result.writes.forEach( ( w ) => {
+			shown[ w.day + ':' + w.index ] = w.error;
+		} );
+		const codeAt = ( day, index ) => {
+			const error = shown[ day + ':' + index ];
+			return error ? error.code : null;
+		};
+		let firstRowWithError = null;
+		rules.DAYS.forEach( ( day ) => {
+			( schedule[ day ] || [] ).forEach( ( _slot, index ) => {
+				if ( firstRowWithError === null ) {
+					firstRowWithError = codeAt( day, index );
+				}
+			} );
+		} );
+		return {
+			valid: result.first === null,
+			firstError: result.first
+				? codeAt( result.first.day, result.first.index )
+				: null,
+			firstRowWithError,
+		};
+	}
+
+	const vectors = VECTORS.validation.map( ( vector ) => [
+		vector.admin && vector.admin.currently
+			? `currently ${ vector.id } (${ vector.admin.issue })`
+			: vector.id,
+		vector,
+	] );
+
+	it.each( vectors )( '%s', ( _title, vector ) => {
+		expect( vector.admin ).toBeDefined();
+		const schedule = readVector( vector.schedule );
+
+		const result = rules.checkSchedule(
+			schedule,
+			Object.values( vectorProgramIds )
+		);
+
+		const error = vector.admin.valid ? null : vector.admin.error;
+		expect( finalState( schedule, result ) ).toEqual( {
+			valid: vector.admin.valid,
+			firstError: error,
+			firstRowWithError: error,
+		} );
+	} );
+} );
+
+describe( 'message', () => {
+	const STRINGS = {
+		pleaseSelectProgram: 'Elige un programa.',
+		invalidTimeFormat: 'Formato no válido.',
+		startEndSame: 'Inicio y fin iguales',
+		allFieldsRequired: 'Faltan campos.',
+		timeSlotOverlapsWithMessage: 'Se solapa con: %s',
+		unnamedProgram: 'Sin título',
+		monday: 'Lunes',
+		tuesday: 'Martes',
+		wednesday: 'Miércoles',
+		thursday: 'Jueves',
+		friday: 'Viernes',
+		saturday: 'Sábado',
+		sunday: 'Domingo',
+	};
+
+	/**
+	 * An overlap error with another slot.
+	 *
+	 * @param {string} code Error code.
+	 * @param {string} name Name of the other program.
+	 * @param {string} day  Day of the other slot.
+	 * @return {Object} The error.
+	 */
+	function overlapWith( code, name, day = 'monday' ) {
+		return { code, other: { day, name, start: '09:00', end: '11:00' } };
+	}
+
+	it.each( [
+		[
+			{ code: 'invalid_program', reason: 'missing' },
+			'Please select a program.',
+		],
+		[
+			{ code: 'invalid_program', reason: 'unknown' },
+			'Please select a valid program.',
+		],
+		[
+			{ code: 'format' },
+			'Invalid time format. Times must be in HH:MM format.',
+		],
+		[
+			{ code: 'start_equals_end' },
+			'Start and end times cannot be the same',
+		],
+		[ { code: 'required' }, 'All fields are required.' ],
+		[
+			overlapWith( 'overlap', 'Night Owl' ),
+			'This time slot overlaps with: Night Owl (Monday, 09:00 - 11:00)',
+		],
+		[
+			overlapWith( 'cross_midnight_overlap', 'Night Owl', 'tuesday' ),
+			'This time slot overlaps with: Night Owl (Tuesday, 09:00 - 11:00)',
+		],
+	] )( 'falls back to English for %o', ( error, text ) => {
+		expect( rules.message( error, {} ) ).toBe( text );
+	} );
+
+	it.each( [
+		[
+			{ code: 'invalid_program', reason: 'missing' },
+			'Elige un programa.',
+		],
+		[
+			{ code: 'invalid_program', reason: 'unknown' },
+			'Elige un programa.',
+		],
+		[ { code: 'format' }, 'Formato no válido.' ],
+		[ { code: 'start_equals_end' }, 'Inicio y fin iguales' ],
+		[ { code: 'required' }, 'Faltan campos.' ],
+		[
+			overlapWith( 'overlap', 'Night Owl' ),
+			'Se solapa con: Night Owl (Lunes, 09:00 - 11:00)',
+		],
+		[
+			overlapWith( 'cross_midnight_overlap', 'Night Owl', 'sunday' ),
+			'Se solapa con: Night Owl (Domingo, 09:00 - 11:00)',
+		],
+	] )( 'uses the translated strings for %o', ( error, text ) => {
+		expect( rules.message( error, STRINGS ) ).toBe( text );
+	} );
+
+	it.each( [
+		[ 'monday', 'Monday', 'Lunes' ],
+		[ 'tuesday', 'Tuesday', 'Martes' ],
+		[ 'wednesday', 'Wednesday', 'Miércoles' ],
+		[ 'thursday', 'Thursday', 'Jueves' ],
+		[ 'friday', 'Friday', 'Viernes' ],
+		[ 'saturday', 'Saturday', 'Sábado' ],
+		[ 'sunday', 'Sunday', 'Domingo' ],
+	] )( 'labels %s as %s or its translation', ( day, english, translated ) => {
+		const error = overlapWith( 'overlap', 'X', day );
+		expect( rules.message( error, {} ) ).toContain( '(' + english + ',' );
+		expect( rules.message( error, STRINGS ) ).toContain(
+			'(' + translated + ','
+		);
+	} );
+
+	it( 'names an untitled program in a same-day overlap', () => {
+		const error = overlapWith( 'overlap', '' );
+		expect( rules.message( error, {} ) ).toBe(
+			'This time slot overlaps with: Unnamed program (Monday, 09:00 - 11:00)'
+		);
+		expect( rules.message( error, STRINGS ) ).toBe(
+			'Se solapa con: Sin título (Lunes, 09:00 - 11:00)'
+		);
+	} );
+
+	// docs/known-issues.md K74.
+	it( 'currently leaves an untitled program empty in an overlap between days (K74)', () => {
+		expect(
+			rules.message(
+				overlapWith( 'cross_midnight_overlap', '' ),
+				STRINGS
+			)
+		).toBe( 'Se solapa con:  (Lunes, 09:00 - 11:00)' );
+	} );
+
+	// docs/known-issues.md K44: String.prototype.replace() reads `$` patterns
+	// in the replacement.
+	it( 'currently collapses `$$` in the program name (K44)', () => {
+		expect(
+			rules.message( overlapWith( 'overlap', 'Money $$ Talk' ), {} )
+		).toBe(
+			'This time slot overlaps with: Money $ Talk (Monday, 09:00 - 11:00)'
+		);
+		expect(
+			rules.message(
+				overlapWith( 'cross_midnight_overlap', 'Money $$ Talk' ),
+				{}
+			)
+		).toBe(
+			'This time slot overlaps with: Money $ Talk (Monday, 09:00 - 11:00)'
+		);
+	} );
+
+	it( 'replaces only the first %s', () => {
+		expect(
+			rules.message( overlapWith( 'overlap', 'X' ), {
+				timeSlotOverlapsWithMessage: '%s / %s',
+			} )
+		).toBe( 'X (Monday, 09:00 - 11:00) / %s' );
 	} );
 } );
 

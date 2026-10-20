@@ -20,6 +20,15 @@
 		'sunday',
 	];
 	const MINUTES_PER_DAY = 24 * 60;
+	const DAY_LABELS = {
+		monday: 'Monday',
+		tuesday: 'Tuesday',
+		wednesday: 'Wednesday',
+		thursday: 'Thursday',
+		friday: 'Friday',
+		saturday: 'Saturday',
+		sunday: 'Sunday',
+	};
 
 	function nextDay( day ) {
 		return DAYS[ ( DAYS.indexOf( day ) + 1 ) % DAYS.length ];
@@ -224,6 +233,102 @@
 		);
 	}
 
+	/**
+	 * Checks the schedule as the admin does on submit: every visible slot,
+	 * from Monday to Sunday, in order.
+	 *
+	 * @param {Object}        schedule   Day → slots.
+	 * @param {Array<string>} programIds IDs of the existing programs.
+	 * @return {Object} { writes, first }: the writes of every check in order,
+	 *                  and the first slot { day, index } whose own check
+	 *                  fails (null if none).
+	 */
+	function checkSchedule( schedule, programIds ) {
+		let writes = [];
+		let first = null;
+		DAYS.forEach( function ( day ) {
+			slotsOf( schedule, day ).forEach( function ( slot, index ) {
+				if ( slot.hidden ) {
+					return;
+				}
+				const slotWrites = checkSlot(
+					schedule,
+					day,
+					index,
+					programIds
+				);
+				writes = writes.concat( slotWrites );
+				// The slot's own write is always the last one.
+				if ( ! first && slotWrites[ slotWrites.length - 1 ].error ) {
+					first = { day, index };
+				}
+			} );
+		} );
+		return { writes, first };
+	}
+
+	// Kept as today: the name goes through replace(), so `$` patterns in it
+	// are read (docs/known-issues.md K44).
+	function overlapMessage( name, other, strings ) {
+		const dayLabel = strings[ other.day ] || DAY_LABELS[ other.day ];
+		const description =
+			name +
+			' (' +
+			dayLabel +
+			', ' +
+			other.start +
+			' - ' +
+			other.end +
+			')';
+		return (
+			strings.timeSlotOverlapsWithMessage ||
+			'This time slot overlaps with: %s'
+		).replace( '%s', description );
+	}
+
+	/**
+	 * Text of an error, with the English fallbacks of today.
+	 *
+	 * @param {Object} error   Error from checkSlot().
+	 * @param {Object} strings Translated strings (radplapagAdmin.strings).
+	 * @return {string} The message.
+	 */
+	function message( error, strings ) {
+		switch ( error.code ) {
+			case 'invalid_program':
+				return (
+					strings.pleaseSelectProgram ||
+					( error.reason === 'missing'
+						? 'Please select a program.'
+						: 'Please select a valid program.' )
+				);
+			case 'format':
+				return (
+					strings.invalidTimeFormat ||
+					'Invalid time format. Times must be in HH:MM format.'
+				);
+			case 'start_equals_end':
+				return (
+					strings.startEndSame ||
+					'Start and end times cannot be the same'
+				);
+			case 'required':
+				return strings.allFieldsRequired || 'All fields are required.';
+			case 'overlap':
+				return overlapMessage(
+					error.other.name ||
+						strings.unnamedProgram ||
+						'Unnamed program',
+					error.other,
+					strings
+				);
+			default:
+				// cross_midnight_overlap: no fallback for an untitled
+				// program (docs/known-issues.md K74).
+				return overlapMessage( error.other.name, error.other, strings );
+		}
+	}
+
 	const rules = {
 		DAYS,
 		nextDay,
@@ -231,6 +336,8 @@
 		isValidTime,
 		timeToMinutes,
 		checkSlot,
+		checkSchedule,
+		message,
 	};
 
 	window.radplapagScheduleRules = rules;
