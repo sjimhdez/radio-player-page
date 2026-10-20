@@ -33,6 +33,11 @@
 			}
 		]
 	},
+	"core": {
+		"min": 90,
+		"include": [ "includes/src/**" ],
+		"exclude": [ "includes/src/wp/**" ]
+	},
 	"rest": {
 		"min": 60,
 		"include": [

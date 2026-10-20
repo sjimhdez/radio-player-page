@@ -13,11 +13,17 @@
 		<testsuite name="integration">
 			<directory suffix="Test.php">tests/php/integration</directory>
 		</testsuite>
+		<!-- Also here so the coverage report counts the pure core (ADR 0028). -->
+		<testsuite name="unit">
+			<directory suffix="Test.php">tests/php/unit</directory>
+		</testsuite>
 	</testsuites>
 	<groups>
 		<exclude>
 			<!-- Multisite tests run with `npm run test:php:integration:ms`. -->
 			<group>ms-required</group>
+			<!-- Unit tests that assert WordPress is not loaded. -->
+			<group>no-wordpress</group>
 		</exclude>
 	</groups>
 	<coverage includeUncoveredFiles="true">

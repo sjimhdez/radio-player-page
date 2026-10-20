@@ -40,6 +40,11 @@ tests_add_filter(
 
 require $radplapag_tests_dir . '/includes/bootstrap.php';
 
+// The unit suite also runs here, for the coverage of the pure core (ADR 0028).
+if ( ! defined( 'RADPLAPAG_TESTS_PLUGIN_DIR' ) ) {
+	define( 'RADPLAPAG_TESTS_PLUGIN_DIR', dirname( __DIR__, 3 ) );
+}
+
 require __DIR__ . '/Support/Clock.php';
 require __DIR__ . '/Support/Factory.php';
 require __DIR__ . '/Support/Snapshot.php';

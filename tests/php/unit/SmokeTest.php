@@ -16,6 +16,8 @@ final class SmokeTest extends TestCase {
 
 	/**
 	 * The program config value object loads without WordPress.
+	 *
+	 * @group no-wordpress
 	 */
 	public function test_program_config_class_loads_without_wordpress() {
 		require_once RADPLAPAG_TESTS_PLUGIN_DIR . '/includes/data/class-radplapag-program-config.php';

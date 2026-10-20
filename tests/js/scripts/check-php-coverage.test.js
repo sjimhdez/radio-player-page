@@ -2,7 +2,7 @@
  * External dependencies
  */
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -142,6 +142,80 @@ describe( 'check-php-coverage', () => {
 
 		expect( errors ).toEqual( [ 'rest: no executable lines' ] );
 		expect( ok ).toBe( false );
+	} );
+
+	it( 'measures any zone, in the order of the definition', () => {
+		const { zones: result } = measureZones( SAMPLE, {
+			critical: zones().critical,
+			core: { min: 50, include: [ 'includes/**' ] },
+			rest: zones().rest,
+		} );
+
+		expect( Object.keys( result ) ).toEqual( [
+			'critical',
+			'core',
+			'rest',
+		] );
+		// The uncritical part of mixed.php: the rest of includes/ is claimed.
+		expect( result.core ).toMatchObject( {
+			executable: 10,
+			executed: 3,
+			percent: 30,
+			min: 50,
+			ok: false,
+		} );
+		// Only uninstall.php is left for the last zone.
+		expect( result.rest ).toMatchObject( {
+			executable: 10,
+			executed: 7,
+		} );
+	} );
+
+	it( 'leaves the files of exclude out of a glob zone and for the next ones', () => {
+		const { zones: result } = measureZones( SAMPLE, {
+			critical: zones().critical,
+			core: {
+				min: 0,
+				include: [ 'includes/**', 'uninstall.php' ],
+				exclude: [ 'includes/mixed.php' ],
+			},
+			rest: { min: 0, include: [ 'includes/**' ] },
+		} );
+
+		// uninstall.php only: includes/critical.php is fully claimed.
+		expect( result.core ).toMatchObject( { executable: 10, executed: 7 } );
+		// The uncritical part of mixed.php reaches the last zone.
+		expect( result.rest ).toMatchObject( { executable: 10, executed: 3 } );
+	} );
+
+	it( 'names the zone that has no executable lines', () => {
+		const { ok, errors } = measureZones( SAMPLE, {
+			...zones(),
+			core: { min: 90, include: [ 'includes/src/**' ] },
+		} );
+
+		expect( errors ).toEqual( [ 'core: no executable lines' ] );
+		expect( ok ).toBe( false );
+	} );
+
+	it( 'measures the core of includes/src without its WordPress adapters', () => {
+		const definition = JSON.parse(
+			readFileSync(
+				join( ROOT, 'tests/coverage/php-zones.json' ),
+				'utf8'
+			)
+		);
+
+		expect( Object.keys( definition ) ).toEqual( [
+			'critical',
+			'core',
+			'rest',
+		] );
+		expect( definition.core ).toEqual( {
+			min: 90,
+			include: [ 'includes/src/**' ],
+			exclude: [ 'includes/src/wp/**' ],
+		} );
 	} );
 
 	it( 'exits with 0 when the zones pass', () => {

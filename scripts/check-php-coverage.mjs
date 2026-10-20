@@ -1,15 +1,18 @@
 #!/usr/bin/env node
 /**
- * Applies the PHP coverage minimums of spec 0002 (§4.5) to a PHPUnit
- * `--coverage-xml` report. The zones live in tests/coverage/php-zones.json:
+ * Applies the PHP coverage minimums of spec 0002 (§4.5) and ADR 0028 to a
+ * PHPUnit `--coverage-xml` report. The zones live in
+ * tests/coverage/php-zones.json and are measured in order. Each one has a
+ * `min`, an `include` list and an optional `exclude` list of globs:
  *
- * - `critical`: whole files (`{ file }`) or some of their global functions
- *   (`{ file, functions }`). The XML report gives per-function totals; the
- *   clover report of PHPUnit 9.6 does not.
- * - `rest`: globs of files. Lines that belong to the critical zone are left out.
+ * - `{ file }` or `{ file, functions }`: a whole file or some of its global
+ *   functions. The XML report gives per-function totals; the clover report of
+ *   PHPUnit 9.6 does not.
+ * - A glob: the lines of each matching file that earlier zones did not take,
+ *   unless the file matches an `exclude` glob.
  *
  * Files that match no zone are not measured. Each zone fails below its `min`
- * (percent of executable lines), with no executable lines, or when a critical
+ * (percent of executable lines), with no executable lines, or when a listed
  * file or function is missing from the report (renamed or not loaded).
  *
  * Usage: node scripts/check-php-coverage.mjs <coverage-xml-dir> [--zones <file>]
@@ -90,7 +93,28 @@ function globToRegExp( glob ) {
 }
 
 /**
- * Measures each zone against the report.
+ * Adds a part (file or function totals) to a zone and claims it in its file.
+ *
+ * @param {Object} zone    Totals of the zone.
+ * @param {Map}    claimed Claimed lines per file.
+ * @param {string} file    Path of the file the part belongs to.
+ * @param {Object} part    Executable and executed lines.
+ */
+function take( zone, claimed, file, part ) {
+	const taken = claimed.get( file ) ?? { executable: 0, executed: 0 };
+	zone.executable += part.executable;
+	zone.executed += part.executed;
+	taken.executable += part.executable;
+	taken.executed += part.executed;
+	claimed.set( file, taken );
+}
+
+/**
+ * Measures each zone against the report, in the order of the definition.
+ *
+ * An `include` entry is a glob or a `{ file, functions? }` object. A glob
+ * takes what earlier zones left of each matching file, except the files that
+ * match an `exclude` glob, which stay for the zones that follow.
  *
  * @param {string} xmlDir Directory written by `--coverage-xml`.
  * @param {Object} zones  Definition, as in tests/coverage/php-zones.json.
@@ -99,53 +123,58 @@ function globToRegExp( glob ) {
 export function measureZones( xmlDir, zones ) {
 	const files = readReport( xmlDir );
 	const errors = [];
-	const critical = { executable: 0, executed: 0 };
-	const rest = { executable: 0, executed: 0 };
-	// Critical lines per file, to subtract them from the rest zone.
+	// Lines per file already taken by a zone, so the next ones skip them.
 	const claimed = new Map();
+	const result = {};
 
-	for ( const { file, functions } of zones.critical.include ) {
-		const totals = files.get( file );
-		if ( ! totals ) {
-			errors.push( `critical: file ${ file } not found in the report` );
-			continue;
-		}
-		let parts = [ totals ];
-		if ( functions ) {
-			parts = [];
-			for ( const name of functions ) {
-				const fn = totals.functions.get( name );
+	for ( const [ name, zone ] of Object.entries( zones ) ) {
+		const totals = { executable: 0, executed: 0 };
+		const globs = zone.include.filter(
+			( entry ) => typeof entry === 'string'
+		);
+
+		for ( const { file, functions } of zone.include.filter(
+			( entry ) => typeof entry !== 'string'
+		) ) {
+			const fileTotals = files.get( file );
+			if ( ! fileTotals ) {
+				errors.push(
+					`${ name }: file ${ file } not found in the report`
+				);
+				continue;
+			}
+			if ( ! functions ) {
+				take( totals, claimed, file, fileTotals );
+				continue;
+			}
+			for ( const fnName of functions ) {
+				const fn = fileTotals.functions.get( fnName );
 				if ( fn ) {
-					parts.push( fn );
+					take( totals, claimed, file, fn );
 				} else {
 					errors.push(
-						`critical: function ${ name } not found in ${ file }`
+						`${ name }: function ${ fnName } not found in ${ file }`
 					);
 				}
 			}
 		}
-		const taken = claimed.get( file ) ?? { executable: 0, executed: 0 };
-		for ( const part of parts ) {
-			critical.executable += part.executable;
-			critical.executed += part.executed;
-			taken.executable += part.executable;
-			taken.executed += part.executed;
-		}
-		claimed.set( file, taken );
-	}
 
-	const patterns = zones.rest.include.map( globToRegExp );
-	for ( const [ path, totals ] of files ) {
-		if ( ! patterns.some( ( pattern ) => pattern.test( path ) ) ) {
-			continue;
+		const patterns = globs.map( globToRegExp );
+		const excluded = ( zone.exclude ?? [] ).map( globToRegExp );
+		for ( const [ path, fileTotals ] of files ) {
+			if (
+				! patterns.some( ( pattern ) => pattern.test( path ) ) ||
+				excluded.some( ( pattern ) => pattern.test( path ) )
+			) {
+				continue;
+			}
+			const taken = claimed.get( path ) ?? { executable: 0, executed: 0 };
+			take( totals, claimed, path, {
+				executable: fileTotals.executable - taken.executable,
+				executed: fileTotals.executed - taken.executed,
+			} );
 		}
-		const taken = claimed.get( path ) ?? { executable: 0, executed: 0 };
-		rest.executable += totals.executable - taken.executable;
-		rest.executed += totals.executed - taken.executed;
-	}
 
-	const result = {};
-	for ( const [ name, totals ] of Object.entries( { critical, rest } ) ) {
 		const percent =
 			totals.executable === 0
 				? 0
@@ -156,8 +185,8 @@ export function measureZones( xmlDir, zones ) {
 		result[ name ] = {
 			...totals,
 			percent,
-			min: zones[ name ].min,
-			ok: totals.executable > 0 && percent >= zones[ name ].min,
+			min: zone.min,
+			ok: totals.executable > 0 && percent >= zone.min,
 		};
 	}
 
