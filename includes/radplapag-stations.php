@@ -17,28 +17,13 @@ require_once __DIR__ . '/data/class-radplapag-station-config.php';
  * Order: menu_order, then title.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\WP\Station_Repository::published_rows().
  *
  * @return array Indexed array of station configs: each with id, stream_url, player_page,
  *               station_title, background_id, logo_id, theme_color, visualizer, schedule.
  */
 function radplapag_get_stations(): array {
-	$posts = get_posts(
-		array(
-			'post_type'      => 'radplapag_station',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'orderby'        => 'menu_order title',
-			'order'          => 'ASC',
-		)
-	);
-	$out   = array();
-	foreach ( $posts as $post ) {
-		$config = Radplapag_Station_Config::from_post( $post );
-		if ( $config ) {
-			$out[] = $config->to_array();
-		}
-	}
-	return $out;
+	return \RadioPlayerPage\WP\Station_Repository::published_rows();
 }
 
 /**

@@ -67,7 +67,8 @@ Mover la lectura de emisoras y programas, el guardado de sus campos y el armado 
 - Archivos: `includes/src/wp/class-station-repository.php`, `includes/data/class-radplapag-station-config.php`, `includes/radplapag-stations.php`, `includes/radplapag-station-cpt.php`, `radio-player-page.php`, `tests/coverage/php-zones.json`, `tests/zip/expected-additions.txt`, `phpstan-baseline.neon`.
 - Test: caracterización: `ConfigTest`, `PublicApiTest`, `HooksTest` (sin cambios).
 - Verificación: `npm run test:php:integration -- --filter 'ConfigTest|PublicApiTest|HooksTest' && npm run lint:php && npm run lint:phpstan`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `WP\Station_Repository` con `row( WP_Post )` (lee las ocho metas en el orden de la 3.4.2 y llama a `Data\Station::row`), `published_rows()` (mismo `get_posts` y la guarda del tipo de post de `from_post()`) y `player_pages_except( int )` (IDs en cualquier estado → `Data\Stations::player_pages`). Las cuatro funciones de siempre son envoltorios de una línea con su `@since 3.5.0`; `radplapag_get_station_for_current_page()` sigue leyendo `radplapag_get_config()` y delega en `Data\Stations::for_page`. Repositorio en la zona `critical` y en `expected-additions.txt`. `ConfigTest`, `PublicApiTest` y `HooksTest` sin cambios (49 tests), integración completa (692), `npm run check` y `clean-page.spec.ts` + `admin.spec.ts` en Chromium (35) en verde. Baseline sin cambios: las entradas de estas funciones son de firma (tipos de `array`) y se quedan; ninguna desaparece. Sin rarezas nuevas.
 
 ### 3.6 `Data\Program` y la lectura de programas (≤ 1 h)
 - Qué: `Data\Program::data( string $title, $description, $extended, int $logo_id, $logo_url ): array` con la forma de hoy, y `WP\Program_Repository::data( int $post_id, bool $require_published ): ?array`. Delega `radplapag_get_program_data()`.

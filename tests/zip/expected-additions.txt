@@ -14,3 +14,4 @@ includes/src/schedule/class-programs-list-view.php
 admin/js/schedule-rules.js
 includes/src/data/class-station.php
 includes/src/data/class-stations.php
+includes/src/wp/class-station-repository.php

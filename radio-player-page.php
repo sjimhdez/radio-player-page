@@ -198,29 +198,14 @@ function radplapag_enqueue_now_playing_block_editor_assets() {
  * including stream URL, page ID, title, theme color, visualizer type, and media IDs.
  *
  * @since 1.0.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Data\Stations::for_page().
  *
  * @return array|false Station configuration array with keys: 'stream_url', 'player_page',
  *                     'station_title', 'background_id', 'logo_id', 'theme_color', 'visualizer'.
  *                     Returns false if no matching station is found for the current page.
  */
 function radplapag_get_station_for_current_page() {
-	$config          = radplapag_get_config();
-	$current_page_id = get_queried_object_id();
-
-	if ( isset( $config['stations'] ) && is_array( $config['stations'] ) ) {
-		foreach ( $config['stations'] as $station ) {
-			if (
-				isset( $station['player_page'] ) &&
-				isset( $station['stream_url'] ) &&
-				intval( $station['player_page'] ) === $current_page_id &&
-				! empty( $station['stream_url'] )
-			) {
-				return $station;
-			}
-		}
-	}
-
-	return false;
+	return \RadioPlayerPage\Data\Stations::for_page( radplapag_get_config()['stations'], get_queried_object_id() );
 }
 
 /**

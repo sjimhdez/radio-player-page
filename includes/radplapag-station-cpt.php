@@ -673,30 +673,12 @@ function radplapag_station_schedule_errors_notice() {
  * Used by admin to disable those options in the Player Page select and validate on submit.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\WP\Station_Repository::player_pages_except().
  * @param int $exclude_post_id Station post ID to exclude (current station being edited).
  * @return int[] Array of page IDs assigned to other stations.
  */
 function radplapag_get_player_pages_assigned_to_other_stations( $exclude_post_id = 0 ) {
-	$exclude_post_id = (int) $exclude_post_id;
-	$stations        = get_posts(
-		array(
-			'post_type'      => 'radplapag_station',
-			'post_status'    => 'any',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		)
-	);
-	$page_ids        = array();
-	foreach ( $stations as $station_id ) {
-		if ( $exclude_post_id > 0 && (int) $station_id === $exclude_post_id ) {
-			continue;
-		}
-		$page_id = (int) get_post_meta( $station_id, 'radplapag_station_player_page', true );
-		if ( $page_id > 0 ) {
-			$page_ids[] = $page_id;
-		}
-	}
-	return array_values( array_unique( $page_ids ) );
+	return \RadioPlayerPage\WP\Station_Repository::player_pages_except( (int) $exclude_post_id );
 }
 
 /**
