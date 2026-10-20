@@ -10,6 +10,8 @@ export default [
 			'coverage/**',
 			// Generated media: the HLS segments are MPEG-TS, not TypeScript.
 			'tests/fixtures/audio/**',
+			// Playwright output: an interrupted run leaves trace resources (HLS segments, bundles).
+			'test-results/**',
 			'**/node_modules/**',
 		],
 	},
