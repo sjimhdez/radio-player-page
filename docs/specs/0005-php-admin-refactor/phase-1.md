@@ -116,14 +116,15 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Test: caracterización: `ScheduleVectorsTest`, `SiteTimezoneTest`, `BlockRenderTest` (existentes).
 - Verificación: `npm run lint:php && npm run lint:phpstan && npm run test:php:integration -- --filter 'Schedule|Block'`
 - Resultado: el envoltorio valida el índice y calcula `station_page_url` como antes, carga con `radplapag_get_program_data( $id, true )` el nombre y el logo de cada `program_id` numérico > 0 del horario (de todos los días, no solo de las franjas que coinciden; lecturas sin efectos, así que no cambia el resultado) y llama a `Now_Playing_Resolver::resolve()` con las etiquetas de día, `WP\Clock::now()` (`DateTimeImmutable` en `wp_timezone()`) y `RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES`. `Clock` entra en la zona `critical`. La entrada de la baseline de PHPStan del archivo (tipo de retorno de la firma) se queda: la firma no cambia. Mutación (cargar también los borradores) hace fallar 3 tests (`BlockAuditTest` y dos de `ScheduleVectorsTest`); revertida. Integración completa (607 tests) y `npm run check` en verde, en WP 7.1.3.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: aea34e1
 
 ### 1.12 `Schedule\Schedule_View` (≤ 1 h)
 - Qué: `program_ids( $schedule )` (lo que hoy recoge `radplapag_build_programs_map()`) y `days( $schedule, $programs_map, $day_labels, $now, $day_order, callable $sanitize_id )` con los días, franjas, `is_live` (C16 replicado como `currently`), orden por inicio y `current_first`/`natural`.
 - Archivos: `includes/src/schedule/class-schedule-view.php`, `tests/php/unit/Schedule/ScheduleViewTest.php`, `expected-additions.txt`.
 - Test: primero (TDD): `ScheduleViewTest`.
 - Verificación: `npm run test:php:unit && npm run lint:php && npm run lint:phpstan`
-- [ ] hecha · commit: —
+- Resultado: `Schedule_View::program_ids()` devuelve la lista de IDs (enteros > 0, únicos, en el orden de primera aparición en la parrilla guardada, también de franjas sin `start`/`end`, como hoy). `days()` con la firma prevista; `$programs_map` es el mapa de `radplapag_build_programs_map()` (clave = ID en texto) y el saneador recibe el `program_id` como string; la búsqueda en el mapa usa el ID saneado, sin normalizar (`"1.7"` no es el programa 1, como hoy). Mismo `usort` por minutos de inicio (sin estabilizar: en PHP 7.4 los empates siguen como en la 3.4.2). Se quitan dos cosas inalcanzables: la guarda `count( $days_out ) === 7` (siempre son siete) y los `isset()` de las descripciones (el mapa siempre las trae, `string|null`). 20 casos en `ScheduleViewTest` (IDs, orden `natural`/`current_first`/desconocido, etiqueta ausente, forma de la franja, `is_rerun`, programa fuera del mapa, saneador, entradas incompletas, orden por inicio, límites, cruce de medianoche de ayer, domingo ↔ sábado, desfase `-05:00`, `Europe/Madrid` en el cambio de hora y C16 como `currently`); 20 errores de clase no encontrada antes de existir la clase. Unit (243 tests), PHPCS, PHPStan y `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 1.13 Envoltorios del bloque de horario (≤ 1 h)
 - Qué: `radplapag_build_programs_map()` y `radplapag_get_schedule_for_station()` delegan (`sanitize_text_field` como saneador, etiquetas de `radplapag_get_schedule_day_keys_and_labels()`, `get_permalink()` en el envoltorio). `BlockDataTest`, snapshots de bloques y e2e sin cambios.
