@@ -1,15 +1,15 @@
 # Estado
-Spec activa: 0005 — Refactor de PHP y admin · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0005-php-admin-refactor/phase-2.md) · Actualizado: 2026-10-21
+Spec activa: 0005 — Refactor de PHP y admin · Fase: 3 por empezar · Plan anterior: [`phase-2.md`](specs/0005-php-admin-refactor/phase-2.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas; hechas las 9 (K74 y K75 nuevos, a la 0010; `schedule-rules.js` completo, con los 11 vectores, registrado como dependencia de `radplapag-station-admin`, y `station-admin.js` delega en él la validación; la CI exige ≥ 85 % de líneas en él, hoy 100 %; la fila nueva y las vistas previas de los adjuntos se construyen sin cadenas HTML: A7 cumplido). La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
+- Spec 0005: fase 2 (reglas y DOM del admin) cerrada el 2026-10-21: `schedule-rules.js` con los 11 vectores y ≥ 85 % de líneas en la CI, `station-admin.js` como adaptador, A7 cumplido. K74–K77 nuevos. PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 2.
+1. `start-phase` de la fase 3 (datos, guardado y globales del player), en una sesión nueva.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
-- Ninguno.
+- K76 (`completeTimeFields` sin uso, baja): decidir si se corrige y en qué spec (propuesta: 0010 admin). No bloquea la fase 3.
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
@@ -17,9 +17,11 @@ Spec activa: 0005 — Refactor de PHP y admin · Fase: 2 en curso · Plan: [`pha
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)
-Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`; sin ADR, no cambian el contrato):
+Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md` y `phase-2.md`; sin ADR, no cambian el contrato):
 - Fase 2 (plan): riesgo 1 de la spec. Las filas que añade el JS conservan el texto visible de hoy (entidades decodificadas como hacía `innerHTML`) con `DOMParser`; K21 sigue para la 0012. Decidido por el usuario (2026-10-20).
-- Fase 2, 2.5: `AdminScreensTest::test_admin_scripts_on_the_station_screen` amplía la aserción de `deps` de `radplapag-station-admin` con `radplapag-schedule-rules` (ADR 0028 D3). Única edición de un test existente en la fase. Aprobado por el usuario (2026-10-20).
+- Fase 2, 2.5: `AdminScreensTest::test_admin_scripts_on_the_station_screen` amplía la aserción de `deps` de `radplapag-station-admin` con `radplapag-schedule-rules` (ADR 0028 D3), fija los `deps` de `radplapag-program-admin` en el mismo bucle y añade aserciones del handle nuevo (también en `test_admin_scripts_on_the_program_screen`, que no se registre). Solo esa aserción cambia; lo demás son altas. Aprobado por el usuario (2026-10-20).
+- Fase 2, 2.8: una traducción con etiquetas en la fila que añade el JS se ve como texto (antes `innerHTML` creaba los elementos; ninguna cadena del plugin las lleva). K77. Aceptado por el usuario (2026-10-21).
+- Fase 2, 2.3: se quita la rama inalcanzable «Please complete all time fields»; `completeTimeFields` sigue en `radplapagAdmin.strings` (contrato, §3.6) sin uso: K76.
 - Fase 1, 1.8: `Slot_Validator` no emite `end_before_start` (§4.2): la rama era inalcanzable en la 3.4.2. `WP\Schedule_Messages` conserva el mensaje para el POT.
 - Fase 1, 1.6: `SmokeTest` pasa al grupo `no-wordpress` (solo la anotación) para que la suite unit corra dentro de la integración (ADR 0028).
 - Fase 1, 1.10 y 1.12: se quitan las guardas inalcanzables de la 3.4.2 (`count( $days_out ) === 7`, claves de día `null`).

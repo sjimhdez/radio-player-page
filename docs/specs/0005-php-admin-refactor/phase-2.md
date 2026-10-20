@@ -1,5 +1,5 @@
 # Spec 0005 · Fase 2 — Reglas y DOM del admin
-Estado: en curso · Inicio: 2026-10-20 · ADRs: 0017, 0021, 0028
+Estado: cerrada (2026-10-21) · Inicio: 2026-10-20 · ADRs: 0017, 0021, 0028
 
 ## Contexto (medido al planificar)
 
@@ -36,7 +36,7 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `tests/js/admin/admin-dom.test.js`.
 - Test: caracterización (mutación: quitar el escape de `"` en `buildProgramSelectHtml` y verlo fallar; revertida).
 - Verificación: `npm test -- tests/js/admin/admin-dom.test.js`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 5a67396
 - Resultado: 7 tests. Riesgo 1 confirmado: `innerHTML` decodifica las entidades de nombres y traducciones (`Tom &amp; Jerry` → «Tom & Jerry», `a &lt; b` → «a < b», `Don&rsquo;t` → «Don’t», `Pick &amp; go` → «Pick & go»); `<`, `>` y `"` de los nombres llegan como texto. Se omiten los programas sin ID o sin nombre (ID `0` se queda); el `"` del ID va escapado en `value`. Vistas previas: `?a=1&b=2` se conserva en `src` (`&amp;` al serializar). Mutaciones: la del plan (quitar el escape de `"` del **nombre**) es equivalente, no la detecta ningún test: en un nodo de texto `"` y `&quot;` dan lo mismo. Muerden: quitar el escape de `"` del ID, el de `<` del nombre, `controls` del `<audio>` y `alt` del `<img>`; revertidas. No fijado a propósito: una URL de adjunto con entidades o `"` (hoy se decodifican o rompen el atributo; con `setAttribute` en la 2.9 quedarían tal cual). WordPress no genera esas URLs (`sanitize_file_name()`), así que no es un caso real ni va a `known-issues.md`.
 
 ### 2.2 Huecos de la validación del cliente (≤ 1 h)
@@ -44,7 +44,7 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `tests/js/admin/station-validation.test.js`.
 - Test: caracterización (una mutación por caso nuevo, revertida).
 - Verificación: `npm run test:coverage`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 143cf4a
 - Resultado: 22 tests nuevos (26 → 48 en el archivo; 128 → 150 en la raíz), solo altas. Reservas en inglés de `format` (inicio y fin con segundos: `<input type="time">` guarda `08:00:30`, y es lo único que llega a esa rama), `start == end`, `required`, programa sin elegir, solape del mismo día, los dos sentidos del cruce entre días (lunes → martes y domingo → lunes: en el envío escribe la última la comprobación del día posterior, así que hace falta cada sentido para ver las cuatro escrituras), «Unnamed program» y etiquetas de día (inglés y traducidas). Filas ocultas fuera de los tres solapes; índice de exclusión contado sobre todas las filas, ocultas incluidas; filas vecinas sin programa fuera de los cruces; orden de escrituras del cruce con un `MutationObserver` (`tuesday, monday, monday, tuesday`). Dos rarezas nuevas fijadas con `currently`: K74 (nombre vacío en el cruce, sin la reserva del mismo día) y K75 (el solape del mismo día cuenta las filas sin programa y las nombra «Select Radio Show»). Mutaciones (27 en dos rondas, todas revertidas; `station-admin.js` sin cambios): cada reserva (las cuatro de solape del cruce por separado), las etiquetas de día, `unnamedProgram`, quitar cada filtro de filas ocultas y de filas sin programa, el índice sobre las filas visibles, quitar cada escritura de la otra fila, reserva de nombre en los cuatro nombres del cruce y saltar las filas sin programa en el mismo día: todas fallan. Al principio sobrevivieron la reserva propia del cruce con el día anterior y la reserva del nombre en `checkCrossDayOverlaps` (el envío sobrescribe esas escrituras), lo que llevó a probar los dos sentidos. Inalcanzable, anotado y sin test: «Please complete all time fields» y las comprobaciones de formato dentro de `validateTimeRange` (ya se validaron antes); en `checkOverlaps` y en los cruces, inicio, fin o programa vacíos en la fila propia (`required` va antes); las guardas de campos, contenedor, `data-day` y día vecino ausentes (el markup de PHP los trae siempre); `dayLabels[ dayKey ] || dayKey`; la opción elegida ausente (`selectedIndex` -1: el select siempre tiene el placeholder).
 
 ### 2.3 `schedule-rules.js`: horas, días y una franja (≤ 1 h)
@@ -52,15 +52,15 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `admin/js/schedule-rules.js`, `tests/js/admin/schedule-rules.test.js`, `tests/zip/expected-additions.txt`.
 - Test: primero (TDD): `schedule-rules.test.js`.
 - Verificación: `npm test -- tests/js/admin/schedule-rules.test.js && npm run lint:js && npm run check:zip`
-- [x] hecha · commit: (este)
-- Resultado: 52 tests (150 → 202 en la raíz), vistos en rojo (módulo ausente) antes de escribir el script. El test importa el script con `import rules from '…/schedule-rules.js'` en el proyecto `admin` (happy-dom): Vite interpreta la guarda `module.exports` y la cobertura v8 lo cuenta (100 % de líneas, 98,6 % de ramas, solo este test); no hace falta `createRequire`. Un test comprueba que `window.radplapagScheduleRules` es el mismo objeto. Errores: `invalid_program` (`reason: 'missing'|'unknown'`), `format`, `start_equals_end`, `required` y, en los solapes, `other: { day, name, start, end }` de la franja con la que choca; el nombre llega tal cual (vacío incluido): la reserva «Unnamed program» del mismo día (y su ausencia en el cruce, K74) es cosa de `message()` en la 2.4. `currently` replicados: C3 (`start == end`) y K75 (el solape del mismo día cuenta las filas sin programa con el nombre del placeholder); su fila en `known-issues.md` se actualiza en la 2.4, con K44. Mutaciones (10, revertidas): quitar la exclusión por índice, cada filtro de ocultas y de filas incompletas, el filtro de cruce del día anterior, `>` → `>=` en el cruce, el índice de la otra fila, el orden siguiente/anterior, el umbral de longitud de `timeToMinutes` y las 24 h del mismo día: todas fallan.
+- [x] hecha · commit: d0c8823
+- Resultado: 52 tests (150 → 202 en la raíz), vistos en rojo (módulo ausente) antes de escribir el script. El test importa el script con `import rules from '…/schedule-rules.js'` en el proyecto `admin` (happy-dom): Vite interpreta la guarda `module.exports` y la cobertura v8 lo cuenta (100 % de líneas, 98,6 % de ramas, solo este test); no hace falta `createRequire`. Un test comprueba que `window.radplapagScheduleRules` es el mismo objeto. Errores: `invalid_program` (`reason: 'missing'|'unknown'`), `format`, `start_equals_end`, `required` y, en los solapes, `other: { day, name, start, end }` de la franja con la que choca; el nombre llega tal cual (vacío incluido): la reserva «Unnamed program» del mismo día (y su ausencia en el cruce, K74) es cosa de `message()` en la 2.4. `currently` replicados: C3 (`start == end`) y K75 (el solape del mismo día cuenta las filas sin programa con el nombre del placeholder); su fila en `known-issues.md` se actualiza en la 2.4, con K44. La cadena `completeTimeFields` queda en `radplapagAdmin.strings` sin uso (contrato, `SPEC.md` §3.6): K76, visto en `close-phase`. Mutaciones (10, revertidas): quitar la exclusión por índice, cada filtro de ocultas y de filas incompletas, el filtro de cruce del día anterior, `>` → `>=` en el cruce, el índice de la otra fila, el orden siguiente/anterior, el umbral de longitud de `timeToMinutes` y las 24 h del mismo día: todas fallan.
 
 ### 2.4 `schedule-rules.js`: envío, vectores y mensajes (≤ 1 h)
 - Qué: `checkSchedule( schedule, programIds )` → `{ writes, first }` con la semántica del envío (filas visibles de lunes a domingo, en orden); `message( error, strings )` con los textos y reservas de hoy (etiquetas de día, «Unnamed program», `.replace( '%s', … )` tal cual: `currently` de K44). Los 11 vectores `validation` capa `admin` (estado final de las escrituras: primer error y primera fila con error), con `24:00` pasado por el helper del `<input type="time">`. C3 y K44 apuntan también a este test en `known-issues.md`.
 - Archivos: `admin/js/schedule-rules.js`, `tests/js/admin/schedule-rules.test.js`, `docs/known-issues.md`.
 - Test: primero (TDD): `schedule-rules.test.js`.
 - Verificación: `npm test -- tests/js/admin/schedule-rules.test.js && npm run lint:js`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 63f6dc7
 - Resultado: 41 tests nuevos (52 → 93 en el archivo; 202 → 243 en la raíz), vistos en rojo (funciones ausentes) antes de escribirlas. `checkSchedule()` recorre los días en el orden de `DAYS` (no en el de las claves), salta las ocultas, concatena las escrituras de cada `checkSlot()` y da como `first` la primera franja cuya **propia** comprobación falla (la otra fila de un cruce no cuenta, como `firstErrorElement` hoy). Los 11 vectores `admin` pasan por `checkSchedule()` con los tiempos saneados como el `<input type="time">` (`24:00` → `''`) y se comprueba el estado final tras aplicar las escrituras en orden (incluido `c3-start-equals-end-next-day-conflict`). `message()`: reservas en inglés y traducidas de cada código (las dos de `invalid_program` comparten `pleaseSelectProgram`), etiquetas de día, «Unnamed program» solo en el solape del mismo día, y `currently` de K74 y K44 (`.replace( '%s', … )` tal cual; solo el primer `%s`). Cobertura del archivo: 100 % de líneas, 99 % de ramas. `known-issues.md`: C3, K44, K74 y K75 apuntan también a este test. Mutaciones (8, revertidas): no saltar las ocultas, recorrer `Object.keys( schedule )`, sustituir `first` en cada fallo, reserva de nombre en el cruce (K74), invertir `missing`/`unknown`, reemplazo con función (K44), quitar la etiqueta traducida: fallan. Sobrevive, equivalente: leer la primera escritura en lugar de la última para decidir `first` (una comprobación devuelve su escritura sola o dos errores).
 
 ### 2.5 Registro del handle `radplapag-schedule-rules` (≤ 1 h)
@@ -68,15 +68,15 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `admin/admin.php`, `tests/php/integration/Admin/AdminScreensTest.php`, `tests/js/admin/support/mount-station-screen.js`, `tests/js/admin/smoke.test.js`, `SPEC.md`.
 - Test: caracterización: `AdminScreensTest` (aserción ampliada), e2e `admin.spec.ts`.
 - Verificación: `npm run lint:php && npm run lint:phpstan && npm run test:php:integration -- --filter AdminScreens && npm test`
-- [x] hecha · commit: (este)
-- Resultado: `radplapag-schedule-rules` se registra (`wp_register_script`, sin encolar: entra por ser dependencia) en la rama de la pantalla de emisora, justo antes de `radplapag-station-admin`, que lo añade a sus `deps` tras `jquery` y `media-editor`. `AdminScreensTest`: la aserción de `deps` de station-admin pasa a incluir el handle (la edición aprobada, ADR 0028 D3); se comprueban `src`, `deps` vacíos, `ver` y footer del handle nuevo, y que no se registra en la pantalla de programa (29 tests, 219 aserciones). Mutación (revertida): quitar la dependencia hace fallar el test. El arnés de Vitest importa `schedule-rules.js` antes que `station-admin.js` y `smoke.test.js` lo carga sin markup (244 tests en la raíz). E2E `admin.spec.ts` en Chromium y WebKit: 28 pasan. `SPEC.md` §3.6 quita «alta prevista».
+- [x] hecha · commit: cfb7576
+- Resultado: `radplapag-schedule-rules` se registra (`wp_register_script`, sin encolar: entra por ser dependencia) en la rama de la pantalla de emisora, justo antes de `radplapag-station-admin`, que lo añade a sus `deps` tras `jquery` y `media-editor`. `AdminScreensTest`: la aserción de `deps` de station-admin pasa a incluir el handle (la edición aprobada, ADR 0028 D3); se comprueban `src`, `deps` vacíos, `ver` y footer del handle nuevo, y que no se registra en la pantalla de programa (29 tests, 219 aserciones). Mutación (revertida): quitar la dependencia hace fallar el test. El arnés de Vitest importa `schedule-rules.js` antes que `station-admin.js` y `smoke.test.js` lo carga sin markup (244 tests en la raíz). E2E `admin.spec.ts` en Chromium y WebKit: 28 pasan. `lint:php` y `lint:phpstan` sin errores (dentro de `npm run check`). `SPEC.md` §3.6 quita «alta prevista».
 
 ### 2.6 `station-admin.js` delega la validación (≤ 1 h)
 - Qué: un `readSchedule()` lee las filas (valores, texto de la opción elegida, `display: none`); `validateProgramRow()` y el envío llaman a `checkSlot()`/`checkSchedule()` y aplican las escrituras con `showProgramError()`/`clearProgramError()` y `message()`. Se borran las funciones movidas. Los momentos de validar, la revalidación (K16), el orden por inicio, K15 y K45 no cambian. Las reglas se leen de `window.radplapagScheduleRules` al usarlas (no al cargar).
 - Archivos: `admin/js/station-admin.js`.
 - Test: caracterización: `station-validation`, `station-fields`, `admin-dom`, `smoke` (sin cambios).
 - Verificación: `npm test && npm run lint:js`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 94f9127
 - Resultado: `station-admin.js` pasa de 1.069 a 670 líneas. `readSchedule( root )` devuelve `{ schedule, rows }` (los datos de las reglas y, por día, las filas en el mismo orden); `applyWrites()` pinta cada escritura con `showProgramError()`/`clearProgramError()` y `message( error, s )`. `validateProgramRow()` lee el horario de su `.radplapag-schedule-wrapper`, llama a `checkSlot()` y da por válida la fila si su propia escritura (la última) no tiene error; el envío lee `container` una vez, llama a `checkSchedule()` y hace scroll a `first`. Equivale al recorrido fila a fila de antes: las escrituras no cambian valores ni `display`, y el markup de PHP pinta los días en el orden de `DAYS`. Se borran `dayLabels`, `formatOverlapMessage`, `validateTimeFormat`, `validateTimeRange`, `timeToMinutes`, `checkOverlaps`, `checkCrossDayOverlaps` y `checkPrevDayCrossOverlaps`; `revalidateAdjacentDays()`, la revalidación al quitar (K16), el orden por inicio, K15 y K45 no se tocan. Las reglas se leen con `scheduleRules()` al usarlas. Tests sin cambios: 244 en la raíz; `lint:js` sin errores (los 2 avisos de `program-admin.test.js` ya estaban). E2E `admin.spec.ts` en Chromium y WebKit: 28 pasan. Mutación (revertida): aplicar solo la última escritura (sin la otra fila del cruce) hace fallar 20 tests.
 
 ### 2.7 Cobertura del admin en la CI (≤ 1 h)
@@ -84,7 +84,7 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `vitest.config.mjs`, `.github/workflows/ci.yml`.
 - Test: — (mutación: subir el umbral a 101 y verlo fallar; revertida).
 - Verificación: `npm run test:coverage`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: fe1e339
 - Resultado: `coverage.thresholds` con `'admin/js/schedule-rules.js': { lines: 85 }` (el glob es el archivo, como en el player). Cifras de líneas (ramas): `schedule-rules.js` 100 % (99 %), `station-admin.js` 96,73 % (72,32 %), `program-admin.js` 85,45 % (76,66 %); total 96,06 % (80,22 %). 244 tests. El job `root-js` cambia `npm test` por `npm run test:coverage` (mismo proyecto, `TZ=UTC` incluido). Mutación (revertida): con el umbral a 101, `npm run test:coverage` sale con 1 («Coverage for lines (100%) does not meet … threshold (101%)»).
 
 ### 2.8 Fila nueva sin cadenas HTML (≤ 1 h)
@@ -92,7 +92,7 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `admin/js/station-admin.js`.
 - Test: caracterización: `admin-dom.test.js` (2.1), `station-fields.test.js`.
 - Verificación: `npm test && npm run lint:js && grep -nE 'innerHTML|insertAdjacentHTML' admin/js/station-admin.js; test $? -eq 1`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: debe794
 - Resultado: `buildProgramSelectHtml()` pasa a `buildProgramSelect()` y la fila entera sale de `buildProgramRow()`, con un helper `createElement( tag, attributes, children )` (atributos con `setAttribute` en el orden de antes, hijos con `append`) y `scheduleFieldName()`. `decodeEntities()` parsea `'<body>' + texto` con `DOMParser` y devuelve el `textContent` del `body`: sin el prefijo, el parser descarta los espacios iniciales (antes del `body`), y `innerHTML` los conservaba. Se aplica a las cuatro traducciones y, tras el escape de hoy (`<`, `>`, `"`, ahora en `escapeName()`), al nombre y al ID (en el atributo, `innerHTML` también decodificaba). Una traducción con etiquetas pasa a mostrar solo su texto (antes creaba elementos); no hay ninguna en el plugin. `station-admin.js`: 670 → 725 líneas. Un test nuevo en `admin-dom.test.js` (solo alta, pasa contra el código de antes): los espacios alrededor de una traducción. Mutaciones (revertidas): quitar la decodificación del nombre (fallan 2) y el prefijo `<body>` (falla el test nuevo; antes sobrevivía). 245 tests en la raíz; `lint:js` sin errores (los 2 avisos de `program-admin.test.js` ya estaban). E2E `admin.spec.ts` y `a11y.spec.ts` en `env:start:latest` (WP 7.1.3), Chromium y WebKit: 74 pasan.
 
 ### 2.9 Vistas previas de `program-admin.js` sin cadenas HTML (≤ 1 h)
@@ -100,7 +100,7 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `admin/js/program-admin.js`, `.claude/rules/admin.md`.
 - Test: caracterización: `program-admin.test.js`, `admin-dom.test.js`.
 - Verificación: `npm test && npm run lint:js && grep -nE 'innerHTML|\.html\(|insertAdjacentHTML' admin/js; test $? -eq 1`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: c84ad52
 - Resultado: las dos vistas previas se construyen con `document.createElement()` y `setAttribute()` en el orden de antes (`<img>`: `src`, `alt=""`; `<audio>`: `controls`, `src`) y entran con `.empty().append()`. El `grep` de A7 sobre `admin/js` sale vacío. `admin.md`: la nota «Mientras no exista ese refactor» pasa a describir los adaptadores del DOM bajo happy-dom, y una regla nueva prohíbe construir el DOM con cadenas HTML. Los tests de `program-admin.test.js` y `admin-dom.test.js` pasan sin cambios (245 en la raíz); `lint:js` sin errores (los 2 avisos de `program-admin.test.js` ya estaban). Mutaciones (revertidas): quitar `alt` (fallan 3), quitar `controls` (fallan 2) y no vaciar la vista previa (fallan 5). E2E `admin.spec.ts` y `a11y.spec.ts` en `env:start:latest` (WP 7.1.3), Chromium y WebKit: pasan los 74.
 
 ## Decisiones abiertas → ADR
@@ -111,3 +111,15 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 ## Verificación de la fase (en `close-phase`)
 
 `npm run check`, `npm run test:coverage`, integración y `:ms` y e2e completos en `env:start:min` y `env:start:latest`, `check:zip`; revisores con UI en el diff (incluido `a11y-reviewer`).
+
+## Cierre (2026-10-21)
+
+- `npm run check` en verde. Integración: 650 tests en `env:start:min` (WP 6.6 + PHP 7.4) y en `env:start:latest` (PHP 8.4); `:ms`, 3 en cada punta. E2E completo: 196 en cada punta (Chromium y WebKit), sin reintentos. Builds del player y de los bloques sin diff; `check:zip` OK (49 archivos). `test:coverage`: 245 tests, umbral de `schedule-rules.js` cumplido (total 96,17 % de líneas).
+- Criterios: A1, A4, A5, A6, A7 y A9 con su test o comando, todos en verde.
+- Revisores (spec-conformance, backcompat, wp-security, wporg, a11y): nada bloqueante. Corregido en el cierre: hashes de commit, notas de A6 (2.5) y de `completeTimeFields` (2.3), y la desviación de `AdminScreensTest` completa en `docs/status.md`. Nuevas filas: K76 (`completeTimeFields` sin uso) y K77 (traducción con etiquetas como texto, aceptada por el usuario). Anotado sin cambio:
+  - Si `radplapag-schedule-rules` no llega (un optimizador que lo excluye o lo difiere), `station-admin.js` lanza un error en cada `change` y el formulario se envía sin validar en el cliente; el servidor valida igual. WordPress no imprime `station-admin` si se desregistra la dependencia. Se valora en la 0010.
+  - La guarda `module.exports` sobrescribiría un `window.module` ajeno: la impone el ADR 0028 D3.
+  - `readSchedule()` sin `.radplapag-schedule-wrapper` lanza un error (antes los cruces devolvían válido): guarda inalcanzable con el markup de PHP, como las de la 2.2.
+  - La versión `'3.4.2'` del handle nuevo y el changelog: los sube la skill `release`.
+- ADRs: ninguno nuevo. `SPEC.md` §3.6 al día (2.5); `.claude/rules/admin.md` al día (2.9).
+
