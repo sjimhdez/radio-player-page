@@ -5,15 +5,16 @@ Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en cur
 - Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). 1.2 hecha (bloques en `@wordpress/scripts` 37 con flat config propio). PR #38 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 1.3 Excepciones en el ADR 0022.
-2. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
-3. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
+1. 1.3 Excepciones en el ADR 0022 (no depende de la 1.2b).
+2. 1.2b Snapshots de `BlockRenderTest` independientes del día (K73); un lunes o martes, o con un «ahora» falso en `Clock`.
+3. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
+4. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
 
 ## Verificación manual pendiente
-- K73: los snapshots `natural` de `BlockRenderTest` fallan los lunes y martes (fallo del test; se corrige en la 0013). En la 1.4, si toca uno de esos días, la integración se da por buena con esos 20 como únicos fallos y se anota.
+- K73: hasta la 1.2b, los snapshots `natural` de `BlockRenderTest` fallan los lunes y martes (la CI también). La 1.4 va después de la 1.2b.
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66) y los controles con `100vh` bajo la barra de Safari de iOS.
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
@@ -21,6 +22,7 @@ Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en cur
 ## Desviaciones de la spec (→ ADR)
 Spec 0003:
 - Tarea 1.1: K71 (anuncio de i18next en la consola) lo corrigió la subida a i18next 26, fuera de una spec de correcciones; su test `currently` pasa a regresión en la misma fase. Aprobado por el usuario (2026-10-20).
+- Tarea 1.2b: K73 (fallo del test `BlockRenderTest`, depende del día de la semana) se arregla en la 0003 y no en la 0013, porque deja la CI en rojo los lunes y martes. Solo el test; los snapshots no cambian. Aprobado por el usuario (2026-10-20).
 
 Spec 0002:
 - §5 fase 4: el `/code-review` de cada zona se hizo con un subagente general a esfuerzo alto, solo lectura, en lugar del comando; lo anota el «Resultado:» de cada tarea.
