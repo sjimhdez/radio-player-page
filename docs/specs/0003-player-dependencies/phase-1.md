@@ -89,6 +89,15 @@ Medido al planificar (2026-10-20):
 - Resultado: el usuario lo revisó en <http://localhost:8886> el 2026-10-20 (fixtures de `seed.php` más una página con los tres bloques) y lo ve todo igual que en la 3.4.2. A7 aprobado: no hizo falta ningún ajuste ni commit de código.
 - [x] hecha · commit: (este)
 
+### 1.6 Avisos de licencia en el bundle del player (≈ 30 min; sale de `close-phase`)
+- Qué: el revisor de WordPress.org encontró que el minificador de Vite 8 (Oxc) quita los avisos de licencia que la 3.4.2 conservaba (7 `@license` de React en el principal y el `/*!` de dashjs; con Vite 8, 0). Se restauran con `comments: { legal: true }` en `rolldownOptions.output`. Decidido por el usuario (2026-10-20): se arregla en la 0003, no como fila de `known-issues.md`.
+- Archivos: `player/vite.config.ts`, `player/dist/`, `tests/zip/compare-with-v3.4.2.sh`, `.claude/rules/player.md`.
+- Test: `check:zip` comprueba que cada script de `player/dist/` lleva al menos tantos avisos (`@license` o `/*!`) como en la `v3.4.2`. En rojo antes del arreglo (principal 0 de 7, dash 0 de 1).
+- Verificación: `npm --prefix player run check && npm --prefix player run build && npm run check:zip`, y la verificación completa de `close-phase` en las dos puntas.
+- Commit: `build(0003): keep third-party license notices in player bundle (1.6)`
+- Resultado: vuelven todos: 9 en el principal (los 7 de React, otro de React y uno MIT) y 1 en dash; mismos nombres. Bundle en gzip: principal 186 438 (+4,6 % sobre la 3.4.2, +532 bytes sobre la 1.4) y dash 236 288 (−7,4 %); los demás no cambian.
+- [x] hecha · commit: (este)
+
 ## Decisiones abiertas → ADR
 - ~~Si MUI 9 exige un `build.target` más alto que el de Vite 6 → preguntar y ADR~~ → ADR 0027 (2026-10-20): target de Vite 6 explícito; soporte efectivo el de MUI 9 (Safari 17+). Aceptado por el usuario.
 - Si el build de `@wordpress/scripts` 37 no funciona en WP 6.6 → fijar la versión más alta que funcione, excepción en el ADR 0022 (riesgo 5).

@@ -46,7 +46,20 @@ if grep -E "$FORBIDDEN" "$WORK/current.txt" >"$WORK/forbidden.txt"; then
 	status=1
 fi
 
+# Bundled third-party license notices must survive minification (spec 0003,
+# task 1.6): each player script keeps at least as many as in the reference.
+LEGAL='@license|/\*!'
+for ref_file in "$WORK/ref/player/dist/"*.js; do
+	name="$(basename "$ref_file")"
+	ref_count="$(grep -cE "$LEGAL" "$ref_file" || true)"
+	cur_count="$(grep -cE "$LEGAL" "$ROOT/player/dist/$name" 2>/dev/null || true)"
+	if [ "${cur_count:-0}" -lt "$ref_count" ]; then
+		echo "player/dist/$name: $cur_count license notices, $ref_count in $REFERENCE_TAG."
+		status=1
+	fi
+done
+
 if [ "$status" -eq 0 ]; then
-	echo "Zip OK: $(wc -l <"$WORK/current.txt" | tr -d ' ') files, same list as $REFERENCE_TAG, no development paths."
+	echo "Zip OK: $(wc -l <"$WORK/current.txt" | tr -d ' ') files, same list as $REFERENCE_TAG, no development paths, license notices kept."
 fi
 exit "$status"

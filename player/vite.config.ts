@@ -32,6 +32,8 @@ export default defineConfig({
           return `${prefix}-${cleanName}.min.js`
         },
         assetFileNames: `${prefix}[extname]`,
+        // Keep bundled third-party license notices (Oxc strips them when minifying).
+        comments: { legal: true },
       },
     },
   },
