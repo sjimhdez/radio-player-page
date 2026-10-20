@@ -28,17 +28,12 @@ $radplapag_schedule_day_map = array(
  * Parses "HH:MM" to minutes since midnight.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Time::to_minutes().
  * @param string $time Time string in HH:MM format.
  * @return int Minutes since midnight (0-1439), or 0 if invalid.
  */
 function radplapag_parse_time_to_minutes( $time ): int {
-	if ( ! is_string( $time ) || '' === $time ) {
-		return 0;
-	}
-	$parts = array_map( 'intval', explode( ':', $time, 2 ) );
-	$hour  = $parts[0] ?? 0;
-	$min   = $parts[1] ?? 0;
-	return $hour * 60 + $min;
+	return \RadioPlayerPage\Schedule\Time::to_minutes( $time );
 }
 
 /**
@@ -48,6 +43,7 @@ function radplapag_parse_time_to_minutes( $time ): int {
  * Handles slots that cross midnight (end <= start).
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Time::is_slot_active().
  * @param string $start              Start time HH:MM.
  * @param string $end                End time HH:MM.
  * @param int    $current_minutes    Current time as minutes since midnight (0-1439).
@@ -55,18 +51,7 @@ function radplapag_parse_time_to_minutes( $time ): int {
  * @return bool True if the slot is active now.
  */
 function radplapag_is_slot_active( $start, $end, int $current_minutes, bool $is_prev_day_crossing = false ): bool {
-	$start_min = radplapag_parse_time_to_minutes( $start );
-	$end_min   = radplapag_parse_time_to_minutes( $end );
-
-	if ( $is_prev_day_crossing ) {
-		return $end_min <= $start_min && $current_minutes < $end_min;
-	}
-
-	if ( $end_min <= $start_min ) {
-		return $current_minutes >= $start_min || $current_minutes < $end_min;
-	}
-
-	return $current_minutes >= $start_min && $current_minutes < $end_min;
+	return \RadioPlayerPage\Schedule\Time::is_slot_active( $start, $end, $current_minutes, $is_prev_day_crossing );
 }
 
 /**
@@ -75,10 +60,11 @@ function radplapag_is_slot_active( $start, $end, int $current_minutes, bool $is_
  * Shared by the schedule block and the programs list block so day labels are not duplicated.
  *
  * @since 3.3.0
+ * @since 3.5.0 The day keys come from RadioPlayerPage\Schedule\Week::KEYS.
  * @return array Associative array with 'day_keys_order' (array of day keys) and 'day_labels' (day_key => translated label).
  */
 function radplapag_get_schedule_day_keys_and_labels(): array {
-	$day_keys_order = array( 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' );
+	$day_keys_order = \RadioPlayerPage\Schedule\Week::KEYS;
 	$day_labels     = array(
 		'monday'    => __( 'Monday', 'radio-player-page' ),
 		'tuesday'   => __( 'Tuesday', 'radio-player-page' ),

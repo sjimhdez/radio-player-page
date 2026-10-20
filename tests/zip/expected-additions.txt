@@ -3,3 +3,5 @@
 # Every new file under includes/src/ goes here in the same commit. The release
 # that moves REFERENCE_TAG empties this list.
 includes/src/class-autoloader.php
+includes/src/schedule/class-time.php
+includes/src/schedule/class-week.php
