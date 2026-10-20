@@ -51,7 +51,8 @@ Mover la lectura de emisoras y programas, el guardado de sus campos y el armado 
 - Archivos: `includes/src/data/class-station.php`, `tests/zip/expected-additions.txt`.
 - Test: primero (TDD): `tests/php/unit/Data/StationTest.php`.
 - Verificación: `npm run test:php:unit -- --filter StationTest && npm run check:zip`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `Data\Station` con `THEMES`, `VISUALIZERS` y `row( $id, $title, $meta )`; `$meta` va por meta key (`radplapag_station_*`) y la clave que falta se lee como `''`, igual que `get_post_meta( ..., true )`. 24 tests en `StationTest`, en rojo primero (clase inexistente). Fijado: el horario solo se decodifica de una cadena no vacía que da array y se devuelve tal cual (una lista JSON o entradas crudas también); tema y visualizador fuera de la lista blanca, con otra mayúscula, con espacios o que no son cadena pasan al primero; `stream_url` solo si es cadena, sin recortar; los IDs con `(int)` (`'12abc'` → 12, `'-4'` → -4). Las demás copias de las listas blancas (guardado, página limpia, migrador) se cambian en sus tareas; la del migrador no está en el plan de la fase y no se toca. Sin entradas de baseline.
 
 ### 3.4 `Data\Stations` (≤ 1 h)
 - Qué: `for_page( array $stations, int $page_id )`, la primera emisora con `player_page` igual y `stream_url` no vacía, o `false`, y `player_pages( array $page_by_station, int $exclude ): array`, con las páginas únicas, sin vacías y sin la de la emisora excluida.

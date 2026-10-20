@@ -12,3 +12,4 @@ includes/src/wp/class-clock.php
 includes/src/schedule/class-schedule-view.php
 includes/src/schedule/class-programs-list-view.php
 admin/js/schedule-rules.js
+includes/src/data/class-station.php
