@@ -1,0 +1,4 @@
+# Files the zip may carry on top of the reference tag (spec 0005 §4.5, ADR 0028).
+# One path per line, relative to the plugin root (e.g. includes/src/class-autoloader.php).
+# Every new file under includes/src/ goes here in the same commit. The release
+# that moves REFERENCE_TAG empties this list.

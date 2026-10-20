@@ -44,14 +44,15 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Test: caracterización: el propio archivo (mutación: renombrar un parámetro en local y verlo fallar).
 - Verificación: `npm run test:php:integration -- --filter PublicApiTest`
 - Resultado: 56 funciones en 11 archivos, 3 de `uninstall.php` (por tokens), 3 clases con 6 métodos públicos y 3 constantes (`RADPLAPAG_DB_VERSION` = `'330'`, `RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES` = `10`, `RADPLAPAG_PLUGIN_FILE`). Cada función y clase fija también su archivo; nada sobra ni falta (las constantes `RADPLAPAG_TESTS_*` de los bootstraps no cuentan). El migrador se carga con `require_once` en `set_up_before_class()` (el plugin lo carga bajo demanda). Firmas de hoy idénticas, por tokens, a las de `git show v3.4.2:<archivo>` (79 entradas, con los métodos privados). Mutación: renombrar `$require_published` de `radplapag_get_program_data()` y quitar el `: void` de `radplapag_uninstall_plugin()` hacen fallar los dos tests; revertida. Integración completa (384 tests) y `npm run check` en verde, en WP 7.1.3 + PHP 8.4; la punta mínima la corre `close-phase`.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 876f23e
 
 ### 1.3 Guarda del zip con altas declaradas (≤ 1 h)
 - Qué: `tests/zip/expected-additions.txt` (vacío por ahora) y la comparación extraída a `tests/zip/compare-lists.sh <referencia> <actual> <altas>`: acepta exactamente referencia + altas; falla si falta o sobra una ruta, o si un alta ya estaba en la referencia. `compare-with-v3.4.2.sh` la usa. `check:zip` ejecuta antes su test.
 - Archivos: `tests/zip/compare-lists.sh`, `tests/zip/compare-lists.test.sh`, `tests/zip/compare-with-v3.4.2.sh`, `tests/zip/expected-additions.txt`, `package.json`, `CLAUDE.md` (tabla de comandos).
 - Test: primero (TDD): `tests/zip/compare-lists.test.sh`.
 - Verificación: `npm run check:zip`
-- [ ] hecha · commit: —
+- Resultado: `compare-lists.sh` ordena las tres listas e ignora en las altas las líneas vacías y las que empiezan por `#` (el archivo lleva una cabecera de comentario). Además de lo previsto, falla con un alta duplicada y sale con 2 si el uso es incorrecto o falta un archivo; 13 casos en `compare-lists.test.sh`, en rojo antes de existir el script. Las rutas de `expected-additions.txt` son relativas a la raíz del plugin: `compare-with-v3.4.2.sh` quita ahora el prefijo `radio-player-page/` de las dos listas (la lista prohibida ya admitía rutas sin él). Prueba de punta a punta con un `includes/src/class-probe.php` temporal: sin declarar, la guarda falla y lo nombra; declarado, pasa con 40 archivos; revertido. `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 1.4 Autoloader (≤ 1 h)
 - Qué: `RadioPlayerPage\Autoloader` (`register()`, `file_for( $class )`): prefijo `RadioPlayerPage\` → `includes/src/`, segmentos en minúsculas, `_` → `-`, archivo `class-<nombre>.php`; `null` fuera del prefijo. `radio-player-page.php` hace `require_once` del autoloader y `register()` antes de los demás `includes/` (orden actual intacto). `tests/php/unit/bootstrap.php` lo registra. Alta en `expected-additions.txt`.

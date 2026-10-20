@@ -17,7 +17,7 @@ Plugin de WordPress (publicado en wordpress.org) que sirve una página limpia po
 | `npm run test:php:integration` | PHPUnit sobre wp-env (entorno de tests, tablas `wptests_`) |
 | `npm run test:e2e` | Playwright (Chromium + WebKit) sobre el entorno de tests; antes siembra `scripts/fixtures/seed.php` y `tests/e2e/fixtures/seed-e2e.php` |
 | `npm run test:hooks` | Tests de `.claude/hooks/` |
-| `npm run check:zip` | El zip lista los mismos archivos que `v3.4.2` y no lleva rutas de desarrollo |
+| `npm run check:zip` | Test de la comparación; el zip lista los archivos de `v3.4.2` más las altas de `tests/zip/expected-additions.txt` y no lleva rutas de desarrollo |
 | `npm --prefix player run check` / `build` | tsc + ESLint + Prettier + Vitest del player / build a `player/dist/` |
 | `npm --prefix blocks/<bloque> run check` / `build` | Lint + build del bloque a `blocks/<bloque>/build/` |
 
