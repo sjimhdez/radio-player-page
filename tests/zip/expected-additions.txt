@@ -5,3 +5,4 @@
 includes/src/class-autoloader.php
 includes/src/schedule/class-time.php
 includes/src/schedule/class-week.php
+includes/src/schedule/class-slot-validator.php
