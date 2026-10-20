@@ -90,7 +90,7 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
 - **0010 Admin** (tras la 0005 y la 0009, que también toca `station-admin.js`):
   - alta: K15 (índice = mayor índice + 1);
   - media: C13, K5, K20, K39, K42, K45, AX3, AX4 (K45, AX3, AX4 y AX5 juntas; salen de la línea base de axe);
-  - baja: K16, K27, K34 (junto a K5), K36 (coordinada con el enlace a páginas no servidas de la 0013), K37, K38, K44, AX5, y las sospechas de 5.7: quitar «Entrada publicada» cuando hay error (la emisora se sigue publicando) y el meta box contraído con un error (primero se reproduce con un test; si no se confirma, se cierra sin cambios).
+  - baja: K16, K27, K34 (junto a K5), K36 (coordinada con el enlace a páginas no servidas de la 0013), K37, K38, K44, K74, K75, AX5, y las sospechas de 5.7: quitar «Entrada publicada» cuando hay error (la emisora se sigue publicando) y el meta box contraído con un error (primero se reproduce con un test; si no se confirma, se cierra sin cambios).
 - **0011 Interfaz, i18n y accesibilidad del player** (tras la 0006 y la 0007, que fija los estados del audio):
   - primera tarea: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (hueco de `withRules()`, ADR 0023), antes de AX6 y AX2;
   - alta: K56 (botón estable que cambia de estado);

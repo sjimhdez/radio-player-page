@@ -2,14 +2,14 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0005-php-admin-refactor/phase-2.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas; hechas las 9 (K74 y K75 nuevos, decisión pendiente; `schedule-rules.js` completo, con los 11 vectores, registrado como dependencia de `radplapag-station-admin`, y `station-admin.js` delega en él la validación; la CI exige ≥ 85 % de líneas en él, hoy 100 %; la fila nueva y las vistas previas de los adjuntos se construyen sin cadenas HTML: A7 cumplido). La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
+- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas; hechas las 9 (K74 y K75 nuevos, a la 0010; `schedule-rules.js` completo, con los 11 vectores, registrado como dependencia de `radplapag-station-admin`, y `station-admin.js` delega en él la validación; la CI exige ≥ 85 % de líneas en él, hoy 100 %; la fila nueva y las vistas previas de los adjuntos se construyen sin cadenas HTML: A7 cumplido). La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
 1. `close-phase` de la fase 2.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
-- K74 y K75 (caracterización 2.2, gravedad baja): decidir si se corrigen y en qué spec (propuesta: 0010 admin). No bloquean la fase: la extracción las conserva.
+- Ninguno.
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
