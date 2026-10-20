@@ -2,12 +2,11 @@
 Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) (spec: [`spec.md`](specs/0003-player-dependencies/spec.md)) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). 1.2 hecha (bloques en `@wordpress/scripts` 37 con flat config propio). 1.2b hecha (K73 corregido: `Clock` con día exacto). PR #38 en borrador contra `trunk`.
+- Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). 1.2 hecha (bloques en `@wordpress/scripts` 37 con flat config propio). 1.2b hecha (K73 corregido: `Clock` con día exacto). 1.3 hecha (excepciones en el ADR 0022: TS 6.0.x, `@babel/runtime` 7.x). PR #38 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 1.3 Excepciones en el ADR 0022.
-2. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
-3. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
+1. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
+2. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.

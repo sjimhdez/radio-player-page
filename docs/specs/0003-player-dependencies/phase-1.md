@@ -64,14 +64,15 @@ Medido al planificar (2026-10-20):
 - Verificación: `npm run check && npm run test:php:integration` en `env:start:min` y `env:start:latest`, y `git diff --stat tests/php/integration/snapshots` vacío.
 - Commit: `test(0003): make block render snapshots independent of the weekday (1.2b)`
 - Resultado: «ahora» falso sin tocar el plugin: `Clock::set()`/`run()` aceptan `$exact_day`. El desfase puede abarcar varios días (hasta ±96 h; PHP 7.4 y 8.x aceptan hasta ±99:59, y `wp_timezone_string()` lo imprime bien), así que el día local es el pedido y la rotación es la identidad. `BlockRenderTest` lo usa y deja de rotar y desrotar: el sitio está en un miércoles real, así que `natural` comprueba de verdad lunes → domingo y `current_first` el miércoles primero. Los demás usos de `Clock` no cambian. Test nuevo en `SupportTest` (`test_clock_exact_day_sets_requested_local_day`, los 6 destinos). Rojo el martes 2026-10-20 (20 fallos en WP 6.6). Mutación (modo exacto desactivado): 26 fallos. Después, `npm run check` y la integración completa (378 tests) en verde en `env:start:min` y en `env:start:latest`, y los snapshots sin cambios.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 72d090d
 
 ### 1.3 Excepciones en el ADR 0022 (≈ 15 min)
 - Qué: anotar TS 6.0.x en el player (peer de `typescript-eslint`, se revisa cuando admita la 7, riesgo 6), `@babel/runtime` 7.x en los bloques (`@wordpress/scripts` 37 sigue en Babel 7), y el estado nuevo del TS de `now-playing` (quitar o actualizar su excepción). Más las que hayan salido de 1.1/1.2.
 - Archivos: `docs/adr/0022-latest-stable-versions.md`.
 - Verificación: `npm --prefix player outdated; for b in now-playing programs-list schedule; do npm --prefix blocks/$b outdated; done` (solo listan lo del ADR)
 - Commit: `docs(0003): record dependency exceptions in ADR 0022 (1.3)`
-- [ ] hecha · commit: —
+- Resultado: dos excepciones nuevas y una que se sustituye. TS 6.0.x en `player/` y `now-playing` (sustituye a la 5.9.3 de la 0001; `typescript-eslint` 8.72 pide `<6.1.0`; en `programs-list` y `schedule` la resuelve npm por el mismo *peer*). `@babel/runtime` 7.29.x en los bloques (`@wordpress/scripts` 37 sigue en Babel 7). La regla del ADR pasa a cubrir también las fijadas por un *peer*, no solo por la matriz de mínimos. De 1.1 y 1.2 no salió ninguna más (sin `overrides`). `outdated` lista solo eso: `typescript` 7.0.2 en el player y `now-playing`, `@babel/runtime` 8.0.7 en los tres bloques.
+- [x] hecha · commit: (este)
 
 ### 1.4 Verificación completa y tabla del bundle (≈ 1 h, sin cambios de código)
 - Qué: `npm run check`; integración y e2e completos en las dos puntas; A4; tabla del bundle antes/después en el cuerpo del PR #38 (`gh pr edit 38 --body …`); añadir A7 a «Verificación manual pendiente» de `docs/status.md`. Si un e2e falla: se arregla la causa en el commit del proyecto afectado (nuevo commit `fix`/`build` con su número de tarea), nunca el test.
