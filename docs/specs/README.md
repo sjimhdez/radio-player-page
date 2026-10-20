@@ -10,9 +10,9 @@
 |---|---|---|---|---|
 | 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | cerrada (PR #36) | `spec/0001-bootstrap` | — |
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | cerrada (PR #37) | `spec/0002-safety-net` | 0001 |
-| 0003 | Dependencias del player (React) | pendiente de escribir | — | 0002 |
-| 0004 | Dependencias de la parte WordPress (bloques, raíz, Composer, CI) | pendiente de escribir | — | 0002 |
-| 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0004 |
+| 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | cerrada | `spec/0003-player-dependencies` | 0002 |
+| 0004 | ~~Dependencias de la parte WordPress~~: descartada; los bloques van en la 0003, y la raíz, Composer y las Actions fuera de una spec ([ADR 0026](../adr/0026-grouped-dependency-upgrades.md)) | descartada | — | — |
+| 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0003 |
 | 0006 | Refactor del player | pendiente de escribir | — | 0003 |
 | 0007 | Correcciones: reproducción | pendiente de escribir | — | 0006 |
 | 0008 | Correcciones: migración y actualización | pendiente de escribir | — | 0005 |
@@ -23,7 +23,7 @@
 | 0013 | Correcciones: bloques | pendiente de escribir | — | 0009, 0010 |
 | último | Release | pendiente de escribir | — | todas |
 
-Las 0003 y 0004 son independientes entre sí, igual que las 0005 y 0006. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree y con su rama desde `trunk`.
+Las 0005 y 0006 son independientes entre sí. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree y con su rama desde `trunk`.
 
 Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec por zona, numeradas por prioridad en dos pistas. La del player (0007 → 0011) arranca al cerrar la 0006; en la de WordPress, la 0008 y la 0012 arrancan al cerrar la 0005, y la 0010 espera a la 0009. La 0009 (horario) necesita la 0005 y la 0006, y la 0013 (bloques) va detrás de la 0009 y la 0010. Una fila «junto a» otra de más prioridad se corrige con ella. Las filas que cambian `SPEC.md` §3 llevan su ADR en la spec que las corrige, porque el diseño se decide allí (invariante 2). Cada fila de `docs/known-issues.md` con «corregir» está en exactamente una de ellas.
 
@@ -64,18 +64,6 @@ Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec po
 
 Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec.
 
-- **0003 Dependencias del player:**
-  - todo a la última versión, una versión mayor por commit (skill `upgrade-dependency`);
-  - **MUI** (hoy 7.3.x) y Emotion con la guía oficial y `@mui/codemod`, versión mayor a versión mayor;
-  - React, `hls.js`, `dashjs`, i18next, `date-fns`, Vite, TypeScript, ESLint;
-  - presupuesto del bundle (más de un +10 % necesita un ADR): la 0003 monta la medición (bytes y gzip de `player/dist`), que hoy no existe;
-  - capturas antes y después para la revisión visual del usuario (Playwright; también por montar);
-  - los visualizadores, sin tocar o con un cambio mínimo y su ADR.
-- **0004 Dependencias de WordPress:**
-  - `@wordpress/scripts` de **cada bloque por separado**;
-  - las herramientas de la raíz, Composer y las Actions de GitHub;
-  - `@babel/runtime` de los bloques: puede acabar en `build/` y hoy es dependencia de desarrollo, así que `check-licenses.mjs` no lo mira (moverlo a `dependencies` o ampliar el script);
-  - el e2e de los bloques en WP 6.6 manda: si un build moderno necesita una WP posterior, se fija la versión con un ADR.
 - **0005 Refactor de PHP y admin:**
   - *strangler*: el código nuevo en el namespace `RadioPlayerPage\` con autoloader PSR-4 propio;
   - las funciones `radplapag_*` como envoltorios;
@@ -86,6 +74,7 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - núcleo `player/src/core/` sin React ni MUI: máquina de estados del audio, adaptadores por protocolo, `crossOrigin`, intro, horario, sueño, Media Session y lectura de las globales;
   - los hooks, como adaptadores finos;
   - TDD;
+  - quitar las excepciones de `react-hooks` 7 que deja la 0003 (`set-state-in-effect` e `immutability`/`refs`, lista en su §4.2 y en la tarea 1.1 de su plan) y cambiar `process.env.NODE_ENV` por `import.meta.env.DEV` en `src/utils/timezone.ts`;
   - del triage de la 0002: K9 (el núcleo valida el offset), K14 (Media Session en el núcleo), K70 (cada adaptador por protocolo fija su `crossOrigin`) y las sospechas de dos `play()` concurrentes con HLS y de `pause()` durante la carga de un MP3 (el núcleo serializa `play()`/`pause()` y lo comprueba en sus tests; si se confirma un fallo visible, pasa como fila a la 0007).
 - **Correcciones (0007–0013), comunes a todas:**
   - cada fila se corrige con `fix-bug`: el test `currently` pasa a test de regresión en rojo y luego a verde; la fila de `known-issues.md` pasa a «corregido (versión)»;
@@ -111,7 +100,7 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - primera tarea: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (hueco de `withRules()`, ADR 0023), antes de AX6 y AX2;
   - alta: K56 (botón estable que cambia de estado);
   - media: C15 (el canvas no se toca, zona congelada), K57, K59 y AX6 (juntas, región `role="status"`), K60, K68 (al tocarla, quitar `localStorage` y `navigator` del detector de i18next: con `supportedLngs` el navegador ganaría a un idioma del sitio sin traducción, contra el ADR 0025; y corregir el comentario de `player/src/config/i18n.ts`, si la 0006 no lo hizo);
-  - baja: C6, K58, K61 (con capturas antes y después, junto al `100vh` de iOS), K62, K69, K71, AX1, AX2;
+  - baja: C6, K58, K61 (con capturas antes y después, junto al `100vh` de iOS), K62, K69, AX1, AX2 (K71 ya lo corrigió la 0003);
   - K55 no se corrige (manda el idioma del sitio, ADR 0025), pero su test `currently` pasa aquí a test normal.
 - **0012 Núcleo PHP y desinstalación** (tras la 0005):
   - media: C11 y K7 (juntas: `uninstall.php` limpia opciones, transients y todos los estados en cada sitio; amplía §3.7 → ADR), K21 y K43 (juntas: decodificar entidades solo de lo que se imprime para el player, sin ADR);
@@ -123,6 +112,6 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
 - **Release:**
   - Plugin Check sobre el zip, la checklist de las guidelines y la matriz PHP 7.4/8.4 × WP 6.6/última;
   - verificación manual: iOS y Android, una emisora real y una actualización desde la 3.4.2;
-  - changelog y `== Upgrade Notice ==`;
+  - changelog y `== Upgrade Notice ==` (incluye el soporte efectivo de navegadores del player, Safari 17+, ADR 0027);
   - del triage de la 0002: K3 (los textos se revisan con el estado final) y K28 (`readme.txt`); comprobar que la petición a terceros de `dashjs` está corregida (verificación, no asignación: la fila es de la 0007);
   - merge en `trunk`, PR `trunk` → `main`, tag `vX.Y.Z` y pasos de SVN para el usuario.

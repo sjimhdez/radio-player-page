@@ -8,12 +8,12 @@
 	"scripts": {
 		"build": "wp-scripts build",
 		"start": "wp-scripts start",
-		"lint": "ESLINT_USE_FLAT_CONFIG=false wp-scripts lint-js src",
+		"lint": "wp-scripts lint-js src",
 		"check": "npm run lint && npm run build"
 	},
 	"devDependencies": {
-		"@babel/runtime": "^7.24.0",
-		"@wordpress/scripts": "^28.0.0"
+		"@babel/runtime": "^7.29.10",
+		"@wordpress/scripts": "^37.0.0"
 	},
 	"prettier": "@wordpress/prettier-config"
 }

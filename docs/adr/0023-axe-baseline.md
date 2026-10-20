@@ -14,7 +14,7 @@ La spec 0002 (§4.4, escenario 12) pasa axe (`@axe-core/playwright`) por la pág
 
 ## Consecuencias
 - El escenario entra ya y protege lo que funciona: un cambio de UI que añada una violación lo para la CI.
-- Subir MUI o React (specs 0003/0004) puede cambiar los selectores aunque no cambie la accesibilidad. Entonces se reescribe la línea base y el diff muestra si solo cambian los selectores.
+- Subir MUI o React (spec 0003; la 0004 se descartó, ADR 0026) puede cambiar los selectores aunque no cambie la accesibilidad. Entonces se reescribe la línea base y el diff muestra si solo cambian los selectores.
 - Al normalizar `.css-*`, dos nodos distintos de una misma regla pueden compartir clave, y una violación nueva en un nodo con la misma forma no se detecta. Es el precio de una clave estable entre builds.
 - Las claves de `label` llevan el valor sembrado (`input[value="06:00"]`): una franja nueva sin etiqueta con la misma hora que otra comparte clave y no se detecta, y cambiar la parrilla de `seed-e2e.php` reescribe esas claves sin que cambie la accesibilidad.
 - **Huecos conocidos de la línea base** (los mira la auditoría de la fase 4 con `a11y-reviewer`):

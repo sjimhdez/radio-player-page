@@ -51,7 +51,13 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
     >
       <Box sx={{ display: 'flex', flexDirection: 'row' }}>
         {program.programLogoUrl && (
-          <Stack direction="row" alignItems="start" justifyContent="center">
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: 'start',
+              justifyContent: 'center',
+            }}
+          >
             <CardMedia
               component="img"
               src={program.programLogoUrl}
@@ -66,12 +72,29 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
           </Stack>
         )}
         <CardContent sx={{ flex: 1 }}>
-          <Stack px={1} gap={0.5} alignItems="start">
-            <Stack alignItems="start" gap={1}>
+          <Stack
+            sx={{
+              px: 1,
+              gap: 0.5,
+              alignItems: 'start',
+            }}
+          >
+            <Stack
+              sx={{
+                alignItems: 'start',
+                gap: 1,
+              }}
+            >
               {program.isLive && (
                 <Chip
                   label={
-                    <Typography variant="body2" fontWeight="bold" textTransform="uppercase">
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                      }}
+                    >
                       {t('dashboard.scheduleLive')}
                     </Typography>
                   }
@@ -88,12 +111,22 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
                   }}
                 />
               )}
-              <Typography variant="body1" color="primary.light">
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'primary.light',
+                }}
+              >
                 {program.programName || '—'}
               </Typography>
             </Stack>
             {program.programDescription && (
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {program.programDescription}
               </Typography>
             )}
@@ -110,20 +143,35 @@ function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCard
         </CardContent>
       </Box>
       <Collapse in={expanded}>
-        <Stack gap={3} p={3}>
+        <Stack
+          sx={{
+            gap: 3,
+            p: 3,
+          }}
+        >
           {program.programExtendedDescription && (
             <Typography variant="body2" component="div" sx={{ whiteSpace: 'pre-wrap' }}>
               {program.programExtendedDescription}
             </Typography>
           )}
-          <Stack gap={1.5}>
+          <Stack
+            sx={{
+              gap: 1.5,
+            }}
+          >
             <Typography variant="h5">{t('dashboard.transmissionTimes')}</Typography>
-            <Stack gap={0.5}>
+            <Stack
+              sx={{
+                gap: 0.5,
+              }}
+            >
               {program.slots.map((slot, index) => (
                 <Typography
                   key={`${program.programId}-${index}`}
                   variant="body2"
-                  color="text.secondary"
+                  sx={{
+                    color: 'text.secondary',
+                  }}
                 >
                   {t(DAY_KEYS[slot.dayOfWeek])} {slot.timeRange}
                 </Typography>
@@ -190,8 +238,15 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
         },
       }}
     >
-      <DialogTitle bgcolor={'background.paper'}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+      <DialogTitle sx={{ bgcolor: 'background.paper' }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+          }}
+        >
           {t('dashboard.viewAllPrograms')}
           <IconButton aria-label={t('dashboard.allProgramsClose')} onClick={onClose} size="small">
             <CloseIcon />
@@ -199,7 +254,13 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
         </Stack>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 0 }}>
-        <Stack maxHeight={'70vh'} overflow={'auto'} bgcolor={'background.paper'}>
+        <Stack
+          sx={{
+            maxHeight: '70vh',
+            overflow: 'auto',
+            bgcolor: 'background.paper',
+          }}
+        >
           <Box>
             {programsWithSlots.length === 0 ? (
               <Typography>{t('dashboard.allProgramsEmpty')}</Typography>

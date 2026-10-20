@@ -14,7 +14,7 @@ Los cuatro visualizadores (osciloscopio, barras, cascada y partículas) siguen e
 ## No se edita sin ADR
 
 - Ningún cambio en estos archivos sin un ADR aprobado por el usuario, ni siquiera de estilo o de tipos.
-- Si una actualización de dependencias (specs 0003, 0004) obliga a tocarlos, el cambio es el mínimo imprescindible, lleva su ADR y se comprueba con el smoke e2e de visualizadores.
+- Si una actualización de dependencias (spec 0003) obliga a tocarlos, el cambio es el mínimo imprescindible, lleva su ADR y se comprueba con el smoke e2e de visualizadores.
 - Los bugs de esta zona (C5 y la parte del canvas de C15 en `docs/known-issues.md`) solo se corrigen si el usuario lo aprueba, con un ADR.
 
 ## Su contrato con el reproductor (esto sí se preserva y se testea)

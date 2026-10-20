@@ -9,11 +9,11 @@ Tres bloques dinámicos (apiVersion 3, renderizado en el servidor): `radplapag/s
 
 ## Cada bloque es un proyecto independiente (ADR 0020)
 
-- Su `package.json`, su `package-lock.json`, su `.nvmrc`, su `.eslintrc.json` (`root: true`) y su `@wordpress/scripts`. Nada se comparte con otro bloque, con la raíz ni con el player.
+- Su `package.json`, su `package-lock.json`, su `.nvmrc`, su `eslint.config.mjs` y su `@wordpress/scripts`. Nada se comparte con otro bloque, con la raíz ni con el player.
 - Comandos, siempre desde su carpeta o con `--prefix`: `npm --prefix blocks/<bloque> run check` (lint + build), `run build`, `run lint`.
-- El lint usa ESLint 8 en modo eslintrc (`ESLINT_USE_FLAT_CONFIG=false`), para que no lea el `eslint.config.mjs` de la raíz.
+- El lint usa ESLint 10 con flat config propio (`eslint.config.mjs` del bloque: el recomendado de `@wordpress/eslint-plugin` más el `ignore` de los paquetes `@wordpress/*`, que son externals del editor). ESLint se para en el `eslint.config.*` más cercano, así que no lee el de la raíz.
 - `build/` se commitea y nunca se edita a mano; la CI recompila y compara con `git diff --exit-code`.
-- Las actualizaciones de `@wordpress/scripts` son de la spec 0004, bloque a bloque. El e2e en WP 6.6 manda.
+- Las actualizaciones de `@wordpress/scripts` son de la spec 0003, agrupadas (ADR 0026). El e2e en WP 6.6 manda.
 
 ## Contrato
 

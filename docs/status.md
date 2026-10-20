@@ -1,12 +1,11 @@
 # Estado
-Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: cerrada (1–5, el 2026-10-18; PR #37 listo, pendiente de merge en `trunk`) · Plan: [`phase-5.md`](specs/0002-safety-net/phase-5.md) · Actualizado: 2026-10-18
+Spec activa: 0003 — Dependencias del player y de los bloques · Fase: cerrada (1, el 2026-10-20; PR #38 listo, pendiente de merge en `trunk`) · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Nada. La spec 0002 está cerrada; el PR #37 espera el merge del usuario (merge commit, sin squash, título `Spec 0002: Red de seguridad, auditoría y triage`).
+- Spec 0003 cerrada (2026-10-20). PR #38 contra `trunk`, listo: el merge lo decide el usuario (merge commit, sin squash, título `Spec 0003: Dependencias del player y de los bloques`).
 
 ## Siguiente (máx. 5)
-1. Tras el merge, sesión de diseño → `write-spec` de la 0003 (dependencias del player) y/o la 0004 (dependencias de la parte WordPress); son independientes, en paralelo si se quiere.
-2. Hoja de ruta completa y dependencias de las correcciones 0007–0013 en `docs/specs/README.md`.
+1. Tras el merge del PR #38: sesión de diseño → `write-spec` de la spec 0005 (refactor de PHP y admin; la 0006 también puede empezar, las dos dependen solo de la 0003).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
@@ -17,6 +16,13 @@ Spec activa: 0002 — Red de seguridad, auditoría y triage · Fase: cerrada (1�
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)
+Spec 0003:
+- Tarea 1.1: K71 (anuncio de i18next en la consola) lo corrigió la subida a i18next 26, fuera de una spec de correcciones; su test `currently` pasa a regresión en la misma fase. Aprobado por el usuario (2026-10-20).
+- Tarea 1.2b: K73 (fallo del test `BlockRenderTest`, depende del día de la semana) se arregla en la 0003 y no en la 0013, porque deja la CI en rojo los lunes y martes. Solo el test; los snapshots no cambian. Aprobado por el usuario (2026-10-20).
+- Tarea 1.1: hls.js 1.7 pasa `preferManagedMediaSource` a `false`; se restaura con `new Hls({ preferManagedMediaSource: true })` (código de producción, con test unitario) para no cambiar el comportamiento en Safari. Decidido por el usuario (2026-10-20).
+- Tarea 1.6 (sale de `close-phase`): Vite 8 quitaba los avisos de licencia del bundle; se restauran y `check:zip` lo vigila. Decidido por el usuario (2026-10-20).
+- Tarea 1.2: el runtime de webpack de `@wordpress/scripts` 37 usa `Object.hasOwn` también en `programs-list` y `schedule` (`now-playing` ya lo usaba). Solo corre en el editor; el e2e de bloques en WP 6.6 pasa en Chromium y WebKit. Sin ADR.
+
 Spec 0002:
 - §5 fase 4: el `/code-review` de cada zona se hizo con un subagente general a esfuerzo alto, solo lectura, en lugar del comando; lo anota el «Resultado:» de cada tarea.
 - §4.6: además de las tres `phpcs:ignore` previstas, van en línea con su motivo `UnusedFunctionParameter` en cinco callbacks de firma fija y `SlowDBQuery` en `scripts/fixtures/seed.php` (como en `seed-e2e.php`), y un `phpcs:disable`/`phpcs:enable` de `ControlSignature.NewlineAfterOpenBrace` alrededor de toda la plantilla de `blocks/now-playing/render.php` (`phpcbf` cambiaría su HTML; el sniff salta en las dos cabeceras). La parte WordPress va en tres commits (`phpcbf`, a mano, supresiones) en lugar de uno, para comparar por tokens el de `phpcbf`. Con `.git-blame-ignore-revs`, las líneas que ya existían devuelven su commit anterior, pero las 82 que creó la 3.4 en `station-admin.js` (llaves de `curly`, líneas partidas por Prettier) siguen atribuidas a ella: no tienen commit anterior. Aceptado por el usuario (2026-10-18), con `blame.markUnblamableLines` para marcarlas.

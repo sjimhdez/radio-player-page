@@ -14,7 +14,7 @@ Hay cuatro proyectos JS (el player y tres bloques), cada uno con su `package.jso
 
 ## Consecuencias
 
-- Más `npm ci` y más jobs en la CI, a cambio de actualizaciones aisladas (las specs 0003 y 0004 pueden ir en paralelo).
+- Más `npm ci` y más jobs en la CI, a cambio de actualizaciones aisladas (cada proyecto se sube por separado; la 0004 se descartó, ADR 0026).
 - Versiones distintas de las mismas herramientas pueden convivir (p. ej. `@wordpress/scripts` 28 en los bloques y el `@wordpress/eslint-plugin` actual en la raíz).
 
 ## Alternativas descartadas

@@ -147,7 +147,8 @@ test( 'currently leaves the English fallback marked with the page language (K62)
 	} );
 } );
 
-test( 'currently prints the i18next support notice in the console (K71)', async ( {
+// K71: 3.4.2 printed the Locize notice; i18next 26 no longer has it (spec 0003, 1.1).
+test( 'does not print the i18next support notice in the console (K71)', async ( {
 	page,
 } ) => {
 	const messages: string[] = [];
@@ -162,5 +163,5 @@ test( 'currently prints the i18next support notice in the console (K71)', async 
 				'i18next is made possible by our own product, Locize'
 			)
 		)
-	).toBe( true );
+	).toBe( false );
 } );

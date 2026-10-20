@@ -51,7 +51,7 @@ blocks/*/src/*.js | blocks/*/src/*.jsx)
 	BLOCK="${BLOCK%%/*}"
 	FILE_IN_BLOCK="${REL#blocks/"$BLOCK"/}"
 	cd "$PROJECT_DIR/blocks/$BLOCK" || exit 0
-	if ! OUTPUT="$(ESLINT_USE_FLAT_CONFIG=false node_modules/.bin/wp-scripts lint-js --fix "$FILE_IN_BLOCK" 2>&1)"; then
+	if ! OUTPUT="$(node_modules/.bin/wp-scripts lint-js --fix "$FILE_IN_BLOCK" 2>&1)"; then
 		report "ESLint (blocks/$BLOCK) errors in $REL:$OUTPUT"
 	fi
 	;;

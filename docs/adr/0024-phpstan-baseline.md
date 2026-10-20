@@ -16,7 +16,7 @@ La spec 0002 (§5, fase 4) añade PHPStan al nivel más alto que se pueda sosten
 - Cualquier error nuevo en el PHP publicado lo para `npm run check` y la CI. Mutaciones en local (tareas 4.1 y 4.7): `esc_html( 1 );` al final de `uninstall.php` hace fallar `lint:phpstan` (`argument.type`), y subir el `count` de una entrada también (`ignore.count`).
 - Las entradas son por mensaje, archivo y número de apariciones: en un archivo con entradas, un error nuevo con el mismo mensaje que otro ya ignorado cambia el `count` y falla. Lo que no se detecta es mover un error dentro del mismo archivo.
 - Las entradas que se corrijan en las specs de correcciones salen de la baseline en el mismo commit. Mientras sigan, el código de la 3.4.2 queda sin esas comprobaciones en sus líneas.
-- Subir PHPStan o los stubs de WordPress (specs 0003/0004) puede cambiar mensajes y conteos sin cambio de código: entonces se regenera la baseline y el diff muestra si solo cambian los mensajes.
+- Subir PHPStan o los stubs de WordPress (la 0004 se descartó: PHPStan y los stubs suben fuera de una spec, ADR 0026) puede cambiar mensajes y conteos sin cambio de código: entonces se regenera la baseline y el diff muestra si solo cambian los mensajes.
 - Subir de nivel es una decisión nueva (este ADR se sustituye) y va con su propia baseline.
 
 ## Alternativas descartadas

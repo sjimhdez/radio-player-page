@@ -127,6 +127,7 @@ const SleepMode = ({
   // Sync with external state when timer is cancelled from parent component
   useEffect(() => {
     if (externalTimerSeconds === null && remainingSeconds !== null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- existing effect kept as is; spec 0006 rewrites it
       setRemainingSeconds(null)
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
@@ -142,7 +143,12 @@ const SleepMode = ({
 
   return (
     <>
-      <Stack alignItems="flex-start" justifyContent="center">
+      <Stack
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+        }}
+      >
         <Tooltip title={t('dashboard.sleepMode')} placement="top" arrow>
           <IconButton
             onClick={handleClick}

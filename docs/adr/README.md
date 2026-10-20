@@ -29,3 +29,5 @@ Decisiones de arquitectura con formato de Michael Nygard: contexto, decisión, c
 | [0023](0023-axe-baseline.md) | Línea base de axe: «ninguna violación nueva» | aceptado | 0002 · fase 2 |
 | [0024](0024-phpstan-baseline.md) | PHPStan al nivel 8 con baseline: la baseline solo baja | aceptado | 0002 · fase 4 |
 | [0025](0025-player-language-follows-site.md) | El idioma del reproductor es el del sitio (reserva `en-US`) | aceptado | 0002 · fase 5 (K55) |
+| [0026](0026-grouped-dependency-upgrades.md) | Actualizaciones de dependencias agrupadas por proyecto; sin la spec 0004 | aceptado | 0003 · diseño |
+| [0027](0027-player-browser-support-follows-mui.md) | Navegadores del player: `build.target` de Vite 6 y soporte efectivo de MUI 9 | aceptado | 0003 · fase 1 |

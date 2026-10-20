@@ -117,7 +117,8 @@ function useAudioPlayer(streamUrl: string, introUrl?: string | null) {
         // Use HLS.js for non-iOS devices
         const Hls = await loadHls()
         if (Hls.isSupported()) {
-          const hls = new Hls()
+          // hls.js 1.7 defaults to classic MediaSource; keep ManagedMediaSource as in 3.4.2.
+          const hls = new Hls({ preferManagedMediaSource: true })
           hlsRef.current = hls
           hls.loadSource(streamUrl)
           hls.attachMedia(audio)

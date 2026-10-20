@@ -74,22 +74,23 @@ const StreamInfo = ({
   return (
     <Stack
       ref={containerRef}
-      position={'absolute'}
-      top={
-        forceVerticalCenter || !(canVisualize && isPlaying)
-          ? height > 0
-            ? `calc(50% - ${height / 2}px)`
-            : 'calc(50% - 2rem)'
-          : 16
-      }
-      textAlign={'center'}
-      sx={{ transition: 'all 0.8s ease' }}
-      zIndex={(theme) => theme.zIndex.appBar}
-      gap={1}
-      px={2}
-      py={1}
-      alignItems="center"
-      justifyContent="center"
+      sx={{
+        position: 'absolute',
+        top:
+          forceVerticalCenter || !(canVisualize && isPlaying)
+            ? height > 0
+              ? `calc(50% - ${height / 2}px)`
+              : 'calc(50% - 2rem)'
+            : 16,
+        textAlign: 'center',
+        zIndex: (theme) => theme.zIndex.appBar,
+        gap: 1,
+        px: 2,
+        py: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.8s ease',
+      }}
     >
       {logoImage && (
         <Box
@@ -111,32 +112,48 @@ const StreamInfo = ({
       >
         {title}
       </Typography>
-      <Stack gap={3}>
+      <Stack
+        sx={{
+          gap: 3,
+        }}
+      >
         {/* Show active program if schedule is configured */}
         {currentProgram && (
           <Stack
-            flexDirection={{ xs: 'column', sm: 'row' }}
-            alignItems={{ xs: 'center', sm: 'baseline' }}
-            justifyContent="center"
-            flexWrap="wrap"
-            gap={1.5}
+            sx={{
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'center', sm: 'baseline' },
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: 1.5,
+            }}
           >
-            <Typography variant="body2" component="p" lineHeight={1}>
+            <Typography
+              variant="body2"
+              component="p"
+              sx={{
+                lineHeight: 1,
+              }}
+            >
               {t('dashboard.activeProgram')}:
             </Typography>
 
             <Stack
-              flexDirection={{ xs: 'column', sm: 'row' }}
-              alignItems={{ xs: 'center', sm: 'baseline' }}
-              justifyContent="center"
-              gap={1}
-              flexWrap="wrap"
+              sx={{
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'center', sm: 'baseline' },
+                justifyContent: 'center',
+                gap: 1,
+                flexWrap: 'wrap',
+              }}
             >
               {currentProgram.programLogoUrl && (
                 <Box
-                  position={{ sm: 'relative' }}
-                  bottom={{ xs: 0, sm: '-12px' }}
-                  marginBottom={{ xs: 0, sm: '8px' }}
+                  sx={{
+                    position: { sm: 'relative' },
+                    bottom: { xs: 0, sm: '-12px' },
+                    marginBottom: { xs: 0, sm: '8px' },
+                  }}
                 >
                   <Avatar
                     src={currentProgram.programLogoUrl}
@@ -149,8 +166,8 @@ const StreamInfo = ({
               <Typography
                 variant="h4"
                 component="p"
-                lineHeight={1.3}
                 sx={{
+                  lineHeight: 1.3,
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
@@ -163,7 +180,14 @@ const StreamInfo = ({
                 {currentProgram.programName}
               </Typography>
               {currentProgram.isRerun && (
-                <Typography variant="body2" color="text.secondary" component="p" lineHeight={1}>
+                <Typography
+                  variant="body2"
+                  component="p"
+                  sx={{
+                    color: 'text.secondary',
+                    lineHeight: 1,
+                  }}
+                >
                   {t('dashboard.rerunLabel')}
                 </Typography>
               )}
@@ -174,20 +198,28 @@ const StreamInfo = ({
         {upcomingProgram && (
           <Stack
             direction="row"
-            alignItems="baseline"
-            justifyContent="center"
-            gap={1}
-            flexWrap="wrap"
+            sx={{
+              alignItems: 'baseline',
+              justifyContent: 'center',
+              gap: 1,
+              flexWrap: 'wrap',
+            }}
           >
-            <Typography variant="body2" component="p" lineHeight={1}>
+            <Typography
+              variant="body2"
+              component="p"
+              sx={{
+                lineHeight: 1,
+              }}
+            >
               {t('dashboard.upcomingPrefix')}:
             </Typography>
             <Typography
               variant="body1"
               component="p"
-              fontWeight="bold"
-              lineHeight={1.3}
               sx={{
+                fontWeight: 'bold',
+                lineHeight: 1.3,
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
@@ -200,11 +232,23 @@ const StreamInfo = ({
               {upcomingProgram.programName}
             </Typography>
             {upcomingProgram.isRerun && (
-              <Typography variant="body2" color="text.secondary" lineHeight={1}>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                  lineHeight: 1,
+                }}
+              >
                 {t('dashboard.rerunLabel')}
               </Typography>
             )}
-            <Typography variant="body2" component="p" lineHeight={1}>
+            <Typography
+              variant="body2"
+              component="p"
+              sx={{
+                lineHeight: 1,
+              }}
+            >
               {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
               {upcomingProgram.timeRange}
             </Typography>
@@ -235,7 +279,12 @@ const StreamInfo = ({
         collapsedSize={0}
         orientation="vertical"
       >
-        <Stack gap={1} alignItems={'center'}>
+        <Stack
+          sx={{
+            gap: 1,
+            alignItems: 'center',
+          }}
+        >
           <Box
             component="div"
             className="loader"

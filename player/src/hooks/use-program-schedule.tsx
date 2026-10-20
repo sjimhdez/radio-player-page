@@ -52,6 +52,7 @@ function useProgramSchedule(): ProgramScheduleResult {
     const programs = config.programs
 
     if (!schedule) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- existing effect kept as is; spec 0006 rewrites it
       setResult({ active: null, incoming: null })
       return
     }

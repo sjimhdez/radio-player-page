@@ -32,9 +32,12 @@ const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
     <Stack
       spacing={2}
       direction="row"
-      justifyContent={'center'}
-      width={'100%'}
-      sx={{ alignItems: 'center', mb: 1 }}
+      sx={{
+        justifyContent: 'center',
+        width: '100%',
+        alignItems: 'center',
+        mb: 1,
+      }}
     >
       <VolumeMute fontSize="small" />
       <Slider

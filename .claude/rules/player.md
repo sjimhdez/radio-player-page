@@ -11,6 +11,8 @@ paths:
 
 - `npm --prefix player run check` = `tsc -b` + ESLint (typescript-eslint + react-hooks) + `prettier --check` (`player/.prettierrc`) + Vitest con cobertura (`test:coverage`, happy-dom, ADR 0006; umbrales por glob en `vitest.config.ts`).
 - `npm --prefix player run build` → `player/dist/` (se commitea; nombres `radio-player-page-<versión>[-<chunk>].min.js|css`, que PHP lee de `manifest.json`).
+- El minificado conserva los avisos de licencia de terceros (`comments: { legal: true }` en `vite.config.ts`); `npm run check:zip` comprueba que ningún script lleva menos que en la `v3.4.2`.
+- `build.target` fijo en el valor por defecto de Vite 6 (`safari14`, `chrome87`…); el soporte efectivo es el de MUI 9 (Safari 17+). No se sube sin ADR (ADR 0027).
 - TypeScript `strict`. Alias `src/*` (en `tsconfig.app.json`, `vite.config.ts` y `vitest.config.ts`).
 - Prettier cubre todo `src/` salvo `src/config/visualizers.ts`, la zona congelada (ADR 0018), que es lo único que lista `player/.prettierignore` además de lo generado; no se añaden más (ADR 0021).
 
