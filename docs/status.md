@@ -2,13 +2,12 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0005-php-admin-refactor/phase-2.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas. La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
+- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas; hecha la 2.1. La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 2.1: caracterizar el DOM de la fila nueva y de las vistas previas (entidades en nombres y traducciones).
-2. Tarea 2.2: huecos de la validación del cliente antes de extraerla.
-3. Tareas 2.3–2.4: `admin/js/schedule-rules.js` por TDD con los vectores.
-4. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
+1. Tarea 2.2: huecos de la validación del cliente antes de extraerla.
+2. Tareas 2.3–2.4: `admin/js/schedule-rules.js` por TDD con los vectores.
+3. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
