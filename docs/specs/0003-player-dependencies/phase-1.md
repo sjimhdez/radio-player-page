@@ -86,7 +86,8 @@ Medido al planificar (2026-10-20):
 - Qué: el usuario revisa en <http://localhost:8886> (`npm run env:start`). Diferencias por MUI 9 → compensar en `player/src/config/theme.ts` si no cambia nada visible respecto a la 3.4.2; si el cambio se queda, ADR aprobado por el usuario.
 - Verificación: `npm --prefix player run check && npm --prefix player run build` y nueva aprobación del usuario.
 - Commit: `fix(0003): restore 3.4.2 look after MUI 9 (1.5)` (si aplica)
-- [ ] hecha · commit: —
+- Resultado: el usuario lo revisó en <http://localhost:8886> el 2026-10-20 (fixtures de `seed.php` más una página con los tres bloques) y lo ve todo igual que en la 3.4.2. A7 aprobado: no hizo falta ningún ajuste ni commit de código.
+- [x] hecha · commit: (este)
 
 ## Decisiones abiertas → ADR
 - ~~Si MUI 9 exige un `build.target` más alto que el de Vite 6 → preguntar y ADR~~ → ADR 0027 (2026-10-20): target de Vite 6 explícito; soporte efectivo el de MUI 9 (Safari 17+). Aceptado por el usuario.
