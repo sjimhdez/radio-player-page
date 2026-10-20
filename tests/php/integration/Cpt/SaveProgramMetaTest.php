@@ -310,4 +310,38 @@ final class SaveProgramMetaTest extends WP_UnitTestCase {
 		$this->assertSame( 'I &lt;3 jazz', $this->meta( 'description' ) );
 		$this->assertSame( 'Rock &lt;3', $this->meta( 'extended_description' ) );
 	}
+
+	/**
+	 * The three metas are written in form order (refactor guard). The program starts
+	 * with other values, so each write fires `updated_post_meta`.
+	 */
+	public function test_writes_order() {
+		$new_logo  = $this->factory_rpp->image( 'new' );
+		$writes    = array();
+		$meta_hook = static function ( $meta_id, $object_id, $meta_key ) use ( &$writes ) {
+			$writes[] = current_filter() . ':' . $meta_key;
+		};
+		add_action( 'added_post_meta', $meta_hook, 10, 3 );
+		add_action( 'updated_post_meta', $meta_hook, 10, 3 );
+
+		$this->save(
+			array(
+				'description'          => 'New',
+				'extended_description' => 'New long',
+				'logo_id'              => (string) $new_logo,
+			)
+		);
+
+		remove_action( 'added_post_meta', $meta_hook, 10 );
+		remove_action( 'updated_post_meta', $meta_hook, 10 );
+
+		$this->assertSame(
+			array(
+				'updated_post_meta:radplapag_program_description',
+				'updated_post_meta:radplapag_program_extended_description',
+				'updated_post_meta:radplapag_program_logo_id',
+			),
+			$writes
+		);
+	}
 }

@@ -43,7 +43,8 @@ Mover la lectura de emisoras y programas, el guardado de sus campos y el armado 
 - Archivos: `tests/php/integration/Station/SaveStationMetaTest.php`, `tests/php/integration/Cpt/SaveProgramMetaTest.php` (altas).
 - Test: caracterización (mutación temporal: cambiar el orden de dos `update_post_meta`).
 - Verificación: `npm run test:php:integration -- --filter 'SaveStationMetaTest|SaveProgramMetaTest'`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: 3 tests nuevos, solo altas (2 en `SaveStationMetaTest`, 1 en `SaveProgramMetaTest`; 57 → 60 con los dos filtros). Emisora con errores de campo y horario válido: `setted_transient` de campos, las cinco metas en el orden del formulario (fondo, logo, audio, tema, visualizador), `deleted_transient` del error de horario y la meta del horario. Con horario inválido: lo mismo y al final `setted_transient` del error de horario, sin meta de horario. Programa: descripción, descripción extendida y logo. La emisora empieza sin meta (todo es `added_post_meta`) y el error de horario se siembra antes, porque WP solo dispara `deleted_transient` si existía y los hooks de meta si el valor cambia. El camino con URL válida (borrar el transient de campos y escribir URL y página) no se alcanza en CLI: lo cubrirá `StationMetaSaverTest` en la 3.8. Mutaciones, revertidas: intercambiar tema y visualizador (emisora) y las dos descripciones (programa) falla los tres tests; borrar el error de horario después de escribir la meta falla el de horario válido. Sin rarezas nuevas.
 
 ### 3.3 `Data\Station` (≤ 1 h)
 - Qué: constantes `THEMES` y `VISUALIZERS`, y `row( int $id, string $title, array $meta ): array` con la forma de `Radplapag_Station_Config::to_array()`: JSON del horario (solo una cadena no vacía que decodifica a array), listas blancas, casts.
