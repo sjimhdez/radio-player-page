@@ -100,7 +100,8 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `admin/js/program-admin.js`, `.claude/rules/admin.md`.
 - Test: caracterización: `program-admin.test.js`, `admin-dom.test.js`.
 - Verificación: `npm test && npm run lint:js && grep -nE 'innerHTML|\.html\(|insertAdjacentHTML' admin/js; test $? -eq 1`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: las dos vistas previas se construyen con `document.createElement()` y `setAttribute()` en el orden de antes (`<img>`: `src`, `alt=""`; `<audio>`: `controls`, `src`) y entran con `.empty().append()`. El `grep` de A7 sobre `admin/js` sale vacío. `admin.md`: la nota «Mientras no exista ese refactor» pasa a describir los adaptadores del DOM bajo happy-dom, y una regla nueva prohíbe construir el DOM con cadenas HTML. Los tests de `program-admin.test.js` y `admin-dom.test.js` pasan sin cambios (245 en la raíz); `lint:js` sin errores (los 2 avisos de `program-admin.test.js` ya estaban). Mutaciones (revertidas): quitar `alt` (fallan 3), quitar `controls` (fallan 2) y no vaciar la vista previa (fallan 5). E2E `admin.spec.ts` y `a11y.spec.ts` en `env:start:latest` (WP 7.1.3), Chromium y WebKit: pasan los 74.
 
 ## Decisiones abiertas → ADR
 

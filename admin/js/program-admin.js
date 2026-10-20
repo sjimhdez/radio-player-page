@@ -51,9 +51,13 @@
 					currentWrapper
 						.find( '.radplapag-program-logo-id' )
 						.val( att.id );
+					const img = document.createElement( 'img' );
+					img.setAttribute( 'src', url );
+					img.setAttribute( 'alt', '' );
 					currentWrapper
 						.find( '.radplapag-program-logo-preview' )
-						.html( '<img src="' + url + '" alt="">' );
+						.empty()
+						.append( img );
 					currentWrapper
 						.find( '.radplapag-program-logo-remove' )
 						.show();
@@ -114,11 +118,13 @@
 					currentAudioWrapper
 						.find( '.radplapag-station-audio-id' )
 						.val( att.id );
+					const audio = document.createElement( 'audio' );
+					audio.setAttribute( 'controls', '' );
+					audio.setAttribute( 'src', att.url );
 					currentAudioWrapper
 						.find( '.radplapag-station-audio-preview' )
-						.html(
-							'<audio controls src="' + att.url + '"></audio>'
-						);
+						.empty()
+						.append( audio );
 					currentAudioWrapper
 						.find( '.radplapag-station-audio-remove' )
 						.show();
