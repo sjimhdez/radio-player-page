@@ -110,6 +110,8 @@ Plugin de WordPress, publicado en el directorio de wordpress.org, que da a cada 
 
 **Regla:** **todas** las funciones globales `radplapag_*`, las clases `Radplapag_*`, las constantes `RADPLAPAG_*` y los callbacks enganchados (con su hook, prioridad y número de argumentos) son contrato, porque un tercero puede llamarlos o desengancharlos con `remove_action`/`remove_filter`. En el refactor quedan como envoltorios finos que delegan en el código nuevo (strangler, ADR 0017). El plugin no expone filtros ni acciones propios.
 
+**Namespace interno:** el código nuevo vive en `RadioPlayerPage\` (`includes/src/`, ADR 0028). Es **interno**: sus clases pueden cambiar entre versiones sin aviso y no son contrato; la API pública sigue siendo la de esta sección.
+
 Callbacks enganchados hoy:
 
 | Hook | Callback (prioridad) |
@@ -150,6 +152,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - Validación en el cliente (`admin/js/station-admin.js`: solapes, franjas que cruzan la medianoche) y en el servidor; los errores del servidor se muestran como avisos tras guardar (transients de §3.1).
 - Las páginas ya asignadas a otra emisora se desactivan en el selector (`radplapag_get_player_pages_assigned_to_other_stations()`).
 - Cadenas del JS en `admin/admin-strings.php` (`radplapag_get_admin_strings()`), localizadas como `radplapagAdmin`.
+- Reglas del horario del admin en el script `radplapag-schedule-rules` (`admin/js/schedule-rules.js`; alta prevista en la spec 0005, fase 2), dependencia de `radplapag-station-admin`, que expone `window.radplapagScheduleRules` (**interno**, no es contrato; ADR 0028). Los handles existentes no cambian.
 
 ### 3.7 Desinstalación
 

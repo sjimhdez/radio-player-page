@@ -2,12 +2,12 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0005-php-admin-refactor/phase-1.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0005, fase 1 (cimientos y horario en PHP): plan aprobado (2026-10-20), 15 tareas; PR en borrador contra `trunk`.
+- Spec 0005, fase 1 (cimientos y horario en PHP): plan aprobado (2026-10-20), 15 tareas, 1/15 hechas (1.1: ADR 0028); PR en borrador contra `trunk`.
 - Spec 0003 cerrada y fusionada en `trunk` (PR #38, 2026-10-20).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.1: ADR 0028 (`includes/src/`, autoloader, zip con altas, cobertura del núcleo) y altas de `SPEC.md` §3.4/§3.6.
-2. Tareas 1.2–1.6: inventario de la API pública, guarda del zip, autoloader, `PureCoreTest` y cobertura del núcleo (con la medición de partida).
+1. Tarea 1.2: inventario de la API pública (`PublicApiTest`), antes de mover nada.
+2. Tareas 1.3–1.6: guarda del zip, autoloader, `PureCoreTest` y cobertura del núcleo (con la medición de partida).
 3. Tareas 1.7–1.15: zonas del horario en PHP (núcleo por TDD y envoltorios).
 4. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 

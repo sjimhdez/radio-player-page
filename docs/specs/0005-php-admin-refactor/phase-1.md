@@ -35,7 +35,8 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Archivos: `docs/adr/0028-*.md`, `docs/adr/README.md`, `SPEC.md`, `.claude/rules/php.md`, `.claude/rules/admin.md`.
 - Test: — (documentación).
 - Verificación: `grep -n 'RadioPlayerPage' SPEC.md && grep -n '0028' docs/adr/README.md`
-- [ ] hecha · commit: —
+- Resultado: ADR 0028 aceptado (D1–D3, capas, namespace interno, zip con altas, segunda `testsuite` para la cobertura del núcleo y zonas en orden). `SPEC.md` §3.4 (namespace interno) y §3.6 (`radplapag-schedule-rules`, alta prevista en la fase 2); el historial (§6) lo actualiza la tarea 4.4. `php.md` (nombres, `expected-additions.txt`, tres capas) y `admin.md` (`schedule-rules.js`, sin script modules). `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 1.2 Inventario de la API pública (≤ 1 h)
 - Qué: `PublicApiTest` con la lista fija (constante del test) de cada función `radplapag_*`, clase `Radplapag_*` (métodos públicos) y constante `RADPLAPAG_*` de la 3.4.2: nombre, parámetros (nombre, tipo, opcional, valor por defecto, por referencia) y tipo de retorno, comprobados por reflexión. Incluye `admin/` (cargado como en `AdminScreensTest`) y `blocks/*/render.php`; las de `uninstall.php` se comprueban por tokens (cargarlo borra datos). La lista se genera una vez desde el código de hoy y se contrasta con `git show v3.4.2:<archivo>`.
