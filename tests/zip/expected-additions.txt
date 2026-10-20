@@ -15,3 +15,5 @@ admin/js/schedule-rules.js
 includes/src/data/class-station.php
 includes/src/data/class-stations.php
 includes/src/wp/class-station-repository.php
+includes/src/data/class-program.php
+includes/src/wp/class-program-repository.php

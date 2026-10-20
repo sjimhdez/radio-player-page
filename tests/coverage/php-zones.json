@@ -28,6 +28,7 @@
 			{ "file": "includes/src/wp/class-schedule-messages.php" },
 			{ "file": "includes/src/wp/class-clock.php" },
 			{ "file": "includes/src/wp/class-station-repository.php" },
+			{ "file": "includes/src/wp/class-program-repository.php" },
 			{ "file": "includes/data/class-radplapag-station-config.php" },
 			{ "file": "includes/data/class-radplapag-program-config.php" },
 			{

@@ -155,33 +155,13 @@ add_action( 'init', 'radplapag_register_program_meta', 20 );
  * Gets program data (name, description, extended_description, logo_id, logo_url) from CPT by post ID.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\WP\Program_Repository::data().
  * @param int  $post_id          Post ID of radplapag_program.
  * @param bool $require_published Optional. Whether to require published status. Default false.
  * @return array{name: string, description: string, extended_description: string, logo_id: int, logo_url: string|null}|null Name, description, extended description, logo ID and logo URL; null if invalid or not found.
  */
 function radplapag_get_program_data( $post_id, $require_published = false ) {
-	$post_id = (int) $post_id;
-	if ( $post_id <= 0 ) {
-		return null;
-	}
-	$post = get_post( $post_id );
-	if ( ! $post || 'radplapag_program' !== $post->post_type ) {
-		return null;
-	}
-	if ( $require_published && 'publish' !== $post->post_status ) {
-		return null;
-	}
-	$description          = get_post_meta( $post_id, 'radplapag_program_description', true );
-	$extended_description = get_post_meta( $post_id, 'radplapag_program_extended_description', true );
-	$logo_id              = (int) get_post_meta( $post_id, 'radplapag_program_logo_id', true );
-	$logo_url             = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'full' ) : null;
-	return array(
-		'name'                 => $post->post_title,
-		'description'          => is_string( $description ) ? $description : '',
-		'extended_description' => is_string( $extended_description ) ? $extended_description : '',
-		'logo_id'              => $logo_id,
-		'logo_url'             => $logo_url ? $logo_url : null,
-	);
+	return \RadioPlayerPage\WP\Program_Repository::data( (int) $post_id, (bool) $require_published );
 }
 
 /**
