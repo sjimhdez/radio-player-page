@@ -13,7 +13,7 @@ Tres bloques dinámicos (apiVersion 3, renderizado en el servidor): `radplapag/s
 - Comandos, siempre desde su carpeta o con `--prefix`: `npm --prefix blocks/<bloque> run check` (lint + build), `run build`, `run lint`.
 - El lint usa ESLint 8 en modo eslintrc (`ESLINT_USE_FLAT_CONFIG=false`), para que no lea el `eslint.config.mjs` de la raíz.
 - `build/` se commitea y nunca se edita a mano; la CI recompila y compara con `git diff --exit-code`.
-- Las actualizaciones de `@wordpress/scripts` son de la spec 0004, bloque a bloque. El e2e en WP 6.6 manda.
+- Las actualizaciones de `@wordpress/scripts` son de la spec 0003, agrupadas (ADR 0026). El e2e en WP 6.6 manda.
 
 ## Contrato
 

@@ -1,15 +1,11 @@
 # Estado
-Spec activa: 0003 — Dependencias del player (React) · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) (spec: [`spec.md`](specs/0003-player-dependencies/spec.md)) · Actualizado: 2026-10-18
+Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 por planificar · Plan: — (spec: [`spec.md`](specs/0003-player-dependencies/spec.md)) · Actualizado: 2026-10-20
 
 ## En curso
-- Fase 1 de la 0003 (medición del bundle y capturas): plan aprobado, tareas 1.1–1.7 por hacer. PR en borrador contra `trunk`.
+- Spec 0003 reescrita (2026-10-20, ADR 0026): una sola fase que sube todo el player y los tres bloques, agrupado por proyecto; sin script de bundle ni capturas. La 0004 queda descartada. El plan de fase anterior se borró. PR #38 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 1.1: `scripts/check-player-bundle.mjs` con su test (TDD).
-2. Tareas 1.2–1.3: línea base de la 3.4.2, `check:bundle` en `check` y en la CI, ADR 0026.
-3. Tareas 1.4–1.6: capturas (`npm run screenshots`) y página de comparación.
-4. Tarea 1.7: referencia `3.4.2` y revisión del usuario; después `close-phase`.
-5. En paralelo, si se quiere: sesión de diseño → `write-spec` de la 0004, en su worktree.
+1. Sesión nueva → `start-phase` de la fase 1 de la 0003.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.

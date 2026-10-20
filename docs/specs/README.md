@@ -10,9 +10,9 @@
 |---|---|---|---|---|
 | 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | cerrada (PR #36) | `spec/0001-bootstrap` | — |
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | cerrada (PR #37) | `spec/0002-safety-net` | 0001 |
-| 0003 | [Dependencias del player (React)](0003-player-dependencies/spec.md) | propuesta | `spec/0003-player-dependencies` | 0002 |
-| 0004 | Dependencias de la parte WordPress (bloques, raíz, Composer, CI) | pendiente de escribir | — | 0002 |
-| 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0004 |
+| 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | propuesta | `spec/0003-player-dependencies` | 0002 |
+| 0004 | ~~Dependencias de la parte WordPress~~: descartada; los bloques van en la 0003, y la raíz, Composer y las Actions fuera de una spec ([ADR 0026](../adr/0026-grouped-dependency-upgrades.md)) | descartada | — | — |
+| 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0003 |
 | 0006 | Refactor del player | pendiente de escribir | — | 0003 |
 | 0007 | Correcciones: reproducción | pendiente de escribir | — | 0006 |
 | 0008 | Correcciones: migración y actualización | pendiente de escribir | — | 0005 |
@@ -23,7 +23,7 @@
 | 0013 | Correcciones: bloques | pendiente de escribir | — | 0009, 0010 |
 | último | Release | pendiente de escribir | — | todas |
 
-Las 0003 y 0004 son independientes entre sí, igual que las 0005 y 0006. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree y con su rama desde `trunk`.
+Las 0005 y 0006 son independientes entre sí. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree y con su rama desde `trunk`.
 
 Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec por zona, numeradas por prioridad en dos pistas. La del player (0007 → 0011) arranca al cerrar la 0006; en la de WordPress, la 0008 y la 0012 arrancan al cerrar la 0005, y la 0010 espera a la 0009. La 0009 (horario) necesita la 0005 y la 0006, y la 0013 (bloques) va detrás de la 0009 y la 0010. Una fila «junto a» otra de más prioridad se corrige con ella. Las filas que cambian `SPEC.md` §3 llevan su ADR en la spec que las corrige, porque el diseño se decide allí (invariante 2). Cada fila de `docs/known-issues.md` con «corregir» está en exactamente una de ellas.
 
@@ -64,11 +64,6 @@ Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec po
 
 Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec.
 
-- **0004 Dependencias de WordPress:**
-  - `@wordpress/scripts` de **cada bloque por separado**;
-  - las herramientas de la raíz, Composer y las Actions de GitHub;
-  - `@babel/runtime` de los bloques: puede acabar en `build/` y hoy es dependencia de desarrollo, así que `check-licenses.mjs` no lo mira (moverlo a `dependencies` o ampliar el script);
-  - el e2e de los bloques en WP 6.6 manda: si un build moderno necesita una WP posterior, se fija la versión con un ADR.
 - **0005 Refactor de PHP y admin:**
   - *strangler*: el código nuevo en el namespace `RadioPlayerPage\` con autoloader PSR-4 propio;
   - las funciones `radplapag_*` como envoltorios;
