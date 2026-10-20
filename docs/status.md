@@ -1,12 +1,14 @@
 # Estado
-Spec activa: 0005 — Refactor de PHP y admin · Fase: 1 cerrada, 2 por empezar · Plan: [`phase-1.md`](specs/0005-php-admin-refactor/phase-1.md) · Actualizado: 2026-10-20
+Spec activa: 0005 — Refactor de PHP y admin · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0005-php-admin-refactor/phase-2.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0005: fase 1 (cimientos y horario en PHP) cerrada el 2026-10-20 (16 tareas; cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
+- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas. La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `start-phase` de la fase 2 (reglas y DOM del admin), en una sesión nueva. Empieza por la tarea 2.1 (riesgo 1 de la spec: `innerHTML` frente a `textContent` con entidades).
-2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
+1. Tarea 2.1: caracterizar el DOM de la fila nueva y de las vistas previas (entidades en nombres y traducciones).
+2. Tarea 2.2: huecos de la validación del cliente antes de extraerla.
+3. Tareas 2.3–2.4: `admin/js/schedule-rules.js` por TDD con los vectores.
+4. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
@@ -18,6 +20,8 @@ Spec activa: 0005 — Refactor de PHP y admin · Fase: 1 cerrada, 2 por empezar 
 
 ## Desviaciones de la spec (→ ADR)
 Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`; sin ADR, no cambian el contrato):
+- Fase 2 (plan): riesgo 1 de la spec. Las filas que añade el JS conservan el texto visible de hoy (entidades decodificadas como hacía `innerHTML`) con `DOMParser`; K21 sigue para la 0012. Decidido por el usuario (2026-10-20).
+- Fase 2, 2.5: `AdminScreensTest::test_admin_scripts_on_the_station_screen` amplía la aserción de `deps` de `radplapag-station-admin` con `radplapag-schedule-rules` (ADR 0028 D3). Única edición de un test existente en la fase. Aprobado por el usuario (2026-10-20).
 - Fase 1, 1.8: `Slot_Validator` no emite `end_before_start` (§4.2): la rama era inalcanzable en la 3.4.2. `WP\Schedule_Messages` conserva el mensaje para el POT.
 - Fase 1, 1.6: `SmokeTest` pasa al grupo `no-wordpress` (solo la anotación) para que la suite unit corra dentro de la integración (ADR 0028).
 - Fase 1, 1.10 y 1.12: se quitan las guardas inalcanzables de la 3.4.2 (`count( $days_out ) === 7`, claves de día `null`).
