@@ -2,3 +2,4 @@
 # One path per line, relative to the plugin root (e.g. includes/src/class-autoloader.php).
 # Every new file under includes/src/ goes here in the same commit. The release
 # that moves REFERENCE_TAG empties this list.
+includes/src/class-autoloader.php

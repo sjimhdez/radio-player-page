@@ -52,14 +52,15 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Test: primero (TDD): `tests/zip/compare-lists.test.sh`.
 - Verificación: `npm run check:zip`
 - Resultado: `compare-lists.sh` ordena las tres listas e ignora en las altas las líneas vacías y las que empiezan por `#` (el archivo lleva una cabecera de comentario). Además de lo previsto, falla con un alta duplicada y sale con 2 si el uso es incorrecto o falta un archivo; 13 casos en `compare-lists.test.sh`, en rojo antes de existir el script. Las rutas de `expected-additions.txt` son relativas a la raíz del plugin: `compare-with-v3.4.2.sh` quita ahora el prefijo `radio-player-page/` de las dos listas (la lista prohibida ya admitía rutas sin él). Prueba de punta a punta con un `includes/src/class-probe.php` temporal: sin declarar, la guarda falla y lo nombra; declarado, pasa con 40 archivos; revertido. `npm run check` en verde.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 9f53bda
 
 ### 1.4 Autoloader (≤ 1 h)
 - Qué: `RadioPlayerPage\Autoloader` (`register()`, `file_for( $class )`): prefijo `RadioPlayerPage\` → `includes/src/`, segmentos en minúsculas, `_` → `-`, archivo `class-<nombre>.php`; `null` fuera del prefijo. `radio-player-page.php` hace `require_once` del autoloader y `register()` antes de los demás `includes/` (orden actual intacto). `tests/php/unit/bootstrap.php` lo registra. Alta en `expected-additions.txt`.
 - Archivos: `includes/src/class-autoloader.php`, `radio-player-page.php`, `tests/php/unit/bootstrap.php`, `tests/php/unit/AutoloaderTest.php`, `tests/zip/expected-additions.txt`.
 - Test: primero (TDD): `tests/php/unit/AutoloaderTest.php`.
 - Verificación: `npm run test:php:unit && npm run lint:php && npm run check:zip`
-- [ ] hecha · commit: —
+- Resultado: `Autoloader` con `register()` (idempotente), `load()` (callback de `spl_autoload_register`, solo hace `require_once` si el archivo existe) y `file_for()`, estáticos; `file_for()` admite una barra inicial y devuelve `null` fuera del prefijo, con un prefijo más largo (`RadioPlayerPageExtra\`) o con el prefijo solo. 13 casos en `AutoloaderTest`, en rojo antes de existir la clase; mutación (sin `_` → `-`) hace fallar 3, revertida. `PublicApiTest` y `HooksTest` en verde en wp-env (WP 7.1.3 + PHP 8.4). `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 1.5 Guarda de arquitectura del núcleo (≤ 1 h)
 - Qué: `PureCoreTest` recorre `includes/src/**/*.php` salvo `wp/`, tokeniza (`token_get_all`) y falla con cualquier llamada a función de WordPress o del plugin (prefijos `get_`, `update_`, `delete_`, `add_`, `wp_`, `esc_`, `sanitize_`, `is_`… de una lista cerrada de funciones de WP, `__`, `_e`, `_x`, `_n`, `apply_filters`, `do_action`, `current_user_can`, `absint`, `radplapag_`), y con `WP_*` en `new`/tipos. También comprueba que cada archivo empieza con `defined( 'ABSPATH' ) || exit;` y declara una sola clase. El escáner se prueba con fragmentos de código en el mismo test (uno limpio y uno con cada tipo de violación).

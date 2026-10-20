@@ -32,6 +32,9 @@ if ( ! defined( 'RADPLAPAG_PLUGIN_FILE' ) ) {
  * @since 1.2.0
  */
 
+require_once plugin_dir_path( __FILE__ ) . 'includes/src/class-autoloader.php';
+RadioPlayerPage\Autoloader::register();
+
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-stations.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-station-cpt.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-program-cpt.php';
