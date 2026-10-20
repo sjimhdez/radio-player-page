@@ -76,7 +76,8 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `admin/js/station-admin.js`.
 - Test: caracterización: `station-validation`, `station-fields`, `admin-dom`, `smoke` (sin cambios).
 - Verificación: `npm test && npm run lint:js`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `station-admin.js` pasa de 1.069 a 670 líneas. `readSchedule( root )` devuelve `{ schedule, rows }` (los datos de las reglas y, por día, las filas en el mismo orden); `applyWrites()` pinta cada escritura con `showProgramError()`/`clearProgramError()` y `message( error, s )`. `validateProgramRow()` lee el horario de su `.radplapag-schedule-wrapper`, llama a `checkSlot()` y da por válida la fila si su propia escritura (la última) no tiene error; el envío lee `container` una vez, llama a `checkSchedule()` y hace scroll a `first`. Equivale al recorrido fila a fila de antes: las escrituras no cambian valores ni `display`, y el markup de PHP pinta los días en el orden de `DAYS`. Se borran `dayLabels`, `formatOverlapMessage`, `validateTimeFormat`, `validateTimeRange`, `timeToMinutes`, `checkOverlaps`, `checkCrossDayOverlaps` y `checkPrevDayCrossOverlaps`; `revalidateAdjacentDays()`, la revalidación al quitar (K16), el orden por inicio, K15 y K45 no se tocan. Las reglas se leen con `scheduleRules()` al usarlas. Tests sin cambios: 244 en la raíz; `lint:js` sin errores (los 2 avisos de `program-admin.test.js` ya estaban). E2E `admin.spec.ts` en Chromium y WebKit: 28 pasan. Mutación (revertida): aplicar solo la última escritura (sin la otra fila del cruce) hace fallar 20 tests.
 
 ### 2.7 Cobertura del admin en la CI (≤ 1 h)
 - Qué: `vitest.config.mjs` con umbral de líneas ≥ 85 % para `admin/js/schedule-rules.js`; el job `root-js` de `ci.yml` corre `npm run test:coverage`. Cifras en «Resultado:».

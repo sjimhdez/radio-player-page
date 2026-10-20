@@ -69,481 +69,87 @@
 		}
 	}
 
-	const dayLabels = {
-		monday: s.monday || 'Monday',
-		tuesday: s.tuesday || 'Tuesday',
-		wednesday: s.wednesday || 'Wednesday',
-		thursday: s.thursday || 'Thursday',
-		friday: s.friday || 'Friday',
-		saturday: s.saturday || 'Saturday',
-		sunday: s.sunday || 'Sunday',
-	};
-
-	function formatOverlapMessage( programName, dayKey, startTime, endTime ) {
-		const dayLabel = dayLabels[ dayKey ] || dayKey;
-		const timeRange = startTime + ' - ' + endTime;
-		return programName + ' (' + dayLabel + ', ' + timeRange + ')';
+	// Read when used, not on load: the rules are a separate script.
+	function scheduleRules() {
+		return window.radplapagScheduleRules;
 	}
 
-	function validateTimeFormat( timeString ) {
-		const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
-		if ( ! timeString || ! timeRegex.test( timeString ) ) {
-			return {
-				valid: false,
-				message:
-					s.invalidTimeFormat ||
-					'Invalid time format. Times must be in HH:MM format.',
-			};
-		}
-		return { valid: true };
+	function programIds() {
+		return programsList.map( function ( p ) {
+			return p.id;
+		} );
 	}
 
-	function validateTimeRange( startTime, endTime ) {
-		if ( ! startTime || ! endTime ) {
-			return {
-				valid: false,
-				message:
-					s.completeTimeFields || 'Please complete all time fields.',
-			};
-		}
-		const startFormatValidation = validateTimeFormat( startTime );
-		if ( ! startFormatValidation.valid ) {
-			return startFormatValidation;
-		}
-		const endFormatValidation = validateTimeFormat( endTime );
-		if ( ! endFormatValidation.valid ) {
-			return endFormatValidation;
-		}
-		const start = timeToMinutes( startTime );
-		const end = timeToMinutes( endTime );
-		if ( start === end ) {
-			return {
-				valid: false,
-				message:
-					s.startEndSame || 'Start and end times cannot be the same',
-			};
-		}
-		return { valid: true };
+	function fieldValue( programRow, selector ) {
+		const field = programRow.querySelector( selector );
+		return field ? field.value : '';
 	}
 
-	function timeToMinutes( timeString ) {
-		if ( ! timeString || timeString.length < 5 ) {
-			return 0;
-		}
-		const parts = timeString.split( ':' );
-		return parseInt( parts[ 0 ], 10 ) * 60 + parseInt( parts[ 1 ], 10 );
+	function selectedProgramName( programRow ) {
+		const select = programRow.querySelector( '.radplapag-program-id' );
+		const option = select ? select.options[ select.selectedIndex ] : null;
+		return option ? option.text : '';
 	}
 
-	function checkOverlaps( dayWrapper, currentRow, excludeIndex ) {
-		const currentStart = currentRow.querySelector(
-			'.radplapag-program-start'
-		).value;
-		const currentEnd = currentRow.querySelector(
-			'.radplapag-program-end'
-		).value;
-		if ( ! currentStart || ! currentEnd ) {
-			return { valid: true };
-		}
-		const allRows = dayWrapper.querySelectorAll( '.radplapag-program-row' );
-		const currentStartMin = timeToMinutes( currentStart );
-		const currentEndMin = timeToMinutes( currentEnd );
-
-		for ( let i = 0; i < allRows.length; i++ ) {
-			if ( i === excludeIndex ) {
-				continue;
-			}
-			const row = allRows[ i ];
-			if ( window.getComputedStyle( row ).display === 'none' ) {
-				continue;
-			}
-			const otherStart = row.querySelector(
-				'.radplapag-program-start'
-			).value;
-			const otherEnd = row.querySelector(
-				'.radplapag-program-end'
-			).value;
-			if ( ! otherStart || ! otherEnd ) {
-				continue;
-			}
-			const otherStartMin = timeToMinutes( otherStart );
-			const otherEndMin = timeToMinutes( otherEnd );
-			let currentEndForOverlap = currentEndMin;
-			let otherEndForOverlap = otherEndMin;
-			if ( currentEndMin <= currentStartMin ) {
-				currentEndForOverlap = 24 * 60;
-			}
-			if ( otherEndMin <= otherStartMin ) {
-				otherEndForOverlap = 24 * 60;
-			}
-			if (
-				currentStartMin < otherEndForOverlap &&
-				currentEndForOverlap > otherStartMin
-			) {
-				const otherSel = row.querySelector( '.radplapag-program-id' );
-				let otherName =
-					otherSel && otherSel.options[ otherSel.selectedIndex ]
-						? otherSel.options[ otherSel.selectedIndex ].text
-						: s.unnamedProgram || 'Unnamed program';
-				if ( ! otherName ) {
-					otherName = s.unnamedProgram || 'Unnamed program';
-				}
-				const dayKey = dayWrapper.getAttribute( 'data-day' );
-				const formattedMessage = formatOverlapMessage(
-					otherName,
-					dayKey,
-					otherStart,
-					otherEnd
+	/**
+	 * Reads the schedule rows under root into the data the rules check.
+	 *
+	 * @param {Element} root Element that holds the schedule days.
+	 * @return {Object} { schedule, rows }: day → slots, and day → row elements
+	 *                  in the same order.
+	 */
+	function readSchedule( root ) {
+		const schedule = {};
+		const rows = {};
+		root.querySelectorAll( '.radplapag-schedule-day' ).forEach(
+			function ( dayWrapper ) {
+				const day = dayWrapper.getAttribute( 'data-day' );
+				rows[ day ] = Array.prototype.slice.call(
+					dayWrapper.querySelectorAll( '.radplapag-program-row' )
 				);
-				return {
-					valid: false,
-					message: (
-						s.timeSlotOverlapsWithMessage ||
-						'This time slot overlaps with: %s'
-					).replace( '%s', formattedMessage ),
-				};
+				schedule[ day ] = rows[ day ].map( function ( row ) {
+					return {
+						programId: fieldValue( row, '.radplapag-program-id' ),
+						name: selectedProgramName( row ),
+						start: fieldValue( row, '.radplapag-program-start' ),
+						end: fieldValue( row, '.radplapag-program-end' ),
+						hidden:
+							window.getComputedStyle( row ).display === 'none',
+					};
+				} );
 			}
-		}
-		return { valid: true };
+		);
+		return { schedule, rows };
 	}
 
-	function checkCrossDayOverlaps( programRow ) {
-		const startInput = programRow.querySelector(
-			'.radplapag-program-start'
-		);
-		const endInput = programRow.querySelector( '.radplapag-program-end' );
-		const programIdSelect = programRow.querySelector(
-			'.radplapag-program-id'
-		);
-		if ( ! startInput || ! endInput || ! programIdSelect ) {
-			return { valid: true };
-		}
-		const start = startInput.value;
-		const end = endInput.value;
-		const programId = programIdSelect.value;
-		const name = programIdSelect.options[ programIdSelect.selectedIndex ]
-			? programIdSelect.options[ programIdSelect.selectedIndex ].text
-			: '';
-		if ( ! start || ! end || ! programId ) {
-			return { valid: true };
-		}
-		const startMin = timeToMinutes( start );
-		const endMin = timeToMinutes( end );
-		if ( endMin > startMin ) {
-			return { valid: true };
-		}
-		const scheduleWrapper = programRow.closest(
-			'.radplapag-schedule-wrapper'
-		);
-		if ( ! scheduleWrapper ) {
-			return { valid: true };
-		}
-		const currentDayWrapper = programRow.closest(
-			'.radplapag-schedule-day'
-		);
-		if ( ! currentDayWrapper ) {
-			return { valid: true };
-		}
-		const currentDay = currentDayWrapper.getAttribute( 'data-day' );
-		if ( ! currentDay ) {
-			return { valid: true };
-		}
-		const dayMap = {
-			monday: 'tuesday',
-			tuesday: 'wednesday',
-			wednesday: 'thursday',
-			thursday: 'friday',
-			friday: 'saturday',
-			saturday: 'sunday',
-			sunday: 'monday',
-		};
-		const nextDay = dayMap[ currentDay ];
-		if ( ! nextDay ) {
-			return { valid: true };
-		}
-		const nextDayWrapper = scheduleWrapper.querySelector(
-			'.radplapag-schedule-day[data-day="' + nextDay + '"]'
-		);
-		if ( ! nextDayWrapper ) {
-			return { valid: true };
-		}
-		const nextDayRows = nextDayWrapper.querySelectorAll(
-			'.radplapag-program-row'
-		);
-		for ( let i = 0; i < nextDayRows.length; i++ ) {
-			const nextRow = nextDayRows[ i ];
-			if ( window.getComputedStyle( nextRow ).display === 'none' ) {
-				continue;
+	function applyWrites( writes, rows ) {
+		const rules = scheduleRules();
+		writes.forEach( function ( item ) {
+			const row = rows[ item.day ][ item.index ];
+			if ( item.error ) {
+				showProgramError( row, rules.message( item.error, s ) );
+			} else {
+				clearProgramError( row );
 			}
-			const nextStartInput = nextRow.querySelector(
-				'.radplapag-program-start'
-			);
-			const nextEndInput = nextRow.querySelector(
-				'.radplapag-program-end'
-			);
-			const nextProgramIdSelect = nextRow.querySelector(
-				'.radplapag-program-id'
-			);
-			if ( ! nextStartInput || ! nextEndInput || ! nextProgramIdSelect ) {
-				continue;
-			}
-			const nextStart = nextStartInput.value;
-			const nextEnd = nextEndInput.value;
-			const nextProgramId = nextProgramIdSelect.value;
-			const nextName = nextProgramIdSelect.options[
-				nextProgramIdSelect.selectedIndex
-			]
-				? nextProgramIdSelect.options[
-						nextProgramIdSelect.selectedIndex
-					].text
-				: '';
-			if ( ! nextStart || ! nextEnd || ! nextProgramId ) {
-				continue;
-			}
-			const nextStartMin = timeToMinutes( nextStart );
-			if ( endMin > nextStartMin ) {
-				const nextFormattedMessage = formatOverlapMessage(
-					nextName,
-					nextDay,
-					nextStart,
-					nextEnd
-				);
-				const currentFormattedMessage = formatOverlapMessage(
-					name,
-					currentDay,
-					start,
-					end
-				);
-				showProgramError(
-					nextRow,
-					(
-						s.timeSlotOverlapsWithMessage ||
-						'This time slot overlaps with: %s'
-					).replace( '%s', currentFormattedMessage )
-				);
-				return {
-					valid: false,
-					message: (
-						s.timeSlotOverlapsWithMessage ||
-						'This time slot overlaps with: %s'
-					).replace( '%s', nextFormattedMessage ),
-				};
-			}
-		}
-		return { valid: true };
+		} );
 	}
 
 	function validateProgramRow( programRow ) {
-		const programIdSelect = programRow.querySelector(
-			'.radplapag-program-id'
+		const day = programRow
+			.closest( '.radplapag-schedule-day' )
+			.getAttribute( 'data-day' );
+		const read = readSchedule(
+			programRow.closest( '.radplapag-schedule-wrapper' )
 		);
-		const programId = programIdSelect ? programIdSelect.value : '';
-		const start = programRow.querySelector( '.radplapag-program-start' )
-			? programRow.querySelector( '.radplapag-program-start' ).value
-			: '';
-		const end = programRow.querySelector( '.radplapag-program-end' )
-			? programRow.querySelector( '.radplapag-program-end' ).value
-			: '';
-		const hasData = programId || start || end;
-		if ( ! hasData ) {
-			clearProgramError( programRow );
-			return { valid: true, isEmpty: true };
-		}
-		if ( ( start || end ) && ! programId ) {
-			const errorMessage =
-				s.pleaseSelectProgram || 'Please select a program.';
-			showProgramError( programRow, errorMessage );
-			return { valid: false, message: errorMessage };
-		}
-		if ( programId ) {
-			const found = programsList.some( function ( p ) {
-				return String( p.id ) === String( programId );
-			} );
-			if ( ! found ) {
-				const errMsg =
-					s.pleaseSelectProgram || 'Please select a valid program.';
-				showProgramError( programRow, errMsg );
-				return { valid: false, message: errMsg };
-			}
-		}
-		if ( start ) {
-			const startFormatValidation = validateTimeFormat( start );
-			if ( ! startFormatValidation.valid ) {
-				showProgramError( programRow, startFormatValidation.message );
-				return { valid: false, message: startFormatValidation.message };
-			}
-		}
-		if ( end ) {
-			const endFormatValidation = validateTimeFormat( end );
-			if ( ! endFormatValidation.valid ) {
-				showProgramError( programRow, endFormatValidation.message );
-				return { valid: false, message: endFormatValidation.message };
-			}
-		}
-		if ( start && end ) {
-			const timeRangeValidation = validateTimeRange( start, end );
-			if ( ! timeRangeValidation.valid ) {
-				showProgramError( programRow, timeRangeValidation.message );
-				return { valid: false, message: timeRangeValidation.message };
-			}
-		}
-		if ( ! programId || ! start || ! end ) {
-			const errMsg = s.allFieldsRequired || 'All fields are required.';
-			showProgramError( programRow, errMsg );
-			return { valid: false, message: errMsg };
-		}
-		const dayWrapper = programRow.closest( '.radplapag-schedule-day' );
-		const allRows = dayWrapper.querySelectorAll( '.radplapag-program-row' );
-		const currentIndex = Array.prototype.indexOf.call(
-			allRows,
-			programRow
+		const writes = scheduleRules().checkSlot(
+			read.schedule,
+			day,
+			read.rows[ day ].indexOf( programRow ),
+			programIds()
 		);
-		const overlapCheck = checkOverlaps(
-			dayWrapper,
-			programRow,
-			currentIndex
-		);
-		if ( ! overlapCheck.valid ) {
-			showProgramError( programRow, overlapCheck.message );
-			return { valid: false, message: overlapCheck.message };
-		}
-		const crossDayOverlapCheck = checkCrossDayOverlaps( programRow );
-		if ( ! crossDayOverlapCheck.valid ) {
-			showProgramError( programRow, crossDayOverlapCheck.message );
-			return { valid: false, message: crossDayOverlapCheck.message };
-		}
-		const prevDayOverlapCheck = checkPrevDayCrossOverlaps( programRow );
-		if ( ! prevDayOverlapCheck.valid ) {
-			showProgramError( programRow, prevDayOverlapCheck.message );
-			return { valid: false, message: prevDayOverlapCheck.message };
-		}
-		clearProgramError( programRow );
-		return { valid: true };
-	}
-
-	function checkPrevDayCrossOverlaps( programRow ) {
-		const startInput = programRow.querySelector(
-			'.radplapag-program-start'
-		);
-		const endInput = programRow.querySelector( '.radplapag-program-end' );
-		const programIdSelect = programRow.querySelector(
-			'.radplapag-program-id'
-		);
-		if ( ! startInput || ! endInput || ! programIdSelect ) {
-			return { valid: true };
-		}
-		const start = startInput.value;
-		const end = endInput.value;
-		const programId = programIdSelect.value;
-		const name = programIdSelect.options[ programIdSelect.selectedIndex ]
-			? programIdSelect.options[ programIdSelect.selectedIndex ].text
-			: '';
-		if ( ! start || ! end || ! programId ) {
-			return { valid: true };
-		}
-		const scheduleWrapper = programRow.closest(
-			'.radplapag-schedule-wrapper'
-		);
-		if ( ! scheduleWrapper ) {
-			return { valid: true };
-		}
-		const currentDayWrapper = programRow.closest(
-			'.radplapag-schedule-day'
-		);
-		if ( ! currentDayWrapper ) {
-			return { valid: true };
-		}
-		const currentDay = currentDayWrapper.getAttribute( 'data-day' );
-		if ( ! currentDay ) {
-			return { valid: true };
-		}
-		const prevDayMap = {
-			monday: 'sunday',
-			tuesday: 'monday',
-			wednesday: 'tuesday',
-			thursday: 'wednesday',
-			friday: 'thursday',
-			saturday: 'friday',
-			sunday: 'saturday',
-		};
-		const prevDay = prevDayMap[ currentDay ];
-		if ( ! prevDay ) {
-			return { valid: true };
-		}
-		const prevDayWrapper = scheduleWrapper.querySelector(
-			'.radplapag-schedule-day[data-day="' + prevDay + '"]'
-		);
-		if ( ! prevDayWrapper ) {
-			return { valid: true };
-		}
-		const prevDayRows = prevDayWrapper.querySelectorAll(
-			'.radplapag-program-row'
-		);
-		const startMin = timeToMinutes( start );
-		for ( let i = 0; i < prevDayRows.length; i++ ) {
-			const prevRow = prevDayRows[ i ];
-			if ( window.getComputedStyle( prevRow ).display === 'none' ) {
-				continue;
-			}
-			const prevStartInput = prevRow.querySelector(
-				'.radplapag-program-start'
-			);
-			const prevEndInput = prevRow.querySelector(
-				'.radplapag-program-end'
-			);
-			const prevProgramIdSelect = prevRow.querySelector(
-				'.radplapag-program-id'
-			);
-			if ( ! prevStartInput || ! prevEndInput || ! prevProgramIdSelect ) {
-				continue;
-			}
-			const prevStart = prevStartInput.value;
-			const prevEnd = prevEndInput.value;
-			const prevProgramId = prevProgramIdSelect.value;
-			const prevName = prevProgramIdSelect.options[
-				prevProgramIdSelect.selectedIndex
-			]
-				? prevProgramIdSelect.options[
-						prevProgramIdSelect.selectedIndex
-					].text
-				: '';
-			if ( ! prevStart || ! prevEnd || ! prevProgramId ) {
-				continue;
-			}
-			const prevStartMin = timeToMinutes( prevStart );
-			const prevEndMin = timeToMinutes( prevEnd );
-			if ( prevEndMin > prevStartMin ) {
-				continue;
-			}
-			if ( prevEndMin > startMin ) {
-				const prevFormattedMessage = formatOverlapMessage(
-					prevName,
-					prevDay,
-					prevStart,
-					prevEnd
-				);
-				const currentFormattedMessage = formatOverlapMessage(
-					name,
-					currentDay,
-					start,
-					end
-				);
-				showProgramError(
-					prevRow,
-					(
-						s.timeSlotOverlapsWithMessage ||
-						'This time slot overlaps with: %s'
-					).replace( '%s', currentFormattedMessage )
-				);
-				return {
-					valid: false,
-					message: (
-						s.timeSlotOverlapsWithMessage ||
-						'This time slot overlaps with: %s'
-					).replace( '%s', prevFormattedMessage ),
-				};
-			}
-		}
-		return { valid: true };
+		applyWrites( writes, read.rows );
+		// The row's own write is always the last one.
+		return { valid: ! writes[ writes.length - 1 ].error };
 	}
 
 	function showProgramError( programRow, message ) {
@@ -1034,22 +640,17 @@
 				}
 			}
 			if ( container && ! hasErrors ) {
-				container
-					.querySelectorAll( '.radplapag-program-row' )
-					.forEach( function ( row ) {
-						if (
-							window.getComputedStyle( row ).display === 'none'
-						) {
-							return;
-						}
-						const validation = validateProgramRow( row );
-						if ( ! validation.valid ) {
-							hasErrors = true;
-							if ( ! firstErrorElement ) {
-								firstErrorElement = row;
-							}
-						}
-					} );
+				const read = readSchedule( container );
+				const result = scheduleRules().checkSchedule(
+					read.schedule,
+					programIds()
+				);
+				applyWrites( result.writes, read.rows );
+				if ( result.first ) {
+					hasErrors = true;
+					firstErrorElement =
+						read.rows[ result.first.day ][ result.first.index ];
+				}
 			}
 			if ( hasErrors ) {
 				e.preventDefault();
