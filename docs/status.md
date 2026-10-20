@@ -1,11 +1,12 @@
 # Estado
-Spec activa: 0005 — Refactor de PHP y admin · Fase: 3 por empezar · Plan anterior: [`phase-2.md`](specs/0005-php-admin-refactor/phase-2.md) · Actualizado: 2026-10-21
+Spec activa: 0005 — Refactor de PHP y admin · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md) · Actualizado: 2026-10-21
 
 ## En curso
+- Spec 0005: fase 3 (datos, guardado y globales del player), 12 tareas en [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md); empieza por las caracterizaciones 3.1 (globales con meta cruda, e2e) y 3.2 (orden de las escrituras del guardado).
 - Spec 0005: fase 2 (reglas y DOM del admin) cerrada el 2026-10-21: `schedule-rules.js` con los 11 vectores y ≥ 85 % de líneas en la CI, `station-admin.js` como adaptador, A7 cumplido. K74–K77 nuevos. PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `start-phase` de la fase 3 (datos, guardado y globales del player), en una sesión nueva.
+1. Tareas 3.1 a 3.12 de la fase 3, en orden; al terminar, `close-phase`.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
@@ -17,7 +18,8 @@ Spec activa: 0005 — Refactor de PHP y admin · Fase: 3 por empezar · Plan ant
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)
-Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md` y `phase-2.md`; sin ADR, no cambian el contrato):
+Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md` y `phase-3.md`; sin ADR, no cambian el contrato):
+- Fase 3 (plan): §4.3 pone el nonce, las capacidades y `$_POST` en el adaptador del guardado. Se quedan en `radplapag_save_station_meta()` y `radplapag_save_program_meta()`, con su `phpcs:ignore` de siempre, porque WPCS exige el nonce en la misma función que lee `$_POST` y A6 no admite supresiones en `includes/src/`. El adaptador (`WP\Station_Meta_Saver`, `WP\Program_Meta_Saver`) recibe `( $post_id, array $input )`. Decidido por el usuario (2026-10-21).
 - Fase 2 (plan): riesgo 1 de la spec. Las filas que añade el JS conservan el texto visible de hoy (entidades decodificadas como hacía `innerHTML`) con `DOMParser`; K21 sigue para la 0012. Decidido por el usuario (2026-10-20).
 - Fase 2, 2.5: `AdminScreensTest::test_admin_scripts_on_the_station_screen` amplía la aserción de `deps` de `radplapag-station-admin` con `radplapag-schedule-rules` (ADR 0028 D3), fija los `deps` de `radplapag-program-admin` en el mismo bucle y añade aserciones del handle nuevo (también en `test_admin_scripts_on_the_program_screen`, que no se registre). Solo esa aserción cambia; lo demás son altas. Aprobado por el usuario (2026-10-20).
 - Fase 2, 2.8: una traducción con etiquetas en la fila que añade el JS se ve como texto (antes `innerHTML` creaba los elementos; ninguna cadena del plugin las lleva). K77. Aceptado por el usuario (2026-10-21).
