@@ -35,7 +35,8 @@ Mover la lectura de emisoras y programas, el guardado de sus campos y el armado 
 - Archivos: `tests/e2e/clean-page.spec.ts`.
 - Test: caracterización: `tests/e2e/clean-page.spec.ts` (validada con una mutación temporal).
 - Verificación: `npx playwright test tests/e2e/clean-page.spec.ts --project=chromium`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: 3 tests nuevos (18 → 21 en Chromium), solo altas, con un helper `withRawSchedule()` que escribe la meta con `wpCli`, crea el programa en borrador y lo deshace en `finally`. Fijado: `program_id` no numérico pasa por `sanitize_text_field()` (`<b>tagged</b> id` → `tagged id`), `' <id>'` y el número JSON salen como cadena del entero, `start` `''` y `'0'` y `end` `''` quitan la franja, la entrada y el día que no son array se saltan, el día que queda vacío no sale, `is_rerun: "yes"` → `true` y `0` → `false`, la franja del borrador se queda en `RADPLAPAG_SCHEDULE` y el programa no sale en `RADPLAPAG_PROGRAMS` (C10), y con el título `'0'` `siteTitle` y `<title>` dicen el nombre del sitio. En lugar del `' 7'` literal del plan va `' <ID de B>'`, para que además se resuelva en `RADPLAPAG_PROGRAMS`. Rareza nueva: K78 (un programa cuya única franja se quita sale igual en `RADPLAPAG_PROGRAMS`; orden `B, C, A`), con su test `currently`. Mutaciones en `radio-player-page.php`, revertidas: `empty( $start )` → `'' === $start`, `! empty( $station_title )` → `'' !== $station_title` y saltar las entradas sin `start` al armar los programas: falla cada test.
 
 ### 3.2 Caracterización: orden de las escrituras del guardado (≤ 1 h)
 - Qué: registra con `added_post_meta`, `updated_post_meta`, `setted_transient` y `deleted_transient` la secuencia de claves de un guardado de emisora con errores de campo y horario válido, de otro con horario inválido, y del guardado de un programa.

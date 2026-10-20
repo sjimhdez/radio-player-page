@@ -2,14 +2,15 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0005: fase 3 (datos, guardado y globales del player), 12 tareas en [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md); empieza por las caracterizaciones 3.1 (globales con meta cruda, e2e) y 3.2 (orden de las escrituras del guardado).
+- Spec 0005: fase 3 (datos, guardado y globales del player), 12 tareas en [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md); hecha la 3.1 (globales con meta cruda, e2e; K78 nuevo, decisión pendiente).
 - Spec 0005: fase 2 (reglas y DOM del admin) cerrada el 2026-10-21: `schedule-rules.js` con los 11 vectores y ≥ 85 % de líneas en la CI, `station-admin.js` como adaptador, A7 cumplido. K74–K77 nuevos. PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tareas 3.1 a 3.12 de la fase 3, en orden; al terminar, `close-phase`.
+1. Tarea 3.2 (orden de las escrituras del guardado) y después 3.3 a 3.12, en orden; al terminar, `close-phase`.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
+- K78 (`RADPLAPAG_PROGRAMS` lista el programa de una franja que `RADPLAPAG_SCHEDULE` quita, solo con meta escrita a mano, baja): decidir si se corrige y en qué spec (propuesta: 0009 horario). No bloquea la fase 3.
 - K76 (`completeTimeFields` sin uso, baja): decidir si se corrige y en qué spec (propuesta: 0010 admin). No bloquea la fase 3.
 
 ## Verificación manual pendiente
