@@ -21,6 +21,7 @@ La spec (§4.2) pedía mantener el target de Vite 6 y preguntar si MUI 9 exigía
 - La sintaxis del bundle no cambia respecto a la 3.4.2; no se deja fuera a nadie por un error de parseo.
 - Safari 14–16 (iOS 14–16) ya no tiene garantía: un fallo de MUI en esos navegadores no se considera bug del plugin salvo que se corrija sin tocar MUI.
 - Lightning CSS (Vite 8) compila el CSS para el mismo target: añade reservas de `system-ui` y variables para `light-dark`. Son +105 bytes en gzip, aceptados por el usuario en la misma decisión.
+- No es contrato de `SPEC.md`: el producto nunca ha declarado navegadores soportados, y esta decisión no añade una garantía nueva; solo deja de dar por hecha la de Safari 14–16. Lo recogen `.claude/rules/player.md` y el changelog de la release (decisión del usuario en el cierre de la 0003, 2026-10-20).
 - El e2e corre en Chromium y WebKit recientes y no cubre los navegadores antiguos. Lo protege el `build.target` explícito en `vite.config.ts`.
 
 ## Alternativas descartadas

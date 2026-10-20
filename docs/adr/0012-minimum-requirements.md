@@ -16,7 +16,7 @@ La 3.3.1 subió el mínimo de WordPress de 5.0 a 6.6 para los bloques (Block API
 
 - Nada de sintaxis de PHP 8 ni de APIs de WP posteriores a la 6.6 en lo publicado (`.claude/rules/php.md`, subagente `backcompat-reviewer`).
 - Las herramientas de test se eligen para la matriz: PHPUnit se queda en 9.6 (ADR 0003).
-- Si un build moderno de los bloques necesita una WP posterior, se fija la versión de la herramienta con un ADR (spec 0004).
+- Si un build moderno de los bloques necesita una WP posterior, se fija la versión de la herramienta como excepción del ADR 0022 (spec 0003; la 0004 se descartó, ADR 0026).
 
 ## Alternativas descartadas
 

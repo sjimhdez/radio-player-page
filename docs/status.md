@@ -1,11 +1,11 @@
 # Estado
-Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) (spec: [`spec.md`](specs/0003-player-dependencies/spec.md)) · Actualizado: 2026-10-20
+Spec activa: 0003 — Dependencias del player y de los bloques · Fase: cerrada (1, el 2026-10-20; PR #38 listo, pendiente de merge en `trunk`) · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). 1.2 hecha (bloques en `@wordpress/scripts` 37 con flat config propio). 1.2b hecha (K73 corregido: `Clock` con día exacto). 1.3 hecha (excepciones en el ADR 0022: TS 6.0.x, `@babel/runtime` 7.x). 1.4 hecha (devDependencies del player fijadas con versión exacta; check, integración y e2e en verde en las dos puntas; tabla del bundle en el PR). 1.5 hecha (revisión visual aprobada por el usuario, sin ajustes). PR #38 en borrador contra `trunk`.
+- Spec 0003 cerrada (2026-10-20). PR #38 contra `trunk`, listo: el merge lo decide el usuario (merge commit, sin squash, título `Spec 0003: Dependencias del player y de los bloques`).
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 1 (la única de la spec 0003): cierra la spec y deja el PR #38 listo.
+1. Tras el merge del PR #38: sesión de diseño → `write-spec` de la spec 0005 (refactor de PHP y admin; la 0006 también puede empezar, las dos dependen solo de la 0003).
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
@@ -19,6 +19,9 @@ Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en cur
 Spec 0003:
 - Tarea 1.1: K71 (anuncio de i18next en la consola) lo corrigió la subida a i18next 26, fuera de una spec de correcciones; su test `currently` pasa a regresión en la misma fase. Aprobado por el usuario (2026-10-20).
 - Tarea 1.2b: K73 (fallo del test `BlockRenderTest`, depende del día de la semana) se arregla en la 0003 y no en la 0013, porque deja la CI en rojo los lunes y martes. Solo el test; los snapshots no cambian. Aprobado por el usuario (2026-10-20).
+- Tarea 1.1: hls.js 1.7 pasa `preferManagedMediaSource` a `false`; se restaura con `new Hls({ preferManagedMediaSource: true })` (código de producción, con test unitario) para no cambiar el comportamiento en Safari. Decidido por el usuario (2026-10-20).
+- Tarea 1.6 (sale de `close-phase`): Vite 8 quitaba los avisos de licencia del bundle; se restauran y `check:zip` lo vigila. Decidido por el usuario (2026-10-20).
+- Tarea 1.2: el runtime de webpack de `@wordpress/scripts` 37 usa `Object.hasOwn` también en `programs-list` y `schedule` (`now-playing` ya lo usaba). Solo corre en el editor; el e2e de bloques en WP 6.6 pasa en Chromium y WebKit. Sin ADR.
 
 Spec 0002:
 - §5 fase 4: el `/code-review` de cada zona se hizo con un subagente general a esfuerzo alto, solo lectura, en lugar del comando; lo anota el «Resultado:» de cada tarea.

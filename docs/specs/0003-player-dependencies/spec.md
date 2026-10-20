@@ -1,6 +1,6 @@
 # Spec 0003 — Dependencias del player y de los bloques
 
-> Estado: **propuesta** · Fecha: 2026-10-20 (reescrita; la primera versión es del 2026-10-18) · Rama: `spec/0003-player-dependencies` · Depende de: 0002
+> Estado: **cerrada** (2026-10-20) · Fecha: 2026-10-20 (reescrita; la primera versión es del 2026-10-18) · Rama: `spec/0003-player-dependencies` · Depende de: 0002
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 

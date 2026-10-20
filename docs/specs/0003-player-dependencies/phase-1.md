@@ -1,5 +1,5 @@
 # Spec 0003 · Fase 1 — Actualización agrupada
-Estado: en curso · Inicio: 2026-10-20 · ADRs: 0026, 0022, 0020, 0021, 0018, 0014, 0023, 0012, 0004, 0025
+Estado: cerrada (2026-10-20) · Inicio: 2026-10-20 · ADRs: 0026, 0022, 0020, 0021, 0018, 0014, 0023, 0012, 0004, 0025
 
 ## Contexto
 Medido al planificar (2026-10-20):
@@ -80,14 +80,14 @@ Medido al planificar (2026-10-20):
 - Verificación: `npm run check && npm run env:start:min && npm run test:php:integration && npm run test:e2e && npm run env:start:latest && npm run test:php:integration && npm run test:e2e` y el `git diff` de A4 vacío.
 - Commit: `docs(0003): record verification and pending visual review (1.4)` (status + marcas del plan)
 - Resultado: las 12 `devDependencies` con `^`/`~` quedan fijadas a la versión que ya resolvía el lockfile. En `package-lock.json` solo cambia la raíz, editada a mano: `npm install --package-lock-only` quitaba los campos `libc` del árbol. `npm ci`, `check` y `build` del player sin cambios en `dist/`. `npm run check` y `check:zip` en verde. WP 6.6.10 + PHP 7.4.33 y WP 7.1.3 + PHP 8.4.26: integración OK (378 tests) y e2e con 196 que pasan y 22 omitidos en las dos. El diff de A4 está vacío. Bundle en el PR #38: igual que en la 1.1, salvo el principal, 185 906 (+4,3 %; 16 bytes más por `preferManagedMediaSource` de e2c2c59). A7 queda en «Verificación manual pendiente».
-- [x] hecha · commits: 21c9d9b, (este)
+- [x] hecha · commits: 21c9d9b, 71bce62
 
 ### 1.5 Ajustes de la revisión visual (solo si hacen falta)
 - Qué: el usuario revisa en <http://localhost:8886> (`npm run env:start`). Diferencias por MUI 9 → compensar en `player/src/config/theme.ts` si no cambia nada visible respecto a la 3.4.2; si el cambio se queda, ADR aprobado por el usuario.
 - Verificación: `npm --prefix player run check && npm --prefix player run build` y nueva aprobación del usuario.
 - Commit: `fix(0003): restore 3.4.2 look after MUI 9 (1.5)` (si aplica)
 - Resultado: el usuario lo revisó en <http://localhost:8886> el 2026-10-20 (fixtures de `seed.php` más una página con los tres bloques) y lo ve todo igual que en la 3.4.2. A7 aprobado: no hizo falta ningún ajuste ni commit de código.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 70f9b6e
 
 ### 1.6 Avisos de licencia en el bundle del player (≈ 30 min; sale de `close-phase`)
 - Qué: el revisor de WordPress.org encontró que el minificador de Vite 8 (Oxc) quita los avisos de licencia que la 3.4.2 conservaba (7 `@license` de React en el principal y el `/*!` de dashjs; con Vite 8, 0). Se restauran con `comments: { legal: true }` en `rolldownOptions.output`. Decidido por el usuario (2026-10-20): se arregla en la 0003, no como fila de `known-issues.md`.
@@ -96,7 +96,11 @@ Medido al planificar (2026-10-20):
 - Verificación: `npm --prefix player run check && npm --prefix player run build && npm run check:zip`, y la verificación completa de `close-phase` en las dos puntas.
 - Commit: `build(0003): keep third-party license notices in player bundle (1.6)`
 - Resultado: vuelven todos: 9 en el principal (los 7 de React, otro de React y uno MIT) y 1 en dash; mismos nombres. Bundle en gzip: principal 186 438 (+4,6 % sobre la 3.4.2, +532 bytes sobre la 1.4) y dash 236 288 (−7,4 %); los demás no cambian.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 9374e24
+
+## Cierre (2026-10-20)
+- Verificación (tras la 1.6): `npm run check`; WP 6.6.10 + PHP 7.4 y la última WP + PHP 8.4, integración OK (378 tests) y e2e con 196 que pasan y 22 omitidos en las dos; builds de `player/` y de los tres bloques sin diff; `check:zip` en verde. A6: el job «Licenses and npm audit» de la CI del PR #38 en verde (sobre 70f9b6e; la 1.6 no cambia dependencias).
+- Revisores: seguridad WP y accesibilidad, sin hallazgos. Compatibilidad: `.at(` en dash ya estaba en la 3.4.2; `Object.hasOwn` en el runtime de los bloques, solo en el editor (desviación en `status.md`). WordPress.org: avisos de licencia perdidos → tarea 1.6; changelog de navegadores (ADR 0027) → notas de la spec de release. Conformidad: referencias a la 0004 descartada en los ADR 0012, 0020, 0023 y 0024; ADR 0027 aclara que los navegadores no son contrato de `SPEC.md` (decisión del usuario); hls.js en las desviaciones; riesgo residual de K73 los lunes en `known-issues.md`.
 
 ## Decisiones abiertas → ADR
 - ~~Si MUI 9 exige un `build.target` más alto que el de Vite 6 → preguntar y ADR~~ → ADR 0027 (2026-10-20): target de Vite 6 explícito; soporte efectivo el de MUI 9 (Safari 17+). Aceptado por el usuario.

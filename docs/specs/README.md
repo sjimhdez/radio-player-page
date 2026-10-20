@@ -10,7 +10,7 @@
 |---|---|---|---|---|
 | 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | cerrada (PR #36) | `spec/0001-bootstrap` | — |
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | cerrada (PR #37) | `spec/0002-safety-net` | 0001 |
-| 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | propuesta | `spec/0003-player-dependencies` | 0002 |
+| 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | cerrada | `spec/0003-player-dependencies` | 0002 |
 | 0004 | ~~Dependencias de la parte WordPress~~: descartada; los bloques van en la 0003, y la raíz, Composer y las Actions fuera de una spec ([ADR 0026](../adr/0026-grouped-dependency-upgrades.md)) | descartada | — | — |
 | 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0003 |
 | 0006 | Refactor del player | pendiente de escribir | — | 0003 |
@@ -74,7 +74,7 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - núcleo `player/src/core/` sin React ni MUI: máquina de estados del audio, adaptadores por protocolo, `crossOrigin`, intro, horario, sueño, Media Session y lectura de las globales;
   - los hooks, como adaptadores finos;
   - TDD;
-  - quitar las excepciones de `react-hooks` 7 que deja la 0003 (`set-state-in-effect` e `immutability`/`refs`, lista en su §4.4 y en el plan de su fase 2) y cambiar `process.env.NODE_ENV` por `import.meta.env.DEV` en `src/utils/timezone.ts`;
+  - quitar las excepciones de `react-hooks` 7 que deja la 0003 (`set-state-in-effect` e `immutability`/`refs`, lista en su §4.2 y en la tarea 1.1 de su plan) y cambiar `process.env.NODE_ENV` por `import.meta.env.DEV` en `src/utils/timezone.ts`;
   - del triage de la 0002: K9 (el núcleo valida el offset), K14 (Media Session en el núcleo), K70 (cada adaptador por protocolo fija su `crossOrigin`) y las sospechas de dos `play()` concurrentes con HLS y de `pause()` durante la carga de un MP3 (el núcleo serializa `play()`/`pause()` y lo comprueba en sus tests; si se confirma un fallo visible, pasa como fila a la 0007).
 - **Correcciones (0007–0013), comunes a todas:**
   - cada fila se corrige con `fix-bug`: el test `currently` pasa a test de regresión en rojo y luego a verde; la fila de `known-issues.md` pasa a «corregido (versión)»;
@@ -100,7 +100,7 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - primera tarea: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (hueco de `withRules()`, ADR 0023), antes de AX6 y AX2;
   - alta: K56 (botón estable que cambia de estado);
   - media: C15 (el canvas no se toca, zona congelada), K57, K59 y AX6 (juntas, región `role="status"`), K60, K68 (al tocarla, quitar `localStorage` y `navigator` del detector de i18next: con `supportedLngs` el navegador ganaría a un idioma del sitio sin traducción, contra el ADR 0025; y corregir el comentario de `player/src/config/i18n.ts`, si la 0006 no lo hizo);
-  - baja: C6, K58, K61 (con capturas antes y después, junto al `100vh` de iOS), K62, K69, K71, AX1, AX2;
+  - baja: C6, K58, K61 (con capturas antes y después, junto al `100vh` de iOS), K62, K69, AX1, AX2 (K71 ya lo corrigió la 0003);
   - K55 no se corrige (manda el idioma del sitio, ADR 0025), pero su test `currently` pasa aquí a test normal.
 - **0012 Núcleo PHP y desinstalación** (tras la 0005):
   - media: C11 y K7 (juntas: `uninstall.php` limpia opciones, transients y todos los estados en cada sitio; amplía §3.7 → ADR), K21 y K43 (juntas: decodificar entidades solo de lo que se imprime para el player, sin ADR);
@@ -112,6 +112,6 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
 - **Release:**
   - Plugin Check sobre el zip, la checklist de las guidelines y la matriz PHP 7.4/8.4 × WP 6.6/última;
   - verificación manual: iOS y Android, una emisora real y una actualización desde la 3.4.2;
-  - changelog y `== Upgrade Notice ==`;
+  - changelog y `== Upgrade Notice ==` (incluye el soporte efectivo de navegadores del player, Safari 17+, ADR 0027);
   - del triage de la 0002: K3 (los textos se revisan con el estado final) y K28 (`readme.txt`); comprobar que la petición a terceros de `dashjs` está corregida (verificación, no asignación: la fila es de la 0007);
   - merge en `trunk`, PR `trunk` → `main`, tag `vX.Y.Z` y pasos de SVN para el usuario.
