@@ -43,7 +43,8 @@ Medido al planificar (2026-10-20):
 - Test: los existentes (caracterización de la 0002); no se editan.
 - Verificación: `npm --prefix player run check && npm --prefix player run build && git status --short player/dist && npm run check:zip`
 - Commit: `build(0003): upgrade player dependencies (1.1)`
-- [ ] hecha · commit: —
+- Resultado: todo a la última salvo `typescript` 6.0.3 (peer de `typescript-eslint`). MUI 9 no tiene `v9.0.0/preset-safe`: se pasaron `v9.0.0/system-props` y `deprecations/all` (el `@mui/codemod` 9.5.0 falla con yargs 18; se ejecutó con yargs 17 por `overrides`). Además, a mano: `DialogTitle bgcolor` → `sx` (dos modales), `coverage` en `globalIgnores`, `__dirname` → `import.meta.dirname` en `vite.config.ts` y `vitest.config.ts`. Las 6 excepciones de `react-hooks` 7 en su línea (la del test, dividida en dos: `immutability` y `refs` saltan en líneas distintas). Navegadores: ADR 0027. Bundle (gzip, `gzip -9c`), aceptado por el usuario: main 185 890 (+4,3 %), hls 178 596 (+10,5 %, viene de hls.js 1.7: su `hls.min.js` crece un 15 %), dash 236 236 (−7,5 %), bar 1 076, particles 969, amplitude 699, oscilloscope 484, CSS 675 (+105 bytes, Lightning CSS). Mismos nombres y `manifest.json` idéntico; `npm run check` y `check:zip` en verde.
+- [x] hecha · commit: —
 
 ### 1.2 Subir las dependencias de los tres bloques (≈ 1 h)
 - Qué: `@wordpress/scripts` 37, `@babel/runtime` 7.29.x, TS de `now-playing` lo más alto que acepte el lint. Sustituir `.eslintrc.json` por `eslint.config.mjs` propio de cada bloque (guía de `@wordpress/scripts`, recomendado de `@wordpress/eslint-plugin`), quitar `ESLINT_USE_FLAT_CONFIG=false` del script `lint`, comprobar que no lee el `eslint.config.mjs` de la raíz (ADR 0020). Actualizar `.claude/rules/blocks.md` (ESLint 10, flat config). Si `@babel/runtime` aparece en `build/`, pasar a `dependencies`. Rebuild y commit de `blocks/*/build/` (los nombres no cambian). Un commit para los tres, o uno por bloque si alguno da guerra.
@@ -73,6 +74,6 @@ Medido al planificar (2026-10-20):
 - [ ] hecha · commit: —
 
 ## Decisiones abiertas → ADR
-- Si MUI 9 exige un `build.target` más alto que el de Vite 6 → preguntar y ADR (afecta a navegadores soportados).
+- ~~Si MUI 9 exige un `build.target` más alto que el de Vite 6 → preguntar y ADR~~ → ADR 0027 (2026-10-20): target de Vite 6 explícito; soporte efectivo el de MUI 9 (Safari 17+). Aceptado por el usuario.
 - Si el build de `@wordpress/scripts` 37 no funciona en WP 6.6 → fijar la versión más alta que funcione, excepción en el ADR 0022 (riesgo 5).
 - Si el bundle crece > 10 % → primero imports por ruta en `VolumeControl.tsx`, `StreamInfo.tsx`, `AllProgramsModal.tsx`, `ScheduleModal.tsx` (riesgo 3); si no basta, preguntar.

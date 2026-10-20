@@ -70,7 +70,9 @@ type Api = ReturnType<typeof useAudioPlayer>
 
 function Harness(props: { streamUrl: string; introUrl?: string; api: { current: Api } }) {
   const player = useAudioPlayer(props.streamUrl, props.introUrl)
+  // eslint-disable-next-line react-hooks/immutability -- test harness exposes the hook result on purpose; revisited in spec 0006
   props.api.current = player
+  // eslint-disable-next-line react-hooks/refs -- false positive on the hook's returned ref object; revisited in spec 0006
   return <audio ref={player.audioRef} />
 }
 

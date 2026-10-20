@@ -83,7 +83,13 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
       }}
     >
       {program.programLogoUrl && (
-        <Stack direction="row" alignItems="center" justifyContent="center">
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
           <CardMedia
             component="img"
             src={program.programLogoUrl}
@@ -98,12 +104,28 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
         </Stack>
       )}
       <CardContent>
-        <Stack px={1} gap={0.5} alignItems={'start'}>
-          <Stack alignItems="start">
+        <Stack
+          sx={{
+            px: 1,
+            gap: 0.5,
+            alignItems: 'start',
+          }}
+        >
+          <Stack
+            sx={{
+              alignItems: 'start',
+            }}
+          >
             {program.isActive && (
               <Chip
                 label={
-                  <Typography variant="body2" fontWeight="bold" textTransform={'uppercase'}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     {t('dashboard.scheduleLive')}
                   </Typography>
                 }
@@ -120,20 +142,40 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
                 }}
               />
             )}
-            <Typography variant="body1" color="primary.light">
+            <Typography
+              variant="body1"
+              sx={{
+                color: 'primary.light',
+              }}
+            >
               {program.programName || '—'}
             </Typography>
           </Stack>
           {program.programDescription && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {program.programDescription}
             </Typography>
           )}
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {program.timeRange}
           </Typography>
           {program.isRerun && (
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('dashboard.rerunLabel')}
             </Typography>
           )}
@@ -155,8 +197,15 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
         },
       }}
     >
-      <DialogTitle bgcolor={'background.paper'}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
+      <DialogTitle sx={{ bgcolor: 'background.paper' }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+          }}
+        >
           {t('dashboard.viewSchedule')}
           <IconButton aria-label={t('dashboard.scheduleClose')} onClick={onClose} size="small">
             <CloseIcon />
@@ -164,7 +213,14 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
         </Stack>
       </DialogTitle>
       <DialogContent dividers sx={{ p: 0 }}>
-        <Stack ref={contentRef} maxHeight={'70vh'} overflow={'auto'} bgcolor={'background.paper'}>
+        <Stack
+          ref={contentRef}
+          sx={{
+            maxHeight: '70vh',
+            overflow: 'auto',
+            bgcolor: 'background.paper',
+          }}
+        >
           <Box>
             {weekData.length === 0 ? (
               <Typography>{t('dashboard.scheduleNoProgramsForDay')}</Typography>
@@ -172,18 +228,24 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
               weekData.map(({ dayOfWeek, programs: dayPrograms }) => (
                 <Stack key={dayOfWeek}>
                   <Stack
-                    position={'sticky'}
-                    top={0}
-                    bgcolor={'background.paper'}
-                    py={1}
-                    px={3}
-                    zIndex={(theme) => theme.zIndex.modal}
                     sx={{
+                      position: 'sticky',
+                      top: 0,
+                      bgcolor: 'background.paper',
+                      py: 1,
+                      px: 3,
+                      zIndex: (theme) => theme.zIndex.modal,
                       borderBottom: '1px solid',
                       borderBottomColor: 'divider',
                     }}
                   >
-                    <Typography variant="subtitle2" textTransform={'uppercase'} letterSpacing={1}>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        textTransform: 'uppercase',
+                        letterSpacing: 1,
+                      }}
+                    >
                       {t(DAY_KEYS[dayOfWeek])}
                     </Typography>
                   </Stack>

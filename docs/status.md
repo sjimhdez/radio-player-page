@@ -2,14 +2,13 @@
 Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) (spec: [`spec.md`](specs/0003-player-dependencies/spec.md)) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0003, fase 1 (actualización agrupada, ADR 0026): plan aprobado con 5 tareas; línea base del bundle anotada en el plan. PR #38 en borrador contra `trunk`.
+- Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). PR #38 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 1.1 Subir las dependencias del player (TS 6.0.x, ESLint 10, Vite 8, MUI 9, i18next 26…).
-2. 1.2 Subir las dependencias de los tres bloques (`@wordpress/scripts` 37, flat config propio).
-3. 1.3 Excepciones en el ADR 0022.
-4. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
-5. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
+1. 1.2 Subir las dependencias de los tres bloques (`@wordpress/scripts` 37, flat config propio).
+2. 1.3 Excepciones en el ADR 0022.
+3. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
+4. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.

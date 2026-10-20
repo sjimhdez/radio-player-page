@@ -58,15 +58,39 @@ const TimezoneClock = ({ transmissionTimeData }: TimezoneClockProps) => {
         borderColor: 'divider',
       }}
     >
-      <Stack direction="column" alignItems="flex-end" spacing={0.5}>
+      <Stack
+        direction="column"
+        spacing={0.5}
+        sx={{
+          alignItems: 'flex-end',
+        }}
+      >
         {/* Informative text */}
-        <Typography variant="caption" letterSpacing="0.05em" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            letterSpacing: '0.05em',
+            color: 'text.secondary',
+          }}
+        >
           {t('dashboard.timezoneClockLabel')}
         </Typography>
 
         {/* Station transmission time clock and difference indicator */}
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="body2" letterSpacing="0.05em" fontWeight={500}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            alignItems: 'center',
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              letterSpacing: '0.05em',
+              fontWeight: 500,
+            }}
+          >
             {transmissionTime}
           </Typography>
 

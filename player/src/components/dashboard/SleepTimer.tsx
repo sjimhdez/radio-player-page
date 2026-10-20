@@ -48,7 +48,14 @@ const SleepTimer = ({ remainingSeconds, onCancel }: SleepTimerProps) => {
   }
 
   return (
-    <Stack direction="row" alignItems="center" justifyContent="center" gap={1}>
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1,
+      }}
+    >
       <Typography variant="body2" sx={{ minWidth: '60px', textAlign: 'center' }}>
         {formatTime(remainingSeconds)}
       </Typography>

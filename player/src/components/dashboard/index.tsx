@@ -164,16 +164,19 @@ const Dashboard = () => {
 
   // Show error snackbar when error occurs and loading is complete
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- existing effect kept as is; spec 0006 rewrites it
     setOpenError(status === 'error' && loading === false)
   }, [status, loading])
 
   return (
     <Stack
-      justifyContent="center"
-      alignItems="center"
-      width="100vw"
-      height="100vh"
-      position="relative"
+      sx={{
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100vw',
+        height: '100vh',
+        position: 'relative',
+      }}
     >
       {config.backgroundImage && (
         <Box
@@ -220,16 +223,36 @@ const Dashboard = () => {
         }}
       />
 
-      <Stack alignItems="center" gap={2} position="absolute" bottom={25}>
+      <Stack
+        sx={{
+          alignItems: 'center',
+          gap: 2,
+          position: 'absolute',
+          bottom: 25,
+        }}
+      >
         {sleepTimerSeconds !== null && (
           <SleepTimer
             remainingSeconds={sleepTimerSeconds}
             onCancel={() => setSleepTimerSeconds(null)}
           />
         )}
-        <Box display="grid" gridTemplateColumns="1fr 1fr 1fr" gap={1}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: 1,
+          }}
+        >
           {hasSchedule ? (
-            <Stack direction="row" alignItems="center" justifyContent="flex-end" gap={0}>
+            <Stack
+              direction="row"
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 0,
+              }}
+            >
               <Tooltip title={t('dashboard.viewSchedule')} placement="top" arrow>
                 <IconButton
                   onClick={() => setOpenScheduleModal(true)}

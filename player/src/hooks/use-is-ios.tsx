@@ -16,6 +16,7 @@ export function useIsIOS() {
   useEffect(() => {
     const ua = navigator.userAgent.toLowerCase()
     const isIOSDevice = /iphone|ipad|ipod/.test(ua)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- existing effect kept as is; spec 0006 rewrites it
     setIsIOS(isIOSDevice)
   }, [])
 

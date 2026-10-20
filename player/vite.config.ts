@@ -11,14 +11,16 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      src: path.resolve(__dirname, './src'),
+      src: path.resolve(import.meta.dirname, './src'),
     },
   },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
     manifest: 'manifest.json',
-    rollupOptions: {
+    // Vite 6 default ('modules'); Vite 7+ raised it. Kept so supported browsers don't change.
+    target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+    rolldownOptions: {
       input: 'src/main.tsx',
       output: {
         entryFileNames: `${prefix}.min.js`,
