@@ -21,6 +21,12 @@ use RuntimeException;
  * requested one, and reports how far today's local weekday is from the requested day.
  * Tests then rotate their schedule by that amount (rotate_schedule(), rotate_day()).
  *
+ * With $exact_day, the offset may span several days instead (up to ±96 h, which
+ * PHP and wp_timezone_string() accept, though no real site uses it), so that the local
+ * day is the requested one and the rotation is the identity. Use it where the result
+ * depends on the real weekday beyond today and yesterday, such as the Monday-to-Sunday
+ * order of the blocks (K73).
+ *
  * Seconds are not controlled: if the minute changes while a test runs, Clock::run()
  * repeats it once.
  */
@@ -36,7 +42,7 @@ final class Clock {
 	private $time;
 
 	/**
-	 * UTC offset applied, in minutes, in (-720, 720].
+	 * UTC offset applied, in minutes: in (-720, 720], or within ±96 h with $exact_day.
 	 *
 	 * @var int
 	 */
@@ -66,16 +72,17 @@ final class Clock {
 	 * Runs $check with the site on $day at $time, and repeats it once if the minute
 	 * changed meanwhile. A failure while the minute still holds is rethrown.
 	 *
-	 * @param string   $day   Vector day key (monday … sunday).
-	 * @param string   $time  Vector local time, HH:MM.
-	 * @param callable $check Receives the Clock; its return value is returned.
+	 * @param string   $day       Vector day key (monday … sunday).
+	 * @param string   $time      Vector local time, HH:MM.
+	 * @param callable $check     Receives the Clock; its return value is returned.
+	 * @param bool     $exact_day Whether the local day must be $day itself (no rotation).
 	 * @return mixed
 	 * @throws AssertionFailedError When $check fails while the minute holds.
 	 * @throws RuntimeException When the minute changes on both attempts.
 	 */
-	public static function run( $day, $time, callable $check ) {
+	public static function run( $day, $time, callable $check, $exact_day = false ) {
 		for ( $attempt = 1; $attempt <= 2; $attempt++ ) {
-			$clock = self::set( $day, $time );
+			$clock = self::set( $day, $time, $exact_day );
 
 			try {
 				$result = $check( $clock );
@@ -97,12 +104,13 @@ final class Clock {
 	/**
 	 * Sets `gmt_offset` so that the local time is $time and returns the clock.
 	 *
-	 * @param string $day  Vector day key (monday … sunday).
-	 * @param string $time Vector local time, HH:MM.
+	 * @param string $day       Vector day key (monday … sunday).
+	 * @param string $time      Vector local time, HH:MM.
+	 * @param bool   $exact_day Whether the local day must be $day itself (no rotation).
 	 * @return self
 	 * @throws RuntimeException When the time cannot be set exactly.
 	 */
-	public static function set( $day, $time ) {
+	public static function set( $day, $time, $exact_day = false ) {
 		$vector_day = array_search( $day, self::DAYS, true );
 		if ( false === $vector_day || ! preg_match( '/^([01]\d|2[0-3]):([0-5]\d)$/', $time, $m ) ) {
 			throw new RuntimeException( esc_html( "Invalid clock target: $day $time." ) );
@@ -113,7 +121,11 @@ final class Clock {
 		for ( $attempt = 1; $attempt <= 2; $attempt++ ) {
 			$utc    = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
 			$offset = $target - ( (int) $utc->format( 'G' ) * 60 + (int) $utc->format( 'i' ) );
-			if ( $offset > 720 ) {
+			if ( $exact_day ) {
+				// Nearest $day to today's UTC day: from 3 days back to 3 days ahead.
+				$days    = ( $vector_day - array_search( strtolower( $utc->format( 'l' ) ), self::DAYS, true ) + 7 ) % 7;
+				$offset += ( $days > 3 ? $days - 7 : $days ) * 1440;
+			} elseif ( $offset > 720 ) {
 				$offset -= 1440;
 			} elseif ( $offset <= -720 ) {
 				$offset += 1440;
@@ -131,6 +143,9 @@ final class Clock {
 			}
 
 			$local_day = array_search( strtolower( $local->format( 'l' ) ), self::DAYS, true );
+			if ( $exact_day && $local_day !== $vector_day ) {
+				continue;
+			}
 
 			return new self( $time, $offset, ( $local_day - $vector_day + 7 ) % 7 );
 		}

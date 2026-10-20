@@ -19,9 +19,9 @@ use WP_UnitTestCase;
  * tests/php/integration/snapshots/blocks/, rendered through render_block() so that
  * get_block_wrapper_attributes() runs as on a real page.
  *
- * The site is on a vector Wednesday at 10:55 (Clock), so `natural` and `current_first`
- * give different orders; schedules are written with vector days and rotated to the
- * real ones, and the output is rotated back before comparing.
+ * The site is on a real Wednesday at 10:55 (Clock with an exact day), so `natural`
+ * (Monday to Sunday) and `current_first` (Wednesday first) give different orders.
+ * Rotating the days instead would make `natural` depend on today's weekday (K73).
  *
  * Fixture: station «Main» (player page «Player») with Morning (logo and both
  * descriptions; Wednesday 09:00–11:00, on air, and Monday 09:00–10:00), Early
@@ -67,7 +67,7 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	private $stations = array();
 
 	/**
-	 * Station title → schedule with vector days.
+	 * Station title → schedule.
 	 *
 	 * @var array<string, array>
 	 */
@@ -140,8 +140,7 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Renders a block with the site on vector Wednesday 10:55 and returns the output with
-	 * the real day keys and labels turned back into vector ones.
+	 * Renders a block with the site on Wednesday 10:55.
 	 *
 	 * @param string $name  Block name without the namespace.
 	 * @param array  $attrs Block attributes.
@@ -157,7 +156,7 @@ final class BlockRenderTest extends WP_UnitTestCase {
 					update_post_meta(
 						$this->stations[ $title ],
 						'radplapag_station_schedule',
-						wp_slash( wp_json_encode( $clock->rotate_schedule( $schedule ) ) )
+						wp_slash( wp_json_encode( $schedule ) )
 					);
 				}
 
@@ -166,14 +165,9 @@ final class BlockRenderTest extends WP_UnitTestCase {
 					$this->fail( 'The minute changed while rendering.' );
 				}
 
-				$map = array();
-				foreach ( Clock::DAYS as $day ) {
-					$map[ $day ]            = $clock->unrotate_day( $day );
-					$map[ ucfirst( $day ) ] = ucfirst( $clock->unrotate_day( $day ) );
-				}
-
-				return strtr( $html, $map );
-			}
+				return $html;
+			},
+			true
 		);
 	}
 

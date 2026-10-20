@@ -84,6 +84,33 @@ final class SupportTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * With $exact_day, the local day is the requested one whatever today is: no rotation,
+	 * and wp_timezone() still applies the offset to the second (K73).
+	 *
+	 * @dataProvider clock_targets
+	 *
+	 * @param string $day  Vector day key.
+	 * @param string $time Vector local time (HH:MM).
+	 */
+	public function test_clock_exact_day_sets_requested_local_day( $day, $time ) {
+		Clock::run(
+			$day,
+			$time,
+			function ( Clock $clock ) use ( $day, $time ) {
+				$utc = new DateTime( 'now', new DateTimeZone( 'UTC' ) );
+				$now = new DateTime( 'now', wp_timezone() );
+
+				$this->assertSame( $time, $now->format( 'H:i' ) );
+				$this->assertSame( $day, strtolower( $now->format( 'l' ) ) );
+				$this->assertSame( $day, $clock->rotate_day( $day ) );
+				$this->assertSame( $clock->offset_minutes() * 60, wp_timezone()->getOffset( $utc ) );
+				$this->assertLessThan( 96 * 60, abs( $clock->offset_minutes() ) );
+			},
+			true
+		);
+	}
+
+	/**
 	 * The clock can put the site on a different calendar day than UTC.
 	 */
 	public function test_clock_local_day_can_differ_from_utc_day() {
