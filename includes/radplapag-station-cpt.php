@@ -255,212 +255,36 @@ add_action( 'init', 'radplapag_register_station_meta', 20 );
  * Returns sanitized schedule array or WP_Error with messages.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Slot_Validator and RadioPlayerPage\WP\Schedule_Messages.
  * @param array $schedule_input Raw schedule array: day => [ [ program_id, start, end, is_rerun ], ... ].
  * @return array|WP_Error Sanitized schedule array keyed by day, or WP_Error on validation failure.
  */
 function radplapag_sanitize_station_schedule( $schedule_input ) {
-	$valid_days   = array( 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' );
-	$day_labels   = array(
-		'monday'    => __( 'Monday', 'radio-player-page' ),
-		'tuesday'   => __( 'Tuesday', 'radio-player-page' ),
-		'wednesday' => __( 'Wednesday', 'radio-player-page' ),
-		'thursday'  => __( 'Thursday', 'radio-player-page' ),
-		'friday'    => __( 'Friday', 'radio-player-page' ),
-		'saturday'  => __( 'Saturday', 'radio-player-page' ),
-		'sunday'    => __( 'Sunday', 'radio-player-page' ),
-	);
-	$time_regex   = '/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/';
-	$schedule_out = array();
-	$errors       = array();
-
-	if ( ! is_array( $schedule_input ) ) {
-		return $schedule_out;
-	}
-
-	foreach ( $valid_days as $day ) {
-		if ( ! isset( $schedule_input[ $day ] ) || ! is_array( $schedule_input[ $day ] ) ) {
-			continue;
-		}
-		$day_programs  = array();
-		$day_intervals = array();
-
-		$programs_data = array();
-		foreach ( $schedule_input[ $day ] as $program ) {
-			if ( ! is_array( $program ) ) {
+	// Names of the programs the rows use; drafts are valid (C10 in docs/known-issues.md).
+	$program_names = array();
+	if ( is_array( $schedule_input ) ) {
+		foreach ( $schedule_input as $day_rows ) {
+			if ( ! is_array( $day_rows ) ) {
 				continue;
 			}
-			$program_id_raw   = isset( $program['program_id'] ) ? $program['program_id'] : '';
-			$program_id       = is_numeric( $program_id_raw ) ? (int) $program_id_raw : 0;
-			$program_start    = isset( $program['start'] ) ? trim( $program['start'] ) : '';
-			$program_end      = isset( $program['end'] ) ? trim( $program['end'] ) : '';
-			$program_is_rerun = ! empty( $program['is_rerun'] );
-
-			if ( $program_id <= 0 && empty( $program_start ) && empty( $program_end ) ) {
-				continue;
-			}
-
-			$has_program = $program_id > 0;
-			$has_start   = ! empty( $program_start );
-			$has_end     = ! empty( $program_end );
-			if ( $has_program || $has_start || $has_end ) {
-				if ( ! $has_program || ! $has_start || ! $has_end ) {
-					$errors[] = sprintf(
-						/* translators: 1: Day name */
-						__( 'Radio show on %1$s: All fields (radio show, start time, end time) are required.', 'radio-player-page' ),
-						$day_labels[ $day ]
-					);
+			foreach ( $day_rows as $row ) {
+				$program_id = is_array( $row ) && isset( $row['program_id'] ) && is_numeric( $row['program_id'] ) ? (int) $row['program_id'] : 0;
+				if ( $program_id <= 0 || isset( $program_names[ $program_id ] ) ) {
 					continue;
 				}
-			}
-
-			$program_data = $program_id > 0 ? radplapag_get_program_data( $program_id ) : null;
-			if ( ! $program_data ) {
-				$errors[] = sprintf(
-					/* translators: 1: Day name */
-					__( 'Radio show on %1$s: Please select a valid radio show.', 'radio-player-page' ),
-					$day_labels[ $day ]
-				);
-				continue;
-			}
-			$program_name = $program_data['name'];
-
-			if ( ! preg_match( $time_regex, $program_start ) || ! preg_match( $time_regex, $program_end ) ) {
-				$errors[] = sprintf(
-					/* translators: 1: Program name, 2: Day name */
-					__( 'Radio show "%1$s" on %2$s: Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
-					$program_name,
-					$day_labels[ $day ]
-				);
-				continue;
-			}
-
-			$start_time              = strtotime( '2000-01-01 ' . $program_start . ':00' );
-			$end_time                = strtotime( '2000-01-01 ' . $program_end . ':00' );
-			$end_time_for_validation = $end_time;
-			if ( $end_time <= $start_time ) {
-				$end_time_for_validation = strtotime( '2000-01-02 ' . $program_end . ':00' );
-			}
-			if ( $start_time >= $end_time_for_validation ) {
-				$errors[] = sprintf(
-					/* translators: 1: Program name, 2: Day name */
-					__( 'Radio show "%1$s" on %2$s: End time must be after start time.', 'radio-player-page' ),
-					$program_name,
-					$day_labels[ $day ]
-				);
-				continue;
-			}
-
-			$end_time_for_overlap = $end_time;
-			if ( $end_time <= $start_time ) {
-				$end_time_for_overlap = strtotime( '2000-01-02 ' . $program_end . ':00' );
-			}
-			$programs_data[] = array(
-				'program_id' => $program_id,
-				'name'       => $program_name,
-				'start'      => $program_start,
-				'end'        => $program_end,
-				'is_rerun'   => $program_is_rerun,
-				'start_time' => $start_time,
-				'end_time'   => $end_time_for_overlap,
-			);
-		}
-
-		usort(
-			$programs_data,
-			function ( $a, $b ) {
-				return $a['start_time'] - $b['start_time'];
-			}
-		);
-
-		foreach ( $programs_data as $prog_data ) {
-			$has_overlap = false;
-			$overlapping = null;
-			foreach ( $day_intervals as $interval ) {
-				if ( $prog_data['start_time'] < $interval['end'] && $prog_data['end_time'] > $interval['start'] ) {
-					$has_overlap = true;
-					$overlapping = $interval['name'];
-					break;
-				}
-			}
-			if ( $has_overlap ) {
-				$errors[] = sprintf(
-					/* translators: 1: Program name, 2: Day name, 3: Overlapping program name */
-					__( 'Radio show "%1$s" on %2$s: Time slot overlaps with "%3$s".', 'radio-player-page' ),
-					$prog_data['name'],
-					$day_labels[ $day ],
-					$overlapping
-				);
-				continue;
-			}
-			$day_intervals[] = array(
-				'start' => $prog_data['start_time'],
-				'end'   => $prog_data['end_time'],
-				'name'  => $prog_data['name'],
-			);
-			$day_programs[]  = array(
-				'program_id' => $prog_data['program_id'],
-				'start'      => $prog_data['start'],
-				'end'        => $prog_data['end'],
-				'is_rerun'   => $prog_data['is_rerun'],
-			);
-		}
-		if ( ! empty( $day_programs ) ) {
-			$schedule_out[ $day ] = $day_programs;
-		}
-	}
-
-	// Cross-day overlap for midnight-crossing slots.
-	$days_array = $valid_days;
-	foreach ( $days_array as $day_idx => $day ) {
-		if ( ! isset( $schedule_out[ $day ] ) || empty( $schedule_out[ $day ] ) ) {
-			continue;
-		}
-		foreach ( $schedule_out[ $day ] as $program ) {
-			$program_id    = isset( $program['program_id'] ) ? (int) $program['program_id'] : 0;
-			$program_data  = $program_id > 0 ? radplapag_get_program_data( $program_id ) : null;
-			$program_name  = $program_data ? $program_data['name'] : '';
-			$program_start = isset( $program['start'] ) ? trim( $program['start'] ) : '';
-			$program_end   = isset( $program['end'] ) ? trim( $program['end'] ) : '';
-			if ( empty( $program_start ) || empty( $program_end ) || ! $program_data ) {
-				continue;
-			}
-			$start_time = strtotime( '2000-01-01 ' . $program_start . ':00' );
-			$end_time   = strtotime( '2000-01-01 ' . $program_end . ':00' );
-			if ( $end_time <= $start_time ) {
-				$next_day_idx = ( $day_idx + 1 ) % 7;
-				$next_day     = $days_array[ $next_day_idx ];
-				if ( isset( $schedule_out[ $next_day ] ) && is_array( $schedule_out[ $next_day ] ) ) {
-					foreach ( $schedule_out[ $next_day ] as $next_program ) {
-						$next_program_id   = isset( $next_program['program_id'] ) ? (int) $next_program['program_id'] : 0;
-						$found_next        = $next_program_id > 0 ? radplapag_get_program_data( $next_program_id ) : null;
-						$next_program_name = $found_next ? $found_next['name'] : '';
-						$next_start        = isset( $next_program['start'] ) ? trim( $next_program['start'] ) : '';
-						$next_end          = isset( $next_program['end'] ) ? trim( $next_program['end'] ) : '';
-						if ( empty( $next_start ) || empty( $next_end ) || ! $found_next ) {
-							continue;
-						}
-						$next_start_time = strtotime( '2000-01-01 ' . $next_start . ':00' );
-						if ( $end_time > $next_start_time ) {
-							$errors[] = sprintf(
-								/* translators: 1: Program name, 2: Day name, 3: Overlapping program name, 4: Next day name */
-								__( 'Radio show "%1$s" on %2$s (crosses midnight) overlaps with "%3$s" on %4$s.', 'radio-player-page' ),
-								$program_name,
-								$day_labels[ $day ],
-								$next_program_name,
-								$day_labels[ $next_day ]
-							);
-							return new WP_Error( 'radplapag_schedule_validation', implode( ' ', $errors ) );
-						}
-					}
+				$program_data = radplapag_get_program_data( $program_id );
+				if ( $program_data ) {
+					$program_names[ $program_id ] = $program_data['name'];
 				}
 			}
 		}
 	}
 
-	if ( ! empty( $errors ) ) {
-		return new WP_Error( 'radplapag_schedule_validation', implode( ' ', $errors ) );
+	$result = \RadioPlayerPage\Schedule\Slot_Validator::validate( $schedule_input, $program_names );
+	if ( ! empty( $result['errors'] ) ) {
+		return new WP_Error( 'radplapag_schedule_validation', \RadioPlayerPage\WP\Schedule_Messages::join( $result['errors'] ) );
 	}
-	return $schedule_out;
+	return $result['schedule'];
 }
 
 /**
