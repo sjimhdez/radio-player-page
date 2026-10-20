@@ -68,7 +68,8 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `admin/admin.php`, `tests/php/integration/Admin/AdminScreensTest.php`, `tests/js/admin/support/mount-station-screen.js`, `tests/js/admin/smoke.test.js`, `SPEC.md`.
 - Test: caracterización: `AdminScreensTest` (aserción ampliada), e2e `admin.spec.ts`.
 - Verificación: `npm run lint:php && npm run lint:phpstan && npm run test:php:integration -- --filter AdminScreens && npm test`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `radplapag-schedule-rules` se registra (`wp_register_script`, sin encolar: entra por ser dependencia) en la rama de la pantalla de emisora, justo antes de `radplapag-station-admin`, que lo añade a sus `deps` tras `jquery` y `media-editor`. `AdminScreensTest`: la aserción de `deps` de station-admin pasa a incluir el handle (la edición aprobada, ADR 0028 D3); se comprueban `src`, `deps` vacíos, `ver` y footer del handle nuevo, y que no se registra en la pantalla de programa (29 tests, 219 aserciones). Mutación (revertida): quitar la dependencia hace fallar el test. El arnés de Vitest importa `schedule-rules.js` antes que `station-admin.js` y `smoke.test.js` lo carga sin markup (244 tests en la raíz). E2E `admin.spec.ts` en Chromium y WebKit: 28 pasan. `SPEC.md` §3.6 quita «alta prevista».
 
 ### 2.6 `station-admin.js` delega la validación (≤ 1 h)
 - Qué: un `readSchedule()` lee las filas (valores, texto de la opción elegida, `display: none`); `validateProgramRow()` y el envío llaman a `checkSlot()`/`checkSchedule()` y aplican las escrituras con `showProgramError()`/`clearProgramError()` y `message()`. Se borran las funciones movidas. Los momentos de validar, la revalidación (K16), el orden por inicio, K15 y K45 no cambian. Las reglas se leen de `window.radplapagScheduleRules` al usarlas (no al cargar).

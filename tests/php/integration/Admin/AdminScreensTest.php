@@ -240,8 +240,9 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * On the station screen: the CSS, media, station-admin.js and program-admin.js
-	 * (for the logo and background pickers), both in the footer.
+	 * On the station screen: the CSS, media, station-admin.js (after the schedule
+	 * rules) and program-admin.js (for the logo and background pickers), all in
+	 * the footer.
 	 */
 	public function test_admin_scripts_on_the_station_screen() {
 		set_current_screen( 'radplapag_station' );
@@ -257,17 +258,24 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		$this->assertSame( '3.4.2', $style->ver );
 
 		foreach ( array(
-			'radplapag-station-admin' => 'station-admin.js',
-			'radplapag-program-admin' => 'program-admin.js',
-		) as $handle => $file ) {
+			'radplapag-station-admin' => array( 'station-admin.js', array( 'jquery', 'media-editor', 'radplapag-schedule-rules' ) ),
+			'radplapag-program-admin' => array( 'program-admin.js', array( 'jquery', 'media-editor' ) ),
+		) as $handle => list( $file, $deps ) ) {
 			$script = wp_scripts()->registered[ $handle ];
 			$this->assertTrue( wp_script_is( $handle, 'enqueued' ), $handle );
 			$this->assertSame( $admin . 'js/' . $file, $script->src, $handle );
-			$this->assertSame( array( 'jquery', 'media-editor' ), $script->deps, $handle );
+			$this->assertSame( $deps, $script->deps, $handle );
 			$this->assertSame( '3.4.2', $script->ver, $handle );
 			$this->assertSame( 1, wp_scripts()->get_data( $handle, 'group' ), $handle );
 		}
 		$this->assertSame( $media + 1, did_action( 'wp_enqueue_media' ) );
+
+		$rules = wp_scripts()->registered['radplapag-schedule-rules'];
+		$this->assertTrue( wp_script_is( 'radplapag-schedule-rules', 'registered' ) );
+		$this->assertSame( $admin . 'js/schedule-rules.js', $rules->src );
+		$this->assertSame( array(), $rules->deps );
+		$this->assertSame( '3.4.2', $rules->ver );
+		$this->assertSame( 1, wp_scripts()->get_data( 'radplapag-schedule-rules', 'group' ) );
 	}
 
 	/**
@@ -282,6 +290,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 
 		$this->assertTrue( wp_style_is( 'radplapag-admin', 'enqueued' ) );
 		$this->assertFalse( wp_script_is( 'radplapag-station-admin', 'enqueued' ) );
+		$this->assertFalse( wp_script_is( 'radplapag-schedule-rules', 'registered' ) );
 		$this->assertFalse( wp_script_is( 'radplapag-program-admin', 'enqueued' ) );
 		$this->assertSame( $media, did_action( 'wp_enqueue_media' ) );
 

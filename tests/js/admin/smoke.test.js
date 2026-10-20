@@ -7,6 +7,7 @@ import { runInNewContext } from 'node:vm';
 import { describe, expect, it } from 'vitest';
 
 const ADMIN_SCRIPTS = [
+	'admin/js/schedule-rules.js',
 	'admin/js/station-admin.js',
 	'admin/js/program-admin.js',
 ];

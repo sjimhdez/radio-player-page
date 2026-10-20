@@ -152,7 +152,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - Validación en el cliente (`admin/js/station-admin.js`: solapes, franjas que cruzan la medianoche) y en el servidor; los errores del servidor se muestran como avisos tras guardar (transients de §3.1).
 - Las páginas ya asignadas a otra emisora se desactivan en el selector (`radplapag_get_player_pages_assigned_to_other_stations()`).
 - Cadenas del JS en `admin/admin-strings.php` (`radplapag_get_admin_strings()`), localizadas como `radplapagAdmin`.
-- Reglas del horario del admin en el script `radplapag-schedule-rules` (`admin/js/schedule-rules.js`; alta prevista en la spec 0005, fase 2), dependencia de `radplapag-station-admin`, que expone `window.radplapagScheduleRules` (**interno**, no es contrato; ADR 0028). Los handles existentes no cambian.
+- Reglas del horario del admin en el script `radplapag-schedule-rules` (`admin/js/schedule-rules.js`, desde la 0005), dependencia de `radplapag-station-admin`, que expone `window.radplapagScheduleRules` (**interno**, no es contrato; ADR 0028). Los handles existentes no cambian.
 
 ### 3.7 Desinstalación
 

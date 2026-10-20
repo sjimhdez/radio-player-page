@@ -2,10 +2,10 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0005-php-admin-refactor/phase-2.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas; hechas la 2.1–2.4 (K74 y K75 nuevos, decisión pendiente; `schedule-rules.js` completo, con los 11 vectores). La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
+- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas; hechas la 2.1–2.5 (K74 y K75 nuevos, decisión pendiente; `schedule-rules.js` completo, con los 11 vectores, y registrado como dependencia de `radplapag-station-admin`). La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 2.5: registro del handle `radplapag-schedule-rules` (deps de `radplapag-station-admin`, arnés de Vitest, `SPEC.md` §3.6); después 2.6, `station-admin.js` delega la validación.
+1. Tarea 2.6: `station-admin.js` delega la validación en `window.radplapagScheduleRules`; después 2.7, cobertura del admin en la CI.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
