@@ -10,6 +10,7 @@ type Handler = (event?: unknown, data?: { fatal: boolean }) => void
 // The hook loads hls.js and dashjs with dynamic import(); vi.mock intercepts both.
 const hls = vi.hoisted(() => ({
   instances: [] as Array<{
+    config: unknown
     handlers: Record<string, Handler>
     loadSource: ReturnType<typeof vi.fn>
     attachMedia: ReturnType<typeof vi.fn>
@@ -28,7 +29,9 @@ vi.mock('hls.js', () => {
     on = (event: string, cb: Handler) => {
       this.handlers[event] = cb
     }
-    constructor() {
+    config: unknown
+    constructor(config?: unknown) {
+      this.config = config
       hls.instances.push(this)
     }
   }
@@ -190,6 +193,14 @@ describe('HLS', () => {
     await act(async () => instance.handlers.hlsManifestParsed())
     expect(media.play).toHaveBeenCalledTimes(1)
     expect(audio.crossOrigin).toBeNull()
+  })
+
+  // hls.js 1.7 turned preferManagedMediaSource off by default; 3.4.2 shipped
+  // with it on (spec 0003, task 1.1).
+  it('creates hls.js preferring ManagedMediaSource', async () => {
+    const { api } = mount(HLS)
+    await act(() => api.current.play())
+    expect(hls.instances[0].config).toEqual({ preferManagedMediaSource: true })
   })
 
   // docs/known-issues.md K11
