@@ -157,7 +157,7 @@ add_action( 'init', 'radplapag_register_program_meta', 20 );
  * @since 3.3.0
  * @param int  $post_id          Post ID of radplapag_program.
  * @param bool $require_published Optional. Whether to require published status. Default false.
- * @return array|null Associative array with 'name', 'description', 'extended_description', 'logo_id', 'logo_url'; null if invalid or not found.
+ * @return array{name: string, description: string, extended_description: string, logo_id: int, logo_url: string|null}|null Name, description, extended description, logo ID and logo URL; null if invalid or not found.
  */
 function radplapag_get_program_data( $post_id, $require_published = false ) {
 	$post_id = (int) $post_id;

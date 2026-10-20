@@ -139,12 +139,6 @@ parameters:
 			path: includes/radplapag-program-cpt.php
 
 		-
-			message: '#^Function radplapag_get_program_data\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: includes/radplapag-program-cpt.php
-
-		-
 			message: '#^Function radplapag_grant_program_caps_to_manage_options\(\) has parameter \$allcaps with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -175,26 +169,8 @@ parameters:
 			path: includes/radplapag-program-cpt.php
 
 		-
-			message: '#^Binary operation "\+" between int\<min, 5\>\|int\<7, max\>\|string\|false and 1 results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: includes/radplapag-programs-list-block.php
-
-		-
-			message: '#^Binary operation "\-" between int\|string\|false and int\|string\|false results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: includes/radplapag-programs-list-block.php
-
-		-
 			message: '#^Function radplapag_get_programs_list_for_station\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
-			path: includes/radplapag-programs-list-block.php
-
-		-
-			message: '#^Offset decimal\-int\-string&non\-falsy\-string on array\<string, non\-empty\-list\<array\{day_key\: mixed, day_label\: mixed, time_range\: non\-falsy\-string, is_live\: bool\}\>\> on left side of \?\? does not exist\.$#'
-			identifier: nullCoalesce.offset
 			count: 1
 			path: includes/radplapag-programs-list-block.php
 

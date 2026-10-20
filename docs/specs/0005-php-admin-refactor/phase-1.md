@@ -147,7 +147,8 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Archivos: `includes/radplapag-programs-list-block.php`, `tests/coverage/php-zones.json`, `phpstan-baseline.neon`.
 - Test: caracterización: `BlockDataTest`, `BlockRenderTest` (existentes).
 - Verificación: `npm run check && npm run test:php:integration:coverage && node scripts/check-php-coverage.mjs coverage/php-xml`
-- [ ] hecha · commit: —
+- Resultado: `radplapag_get_programs_list_for_station()` valida el índice, carga cada programa publicado de `Programs_List_View::program_ids_in_order()` con `radplapag_get_program_data( $id, true )` y llama a `Programs_List_View::build()` con las etiquetas de `radplapag_get_schedule_day_keys_and_labels()`, `WP\Clock::now()` y `'sanitize_text_field'`. Para que PHPStan acepte el mapa, el `@return` de `radplapag_get_program_data()` pasa de `array|null` a su forma exacta (solo PHPDoc, mismo comportamiento; sin errores nuevos en otros llamadores). Salen de la baseline cuatro entradas: las dos `binaryOp.invalid` y la `nullCoalesce.offset` del archivo, y la `missingType.iterableValue` del `@return` de `radplapag_get_program_data()`; la del `@return` del envoltorio se queda. `php-zones.json` sin cambios (el envoltorio sigue en `rest`). Mutación (mapa de programas vacío) hace fallar 34 tests; revertida. Cobertura con Xdebug (`env:start:latest -- --xdebug=coverage`, WP 7.1.3, 645 tests): `critical` 96,39 % (480/498), `core` 100 % (324/324), `rest` 89,77 % (869/968); no hizo falta ningún test más. `--filter 'Block|Program'` (160 tests) y `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ## Decisiones abiertas → ADR
 
