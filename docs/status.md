@@ -2,16 +2,15 @@
 Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) (spec: [`spec.md`](specs/0003-player-dependencies/spec.md)) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). PR #38 en borrador contra `trunk`.
+- Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). 1.2 hecha (bloques en `@wordpress/scripts` 37 con flat config propio). PR #38 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 1.2 Subir las dependencias de los tres bloques (`@wordpress/scripts` 37, flat config propio).
-2. 1.3 Excepciones en el ADR 0022.
-3. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
-4. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
+1. 1.3 Excepciones en el ADR 0022.
+2. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
+3. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
 
 ## Bloqueos / preguntas para el humano
-- Ninguno.
+- `BlockRenderTest` (integración): los 20 snapshots con orden `natural` de `schedule` y `programs-list` fallan según el día real de la semana (hoy, martes), con o sin la 0003. `Clock` rota los días para que «hoy» sea el miércoles del vector, pero `natural` ordena por los días reales. Es un fallo del test de caracterización; ¿se registra en `known-issues.md` y se arregla el test en una spec de correcciones? Bloquea la integración completa de la 1.4 los días que falla.
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.

@@ -12,9 +12,9 @@ const blockName = metadata.name;
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
  *
- * @param {Object}   props               Block props.
- * @param {Object}   props.attributes    Block attributes.
- * @param {Function} props.setAttributes Updates block attributes.
+ * @param {Object}                    props               Block props.
+ * @param {Object}                    props.attributes    Block attributes.
+ * @param {( attrs: Object ) => void} props.setAttributes Updates block attributes.
  * @return {Element} Element to render.
  */
 export default function Edit( { attributes, setAttributes } ) {
@@ -31,7 +31,7 @@ export default function Edit( { attributes, setAttributes } ) {
 						),
 						value: 0,
 					},
-			  ]
+				]
 			: stations.map( ( station, index ) => ( {
 					label:
 						station.label ||
@@ -39,7 +39,7 @@ export default function Edit( { attributes, setAttributes } ) {
 							' ' +
 							( index + 1 ),
 					value: index,
-			  } ) );
+				} ) );
 	const safeIndex = Math.max(
 		0,
 		Math.min( stationIndex, stations.length ? stations.length - 1 : 0 )
