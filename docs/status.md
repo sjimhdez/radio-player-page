@@ -2,16 +2,16 @@
 Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) (spec: [`spec.md`](specs/0003-player-dependencies/spec.md)) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). 1.2 hecha (bloques en `@wordpress/scripts` 37 con flat config propio). 1.2b hecha (K73 corregido: `Clock` con día exacto). 1.3 hecha (excepciones en el ADR 0022: TS 6.0.x, `@babel/runtime` 7.x). PR #38 en borrador contra `trunk`.
+- Spec 0003, fase 1 (actualización agrupada, ADR 0026): 1.1 hecha (player a la última; TS 6.0.3; navegadores en el ADR 0027). 1.2 hecha (bloques en `@wordpress/scripts` 37 con flat config propio). 1.2b hecha (K73 corregido: `Clock` con día exacto). 1.3 hecha (excepciones en el ADR 0022: TS 6.0.x, `@babel/runtime` 7.x). 1.4 hecha (devDependencies del player fijadas con versión exacta; check, integración y e2e en verde en las dos puntas; tabla del bundle en el PR). PR #38 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. 1.4 Verificación completa en las dos puntas y tabla del bundle en el PR.
-2. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
+1. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.
 
 ## Verificación manual pendiente
+- A7 (spec 0003): revisión visual en <http://localhost:8886> (`npm run env:start`). Player: pausa, reproducción, modales de horario y programas, temporizador de sueño, en móvil y escritorio. Los tres bloques en el editor y en el front. Se mira sobre todo lo que pueda cambiar con MUI 9. Hasta que la apruebe el usuario.
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66) y los controles con `100vh` bajo la barra de Safari de iOS.
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).

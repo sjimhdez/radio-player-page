@@ -79,7 +79,8 @@ Medido al planificar (2026-10-20):
 - Qué: `npm run check`; integración y e2e completos en las dos puntas; A4; tabla del bundle antes/después en el cuerpo del PR #38 (`gh pr edit 38 --body …`); añadir A7 a «Verificación manual pendiente» de `docs/status.md`. Si un e2e falla: se arregla la causa en el commit del proyecto afectado (nuevo commit `fix`/`build` con su número de tarea), nunca el test.
 - Verificación: `npm run check && npm run env:start:min && npm run test:php:integration && npm run test:e2e && npm run env:start:latest && npm run test:php:integration && npm run test:e2e` y el `git diff` de A4 vacío.
 - Commit: `docs(0003): record verification and pending visual review (1.4)` (status + marcas del plan)
-- [ ] hecha · commit: —
+- Resultado: las 12 `devDependencies` con `^`/`~` quedan fijadas a la versión que ya resolvía el lockfile. En `package-lock.json` solo cambia la raíz, editada a mano: `npm install --package-lock-only` quitaba los campos `libc` del árbol. `npm ci`, `check` y `build` del player sin cambios en `dist/`. `npm run check` y `check:zip` en verde. WP 6.6.10 + PHP 7.4.33 y WP 7.1.3 + PHP 8.4.26: integración OK (378 tests) y e2e con 196 que pasan y 22 omitidos en las dos. El diff de A4 está vacío. Bundle en el PR #38: igual que en la 1.1, salvo el principal, 185 906 (+4,3 %; 16 bytes más por `preferManagedMediaSource` de e2c2c59). A7 queda en «Verificación manual pendiente».
+- [x] hecha · commits: 21c9d9b, (este)
 
 ### 1.5 Ajustes de la revisión visual (solo si hacen falta)
 - Qué: el usuario revisa en <http://localhost:8886> (`npm run env:start`). Diferencias por MUI 9 → compensar en `player/src/config/theme.ts` si no cambia nada visible respecto a la 3.4.2; si el cambio se queda, ADR aprobado por el usuario.
