@@ -10,9 +10,10 @@ Spec activa: 0003 — Dependencias del player y de los bloques · Fase: 1 en cur
 3. 1.5 Revisión visual del usuario (A7) y ajustes, si hacen falta; luego `close-phase`.
 
 ## Bloqueos / preguntas para el humano
-- `BlockRenderTest` (integración): los 20 snapshots con orden `natural` de `schedule` y `programs-list` fallan según el día real de la semana (hoy, martes), con o sin la 0003. `Clock` rota los días para que «hoy» sea el miércoles del vector, pero `natural` ordena por los días reales. Es un fallo del test de caracterización; ¿se registra en `known-issues.md` y se arregla el test en una spec de correcciones? Bloquea la integración completa de la 1.4 los días que falla.
+- Ninguno.
 
 ## Verificación manual pendiente
+- K73: los snapshots `natural` de `BlockRenderTest` fallan los lunes y martes (fallo del test; se corrige en la 0013). En la 1.4, si toca uno de esos días, la integración se da por buena con esos 20 como únicos fallos y se anota.
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66) y los controles con `100vh` bajo la barra de Safari de iOS.
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
