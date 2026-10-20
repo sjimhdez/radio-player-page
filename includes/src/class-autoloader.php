@@ -66,8 +66,9 @@ final class Autoloader {
 			return null;
 		}
 
+		// Only valid identifiers, so a name like `..` never becomes a path.
 		$relative = substr( $class_name, strlen( self::PREFIX ) );
-		if ( '' === $relative ) {
+		if ( 1 !== preg_match( '/^[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$/', $relative ) ) {
 			return null;
 		}
 

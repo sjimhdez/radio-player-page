@@ -69,6 +69,11 @@ final class AutoloaderTest extends TestCase {
 			'prefix inside a name' => array( 'Other\RadioPlayerPage\Schedule\Time' ),
 			'bare prefix'          => array( 'RadioPlayerPage\\' ),
 			'empty'                => array( '' ),
+			'parent segment'       => array( 'RadioPlayerPage\..\..\uploads\Probe' ),
+			'slash in a segment'   => array( 'RadioPlayerPage\Schedule/../Probe' ),
+			'empty segment'        => array( 'RadioPlayerPage\Schedule\\\\Time' ),
+			'trailing separator'   => array( 'RadioPlayerPage\Schedule\\' ),
+			'leading digit'        => array( 'RadioPlayerPage\Schedule\9Time' ),
 		);
 	}
 
