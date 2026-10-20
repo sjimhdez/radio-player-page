@@ -59,7 +59,8 @@ Mover la lectura de emisoras y programas, el guardado de sus campos y el armado 
 - Archivos: `includes/src/data/class-stations.php`, `tests/zip/expected-additions.txt`.
 - Test: primero (TDD): `tests/php/unit/Data/StationsTest.php`.
 - Verificación: `npm run test:php:unit -- --filter StationsTest && npm run check:zip`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `Data\Stations` con `for_page( $stations, $page_id )` y `player_pages( $page_by_station, $exclude )`. 13 tests en `StationsTest`, en rojo primero (clase inexistente). Fijado como en la 3.4.2: `for_page` devuelve la fila tal cual, gana la primera, compara la página con `intval()` (`'10abc'` → 10) y la URL con `empty()` (`''`, `'0'` y `null` se saltan), salta las filas sin `player_page` o `stream_url` (o con `null`) y las que no son array, y con página 0 casa con una emisora sin página (K24). `player_pages` recibe la meta cruda por ID de emisora, la pasa por `(int)`, quita las ≤ 0 y las repetidas (orden de primera aparición) y solo excluye si `$exclude > 0`; la misma página de otra emisora se queda. La guarda `is_array()` es nueva: en la 3.4.2 las filas siempre son arrays (`radplapag_get_config()`). Sin entradas de baseline.
 
 ### 3.5 La lectura de emisoras delega (≤ 1 h)
 - Qué: `WP\Station_Repository` con `row( WP_Post )`, que lee la meta y llama a `Data\Station::row`, `published_rows()` y `player_pages_except( int )`. Delegan `Radplapag_Station_Config::to_array()`, `radplapag_get_stations()`, `radplapag_get_station_for_current_page()` y `radplapag_get_player_pages_assigned_to_other_stations()`, con un `@since 3.5.0` que dice que delegan. El repositorio va a la zona `critical`; salen las entradas de baseline que desaparezcan.
