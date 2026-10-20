@@ -2,15 +2,14 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0005-php-admin-refactor/phase-2.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas; hecha la 2.1. La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
+- Spec 0005: fase 2 (reglas y DOM del admin) empezada el 2026-10-20, 9 tareas; hechas la 2.1 y la 2.2 (K74 y K75 nuevos, decisión pendiente). La fase 1 se cerró el mismo día (cobertura `critical` 96,39 %, `core` 100 %, `rest` 89,77 %). PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 2.2: huecos de la validación del cliente antes de extraerla.
-2. Tareas 2.3–2.4: `admin/js/schedule-rules.js` por TDD con los vectores.
-3. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
+1. Tareas 2.3–2.4: `admin/js/schedule-rules.js` por TDD con los vectores.
+2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
-- Ninguno.
+- K74 y K75 (caracterización 2.2, gravedad baja): decidir si se corrigen y en qué spec (propuesta: 0010 admin). No bloquean la fase: la extracción las conserva.
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
