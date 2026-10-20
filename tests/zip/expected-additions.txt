@@ -7,3 +7,4 @@ includes/src/schedule/class-time.php
 includes/src/schedule/class-week.php
 includes/src/schedule/class-slot-validator.php
 includes/src/wp/class-schedule-messages.php
+includes/src/schedule/class-now-playing-resolver.php
