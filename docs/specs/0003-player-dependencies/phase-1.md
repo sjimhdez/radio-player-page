@@ -1,0 +1,78 @@
+# Spec 0003 · Fase 1 — Actualización agrupada
+Estado: en curso · Inicio: 2026-10-20 · ADRs: 0026, 0022, 0020, 0021, 0018, 0014, 0023, 0012, 0004, 0025
+
+## Contexto
+Medido al planificar (2026-10-20):
+
+- `npm outdated` coincide con §4.1 de la spec. Única novedad: `@babel/runtime` 8.0.7 existe, pero `@wordpress/scripts` 37 sigue en `@babel/core` ^7 y `@wordpress/babel-preset-default` 10 → los bloques suben a la **7.29.x** (última compatible), excepción del ADR 0022.
+- `typescript-eslint` 8.72 pide `typescript >=4.8.4 <6.1.0` → player en TS **6.0.x** (excepción ADR 0022). `@wordpress/scripts` 37 trae ESLint ^10 y `@wordpress/eslint-plugin` 28 (peer `typescript >=5`); el TS de `now-playing` sube a lo más alto que acepte su `@typescript-eslint`.
+- Afirmaciones de §4.2 comprobadas y ciertas: `baseUrl` en `player/tsconfig.app.json`; `process.env.NODE_ENV` en `src/utils/timezone.ts`; `tseslint.config()` en `player/eslint.config.js`; `build.rollupOptions` con `chunkFileNames` en `vite.config.ts`; las 6 líneas de `react-hooks` 7 existen; los bloques usan `.eslintrc.json` + `ESLINT_USE_FLAT_CONFIG=false`.
+- `player/dist/` es idéntico a la `v3.4.2`. Línea base en gzip (`gzip -9c | wc -c`):
+
+| Archivo | Bytes | gzip |
+|---|---|---|
+| `radio-player-page-3.4.2.min.js` | 570 930 | 178 185 |
+| `…-hls.min.js` | 525 034 | 161 659 |
+| `…-dash-all-min.min.js` | 857 037 | 255 283 |
+| `…-bar-visualizer.min.js` | 2 234 | 1 099 |
+| `…-particles-visualizer.min.js` | 1 913 | 985 |
+| `…-amplitude-waterfall-visualizer.min.js` | 1 253 | 699 |
+| `…-oscilloscope-visualizer.min.js` | 724 | 482 |
+| `radio-player-page-3.4.2.css` | 1 012 | 570 |
+
+## Objetivo
+`player/` y los tres bloques con cada dependencia en su última versión estable (o la más alta posible, con excepción en el ADR 0022), sin cambio de comportamiento ni de nombres de assets, y la revisión visual del usuario aprobada.
+
+## Criterios de aceptación
+| Criterio | Cómo se verifica |
+|---|---|
+| A1 Todo en la última estable salvo excepciones del ADR 0022 | `npm --prefix player outdated` y `npm --prefix blocks/<b> outdated` solo listan las excepciones |
+| A2 El comportamiento no cambia | `npm run check`; `npm run test:e2e` completo en `env:start:min` y `env:start:latest` (Chromium + WebKit), sin editar tests ni la línea base de axe |
+| A3 Mismos archivos y nombres en los builds | `npm run check:zip` y `git status` limpio tras `build` de cada proyecto (lo que compara la CI) |
+| A4 Zona congelada intacta | `git diff origin/trunk -- player/src/components/visualizers player/src/config/visualizers.ts player/src/types/visualizers.tsx player/src/hooks/use-audio-visualizer.tsx player/src/hooks/use-can-visualize.tsx` vacío |
+| A5 Bundle anotado | Tabla antes/después en gzip en el cuerpo del PR #38; > +10 % en un archivo → pregunta al usuario |
+| A6 Licencias y vulnerabilidades | CI: `check-licenses.mjs` y `npm audit` en verde en el PR |
+| A7 Revisión visual aprobada | Manual en <http://localhost:8886> (player: pausa, reproducción, modales de horario y programas, temporizador de sueño, móvil y escritorio; los tres bloques en editor y front). En «Verificación manual pendiente» hasta que el usuario la apruebe |
+
+## Tareas
+
+### 1.1 Subir las dependencias del player (≈ 1–2 h; se parte si algo rompe)
+- Qué: todas las de §4.1 a la última (TS 6.0.x). Guías y codemods: TS 6 (quitar `baseUrl`, `"types": ["node"]` en `tsconfig.app.json`); ESLint 10 (`defineConfig()` de `eslint/config`); `react-hooks` 7 (6 `eslint-disable-next-line <regla> -- <motivo, 0006>`, sin reescribir efectos); Vite 7/8 (`build.target` explícito igual al por defecto de Vite 6, `rollupOptions` → `rolldownOptions`, ajustar `chunkFileNames` hasta reproducir los nombres de la 3.4.2); MUI 9 (`npx @mui/codemod@latest v9.0.0/preset-safe src`, guía oficial); `date-fns` 4, `i18next` 26, `react-i18next` 17 según sus guías. Rebuild de `player/dist/` y commit del resultado. Medir el bundle después.
+- Si MUI, Vite o i18next rompen algo que su guía no resuelve: ese paquete a su propio commit (`build(0003): upgrade <paquete> in player (1.1)`), ADR 0026. Si una migración exige cambiar comportamiento o tocar un visualizador: **parar y preguntar**.
+- Archivos: `player/package.json`, `package-lock.json`, `tsconfig.app.json`, `eslint.config.js`, `vite.config.ts`, las 4–5 líneas con `eslint-disable`, lo que pidan los codemods, `player/dist/`.
+- Test: los existentes (caracterización de la 0002); no se editan.
+- Verificación: `npm --prefix player run check && npm --prefix player run build && git status --short player/dist && npm run check:zip`
+- Commit: `build(0003): upgrade player dependencies (1.1)`
+- [ ] hecha · commit: —
+
+### 1.2 Subir las dependencias de los tres bloques (≈ 1 h)
+- Qué: `@wordpress/scripts` 37, `@babel/runtime` 7.29.x, TS de `now-playing` lo más alto que acepte el lint. Sustituir `.eslintrc.json` por `eslint.config.mjs` propio de cada bloque (guía de `@wordpress/scripts`, recomendado de `@wordpress/eslint-plugin`), quitar `ESLINT_USE_FLAT_CONFIG=false` del script `lint`, comprobar que no lee el `eslint.config.mjs` de la raíz (ADR 0020). Actualizar `.claude/rules/blocks.md` (ESLint 10, flat config). Si `@babel/runtime` aparece en `build/`, pasar a `dependencies`. Rebuild y commit de `blocks/*/build/` (los nombres no cambian). Un commit para los tres, o uno por bloque si alguno da guerra.
+- Archivos: `blocks/{now-playing,programs-list,schedule}/{package.json,package-lock.json,eslint.config.mjs,.eslintrc.json(borrar),build/}`, `.claude/rules/blocks.md`, y cualquier ruta de `.eslintrc.json` en hooks/CI (`grep -rn eslintrc .claude .github scripts`).
+- Test: e2e de bloques en WP 6.6 (`tests/e2e/blocks.spec.ts`) y snapshots de render en integración.
+- Verificación: `for b in now-playing programs-list schedule; do npm --prefix blocks/$b run check || exit 1; done && git status --short blocks/*/build && npm run check:zip`
+- Commit: `build(0003): upgrade block dependencies (1.2)`
+- [ ] hecha · commit: —
+
+### 1.3 Excepciones en el ADR 0022 (≈ 15 min)
+- Qué: anotar TS 6.0.x en el player (peer de `typescript-eslint`, se revisa cuando admita la 7, riesgo 6), `@babel/runtime` 7.x en los bloques (`@wordpress/scripts` 37 sigue en Babel 7), y el estado nuevo del TS de `now-playing` (quitar o actualizar su excepción). Más las que hayan salido de 1.1/1.2.
+- Archivos: `docs/adr/0022-latest-stable-versions.md`.
+- Verificación: `npm --prefix player outdated; for b in now-playing programs-list schedule; do npm --prefix blocks/$b outdated; done` (solo listan lo del ADR)
+- Commit: `docs(0003): record dependency exceptions in ADR 0022 (1.3)`
+- [ ] hecha · commit: —
+
+### 1.4 Verificación completa y tabla del bundle (≈ 1 h, sin cambios de código)
+- Qué: `npm run check`; integración y e2e completos en las dos puntas; A4; tabla del bundle antes/después en el cuerpo del PR #38 (`gh pr edit 38 --body …`); añadir A7 a «Verificación manual pendiente» de `docs/status.md`. Si un e2e falla: se arregla la causa en el commit del proyecto afectado (nuevo commit `fix`/`build` con su número de tarea), nunca el test.
+- Verificación: `npm run check && npm run env:start:min && npm run test:php:integration && npm run test:e2e && npm run env:start:latest && npm run test:php:integration && npm run test:e2e` y el `git diff` de A4 vacío.
+- Commit: `docs(0003): record verification and pending visual review (1.4)` (status + marcas del plan)
+- [ ] hecha · commit: —
+
+### 1.5 Ajustes de la revisión visual (solo si hacen falta)
+- Qué: el usuario revisa en <http://localhost:8886> (`npm run env:start`). Diferencias por MUI 9 → compensar en `player/src/config/theme.ts` si no cambia nada visible respecto a la 3.4.2; si el cambio se queda, ADR aprobado por el usuario.
+- Verificación: `npm --prefix player run check && npm --prefix player run build` y nueva aprobación del usuario.
+- Commit: `fix(0003): restore 3.4.2 look after MUI 9 (1.5)` (si aplica)
+- [ ] hecha · commit: —
+
+## Decisiones abiertas → ADR
+- Si MUI 9 exige un `build.target` más alto que el de Vite 6 → preguntar y ADR (afecta a navegadores soportados).
+- Si el build de `@wordpress/scripts` 37 no funciona en WP 6.6 → fijar la versión más alta que funcione, excepción en el ADR 0022 (riesgo 5).
+- Si el bundle crece > 10 % → primero imports por ruta en `VolumeControl.tsx`, `StreamInfo.tsx`, `AllProgramsModal.tsx`, `ScheduleModal.tsx` (riesgo 3); si no basta, preguntar.
