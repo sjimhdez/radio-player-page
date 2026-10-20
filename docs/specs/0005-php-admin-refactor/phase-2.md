@@ -84,7 +84,8 @@ Sacar las reglas del horario del admin a `admin/js/schedule-rules.js` (puro, sob
 - Archivos: `vitest.config.mjs`, `.github/workflows/ci.yml`.
 - Test: — (mutación: subir el umbral a 101 y verlo fallar; revertida).
 - Verificación: `npm run test:coverage`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `coverage.thresholds` con `'admin/js/schedule-rules.js': { lines: 85 }` (el glob es el archivo, como en el player). Cifras de líneas (ramas): `schedule-rules.js` 100 % (99 %), `station-admin.js` 96,73 % (72,32 %), `program-admin.js` 85,45 % (76,66 %); total 96,06 % (80,22 %). 244 tests. El job `root-js` cambia `npm test` por `npm run test:coverage` (mismo proyecto, `TZ=UTC` incluido). Mutación (revertida): con el umbral a 101, `npm run test:coverage` sale con 1 («Coverage for lines (100%) does not meet … threshold (101%)»).
 
 ### 2.8 Fila nueva sin cadenas HTML (≤ 1 h)
 - Qué: `buildProgramSelectHtml()` y `newRow.innerHTML` pasan a `createElement`/`setAttribute`/`textContent`, en el mismo orden de atributos y con los mismos nodos de texto. `decodeEntities()` (`DOMParser`, riesgo 1) sobre el nombre escapado como hoy y sobre las traducciones.
