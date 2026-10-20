@@ -36,14 +36,15 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Test: — (documentación).
 - Verificación: `grep -n 'RadioPlayerPage' SPEC.md && grep -n '0028' docs/adr/README.md`
 - Resultado: ADR 0028 aceptado (D1–D3, capas, namespace interno, zip con altas, segunda `testsuite` para la cobertura del núcleo y zonas en orden). `SPEC.md` §3.4 (namespace interno) y §3.6 (`radplapag-schedule-rules`, alta prevista en la fase 2); el historial (§6) lo actualiza la tarea 4.4. `php.md` (nombres, `expected-additions.txt`, tres capas) y `admin.md` (`schedule-rules.js`, sin script modules). `npm run check` en verde.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 740266b
 
 ### 1.2 Inventario de la API pública (≤ 1 h)
 - Qué: `PublicApiTest` con la lista fija (constante del test) de cada función `radplapag_*`, clase `Radplapag_*` (métodos públicos) y constante `RADPLAPAG_*` de la 3.4.2: nombre, parámetros (nombre, tipo, opcional, valor por defecto, por referencia) y tipo de retorno, comprobados por reflexión. Incluye `admin/` (cargado como en `AdminScreensTest`) y `blocks/*/render.php`; las de `uninstall.php` se comprueban por tokens (cargarlo borra datos). La lista se genera una vez desde el código de hoy y se contrasta con `git show v3.4.2:<archivo>`.
 - Archivos: `tests/php/integration/Contract/PublicApiTest.php`.
 - Test: caracterización: el propio archivo (mutación: renombrar un parámetro en local y verlo fallar).
 - Verificación: `npm run test:php:integration -- --filter PublicApiTest`
-- [ ] hecha · commit: —
+- Resultado: 56 funciones en 11 archivos, 3 de `uninstall.php` (por tokens), 3 clases con 6 métodos públicos y 3 constantes (`RADPLAPAG_DB_VERSION` = `'330'`, `RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES` = `10`, `RADPLAPAG_PLUGIN_FILE`). Cada función y clase fija también su archivo; nada sobra ni falta (las constantes `RADPLAPAG_TESTS_*` de los bootstraps no cuentan). El migrador se carga con `require_once` en `set_up_before_class()` (el plugin lo carga bajo demanda). Firmas de hoy idénticas, por tokens, a las de `git show v3.4.2:<archivo>` (79 entradas, con los métodos privados). Mutación: renombrar `$require_published` de `radplapag_get_program_data()` y quitar el `: void` de `radplapag_uninstall_plugin()` hacen fallar los dos tests; revertida. Integración completa (384 tests) y `npm run check` en verde, en WP 7.1.3 + PHP 8.4; la punta mínima la corre `close-phase`.
+- [x] hecha · commit: (este)
 
 ### 1.3 Guarda del zip con altas declaradas (≤ 1 h)
 - Qué: `tests/zip/expected-additions.txt` (vacío por ahora) y la comparación extraída a `tests/zip/compare-lists.sh <referencia> <actual> <altas>`: acepta exactamente referencia + altas; falla si falta o sobra una ruta, o si un alta ya estaba en la referencia. `compare-with-v3.4.2.sh` la usa. `check:zip` ejecuta antes su test.
