@@ -11,3 +11,4 @@ includes/src/schedule/class-now-playing-resolver.php
 includes/src/wp/class-clock.php
 includes/src/schedule/class-schedule-view.php
 includes/src/schedule/class-programs-list-view.php
+admin/js/schedule-rules.js
