@@ -199,12 +199,6 @@ parameters:
 			path: includes/radplapag-programs-list-block.php
 
 		-
-			message: '#^Binary operation "\+" between int\<min, 5\>\|int\<7, max\>\|string\|false and 1 results in an error\.$#'
-			identifier: binaryOp.invalid
-			count: 1
-			path: includes/radplapag-schedule-block.php
-
-		-
 			message: '#^Function radplapag_build_programs_map\(\) has parameter \$station with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

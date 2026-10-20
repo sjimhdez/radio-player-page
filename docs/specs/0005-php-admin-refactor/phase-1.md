@@ -131,7 +131,8 @@ Montar los cimientos del código nuevo (ADR, autoloader, guardias de arquitectur
 - Archivos: `includes/radplapag-schedule-block.php`, `tests/coverage/php-zones.json`, `phpstan-baseline.neon`.
 - Test: caracterización: `BlockDataTest`, `BlockRenderTest` (existentes).
 - Verificación: `npm run lint:php && npm run lint:phpstan && npm run test:php:integration -- --filter 'Block'`
-- [ ] hecha · commit: —
+- Resultado: `radplapag_build_programs_map()` toma los IDs de `Schedule_View::program_ids()` y sigue cargando cada programa publicado con `radplapag_get_program_data( $id, true )`; `radplapag_get_schedule_for_station()` valida el índice, construye el mapa, llama a `Schedule_View::days()` con las etiquetas de `radplapag_get_schedule_day_keys_and_labels()`, `WP\Clock::now()`, `$day_order` y `'sanitize_text_field'`, y calcula `station_page_url` con `get_permalink()` como antes. Firmas y PHPDoc de tipos sin cambios (tiparlas a fondo arrastra a `blocks/schedule/render.php`, fuera de la tarea); la global `$radplapag_schedule_day_map` se queda (contrato). Sale de la baseline de PHPStan la entrada `binaryOp.invalid` del archivo; las de tipos de las firmas se quedan. `php-zones.json` sin cambios: no hay archivos nuevos y los envoltorios siguen en `rest`. Mutación (`'natural'` fijo en lugar de `$day_order`) hace fallar 5 tests; revertida. `--filter 'Block'` (86 tests), integración completa (628 tests) y `npm run check` en verde, en WP 7.1.3.
+- [x] hecha · commit: (este)
 
 ### 1.14 `Schedule\Programs_List_View` (≤ 1 h)
 - Qué: `program_ids_in_order( $schedule )` y `build( $schedule, $programs, $day_labels, $now, callable $sanitize_id )`: franjas por programa (orden por día e inicio), `is_live`, programas en orden de primera aparición, con `C16` replicado.

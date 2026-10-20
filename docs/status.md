@@ -2,11 +2,11 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0005-php-admin-refactor/phase-1.md) · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0005, fase 1 (cimientos y horario en PHP): plan aprobado (2026-10-20), 15 tareas, 12/15 hechas (1.1: ADR 0028; 1.2: `PublicApiTest`; 1.3: guarda del zip con altas; 1.4: autoloader; 1.5: `PureCoreTest`; 1.6: cobertura del núcleo, zona `core`, y caracterización de las entradas mal formadas del programa en antena; 1.7: `Schedule\Time` y `Schedule\Week`; 1.8: `Schedule\Slot_Validator`; 1.9: `radplapag_sanitize_station_schedule()` delega con `WP\Schedule_Messages`; 1.10: `Schedule\Now_Playing_Resolver` y caracterización de la vuelta a ayer del programa en antena; 1.11: `radplapag_get_now_playing_for_station()` delega con `WP\Clock`; 1.12: `Schedule\Schedule_View`); PR en borrador contra `trunk`.
+- Spec 0005, fase 1 (cimientos y horario en PHP): plan aprobado (2026-10-20), 15 tareas, 13/15 hechas (1.1: ADR 0028; 1.2: `PublicApiTest`; 1.3: guarda del zip con altas; 1.4: autoloader; 1.5: `PureCoreTest`; 1.6: cobertura del núcleo, zona `core`, y caracterización de las entradas mal formadas del programa en antena; 1.7: `Schedule\Time` y `Schedule\Week`; 1.8: `Schedule\Slot_Validator`; 1.9: `radplapag_sanitize_station_schedule()` delega con `WP\Schedule_Messages`; 1.10: `Schedule\Now_Playing_Resolver` y caracterización de la vuelta a ayer del programa en antena; 1.11: `radplapag_get_now_playing_for_station()` delega con `WP\Clock`; 1.12: `Schedule\Schedule_View`; 1.13: envoltorios del bloque de horario); PR en borrador contra `trunk`.
 - Spec 0003 cerrada y fusionada en `trunk` (PR #38, 2026-10-20).
 
 ## Siguiente (máx. 5)
-1. Tareas 1.13–1.15: zonas del horario en PHP (núcleo por TDD y envoltorios). La cobertura se mide con `npm run env:start:latest -- --xdebug=coverage`.
+1. Tareas 1.14–1.15: lista de programas en PHP (núcleo por TDD y envoltorios). La cobertura se mide con `npm run env:start:latest -- --xdebug=coverage`.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
