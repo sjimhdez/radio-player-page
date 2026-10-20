@@ -1,11 +1,13 @@
 # Estado
-Spec activa: 0003 — Dependencias del player y de los bloques · Fase: cerrada (1, el 2026-10-20; PR #38 listo, pendiente de merge en `trunk`) · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) · Actualizado: 2026-10-20
+Spec activa: 0005 — Refactor de PHP y admin · Fase: 1 por planificar · Plan: — · Actualizado: 2026-10-20
 
 ## En curso
-- Spec 0003 cerrada (2026-10-20). PR #38 contra `trunk`, listo: el merge lo decide el usuario (merge commit, sin squash, título `Spec 0003: Dependencias del player y de los bloques`).
+- Spec 0005 escrita (2026-10-20) en la rama `spec/0005-php-admin-refactor`, sin push. Decisiones del usuario en su §4.1 (código nuevo en `includes/src/` con nombres de WPCS; solo la lógica, no la presentación; reglas del admin en un script clásico).
+- Spec 0003 cerrada y fusionada en `trunk` (PR #38, 2026-10-20).
 
 ## Siguiente (máx. 5)
-1. Tras el merge del PR #38: sesión de diseño → `write-spec` de la spec 0005 (refactor de PHP y admin; la 0006 también puede empezar, las dos dependen solo de la 0003).
+1. Sesión nueva → `start-phase` de la fase 1 de la 0005 (cimientos y horario en PHP; hace el primer push y el PR en borrador).
+2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
 - Ninguno.

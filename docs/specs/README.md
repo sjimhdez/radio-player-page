@@ -10,9 +10,9 @@
 |---|---|---|---|---|
 | 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | cerrada (PR #36) | `spec/0001-bootstrap` | — |
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | cerrada (PR #37) | `spec/0002-safety-net` | 0001 |
-| 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | cerrada | `spec/0003-player-dependencies` | 0002 |
+| 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | cerrada (PR #38) | `spec/0003-player-dependencies` | 0002 |
 | 0004 | ~~Dependencias de la parte WordPress~~: descartada; los bloques van en la 0003, y la raíz, Composer y las Actions fuera de una spec ([ADR 0026](../adr/0026-grouped-dependency-upgrades.md)) | descartada | — | — |
-| 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0003 |
+| 0005 | [Refactor de PHP y admin](0005-php-admin-refactor/spec.md) | propuesta | `spec/0005-php-admin-refactor` | 0003 |
 | 0006 | Refactor del player | pendiente de escribir | — | 0003 |
 | 0007 | Correcciones: reproducción | pendiente de escribir | — | 0006 |
 | 0008 | Correcciones: migración y actualización | pendiente de escribir | — | 0005 |
@@ -64,12 +64,6 @@ Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec po
 
 Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec.
 
-- **0005 Refactor de PHP y admin:**
-  - *strangler*: el código nuevo en el namespace `RadioPlayerPage\` con autoloader PSR-4 propio;
-  - las funciones `radplapag_*` como envoltorios;
-  - la lógica pura separada de los adaptadores de WP, con TDD;
-  - la lógica pura de `admin/js/*` extraída a módulos testeables, que pasan los mismos vectores del horario que PHP;
-  - del triage de la 0002: K72 (las dos `phpcs:ignore` de `error_log()` del migrador llevan su motivo en la línea, ADR 0021) y el endurecimiento del `innerHTML` del admin (el DOM se construye con `textContent` / `createElement`).
 - **0006 Refactor del player:**
   - núcleo `player/src/core/` sin React ni MUI: máquina de estados del audio, adaptadores por protocolo, `crossOrigin`, intro, horario, sueño, Media Session y lectura de las globales;
   - los hooks, como adaptadores finos;
