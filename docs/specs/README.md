@@ -86,7 +86,7 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
 - **0009 Horario y programa en antena** (tras la 0005 y la 0006):
   - alta: C16 (raíz de C4, K8 y K52; PHP, bloques y player con los mismos vectores);
   - media: C10 (la resolución ignora los programas no publicados y el admin avisa; cambia §3.3/§3.4 → ADR, con la sospecha de las contraseñas), K8, K41 (junto a C10);
-  - baja: C3, C4, C9 (la zona al player: clave nueva en una global → ADR), K10, K17 (imprimir `{}`; cambia la forma observable de una global → ADR corto, changelog y `== Upgrade Notice ==`), K52, y la sospecha de 5.8: un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución), junto a C10, fijado antes con un test `currently`.
+  - baja: C3, C4, C9 (la zona al player: clave nueva en una global → ADR), K10, K17 (imprimir `{}`; cambia la forma observable de una global → ADR corto, changelog y `== Upgrade Notice ==`), K52, K78 (junto a K17: `RADPLAPAG_PROGRAMS` sale de las franjas que se imprimen), y la sospecha de 5.8: un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución), junto a C10, fijado antes con un test `currently`.
 - **0010 Admin** (tras la 0005 y la 0009, que también toca `station-admin.js`):
   - alta: K15 (índice = mayor índice + 1);
   - media: C13, K5, K20, K39, K42, K45, AX3, AX4 (K45, AX3, AX4 y AX5 juntas; salen de la línea base de axe);
