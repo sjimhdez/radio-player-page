@@ -1,16 +1,15 @@
 # Estado
-Spec activa: 0005 — Refactor de PHP y admin · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md) · Actualizado: 2026-10-21
+Spec activa: 0005 — Refactor de PHP y admin · Fase: 4 sin empezar · Plan: — (último: [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md)) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0005: fase 3 (datos, guardado y globales del player), 12 tareas en [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md); hechas la 3.1 (globales con meta cruda, e2e; K78 nuevo, a la 0009), la 3.2 (orden de las escrituras del guardado), la 3.3 (`Data\Station`), la 3.4 (`Data\Stations`), la 3.5 (la lectura de emisoras delega en `WP\Station_Repository`) la 3.6 (`Data\Program`; la lectura de programas delega en `WP\Program_Repository`), la 3.7 (`Station\Field_Sanitizer`) la 3.8 (el guardado de la emisora delega en `WP\Station_Meta_Saver`) la 3.9 (`Program\Field_Sanitizer`; el guardado del programa delega en `WP\Program_Meta_Saver`) la 3.10 (`Player\Globals_Builder`), la 3.11 (la página limpia delega en `Player\Globals_Builder`) y la 3.12 (cobertura: `critical` 97,23 %, `core` 100 %; baseline solo baja; arreglado el arnés de los tests de orden de escrituras para WP ≥ 6.8).
-- Spec 0005: fase 2 (reglas y DOM del admin) cerrada el 2026-10-21: `schedule-rules.js` con los 11 vectores y ≥ 85 % de líneas en la CI, `station-admin.js` como adaptador, A7 cumplido. K74–K77 nuevos. PR en borrador contra `trunk`.
+- Spec 0005: fase 3 (datos, guardado y globales del player) cerrada el 2026-10-21: lectura, guardado y globales en el núcleo (`Data\*`, `Station\`/`Program\Field_Sanitizer`, `Player\Globals_Builder`) y en `WP\*`; cobertura `critical` 97,23 %, `core` 100 %; baseline 84 líneas menos. K78 nuevo (a la 0009). PR #39 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 3 (todas las tareas hechas).
+1. `start-phase` de la fase 4 de la 0005 (migración y actualización), en una sesión nueva.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
-- K76 (`completeTimeFields` sin uso, baja): decidir si se corrige y en qué spec (propuesta: 0010 admin). No bloquea la fase 3.
+- K76 (`completeTimeFields` sin uso, baja): decidir si se corrige y en qué spec (propuesta: 0010 admin). No bloquea la 0005.
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
@@ -19,14 +18,14 @@ Spec activa: 0005 — Refactor de PHP y admin · Fase: 3 en curso · Plan: [`pha
 
 ## Desviaciones de la spec (→ ADR)
 Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md` y `phase-3.md`; sin ADR, no cambian el contrato):
+- Fase 3 (revisión): se quitan dos guardas inalcanzables, como en la fase 1: `isset`/`is_array` de `radplapag_get_config()['stations']` en `radplapag_get_station_for_current_page()` (la función no tiene filtro y siempre da un array) e `instanceof WP_Post` en `WP\Station_Repository::published_rows()` (`get_posts()` con `suppress_filters` solo da posts; un `posts_pre_query` con un ID sin post rompe antes dentro de WP, comprobado). Los títulos y `blogname` pasan a parámetros `string`: un filtro que devolviera `null` daría un `TypeError` (WP siempre da cadenas), y `get_bloginfo( 'name' )` se lee siempre, no solo sin título. En la 3.12, `Radplapag_Station_Config` se caracterizó después de delegarla (3.5), no antes (§4.4); los tests pasan también contra la clase de `trunk`. El arnés de los tests de orden de escrituras (3.2, 3.8) escucha `set_transient` en WP ≥ 6.8 (`setted_transient` está obsoleta); las listas esperadas no cambian.
 - Fase 3 (plan): §4.3 pone el nonce, las capacidades y `$_POST` en el adaptador del guardado. Se quedan en `radplapag_save_station_meta()` y `radplapag_save_program_meta()`, con su `phpcs:ignore` de siempre, porque WPCS exige el nonce en la misma función que lee `$_POST` y A6 no admite supresiones en `includes/src/`. El adaptador (`WP\Station_Meta_Saver`, `WP\Program_Meta_Saver`) recibe `( $post_id, array $input )`. Decidido por el usuario (2026-10-21).
 - Fase 2 (plan): riesgo 1 de la spec. Las filas que añade el JS conservan el texto visible de hoy (entidades decodificadas como hacía `innerHTML`) con `DOMParser`; K21 sigue para la 0012. Decidido por el usuario (2026-10-20).
 - Fase 2, 2.5: `AdminScreensTest::test_admin_scripts_on_the_station_screen` amplía la aserción de `deps` de `radplapag-station-admin` con `radplapag-schedule-rules` (ADR 0028 D3), fija los `deps` de `radplapag-program-admin` en el mismo bucle y añade aserciones del handle nuevo (también en `test_admin_scripts_on_the_program_screen`, que no se registre). Solo esa aserción cambia; lo demás son altas. Aprobado por el usuario (2026-10-20).
 - Fase 2, 2.8: una traducción con etiquetas en la fila que añade el JS se ve como texto (antes `innerHTML` creaba los elementos; ninguna cadena del plugin las lleva). K77. Aceptado por el usuario (2026-10-21).
 - Fase 2, 2.3: se quita la rama inalcanzable «Please complete all time fields»; `completeTimeFields` sigue en `radplapagAdmin.strings` (contrato, §3.6) sin uso: K76.
-- Fase 1, 1.8: `Slot_Validator` no emite `end_before_start` (§4.2): la rama era inalcanzable en la 3.4.2. `WP\Schedule_Messages` conserva el mensaje para el POT.
+- Fase 1, 1.8: `Slot_Validator` no emite `end_before_start` (§4.2): la rama era inalcanzable en la 3.4.2. `WP\Schedule_Messages` conserva el mensaje para el POT. En la 1.10 y la 1.12 se quitan las guardas inalcanzables de la 3.4.2 (`count( $days_out ) === 7`, claves de día `null`).
 - Fase 1, 1.6: `SmokeTest` pasa al grupo `no-wordpress` (solo la anotación) para que la suite unit corra dentro de la integración (ADR 0028).
-- Fase 1, 1.10 y 1.12: se quitan las guardas inalcanzables de la 3.4.2 (`count( $days_out ) === 7`, claves de día `null`).
 - Fase 1, 1.3: la guarda del zip con altas va en su propia tarea y no con el ADR (§4.5). La 1.16 (autoloader con identificadores válidos) sale de `close-phase`.
 
 Spec 0003:

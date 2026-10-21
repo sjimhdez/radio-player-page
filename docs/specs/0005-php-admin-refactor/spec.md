@@ -1,6 +1,6 @@
 # Spec 0005 — Refactor de PHP y admin
 
-> Estado: **en curso** (fases 1 y 2 cerradas el 2026-10-20 y el 2026-10-21) · Fecha: 2026-10-20 · Rama: `spec/0005-php-admin-refactor` · Depende de: 0003
+> Estado: **en curso** (fases 1, 2 y 3 cerradas el 2026-10-20, el 2026-10-21 y el 2026-10-21) · Fecha: 2026-10-20 · Rama: `spec/0005-php-admin-refactor` · Depende de: 0003
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 

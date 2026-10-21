@@ -136,7 +136,7 @@ Mover la lectura de emisoras y programas, el guardado de sus campos y el armado 
 - Archivos: `tests/php/unit/Station/FieldSanitizerTest.php`, `tests/php/unit/Program/FieldSanitizerTest.php`, `tests/php/unit/Data/StationsTest.php`, `docs/known-issues.md`.
 - Test: — (solo nombres; las aserciones no cambian).
 - Verificación: `vendor/bin/phpunit --filter 'FieldSanitizerTest|StationsTest|GlobalsBuilderTest'`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: c31b9af
 - Resultado: 62 tests en verde con los nombres nuevos (`test_currently_non_image_attachments_go_to_zero_without_notice`, `test_currently_non_mp3_intro_goes_to_zero_without_notice`, `test_currently_cut_inside_a_character_keeps_half_of_it`, `test_currently_for_page_zero_matches_a_station_without_page`). K17, K21 y K43 ya tenían su `test_currently_*` en `GlobalsBuilderTest` (3.10); solo faltaba citarlo.
 
 ## Decisiones abiertas → ADR
