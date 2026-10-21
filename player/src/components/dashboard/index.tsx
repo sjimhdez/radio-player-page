@@ -65,7 +65,6 @@ const Dashboard = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   })
-  const [openError, setOpenError] = useState(false)
   const [openScheduleModal, setOpenScheduleModal] = useState(false)
   const [openAllProgramsModal, setOpenAllProgramsModal] = useState(false)
   const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
@@ -87,6 +86,9 @@ const Dashboard = () => {
     useAudioPlayer(config.streamUrl, config.introAudioUrl)
   const canVisualize = useCanVisualize(audioRef)
   const transmissionTimeData = useTransmissionTime()
+
+  // Show error snackbar when error occurs and loading is complete
+  const openError = status === 'error' && !loading
 
   // Configure Media Session API for lock screen
   useMediaSession(config.siteTitle, config.logoImage || '', play, pause, status)
@@ -164,12 +166,6 @@ const Dashboard = () => {
       canvasRef.current.height = dimensions.height
     }
   }, [dimensions])
-
-  // Show error snackbar when error occurs and loading is complete
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- existing effect kept as is; spec 0006 rewrites it
-    setOpenError(status === 'error' && loading === false)
-  }, [status, loading])
 
   return (
     <Stack

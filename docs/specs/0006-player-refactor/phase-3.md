@@ -121,7 +121,8 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: `player/src/components/dashboard/index.tsx`, `player/src/hooks/use-is-ios.tsx`, `player/dist/`.
 - Test: caracterización ya existente (`index.test.tsx` de la 3.3; e2e `cross-origin`, `intro`, `mp3`).
 - Verificación: `npm --prefix player run check && npm --prefix player run build && npx playwright test tests/e2e/cross-origin.spec.ts tests/e2e/intro.spec.ts tests/e2e/mp3.spec.ts && grep -rn "eslint-disable" src` (desde `player/`)
-- [ ] hecha · commit: —
+- Resultado: `Dashboard` deriva `const openError = status === 'error' && !loading` en el render; fuera el `useState`, el efecto y su `eslint-disable`. En `use-is-ios.tsx`, el motivo pasa a «K13, spec 0007». `grep -rn "eslint-disable" src` solo muestra la de `use-is-ios.tsx` (A4). `npm --prefix player run check` en verde, build, y `cross-origin`, `intro` y `mp3` en verde (32, Chromium y WebKit; 4 omitidos por plataforma).
+- [x] hecha · commit: (este)
 
 ### 3.10 Verificación de la fase (≤ 1 h)
 - Qué: `npm run check`; `npm run test:e2e` en `env:start:min` y en `env:start:latest`; A1 (`git diff origin/trunk` de los tests), A2, A4, A6; `manifest.json`; la tabla del gzip frente a `origin/trunk`. Sin commit si no cambia nada (se anota en el cierre).
