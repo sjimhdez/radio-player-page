@@ -2,10 +2,10 @@
 Spec activa: 0006 — Refactor del player · Fase: 3 (Media Session, sueño y dashboard) · Plan: [`phase-3.md`](specs/0006-player-refactor/phase-3.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0006: fases 1 (cimientos, globales y tiempo) y 2 (audio) cerradas el 2026-10-21 ([`phase-1.md`](specs/0006-player-refactor/phase-1.md), [`phase-2.md`](specs/0006-player-refactor/phase-2.md)). Fase 3 (Media Session, sueño y dashboard) en curso desde el 2026-10-21: tareas 3.1–3.11, 3.1 (ampliación de D5), 3.2 (e2e de Media Session) 3.3 (caracterización del `Dashboard`), 3.4 (`core/media-session`), 3.5 (K14 corregido), 3.6 (`core/sleep/sleep-timer`) y 3.7 (`use-sleep-timer`) hechas ([`phase-3.md`](specs/0006-player-refactor/phase-3.md)). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
+- Spec 0006: fases 1 (cimientos, globales y tiempo) y 2 (audio) cerradas el 2026-10-21 ([`phase-1.md`](specs/0006-player-refactor/phase-1.md), [`phase-2.md`](specs/0006-player-refactor/phase-2.md)). Fase 3 (Media Session, sueño y dashboard) en curso desde el 2026-10-21: tareas 3.1–3.11, 3.1 (ampliación de D5), 3.2 (e2e de Media Session) 3.3 (caracterización del `Dashboard`), 3.4 (`core/media-session`), 3.5 (K14 corregido), 3.6 (`core/sleep/sleep-timer`), 3.7 (`use-sleep-timer`) y 3.8 (`SleepMode` y `Dashboard` solo pintan el sueño) hechas ([`phase-3.md`](specs/0006-player-refactor/phase-3.md)). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Fase 3 de la 0006: tarea 3.8 (`SleepMode` y `Dashboard` solo pintan el sueño), después 3.9–3.11 en orden y `close-phase`, que cierra la spec.
+1. Fase 3 de la 0006: tarea 3.9 (el error visible derivado y el motivo de la excepción de iOS), después 3.10–3.11 en orden y `close-phase`, que cierra la spec.
 2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano

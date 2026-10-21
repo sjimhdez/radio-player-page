@@ -8,6 +8,7 @@ import useAudioPlayer from 'src/hooks/use-audio-player'
 import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import useMediaSession from 'src/hooks/use-media-session'
+import useSleepTimer from 'src/hooks/use-sleep-timer'
 import useConfig from 'src/hooks/use-config'
 import { getVisualizer, getDefaultVisualizer, type VisualizerConfig } from 'src/config/visualizers'
 import StreamInfo from './StreamInfo'
@@ -67,7 +68,6 @@ const Dashboard = () => {
   const [openError, setOpenError] = useState(false)
   const [openScheduleModal, setOpenScheduleModal] = useState(false)
   const [openAllProgramsModal, setOpenAllProgramsModal] = useState(false)
-  const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
   const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
@@ -90,6 +90,9 @@ const Dashboard = () => {
 
   // Configure Media Session API for lock screen
   useMediaSession(config.siteTitle, config.logoImage || '', play, pause, status)
+
+  // Sleep timer: pauses playback when the countdown runs out
+  const sleepTimer = useSleepTimer(status === 'playing', pause)
 
   // Load visualizer asynchronously (code splitting)
   useEffect(() => {
@@ -231,11 +234,8 @@ const Dashboard = () => {
           bottom: 25,
         }}
       >
-        {sleepTimerSeconds !== null && (
-          <SleepTimer
-            remainingSeconds={sleepTimerSeconds}
-            onCancel={() => setSleepTimerSeconds(null)}
-          />
+        {sleepTimer.remainingSeconds !== null && (
+          <SleepTimer remainingSeconds={sleepTimer.remainingSeconds} onCancel={sleepTimer.cancel} />
         )}
         <Box
           sx={{
@@ -284,9 +284,7 @@ const Dashboard = () => {
           />
           <SleepMode
             isPlaying={status === 'playing'}
-            onSleepTimerEnd={pause}
-            onTimerChange={setSleepTimerSeconds}
-            externalTimerSeconds={sleepTimerSeconds}
+            onSelect={(minutes) => sleepTimer.start(minutes * 60)}
           />
         </Box>
 

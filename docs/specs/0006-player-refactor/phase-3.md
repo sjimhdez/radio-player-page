@@ -111,7 +111,8 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: `player/src/components/dashboard/SleepMode.tsx`, `index.tsx`, `SleepMode.test.tsx` (solo el `Host`), `player/dist/`.
 - Test: caracterización ya existente (`SleepMode.test.tsx`, `index.test.tsx` de la 3.3, `sleep.spec.ts`, `player-a11y.spec.ts` (K58)), sin tocar aserciones.
 - Verificación: `npm --prefix player run check && npm --prefix player run build && npx playwright test tests/e2e/sleep.spec.ts tests/e2e/player-a11y.spec.ts`
-- [ ] hecha · commit: —
+- Resultado: `Dashboard` llama a `useSleepTimer(status === 'playing', pause)` y pinta `SleepTimer` con `remainingSeconds` y `onCancel={cancel}`; `SleepMode` recibe `isPlaying` y `onSelect(minutes)` (→ `start(minutes * 60)`) y solo guarda el `anchorEl` del menú: fuera los efectos, el `NodeJS.Timeout`, `onSleepTimerEnd`, `onTimerChange`, `externalTimerSeconds` y su `eslint-disable`. El `Host` de `SleepMode.test.tsx` monta `SleepMode` sobre `useSleepTimer(true, () => {})`; nombre y aserción (`1799`) intactos. `npm --prefix player run check` en verde (528 tests), build, y `sleep.spec.ts` + `player-a11y.spec.ts` en verde (26, Chromium y WebKit). Quedan las excepciones de `dashboard/index.tsx` (3.9) y `use-is-ios.tsx`.
+- [x] hecha · commit: (este)
 
 ### 3.9 El error visible derivado y el motivo de la excepción de iOS (≤ 1 h)
 - Qué:

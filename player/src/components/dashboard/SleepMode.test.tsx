@@ -1,22 +1,17 @@
 // Audit of zone 5 (spec 0002, task 4.6): the sleep timer countdown.
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { useState } from 'react'
 import 'src/config/i18n'
 import SleepMode from 'src/components/dashboard/SleepMode'
+import useSleepTimer from 'src/hooks/use-sleep-timer'
 
-/** Holds the remaining seconds like the dashboard does. */
+/** Runs the sleep timer like the dashboard does. */
 function Host() {
-  const [seconds, setSeconds] = useState<number | null>(null)
+  const { remainingSeconds, start } = useSleepTimer(true, () => {})
   return (
     <>
-      <output>{String(seconds)}</output>
-      <SleepMode
-        isPlaying
-        onSleepTimerEnd={() => {}}
-        onTimerChange={setSeconds}
-        externalTimerSeconds={seconds}
-      />
+      <output>{String(remainingSeconds)}</output>
+      <SleepMode isPlaying onSelect={(minutes) => start(minutes * 60)} />
     </>
   )
 }
