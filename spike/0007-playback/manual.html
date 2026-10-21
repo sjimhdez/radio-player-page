@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spike 0007 manual checks</title>
+  <style>
+    :root { color-scheme: light dark; --line: #8884; --ok: #2a7d3b; --bad: #b3261e; }
+    body { font: 15px/1.45 -apple-system, system-ui, sans-serif; margin: 0 auto; max-width: 760px; padding: 16px; }
+    h1 { font-size: 1.3em; margin: 0 0 4px; }
+    h2 { font-size: 1.05em; margin: 0 0 6px; }
+    section { border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 12px 0; }
+    ol { margin: 4px 0 8px; padding-left: 20px; }
+    button { font: inherit; padding: 6px 10px; margin: 2px 4px 2px 0; border-radius: 6px; border: 1px solid var(--line); }
+    #panel { position: sticky; top: 0; background: Canvas; border-bottom: 1px solid var(--line); padding: 8px 0; z-index: 1; }
+    #readout { font: 12px/1.4 ui-monospace, monospace; white-space: pre-wrap; margin: 4px 0; }
+    #meter { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
+    #meter > div { height: 100%; width: 0; background: var(--ok); transition: width 0.1s; }
+    .q { margin: 6px 0; }
+    .q label { margin-right: 10px; white-space: nowrap; }
+    textarea { width: 100%; box-sizing: border-box; font: 12px ui-monospace, monospace; }
+    .expect { color: GrayText; font-size: 0.92em; }
+    #log { max-height: 160px; overflow: auto; font: 11px ui-monospace, monospace; border-top: 1px solid var(--line); }
+    #slot, #gesture { display: none; }
+  </style>
+  <script src="/vendor/hls.js"></script>
+  <script src="/vendor/dash.js"></script>
+  <script src="/harness.js"></script>
+</head>
+<body>
+  <h1>Spike 0007: manual checks in Safari</h1>
+  <p>Spec 0007, phase 0, task 0.5 (R1, R3). Use real Safari (macOS, and iOS if you can), with sound on.
+    Run each case from its <b>Start</b> button, follow its steps, answer the questions, then press
+    <b>Copy results</b> at the bottom and paste them in the session.</p>
+
+  <div id="panel">
+    <div id="readout">—</div>
+    <div id="meter" title="Analyser RMS (only when the visualizer graph is connected)"><div></div></div>
+    <div>
+      <button type="button" id="pause">Pause</button>
+      <button type="button" id="resume">Play (resume)</button>
+      <button type="button" id="reload">Play (reload)</button>
+      <button type="button" id="retry">Retry without CORS</button>
+      <button type="button" id="ctx-resume">Resume AudioContext</button>
+    </div>
+  </div>
+
+  <section data-case="k18-resume">
+    <h2>1. K18: Pause + Play (resume, as today)</h2>
+    <ol>
+      <li><b>Start</b>: endless MP3 with CORS, <code>crossOrigin</code> set (as the player).</li>
+      <li>Listen ~5 s, <b>Pause</b>, wait ~10 s, <b>Play (resume)</b>. Listen ~10 s.</li>
+    </ol>
+    <p class="expect">Playwright WebKit: resumes from the buffer, no freeze (the freeze came from the e2e fixture).</p>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="heard">After resuming, do you hear the tone for 10 s?</div>
+    <div class="q" data-q="advances"><code>currentTime</code> keeps going up?</div>
+  </section>
+
+  <section data-case="k18-reload">
+    <h2>2. K18: Pause + Play (reload, the fix)</h2>
+    <ol>
+      <li><b>Start</b>, listen ~5 s, <b>Pause</b>, wait ~10 s, <b>Play (reload)</b>. Listen ~10 s.</li>
+    </ol>
+    <p class="expect">Expected: <code>currentTime</code> restarts near 0 and the tone plays on.</p>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="heard">After reloading, do you hear the tone for 10 s?</div>
+    <div class="q" data-q="advances"><code>currentTime</code> restarted and keeps going up?</div>
+  </section>
+
+  <section data-case="k18-tagged">
+    <h2>3. K18 control: the e2e fixture (ID3 + Info frame repeated)</h2>
+    <ol>
+      <li><b>Start</b>, do <b>not</b> pause. Listen ~15 s.</li>
+    </ol>
+    <p class="expect">Playwright WebKit: stops at 1.76 s with no pause and no error.</p>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="heard">Does the tone keep playing past ~2 s?</div>
+  </section>
+
+  <section data-case="c1-retry">
+    <h2>4. C1: MP3 without CORS, retry without <code>crossOrigin</code></h2>
+    <ol>
+      <li><b>Start</b>: the readout shows an error (code 4).</li>
+      <li><b>Retry without CORS</b> (then press <b>Play (resume)</b> if it does not start).</li>
+    </ol>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="error">The first load shows <code>error</code> code 4?</div>
+    <div class="q" data-q="heard">After the retry, do you hear the tone?</div>
+  </section>
+
+  <section data-case="c1-retry-graph">
+    <h2>5. C1 with the visualizer graph already connected</h2>
+    <ol>
+      <li><b>Start</b>: connects Web Audio to the element, then loads the MP3 without CORS (error).</li>
+      <li><b>Retry without CORS</b>.</li>
+    </ol>
+    <p class="expect">Playwright: it advances but the analyser gives zeros (silence).</p>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="heard">After the retry, do you hear the tone?</div>
+    <div class="q" data-q="meter">Does the meter move?</div>
+  </section>
+
+  <section data-case="viz-live">
+    <h2>6. Visualizer: endless MP3 with CORS</h2>
+    <ol>
+      <li><b>Start</b>: in the click, connects Web Audio and plays. Listen ~10 s.</li>
+    </ol>
+    <p class="expect">Playwright WebKit: analyser at zero (would be silent). Chromium: signal.</p>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="heard">Do you hear the tone?</div>
+    <div class="q" data-q="meter">Does the meter move?</div>
+  </section>
+
+  <section data-case="viz-file">
+    <h2>7. Visualizer control: finite MP3 with CORS (length and Range)</h2>
+    <ol>
+      <li><b>Start</b>. Listen ~5 s.</li>
+    </ol>
+    <p class="expect">Playwright WebKit: signal from ~0.5 s.</p>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="heard">Do you hear the tone?</div>
+    <div class="q" data-q="meter">Does the meter move?</div>
+  </section>
+
+  <section data-case="viz-hls">
+    <h2>8. Visualizer: native HLS with CORS (<code>/hls/index.m3u8</code> in <code>audio.src</code>)</h2>
+    <ol>
+      <li><b>Start</b>: in the click, connects Web Audio and plays native HLS (not <code>hls.js</code>). Listen ~10 s.</li>
+    </ol>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="heard">Do you hear the tone?</div>
+    <div class="q" data-q="meter">Does the meter move?</div>
+  </section>
+
+  <section data-case="hls-plain">
+    <h2>9. Control: native HLS without the visualizer</h2>
+    <ol>
+      <li><b>Start</b>. Listen ~5 s.</li>
+    </ol>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="heard">Do you hear the tone?</div>
+  </section>
+
+  <section data-case="ctx-late">
+    <h2>10. <code>AudioContext</code> outside the gesture (as today)</h2>
+    <ol>
+      <li><b>Start</b>: plays the finite MP3 with CORS in the click; 6 s after <code>playing</code>, a timer connects
+        Web Audio (as the visualizer effect does today). Listen through that moment.</li>
+      <li>Then press <b>Resume AudioContext</b> (a real click).</li>
+    </ol>
+    <p class="expect">Playwright WebKit: the context stays <code>suspended</code> and the audio goes silent until the click.</p>
+    <button type="button" data-start>Start</button>
+    <div class="q" data-q="silent">At ~6 s, does the tone go silent?</div>
+    <div class="q" data-q="state"><code>AudioContext</code> shows <code>suspended</code> before the click?</div>
+    <div class="q" data-q="resumed">After <b>Resume AudioContext</b>, do you hear it again?</div>
+  </section>
+
+  <section>
+    <h2>Results</h2>
+    <textarea id="notes" rows="3" placeholder="Notes (device, macOS/iOS version, anything odd)"></textarea>
+    <button type="button" id="copy">Copy results</button>
+    <textarea id="out" rows="8" readonly></textarea>
+  </section>
+
+  <div id="slot"></div>
+  <button id="gesture" type="button">Gesture</button>
+  <pre id="log"></pre>
+
+  <script>
+    ;(function () {
+      const s = window.spike
+      const answers = {}
+      const snapshots = {}
+      let current = null
+
+      // Each case resets the element and runs inside the Start click (a real user gesture).
+      const cases = {
+        'k18-resume': () => { s.loadDirect(`${s.CORS}/live.mp3`); return s.play() },
+        'k18-reload': () => { s.loadDirect(`${s.CORS}/live.mp3`); return s.play() },
+        'k18-tagged': () => { s.loadDirect(`${s.CORS}/live-tagged.mp3`); return s.play() },
+        'c1-retry': () => { s.loadDirect(`${s.NO_CORS}/live.mp3`); return s.play() },
+        'c1-retry-graph': () => { s.connectAnalyser(); s.resumeContext(); s.loadDirect(`${s.NO_CORS}/live.mp3`); return s.play() },
+        'viz-live': () => { s.loadDirect(`${s.CORS}/live.mp3`); return s.connectAndPlay() },
+        'viz-file': () => { s.loadDirect(`${s.CORS}/tone.mp3`); s.audio.loop = true; return s.connectAndPlay() },
+        'viz-hls': () => { s.loadDirect(`${s.CORS}/hls/index.m3u8`); return s.connectAndPlay() },
+        'hls-plain': () => { s.loadDirect(`${s.CORS}/hls/index.m3u8`); return s.play() },
+        'ctx-late': () => {
+          s.loadDirect(`${s.CORS}/tone.mp3`)
+          s.audio.loop = true
+          s.audio.addEventListener('playing', () => setTimeout(() => s.connectAnalyser(), 6000), { once: true })
+          return s.play()
+        },
+      }
+
+      const snapshot = () => ({ state: s.state(), rms: s.rms(), events: s.events.map((e) => `${e.t} ${e.type}`).slice(-30) })
+
+      for (const section of document.querySelectorAll('section[data-case]')) {
+        const name = section.dataset.case
+        answers[name] = {}
+        section.querySelector('[data-start]').addEventListener('click', () => {
+          if (current && current !== name) snapshots[current] = snapshot()
+          s.reset()
+          current = name
+          Promise.resolve(cases[name]()).then((r) => s.events.push({ t: s.state().t, type: `start: ${JSON.stringify(r)}` }))
+        })
+        for (const q of section.querySelectorAll('[data-q]')) {
+          const key = q.dataset.q
+          for (const value of ['yes', 'no', 'unsure']) {
+            const label = document.createElement('label')
+            const input = document.createElement('input')
+            input.type = 'radio'
+            input.name = `${name}-${key}`
+            input.value = value
+            input.addEventListener('change', () => {
+              answers[name][key] = value
+              if (current === name) snapshots[name] = snapshot()
+            })
+            label.append(input, ` ${value}`)
+            q.append(' ', label)
+          }
+        }
+      }
+
+      const after = (fn) => () => { const r = fn(); if (r && r.then) r.then((v) => s.events.push({ t: s.state().t, type: `-> ${JSON.stringify(v)}` })) }
+      document.getElementById('pause').onclick = () => s.audio.pause()
+      document.getElementById('resume').onclick = after(() => s.play())
+      document.getElementById('reload').onclick = after(() => { s.reload(); return s.play() })
+      document.getElementById('retry').onclick = after(() => { s.retryWithoutCors(); return s.play() })
+      document.getElementById('ctx-resume').onclick = after(() => s.resumeContext())
+
+      document.getElementById('copy').onclick = () => {
+        if (current) snapshots[current] = snapshot()
+        const text = JSON.stringify({ userAgent: navigator.userAgent, page: location.href,
+          notes: document.getElementById('notes').value, answers, snapshots }, null, 1)
+        const out = document.getElementById('out')
+        out.value = text
+        out.select()
+        if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {})
+      }
+
+      const readout = document.getElementById('readout')
+      const bar = document.querySelector('#meter > div')
+      setInterval(() => {
+        if (!s.audio) return
+        const st = s.state()
+        const r = s.rms()
+        readout.textContent = `case ${current || '—'} · paused ${st.paused} · currentTime ${st.currentTime} · readyState ${st.readyState}` +
+          ` · error ${st.error ? st.error.code : '—'}\nbuffered ${JSON.stringify(st.buffered)} · crossOrigin ${st.crossOrigin}` +
+          ` · AudioContext ${st.ctxState || '—'} · RMS ${r ? r.rms : '—'}`
+        bar.style.width = `${r ? Math.min(100, r.rms * 600) : 0}%`
+      }, 200)
+    })()
+  </script>
+</body>
+</html>

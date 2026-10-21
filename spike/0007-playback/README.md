@@ -44,3 +44,15 @@ The tests abort and record every request that leaves `localhost` (`tests/helpers
 `page.evaluate()` runs with a user gesture in Chromium and WebKit, so it gives the page user
 activation. Cases that need a page without activation (or with only a real click) are driven by the
 harness itself on load (`/?auto=context[&click=1&delay=ms]`) and report through `console.log`.
+
+## Safari by hand (`manual.html`)
+
+Ten cases with Start buttons, live readouts (`currentTime`, `buffered`, error, `AudioContext.state`, analyser
+RMS meter) and yes/no questions: K18 resume and reload, the e2e fixture, C1 retry (with and without the
+visualizer graph), the visualizer with the endless MP3, the finite MP3 and native HLS, and the `AudioContext`
+created outside the gesture. **Copy results** puts a JSON (user agent, answers, state snapshots) in the
+clipboard to paste back in the session. Sound on.
+
+- macOS: `npm run serve`, then open <http://localhost:8910/manual.html> in Safari.
+- iOS: same Wi-Fi as the Mac; `npm run serve` and open `http://<the Mac's IP>:8910/manual.html` (the IP from
+  `ipconfig getifaddr en0`). The servers listen on all interfaces; the macOS firewall may ask to allow Node.
