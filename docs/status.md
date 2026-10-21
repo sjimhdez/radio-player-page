@@ -1,14 +1,15 @@
 # Estado
-Spec activa: 0007 — Correcciones: reproducción · Fase: 0 (spike) por planificar · Plan: — · Actualizado: 2026-10-21
+Spec activa: 0007 — Correcciones: reproducción · Fase: 0 (spike) en curso · Plan: [`phase-0.md`](specs/0007-playback-fixes/phase-0.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0007 (Correcciones: reproducción) escrita el 2026-10-21 ([`spec.md`](specs/0007-playback-fixes/spec.md)), rama `spec/0007-playback-fixes` sin push. La fase 0 es un spike: C1 con los visualizadores (decisión del usuario: medir antes de decidir), `dashjs` sin fuente de hora (K67) y K18 en Safari real.
+- Spec 0007 (Correcciones: reproducción) escrita el 2026-10-21 ([`spec.md`](specs/0007-playback-fixes/spec.md)), rama `spec/0007-playback-fixes` con PR en borrador contra `trunk`. Fase 0 (spike) planificada el 2026-10-21, en `spike/0007-playback/`: C1 con los visualizadores (decisión del usuario: medir antes de decidir), `dashjs` sin fuente de hora (K67) y K18 en Safari real.
 - ADR 0031 (2026-10-21): la decisión visualizador / animación estática se rehace en la 0007. La decide el núcleo según la fuente; `use-can-visualize.tsx` y `use-audio-visualizer.tsx` salen de la zona congelada. El spike (R1) mide lo que falta.
 - Spec 0006 (Refactor del player) cerrada y fusionada en `trunk` (PR #40, 2026-10-21).
 
 ## Siguiente (máx. 5)
-1. Sesión nueva → `start-phase` de la fase 0 (spike) de la 0007.
-2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree.
+1. Fase 0 de la 0007: tareas 0.1–0.5 (spike) y 0.6 (informe `docs/spikes/0007-phase-0.md`).
+2. El usuario corre `spike/0007-playback/manual.html` en Safari real (macOS; iOS si puede) y aprueba la propuesta de C1 y de la visualización → `close-phase`.
+3. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree.
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrigen y en qué spec dos rarezas bajas: K76 (`completeTimeFields` sin uso; propuesta: 0010 admin) y K79 (la migración heredada pierde `is_rerun` de las franjas, que el refactor conserva; propuesta: 0008 migración).
