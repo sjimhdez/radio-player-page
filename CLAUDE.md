@@ -42,7 +42,7 @@ Entornos (Docker, wp-env): desarrollo con `npm run env:start` → <http://localh
 3. La migración desde `radplapag_settings` es unidireccional e idempotente (ADR 0005, 0010).
 4. El horario es informativo: **nunca** controla la reproducción.
 5. Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'`; las rutas MSE (`hls.js`, `dashjs`) no (ADR 0004).
-6. Los visualizadores no se editan sin un ADR (zona congelada, ADR 0018).
+6. Los visualizadores (dibujo y catálogo) no se editan sin un ADR (zona congelada, ADR 0018 y 0031).
 7. El núcleo del reproductor (`player/src/core/`, spec 0006) no importa React ni MUI.
 8. `player/dist/` y `blocks/*/build/` se regeneran y nunca se editan a mano (un hook lo bloquea; ADR 0014).
 9. El zip solo incluye lo que lista `scripts/build-release-zip.sh` (`npm run check:zip`).

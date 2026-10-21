@@ -1,6 +1,6 @@
 # ADR 0018 — Visualizadores congelados
 
-- Estado: aceptado · Fecha: 2026-10-16 · Spec: 0001 (fase 1)
+- Estado: aceptado · Fecha: 2026-10-16 · Spec: 0001 (fase 1) · Alcance reducido por el [ADR 0031](0031-visualization-decided-by-the-core.md): `use-can-visualize.tsx` y `use-audio-visualizer.tsx` salen de la zona
 
 ## Contexto
 

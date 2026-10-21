@@ -28,6 +28,7 @@ paths:
 - El audio de bienvenida suena una vez antes del directo, no se puede pausar y, si falla, pasa al directo sin error.
 - **El horario no controla la reproducción:** solo informa (programa actual y siguiente, modales).
 - Volumen desactivado en iOS (`use-is-ios.tsx`).
+- Visualizador o animación estática: desde la 0007 lo decide el controlador del audio según la fuente en curso, y solo entonces se conecta Web Audio (ADR 0031). Nada de decidirlo por el *user agent*.
 
 ## Núcleo, hooks y componentes (ADR 0029)
 

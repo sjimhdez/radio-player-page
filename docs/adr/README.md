@@ -34,3 +34,4 @@ Decisiones de arquitectura con formato de Michael Nygard: contexto, decisión, c
 | [0028](0028-new-code-in-includes-src-with-own-autoloader.md) | Código nuevo en `includes/src/` (namespace `RadioPlayerPage\`) con autoloader propio, zip con altas declaradas y cobertura del núcleo | aceptado | 0005 · fase 1 |
 | [0029](0029-player-core-without-react.md) | Núcleo del player en `src/core/` sin React (inyección de dependencias, transición pura + controlador + `useSyncExternalStore`) | aceptado | 0006 · fase 1 |
 | [0030](0030-audio-hook-keeps-react-render-priorities.md) | `useAudioPlayer()` lee el controlador con `useState` y una suscripción (enmienda D2 del 0029 mientras K1 siga abierto) | aceptado | 0006 · fase 2 (regresión de la 2.8) |
+| [0031](0031-visualization-decided-by-the-core.md) | La visualización la decide el núcleo según la fuente (no el *user agent*); la zona congelada se reduce al dibujo (enmienda 0018) | aceptado | 0007 · diseño |

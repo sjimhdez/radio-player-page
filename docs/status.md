@@ -3,6 +3,7 @@ Spec activa: 0007 — Correcciones: reproducción · Fase: 0 (spike) por planifi
 
 ## En curso
 - Spec 0007 (Correcciones: reproducción) escrita el 2026-10-21 ([`spec.md`](specs/0007-playback-fixes/spec.md)), rama `spec/0007-playback-fixes` sin push. La fase 0 es un spike: C1 con los visualizadores (decisión del usuario: medir antes de decidir), `dashjs` sin fuente de hora (K67) y K18 en Safari real.
+- ADR 0031 (2026-10-21): la decisión visualizador / animación estática se rehace en la 0007. La decide el núcleo según la fuente; `use-can-visualize.tsx` y `use-audio-visualizer.tsx` salen de la zona congelada. El spike (R1) mide lo que falta.
 - Spec 0006 (Refactor del player) cerrada y fusionada en `trunk` (PR #40, 2026-10-21).
 
 ## Siguiente (máx. 5)

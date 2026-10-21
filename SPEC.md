@@ -177,10 +177,11 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - **Errores:** si el stream falla, se muestra «Unable to play the stream. Try again later.» (traducido) (con las excepciones de K1 en `docs/known-issues.md`).
 - **i18n:** 14 locales en `player/src/locales/` (`cs`, `da-DK`, `de-DE`, `en-US`, `es`, `es-MX`, `gl-ES`, `hr`, `it-IT`, `nl-NL`, `pt-BR`, `ro-RO`, `ru-RU`, `sv-SE`). Idioma: el del sitio, por el `lang` del `<html>`; si no tiene traducción, reserva `en-US`. El idioma del navegador no se usa (ADR 0025).
 
-### 3.9 Visualizadores (zona congelada, ADR 0018)
+### 3.9 Visualizadores (zona congelada, ADR 0018 y 0031)
 
 - Cuatro: osciloscopio (por defecto), barras, cascada y partículas, según `visualizer`. Se cargan de forma diferida (`getVisualizer()`) y solo se activan con el audio sonando.
-- Archivos: `player/src/components/visualizers/**`, `player/src/config/visualizers.ts`, `player/src/types/visualizers.tsx`, `player/src/hooks/use-audio-visualizer.tsx`, `player/src/hooks/use-can-visualize.tsx`.
+- Zona congelada: `player/src/components/visualizers/**`, `player/src/config/visualizers.ts`, `player/src/types/visualizers.tsx` (el dibujo y el catálogo).
+- Visualizador o animación estática: hoy lo decide `use-can-visualize.tsx` por el *user agent*, al montar (en WebKit nunca hay visualizador). Desde la 0007 (ADR 0031) lo decide el controlador del audio según la fuente en curso: con datos limpios (CORS o rutas MSE) se pinta el visualizador; si no, la animación estática, y el audio no pasa por Web Audio.
 - Contrato con el reproductor: leen el `<audio>` compartido (`audioRef`) con Web Audio API (`AnalyserNode`), y por eso dependen del `crossOrigin` de §3.8.
 - Fuera del refactor y de los mínimos de cobertura. Las actualizaciones de dependencias no los tocan; si una lo obliga, el cambio es mínimo y lleva un ADR.
 
@@ -197,7 +198,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 3. La migración es unidireccional e idempotente.
 4. El horario es informativo: nunca controla la reproducción.
 5. Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'`; las rutas MSE no (ADR 0004).
-6. Los visualizadores no se editan sin un ADR (ADR 0018).
+6. Los visualizadores (su dibujo y su catálogo) no se editan sin un ADR (ADR 0018, alcance del ADR 0031).
 7. El núcleo del reproductor (spec 0006) no importa React ni MUI.
 8. `player/dist/` y `blocks/*/build/` se regeneran; nunca se editan a mano.
 9. El zip solo contiene lo que lista `build-release-zip.sh`.

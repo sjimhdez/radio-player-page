@@ -8,21 +8,21 @@
 
 Esta spec se escribió en una sesión de diseño y **se ejecuta en una sesión nueva** que no conoce esa conversación.
 
-1. Lee `docs/status.md`, esta spec, los ADRs 0004, 0013, 0018, 0029 y 0030, `SPEC.md` §2 y §3.8 y las filas C1, C2, C7, K1, K11, K12, K13, K18, K63–K67 y K81 de `docs/known-issues.md` (su columna «Decisión del usuario» es el mandato).
+1. Lee `docs/status.md`, esta spec, los ADRs 0004, 0013, 0018, 0029, 0030 y 0031, `SPEC.md` §2, §3.8 y §3.9 y las filas C1, C2, C7, K1, K11, K12, K13, K18, K63–K67 y K81 de `docs/known-issues.md` (su columna «Decisión del usuario» es el mandato).
 2. Cada fase empieza con `start-phase` (plan en `docs/specs/0007-playback-fixes/phase-N.md`, aprobado en plan mode) y termina con `close-phase`.
 3. Si algo de esta spec resulta falso al contrastarlo con el código, o una decisión la contradice: **para y pregunta**. Si se confirma el cambio, `write-adr` y esta spec se actualiza en el mismo commit.
 4. **Es una spec de correcciones:** cada fila se corrige con `fix-bug`. Su test `currently` (en el núcleo y en el hook o el e2e, las dos capas que cita la fila) pasa a test de regresión en rojo y luego a verde, y la fila pasa a «corregido (spec 0007)». Ningún otro test de caracterización se edita para que pase: si uno cae sin que su fila esté en esta spec, se para y se pregunta.
 5. **Empieza por la fase 0 (spike).** C1 depende de lo que mida: no se escribe código de C1 hasta que el usuario apruebe el resultado.
-6. **No se toca la zona congelada** (ADR 0018: `components/visualizers/**`, `config/visualizers.ts`, `types/visualizers.tsx`, `hooks/use-audio-visualizer.tsx`, `hooks/use-can-visualize.tsx`). Si C1 lo necesitara, se para y se pregunta.
+6. **No se toca la zona congelada** (ADR 0018 con el alcance del 0031: `components/visualizers/**`, `config/visualizers.ts`, `types/visualizers.tsx`). `hooks/use-can-visualize.tsx` y `hooks/use-audio-visualizer.tsx` **sí** se rehacen en esta spec (ADR 0031, D9), tras caracterizarlos.
 7. La lógica va en `player/src/core/` (ADR 0029); los hooks y los componentes solo cambian si cambia lo que pintan.
 
 ## 1. Contexto y objetivo
 
-La 0006 dejó el reproductor en un núcleo sin React (`core/audio`, `core/sleep`) con todas sus rarezas fijadas como `currently` en dos capas. El triage de la 0002 aprobó corregir las de la reproducción, que es lo que más nota un oyente: un stream sin CORS no suena (C1), Pausa + Play no vuelve al directo y en Safari se congela (C7, K18), los estados del audio mienten (K1, K11, K64, K81), la bienvenida puede bloquear el reproductor (K63) y `dashjs` llama a un servidor de hora de terceros (K67, que **bloquea la release**: guidelines de WordPress.org, `SPEC.md` §2).
+La 0006 dejó el reproductor en un núcleo sin React (`core/audio`, `core/sleep`) con todas sus rarezas fijadas como `currently` en dos capas. El triage de la 0002 aprobó corregir las de la reproducción, que es lo que más nota un oyente: un stream sin CORS no suena (C1) y la decisión de pintar el visualizador o la animación estática es incorrecta (ADR 0031), Pausa + Play no vuelve al directo y en Safari se congela (C7, K18), los estados del audio mienten (K1, K11, K64, K81), la bienvenida puede bloquear el reproductor (K63) y `dashjs` llama a un servidor de hora de terceros (K67, que **bloquea la release**: guidelines de WordPress.org, `SPEC.md` §2).
 
 Al cerrar la spec, todas esas filas están corregidas con su test de regresión, `SPEC.md` §3.8 describe el comportamiento nuevo con sus ADRs y la pista del player puede seguir con la 0011.
 
-**No objetivos:** C8 (reconexión automática: replicar, mejora futura); la interfaz, i18n y la accesibilidad del player (0011: K56–K62, K68, K69, AX*); el horario (0009); los visualizadores (zona congelada; C5 no se corrige).
+**No objetivos:** C8 (reconexión automática: replicar, mejora futura); la interfaz, i18n y la accesibilidad del player (0011: K56–K62, K68, K69, AX*); el horario (0009); el dibujo de los visualizadores (zona congelada; C5 no se corrige).
 
 ## 2. Criterios de aceptación
 
@@ -33,6 +33,7 @@ Cada fila, con `fix-bug`. «Regresión» = el `currently` que cita `known-issues
 | A1 | K67 | `tests/e2e/hls-dash.spec.ts`: el directo DASH sin `<UTCTiming>` suena y **no** hay ninguna petición a `time.akamai.com` (la ruta sigue interceptada para detectarla). `core/audio/sources/dash.test.ts`: la fuente quita las fuentes de hora por defecto antes de `initialize()`. `grep` del *chunk* de `dashjs` en `player/dist/`: la URL de Akamai puede seguir en el código de la librería, pero no se usa (lo prueba el e2e) |
 | A2 | C7, K18, K12 | `tests/e2e/mp3.spec.ts`: tras Pausa + Play hay una petición nueva a `/live.mp3` y la posición vuelve al directo (Chromium y WebKitGTK); el test de K18 (solo macOS) pasa a «no se congela». `audio-controller.test.ts`: Play tras una pausa vuelve a cargar el directo en los tres protocolos, sin comparar `audio.src`; el `currently` de K12 pasa a test normal («recreates hls.js to return to the live edge (C7)») |
 | A3 | C1 | Según el spike (§5, fase 0). Mínimo: `tests/e2e/cross-origin.spec.ts`, un MP3 sin CORS **suena** en Chromium y en WebKit con y sin visualizador, y HLS/DASH (`hls.js`, `dashjs`) sin CORS muestran el error. `direct.test.ts`/`audio-controller.test.ts`: el reintento quita `crossOrigin`, ocurre una sola vez y solo en las fuentes directas; `crossOrigin === 'anonymous'` sigue siendo el primer intento (ADR 0004) |
+| A3b | ADR 0031 | Antes de rehacerlos, `currently` de lo actual (WebKit nunca visualiza; el grafo se conecta con el canvas oculto) con su fila en `known-issues.md`. Después: `audio-controller.test.ts` publica «visualizable» por fuente (MSE y directa con `crossOrigin`: sí; directa reintentada sin él y los casos que mida el spike: no), sin *user agent* salvo una excepción medida; `createMediaElementSource()` nunca se llama con una fuente no visualizable. E2E nuevo (Chromium y WebKit): con CORS se ve el visualizador (también en WebKit); sin CORS, la animación estática y el audio suena. `visualizers.spec.ts` sin editar. Los dos hooks salen de la exclusión de cobertura de `player/vitest.config.ts` y cumplen los mínimos |
 | A4 | C2 | `protocol.test.ts` y `use-audio-player.test.tsx`: `.m3u8?token=x`, `.M3U8`, `.mpd?token=x`, `.MPD` y `…/live.m3u8#t` se detectan por el sufijo del `pathname`, sin distinguir mayúsculas; una URL que no se puede analizar no lanza |
 | A5 | K1 | `player-machine.test.ts`: un `pause` en estado `error` no lo cambia. `cross-origin.spec.ts`: cuando un directo falla, el error se ve en Chromium y en WebKit |
 | A6 | K11 | `player-machine.test.ts`/`audio-controller.test.ts`: con HLS y DASH `loading` sigue en `true` y el estado no es `playing` hasta el evento `playing` del elemento. Una pausa durante la carga se respeta: no suena al llegar `MANIFEST_PARSED` (con DASH, tampoco por el *autoplay*) |
@@ -52,7 +53,8 @@ Todos en §3.8, más la fila de la 0007 en §6. Ninguna global, meta, opción ni
 
 | Cambio | ADR previsto | Fase |
 |---|---|---|
-| `crossOrigin`: primer intento con `'anonymous'`; si una fuente directa falla, un reintento sin él (y lo que decida el spike sobre el visualizador). Se elimina «un stream sin CORS no suena» | nuevo, enmienda 0004 y 0013 | 1 |
+| `crossOrigin`: primer intento con `'anonymous'`; si una fuente directa falla, un reintento sin él. Se elimina «un stream sin CORS no suena» | nuevo, enmienda 0004 y 0013 | 1 |
+| §3.9: visualizador o animación estática según la fuente en curso, decidido por el núcleo; zona congelada reducida al dibujo | **0031** (escrito en diseño; §3.9 ya lo anuncia) y lo que añada el spike | 1 |
 | Play tras una pausa vuelve al directo (recarga) en todos los protocolos, salvo durante la bienvenida | nuevo | 1 |
 | DASH: `dashjs` sin fuente de hora de terceros (usa `<UTCTiming>` del MPD o la cabecera `Date`; si no, el reloj local) | el mismo de C7, o ninguno si el plan lo justifica: cumple §2, no lo cambia | 1 |
 | Protocolo por el sufijo del `pathname`, sin distinguir mayúsculas | nuevo (o el de C7 ampliado) | 2 |
@@ -60,7 +62,7 @@ Todos en §3.8, más la fila de la 0007 en §6. Ninguna global, meta, opción ni
 | Bienvenida: si falla, la pausan o falla el directo, el reproductor queda libre y Play carga el directo | el de la fase 2 | 2 |
 | Temporizador de sueño: deshabilitado durante la bienvenida; cuenta contra una hora límite | nuevo | 3 |
 
-Los números los asigna `write-adr` (siguiente libre: 0031). Un ADR puede agrupar los cambios de una fase.
+Los números los asigna `write-adr` (siguiente libre: 0032). Un ADR puede agrupar los cambios de una fase.
 
 ## 4. Diseño
 
@@ -68,7 +70,7 @@ Los números los asigna `write-adr` (siguiente libre: 0031). Un ADR puede agrupa
 
 | # | Decisión | Origen |
 |---|---|---|
-| D1 | C1 se decide tras un spike (fase 0). Objetivo: **que suene siempre**. Sin CORS, el `Dashboard` no conecta el visualizador (pasa `canvasRef = null` a `useAudioVisualizer()`, sin tocar la zona congelada). Si el elemento ya pasó por Web Audio (por ejemplo, la bienvenida con visualizador) y el reintento quedaría en silencio, error claro. El usuario aprueba el resultado | usuario, 2026-10-21 |
+| D1 | C1 se decide tras un spike (fase 0). Objetivo: **que suene siempre**. Sin CORS, el audio no pasa por Web Audio y se ve la animación estática (D9). Si el elemento ya pasó por Web Audio (por ejemplo, la bienvenida con visualizador) y el reintento quedaría en silencio, error claro, salvo que el spike encuentre una salida. El usuario aprueba el resultado | usuario, 2026-10-21; enmendado por el ADR 0031 |
 | D2 | C7: Play tras una pausa recarga el directo en todos los protocolos; ya no se compara `audio.src` con la URL (K12). Arregla K18 si el spike lo confirma | triage 0002 |
 | D3 | Una pausa durante la carga **cancela la carga**: el controlador invalida el intento en curso (un contador de generación), ignora el `AbortError` y los avisos de una fuente vieja, y destruye la fuente. Resuelve K11 (la pausa se respeta), K81 y, con C7, el siguiente Play recarga | diseño |
 | D4 | El estado `playing` del directo sale del evento `playing` del elemento, no de `live-started` (K11); `loading` hasta entonces | diseño |
@@ -76,6 +78,7 @@ Los números los asigna `write-adr` (siguiente libre: 0031). Un ADR puede agrupa
 | D6 | K65: «Sleep mode» deshabilitado mientras `introLocked`; `useSleepTimer()` no cambia de firma | usuario, 2026-10-21 (en `known-issues.md`) |
 | D7 | K67: `clearDefaultUTCTimingSources()` en la instancia de `dashjs`, antes de `initialize()` (`dashjs` 5.2.1; por defecto `defaultTimingSource` es `https://time.akamai.com/?iso&ms` y `useManifestDateHeaderTimeSource` es `true`). `DashPlayer` en `sources/types.ts` y el *fake* de `src/test/fake-streaming.ts` lo añaden | diseño, comprobado en `node_modules/dashjs` |
 | D8 | K13: `useIsIOS()` calcula en el inicializador de `useState` (sin efecto ni `eslint-disable`) con `iphone\|ipad\|ipod` o `Macintosh` + `navigator.maxTouchPoints > 1`. El comentario de `audio-controller.ts` sobre `isIOS` se actualiza | triage 0002 |
+| D9 | Visualización (ADR 0031): el controlador decide por la fuente en curso si se puede visualizar y lo publica en la instantánea; `createMediaElementSource()` solo con una fuente visualizable; el cableado de Web Audio va al núcleo con el `AudioContext` inyectado; un solo valor gobierna visualizador y animación estática. `useCanVisualize()` desaparece o queda como adaptador; `useAudioVisualizer()` queda como bucle de dibujo. `VisualizerFn` conserva firma y ruta importable por `config/visualizers.ts` | usuario, 2026-10-21 |
 
 ### 4.2 Dónde va cada corrección
 
@@ -83,7 +86,8 @@ Los números los asigna `write-adr` (siguiente libre: 0031). Un ADR puede agrupa
 |---|---|---|
 | K67 | `core/audio/sources/dash.ts` | — |
 | C7, K18, K12 | `core/audio/audio-controller.ts` (fuera la rama `resume`) | — |
-| C1 | `core/audio/sources/direct.ts` (reintento) y `audio-controller.ts` (marca en la instantánea, nombre según el spike) | `hooks/use-audio-player.tsx` la expone; `components/dashboard/index.tsx` decide el visualizador |
+| C1 | `core/audio/sources/direct.ts` (reintento) y `audio-controller.ts` (marca en la instantánea, nombre según el spike) | `hooks/use-audio-player.tsx` la expone |
+| ADR 0031 | `audio-controller.ts` (visualizable por fuente) y el cableado de Web Audio en `core/audio/` (archivo según el plan) | `hooks/use-audio-visualizer.tsx` y `hooks/use-can-visualize.tsx` (rehechos), `components/dashboard/index.tsx` y `StreamInfo.tsx` (un solo valor) |
 | C2 | `core/audio/protocol.ts` | — |
 | K1, K64, K11 | `core/audio/player-machine.ts` | — |
 | K81, K11 (pausa), K63 | `audio-controller.ts` (D3, D5) y `player-machine.ts` | — |
@@ -110,17 +114,17 @@ Desechable, en `spike/0007-playback/` (con su `README.md`, fila en `spike/README
 
 | Riesgo | Pregunta que responde |
 |---|---|
-| R1 (C1) | En Chromium y WebKit, con una fuente directa de otro origen sin CORS: ¿el reintento sin `crossOrigin` (mismo elemento, `removeAttribute` + `load()`) suena? ¿Y si antes se llamó a `createMediaElementSource()` sobre el elemento (visualizador activo; bienvenida con visualizador)? ¿Basta con no conectar el visualizador para que suene? ¿Cómo distingue el controlador «sin CORS» de un 404 (los dos dan `error` 4), o se reintenta siempre una vez? |
+| R1 (C1) | En Chromium y WebKit, con una fuente directa de otro origen sin CORS: ¿el reintento sin `crossOrigin` (mismo elemento, `removeAttribute` + `load()`) suena? ¿Y si antes se llamó a `createMediaElementSource()` sobre el elemento (visualizador activo; bienvenida con visualizador)? ¿Basta con no conectar el visualizador para que suene? ¿Cómo distingue el controlador «sin CORS» de un 404 (los dos dan `error` 4), o se reintenta siempre una vez? Y para el ADR 0031: con un stream **con** CORS, ¿hay datos reales en el analizador en Chromium, WebKit y Safari real, con MP3, HLS nativo (Safari, iOS si se puede), `hls.js` y `dashjs`? ¿El `AudioContext` creado fuera del gesto arranca suspendido y deja el audio mudo, y basta con crearlo o reanudarlo en el gesto de Play? ¿Hace falta detectar en tiempo real un analizador plano? |
 | R2 (K67) | Con `clearDefaultUTCTimingSources()`, un directo DASH sin `<UTCTiming>` ¿suena, sin pedir nada a terceros, con y sin la cabecera `Date` expuesta por CORS? |
 | R3 (K18, C7) | En Safari real (macOS; iOS si el usuario puede): ¿se congela Pausa + Play hoy, y recargar el directo lo evita? Lo prueba el usuario con una página del spike y anota el resultado |
 
-- **Resultado:** informe en `docs/spikes/0007-phase-0.md` con lo medido, la propuesta de C1 (qué hace el `Dashboard`, qué marca expone el controlador, cuándo sale error) y, si cambia algo de esta spec, la spec corregida en el mismo commit.
+- **Resultado:** informe en `docs/spikes/0007-phase-0.md` con lo medido, la propuesta de C1 y de la visualización (qué marca expone el controlador, en qué fuentes es visualizable, cuándo se crea el `AudioContext`, cuándo sale error) y, si cambia algo de esta spec, la spec corregida en el mismo commit.
 - ✅ **Criterio:** cada riesgo tiene respuesta demostrada; **el usuario aprueba** la propuesta de C1 antes de la fase 1.
 
 ### Fase 1 — Prioridad alta: K67, C7 (K18, K12) y C1
 
-- K67 primero (bloquea la release). Después C7, que cambia la reanudación de la que dependen C1 y la fase 2. Después C1, según el spike, con su ADR.
-- ✅ **Criterios:** A1, A2, A3; ADRs de C1 y C7 con `SPEC.md` §3.8; A15 anotado en `docs/status.md`.
+- K67 primero (bloquea la release). Después C7, que cambia la reanudación de la que dependen C1 y la fase 2. Después C1 y la visualización (D9), según el spike, con su ADR: primero la caracterización de los dos hooks, después C1 y por último la decisión de la visualización.
+- ✅ **Criterios:** A1, A2, A3, A3b; ADRs de C1 y C7 con `SPEC.md` §3.8; A15 anotado en `docs/status.md`.
 
 ### Fase 2 — Prioridad media: estados del audio
 
@@ -136,7 +140,8 @@ Desechable, en `spike/0007-playback/` (con su `README.md`, fila en `spike/README
 
 | # | Riesgo / pregunta | Mitigación | Cuándo |
 |---|---|---|---|
-| 1 | C1 sin una salida que suene con visualizador sin tocar la zona congelada | Spike R1; si no la hay, se para y el usuario elige (error claro con visualizador, o ADR que descongela) | Fase 0 |
+| 1 | C1 sin una salida que suene si el elemento ya pasó por Web Audio | Spike R1; la zona de los hooks ya está abierta (ADR 0031). Si no hay salida, error claro (D1) o el usuario elige | Fase 0 |
+| 1b | En WebKit sale el visualizador donde hoy nunca salía (cambio visible) o algún Safari da datos planos con CORS | Spike R1 en Safari real; excepción medida con su test, o detección de analizador plano; revisión visual al cerrar la fase 1 | Fase 0–1 |
 | 2 | El reintento de C1 duplica la petición a un stream caído (404) | Un solo reintento; el spike mide si se puede distinguir | Fase 0 |
 | 3 | Sin fuente de hora, el directo DASH arranca lejos del borde | Spike R2; la cabecera `Date` es la reserva de `dashjs` | Fase 0 |
 | 4 | C7 recarga el directo y un e2e o la Media Session dependían de la reanudación | Todos los e2e de `mp3`, `hls-dash`, `intro`, `media-session` y `sleep` en las dos puntas; si un test de caracterización cae fuera de las filas de la spec, se para | Fase 1 |
@@ -148,7 +153,7 @@ Desechable, en `spike/0007-playback/` (con su `README.md`, fila en `spike/README
 ## Apéndice — Referencias
 
 - `docs/known-issues.md`: filas C1, C2, C7, K1, K11, K12, K13, K18, K63, K64, K65, K66, K67, K81 (y C8, que no se corrige).
-- ADR 0004, 0013 (`crossOrigin`), 0018 (zona congelada), 0029 (núcleo), 0030 (orden de los renders de K1).
+- ADR 0004, 0013 (`crossOrigin`), 0018 (zona congelada) y 0031 (visualización por el núcleo; reduce la zona), 0029 (núcleo), 0030 (orden de los renders de K1).
 - Spec 0006: [`spec.md`](../0006-player-refactor/spec.md) §4.3 y §4.5, y sus planes de fase (sospechas K80 y K81, la sonda de la 2.11).
 - `dashjs` 5.2.1: `streaming.utcSynchronization` y `MediaPlayer.clearDefaultUTCTimingSources()`.
 - Web Audio API: un `MediaElementAudioSourceNode` sobre un medio de otro origen sin CORS produce silencio.
