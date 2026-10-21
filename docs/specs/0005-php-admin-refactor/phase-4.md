@@ -70,7 +70,8 @@ Mover el plan de la migración heredada y las decisiones de la actualización al
 - Archivos: `includes/src/upgrade/class-upgrade-policy.php`, `tests/zip/expected-additions.txt`.
 - Test: primero (TDD): `tests/php/unit/Upgrade/UpgradePolicyTest.php`.
 - Verificación: `npm run test:php:unit -- --filter UpgradePolicyTest && npm run check:zip`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `Upgrade\Upgrade_Policy` con los cinco predicados y 28 tests en `UpgradePolicyTest` (TDD, en rojo sin la clase). `has_migratable_stations()` cuenta cualquier lista no vacía, también `['x']` (K32); `published_count()` pide un objeto con `publish` (con `false`, `null` o un array da 0, igual que hoy); `should_clear_conflict()` usa la veracidad de la opción, como `! get_option()`; `is_this_plugin_update()` compara el basename con `in_array( …, true )`, igual que el `===` del bucle (un `0` en `plugins` no cuenta, ni en PHP 7.4). `currently` de K4 replicado (citado en `known-issues.md`). Mutación, revertida: `==` en `is_current()` falla `test_is_current`.
 
 ### 4.6 Los callbacks de la actualización delegan (≤ 1 h)
 - Qué: `radplapag_legacy_has_migratable_stations()`, `radplapag_count_published_stations()`, `radplapag_ensure_schema_version_option()`, `radplapag_maybe_clear_migration_conflict_flag()`, `radplapag_run_legacy_migration_if_needed()` y `radplapag_on_upgrader_process_complete()` llaman a la política, con la misma secuencia de lecturas y escrituras y su `@since 3.5.0`. Avisos, descarte y autor sin cambios. Salen las entradas de baseline que desaparezcan.
