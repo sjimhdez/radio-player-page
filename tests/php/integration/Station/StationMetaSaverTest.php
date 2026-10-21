@@ -87,16 +87,22 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 		$transient = static function ( $name ) use ( &$writes ) {
 			$writes[] = current_filter() . ':' . $name;
 		};
+		// WordPress 6.8 renamed `setted_transient` to `set_transient` and listening
+		// to the old name raises a deprecation notice. The label stays the same.
+		$set_hook = version_compare( get_bloginfo( 'version' ), '6.8', '>=' ) ? 'set_transient' : 'setted_transient';
+		$set      = static function ( $name ) use ( &$writes ) {
+			$writes[] = 'setted_transient:' . $name;
+		};
 		add_action( 'added_post_meta', $meta_hook, 10, 3 );
 		add_action( 'updated_post_meta', $meta_hook, 10, 3 );
-		add_action( 'setted_transient', $transient );
+		add_action( $set_hook, $set );
 		add_action( 'deleted_transient', $transient );
 
 		Station_Meta_Saver::save( $this->station, $input );
 
 		remove_action( 'added_post_meta', $meta_hook, 10 );
 		remove_action( 'updated_post_meta', $meta_hook, 10 );
-		remove_action( 'setted_transient', $transient );
+		remove_action( $set_hook, $set );
 		remove_action( 'deleted_transient', $transient );
 
 		return $writes;
