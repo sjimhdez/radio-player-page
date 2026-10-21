@@ -17,3 +17,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 require_once RADPLAPAG_TESTS_PLUGIN_DIR . '/vendor/autoload.php';
+require_once RADPLAPAG_TESTS_PLUGIN_DIR . '/includes/src/class-autoloader.php';
+\RadioPlayerPage\Autoloader::register();

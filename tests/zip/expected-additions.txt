@@ -1,0 +1,27 @@
+# Files the zip may carry on top of the reference tag (spec 0005 §4.5, ADR 0028).
+# One path per line, relative to the plugin root (e.g. includes/src/class-autoloader.php).
+# Every new file under includes/src/ goes here in the same commit. The release
+# that moves REFERENCE_TAG empties this list.
+includes/src/class-autoloader.php
+includes/src/schedule/class-time.php
+includes/src/schedule/class-week.php
+includes/src/schedule/class-slot-validator.php
+includes/src/wp/class-schedule-messages.php
+includes/src/schedule/class-now-playing-resolver.php
+includes/src/wp/class-clock.php
+includes/src/schedule/class-schedule-view.php
+includes/src/schedule/class-programs-list-view.php
+admin/js/schedule-rules.js
+includes/src/data/class-station.php
+includes/src/data/class-stations.php
+includes/src/wp/class-station-repository.php
+includes/src/data/class-program.php
+includes/src/wp/class-program-repository.php
+includes/src/station/class-field-sanitizer.php
+includes/src/wp/class-station-meta-saver.php
+includes/src/program/class-field-sanitizer.php
+includes/src/wp/class-program-meta-saver.php
+includes/src/player/class-globals-builder.php
+includes/src/migration/class-legacy-plan.php
+includes/src/wp/class-migration-writer.php
+includes/src/upgrade/class-upgrade-policy.php

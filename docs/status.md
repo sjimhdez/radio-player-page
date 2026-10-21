@@ -1,14 +1,14 @@
 # Estado
-Spec activa: 0003 — Dependencias del player y de los bloques · Fase: cerrada (1, el 2026-10-20; PR #38 listo, pendiente de merge en `trunk`) · Plan: [`phase-1.md`](specs/0003-player-dependencies/phase-1.md) · Actualizado: 2026-10-20
+Spec activa: 0005 — Refactor de PHP y admin · Fase: cerrada (1–4, el 2026-10-21; PR #39 listo, pendiente de merge en `trunk`) · Plan: [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0003 cerrada (2026-10-20). PR #38 contra `trunk`, listo: el merge lo decide el usuario (merge commit, sin squash, título `Spec 0003: Dependencias del player y de los bloques`).
+- Spec 0005 (refactor de PHP y admin) cerrada el 2026-10-21: lógica pura en `RadioPlayerPage\` (`includes/src/`), adaptadores en `WP\*` y las funciones `radplapag_*` como envoltorios, sin cambios de comportamiento ni de contrato (ADR 0028). Cobertura `critical` 97,04 %, `core` 100 %; baseline 156 líneas menos. K72 corregido. PR #39 listo contra `trunk`: **el merge lo decide el usuario** (merge commit, título `Spec 0005: Refactor de PHP y admin`).
 
 ## Siguiente (máx. 5)
-1. Tras el merge del PR #38: sesión de diseño → `write-spec` de la spec 0005 (refactor de PHP y admin; la 0006 también puede empezar, las dos dependen solo de la 0003).
+1. Tras el merge del PR #39: sesión de diseño → `write-spec` de la 0006 (refactor del player), según la hoja de ruta. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse (`docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano
-- Ninguno.
+- Decidir si se corrigen y en qué spec dos rarezas bajas: K76 (`completeTimeFields` sin uso; propuesta: 0010 admin) y K79 (la migración heredada pierde `is_rerun` de las franjas, que el refactor conserva; propuesta: 0008 migración).
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
@@ -16,6 +16,18 @@ Spec activa: 0003 — Dependencias del player y de los bloques · Fase: cerrada 
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)
+Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md`, `phase-3.md` y `phase-4.md`; sin ADR, no cambian el contrato):
+- Fase 4 (revisión): sin efecto en los datos ni en lo observable sin filtros de terceros. `Migration\Legacy_Plan` sanea todos los programas (cada aparición) y emisoras antes de escribir nada; en la 3.4.2, una vez por programa único y cada emisora justo antes de insertarla. Sale la guarda `(int) $post_id > 0` de la reversión (inalcanzable: los IDs vienen de `wp_insert_post( …, true )`). `radplapag_on_upgrader_process_complete()` calcula `plugin_basename()` (sin filtro) antes de comprobar `action`/`type`, no después. `Upgrade_Policy::is_current()` recibe `string $target`: un `RADPLAPAG_DB_VERSION` entero definido fuera del plugin se compararía como cadena (fuera del contrato).
+- Fase 4 (plan): §4.3 pone el `error_log()` de la migración en `WP\Migration_Writer`. Se queda en `Radplapag_Migrator_Settings_To_Cpt::run()`, que le pasa al escritor un closure con la comprobación de `WP_DEBUG` y un solo `phpcs:ignore` con su motivo (K72), porque `includes/src/` no lleva `phpcs:` (A6). El escritor lo llama en los mismos momentos que hoy. Decidido por el usuario (2026-10-21).
+- Fase 3 (revisión): se quitan dos guardas inalcanzables, como en la fase 1: `isset`/`is_array` de `radplapag_get_config()['stations']` en `radplapag_get_station_for_current_page()` (la función no tiene filtro y siempre da un array) e `instanceof WP_Post` en `WP\Station_Repository::published_rows()` (`get_posts()` con `suppress_filters` solo da posts; un `posts_pre_query` con un ID sin post rompe antes dentro de WP, comprobado). Los títulos y `blogname` pasan a parámetros `string`: un filtro que devolviera `null` daría un `TypeError` (WP siempre da cadenas), y `get_bloginfo( 'name' )` se lee siempre, no solo sin título. En la 3.12, `Radplapag_Station_Config` se caracterizó después de delegarla (3.5), no antes (§4.4); los tests pasan también contra la clase de `trunk`. El arnés de los tests de orden de escrituras (3.2, 3.8) escucha `set_transient` en WP ≥ 6.8 (`setted_transient` está obsoleta); las listas esperadas no cambian.
+- Fase 3 (plan): §4.3 pone el nonce, las capacidades y `$_POST` en el adaptador del guardado. Se quedan en `radplapag_save_station_meta()` y `radplapag_save_program_meta()`, con su `phpcs:ignore` de siempre, porque WPCS exige el nonce en la misma función que lee `$_POST` y A6 no admite supresiones en `includes/src/`. El adaptador (`WP\Station_Meta_Saver`, `WP\Program_Meta_Saver`) recibe `( $post_id, array $input )`. Decidido por el usuario (2026-10-21).
+- Fase 2 (plan): riesgo 1 de la spec. Las filas que añade el JS conservan el texto visible de hoy (entidades decodificadas como hacía `innerHTML`) con `DOMParser`; K21 sigue para la 0012. Decidido por el usuario (2026-10-20).
+- Fase 2, 2.5: `AdminScreensTest::test_admin_scripts_on_the_station_screen` amplía la aserción de `deps` de `radplapag-station-admin` con `radplapag-schedule-rules` (ADR 0028 D3), fija los `deps` de `radplapag-program-admin` en el mismo bucle y añade aserciones del handle nuevo (también en `test_admin_scripts_on_the_program_screen`, que no se registre). Solo esa aserción cambia; lo demás son altas. Aprobado por el usuario (2026-10-20).
+- Fase 2, 2.8: una traducción con etiquetas en la fila que añade el JS se ve como texto (antes `innerHTML` creaba los elementos; ninguna cadena del plugin las lleva). K77. Aceptado por el usuario (2026-10-21).
+- Fase 2, 2.3: se quita la rama inalcanzable «Please complete all time fields»; `completeTimeFields` sigue en `radplapagAdmin.strings` (contrato, §3.6) sin uso: K76.
+- Fase 1, 1.8: `Slot_Validator` no emite `end_before_start` (§4.2): la rama era inalcanzable en la 3.4.2. `WP\Schedule_Messages` conserva el mensaje para el POT. En la 1.10 y la 1.12 se quitan las guardas inalcanzables de la 3.4.2 (`count( $days_out ) === 7`, claves de día `null`).
+- Fase 1, 1.6: `SmokeTest` pasa al grupo `no-wordpress` (solo la anotación) para que la suite unit corra dentro de la integración (ADR 0028). Fase 1, 1.3: la guarda del zip con altas va en su propia tarea y no con el ADR (§4.5). La 1.16 (autoloader con identificadores válidos) sale de `close-phase`.
+
 Spec 0003:
 - Tarea 1.1: K71 (anuncio de i18next en la consola) lo corrigió la subida a i18next 26, fuera de una spec de correcciones; su test `currently` pasa a regresión en la misma fase. Aprobado por el usuario (2026-10-20).
 - Tarea 1.2b: K73 (fallo del test `BlockRenderTest`, depende del día de la semana) se arregla en la 0003 y no en la 0013, porque deja la CI en rojo los lunes y martes. Solo el test; los snapshots no cambian. Aprobado por el usuario (2026-10-20).

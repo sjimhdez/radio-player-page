@@ -25,6 +25,13 @@
 				]
 			},
 			{ "file": "includes/radplapag-stations.php" },
+			{ "file": "includes/src/wp/class-schedule-messages.php" },
+			{ "file": "includes/src/wp/class-clock.php" },
+			{ "file": "includes/src/wp/class-station-repository.php" },
+			{ "file": "includes/src/wp/class-program-repository.php" },
+			{ "file": "includes/src/wp/class-station-meta-saver.php" },
+			{ "file": "includes/src/wp/class-program-meta-saver.php" },
+			{ "file": "includes/src/wp/class-migration-writer.php" },
 			{ "file": "includes/data/class-radplapag-station-config.php" },
 			{ "file": "includes/data/class-radplapag-program-config.php" },
 			{
@@ -32,6 +39,11 @@
 				"functions": [ "radplapag_get_station_for_current_page" ]
 			}
 		]
+	},
+	"core": {
+		"min": 90,
+		"include": [ "includes/src/**" ],
+		"exclude": [ "includes/src/wp/**" ]
 	},
 	"rest": {
 		"min": 60,

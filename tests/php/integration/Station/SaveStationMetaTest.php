@@ -508,6 +508,117 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 		$this->assertSame( '{"monday":[]}', $this->meta( 'schedule' ) );
 	}
 
+	// Order of the writes (the refactor must keep it).
+
+	/**
+	 * Saves and returns the writes in order, as `<hook>:<key>`: meta added or updated
+	 * and transients set or deleted. WordPress fires `deleted_transient` only when the
+	 * transient existed, and the meta hooks only when the value changes: the station
+	 * starts without meta, so every meta write is an `added_post_meta`.
+	 *
+	 * @param array $fields Form fields, as in save().
+	 * @return string[]
+	 */
+	private function save_and_record_writes( array $fields ) {
+		$writes    = array();
+		$meta_hook = static function ( $meta_id, $object_id, $meta_key ) use ( &$writes ) {
+			$writes[] = current_filter() . ':' . $meta_key;
+		};
+		$transient = static function ( $name ) use ( &$writes ) {
+			$writes[] = current_filter() . ':' . $name;
+		};
+		// WordPress 6.8 renamed `setted_transient` to `set_transient` and listening
+		// to the old name raises a deprecation notice. The label stays the same.
+		$set_hook = version_compare( get_bloginfo( 'version' ), '6.8', '>=' ) ? 'set_transient' : 'setted_transient';
+		$set      = static function ( $name ) use ( &$writes ) {
+			$writes[] = 'setted_transient:' . $name;
+		};
+		add_action( 'added_post_meta', $meta_hook, 10, 3 );
+		add_action( 'updated_post_meta', $meta_hook, 10, 3 );
+		add_action( $set_hook, $set );
+		add_action( 'deleted_transient', $transient );
+
+		$this->save( $fields );
+
+		remove_action( 'added_post_meta', $meta_hook, 10 );
+		remove_action( 'updated_post_meta', $meta_hook, 10 );
+		remove_action( $set_hook, $set );
+		remove_action( 'deleted_transient', $transient );
+
+		return $writes;
+	}
+
+	/**
+	 * With field errors and a valid schedule: the field errors transient, the five
+	 * metas in form order, then the schedule (its old error deleted before the meta).
+	 * The successful URL path is not reachable in the CLI (see the class comment).
+	 */
+	public function test_writes_order_with_field_errors_and_valid_schedule() {
+		$program = $this->factory_rpp->program( 'Morning' );
+		set_transient( 'radplapag_station_schedule_errors_' . $this->station, 'Old error', 45 );
+
+		$writes = $this->save_and_record_writes(
+			array(
+				'schedule' => array(
+					'monday' => array(
+						array(
+							'program_id' => (string) $program,
+							'start'      => '06:00',
+							'end'        => '10:00',
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'setted_transient:radplapag_station_field_errors_' . $this->station,
+				'added_post_meta:radplapag_station_background_id',
+				'added_post_meta:radplapag_station_logo_id',
+				'added_post_meta:radplapag_station_intro_audio_id',
+				'added_post_meta:radplapag_station_theme_color',
+				'added_post_meta:radplapag_station_visualizer',
+				'deleted_transient:radplapag_station_schedule_errors_' . $this->station,
+				'added_post_meta:radplapag_station_schedule',
+			),
+			$writes
+		);
+	}
+
+	/**
+	 * With an invalid schedule: the same field writes, then only the schedule errors
+	 * transient (the schedule meta is not written).
+	 */
+	public function test_writes_order_with_invalid_schedule() {
+		$writes = $this->save_and_record_writes(
+			array(
+				'schedule' => array(
+					'monday' => array(
+						array(
+							'program_id' => '',
+							'start'      => '06:00',
+							'end'        => '10:00',
+						),
+					),
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'setted_transient:radplapag_station_field_errors_' . $this->station,
+				'added_post_meta:radplapag_station_background_id',
+				'added_post_meta:radplapag_station_logo_id',
+				'added_post_meta:radplapag_station_intro_audio_id',
+				'added_post_meta:radplapag_station_theme_color',
+				'added_post_meta:radplapag_station_visualizer',
+				'setted_transient:radplapag_station_schedule_errors_' . $this->station,
+			),
+			$writes
+		);
+	}
+
 	// Notice: only the early returns (filter_input( INPUT_GET ) is null in the CLI).
 
 	/**

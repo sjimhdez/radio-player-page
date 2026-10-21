@@ -146,7 +146,7 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run lint:js
-      - run: npm test
+      - run: npm run test:coverage
 
   player:
     name: Player (typecheck, lint, format, Vitest, build, dist check)

@@ -12,6 +12,7 @@
 namespace RadioPlayerPage\Tests\Integration\Data;
 
 use Radplapag_Program_Config;
+use Radplapag_Station_Config;
 use RadioPlayerPage\Tests\Integration\Support\Factory;
 use WP_UnitTestCase;
 
@@ -596,6 +597,51 @@ final class ConfigTest extends WP_UnitTestCase {
 		$this->assertNull( Radplapag_Program_Config::from_post_id( -5 ) );
 		$this->assertNull( Radplapag_Program_Config::from_post_id( PHP_INT_MAX ) );
 		$this->assertNull( Radplapag_Program_Config::from_post_id( $station ) );
+	}
+
+	// Station config object, which has no caller in 3.4.2.
+
+	/**
+	 * The config built by from_post() gives the same row as radplapag_get_stations().
+	 */
+	public function test_station_config_to_array_is_the_station_row() {
+		$this->factory_rpp->station(
+			'Station',
+			array(
+				'stream_url'  => self::STREAM,
+				'theme_color' => 'red',
+				'schedule'    => '{"monday":[{"program_id":1,"start":"08:00","end":"09:00"}]}',
+			)
+		);
+		$row = radplapag_get_stations()[0];
+
+		$config = Radplapag_Station_Config::from_post( get_post( $row['id'] ) );
+		$this->assertInstanceOf( Radplapag_Station_Config::class, $config );
+		$this->assertSame( $row, $config->to_array() );
+	}
+
+	/**
+	 * A draft station also builds a config (publication is not required).
+	 */
+	public function test_station_config_accepts_a_draft() {
+		$station = $this->factory_rpp->station( 'Draft', array( 'status' => 'draft' ) );
+
+		$config = Radplapag_Station_Config::from_post( get_post( $station ) );
+		$this->assertInstanceOf( Radplapag_Station_Config::class, $config );
+		$this->assertSame( 'Draft', $config->to_array()['station_title'] );
+	}
+
+	/**
+	 * Anything but a station post gives null, an ID included.
+	 */
+	public function test_station_config_is_null_for_anything_but_a_station_post() {
+		$station = $this->factory_rpp->station( 'Station' );
+		$program = $this->factory_rpp->program( 'Morning' );
+
+		$this->assertNull( Radplapag_Station_Config::from_post( null ) );
+		$this->assertNull( Radplapag_Station_Config::from_post( $station ) );
+		$this->assertNull( Radplapag_Station_Config::from_post( get_post( $program ) ) );
+		$this->assertNull( Radplapag_Station_Config::from_post( get_post( $this->factory_rpp->page( 'Page' ) ) ) );
 	}
 
 	// Programs for the schedule select.

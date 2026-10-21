@@ -38,10 +38,17 @@ function radplapag_admin_scripts( $hook_suffix ) { // phpcs:ignore Generic.CodeA
 
 	if ( $is_station ) {
 		wp_enqueue_media();
+		wp_register_script(
+			'radplapag-schedule-rules',
+			$admin_url . 'js/schedule-rules.js',
+			array(),
+			'3.4.2',
+			true
+		);
 		wp_enqueue_script(
 			'radplapag-station-admin',
 			$admin_url . 'js/station-admin.js',
-			array( 'jquery', 'media-editor' ),
+			array( 'jquery', 'media-editor', 'radplapag-schedule-rules' ),
 			'3.4.2',
 			true
 		);

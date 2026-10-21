@@ -676,6 +676,394 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertSame( $settings, get_option( 'radplapag_settings' ) );
 	}
 
+	// Debug log and schedule translation.
+
+	/**
+	 * Legacy station with its programs and schedule.
+	 *
+	 * @param string $title    Station title.
+	 * @param array  $programs Legacy programs.
+	 * @param array  $schedule Legacy schedule: day => slots.
+	 * @return array
+	 */
+	private function legacy_station( $title, array $programs, array $schedule ) {
+		return array(
+			'stream_url'    => 'https://stream.example.test/' . strtolower( $title ) . '.mp3',
+			'station_title' => $title,
+			'programs'      => $programs,
+			'schedule'      => $schedule,
+		);
+	}
+
+	/**
+	 * Legacy slot.
+	 *
+	 * @param string $program_id Legacy program id.
+	 * @param string $start      Start time.
+	 * @param string $end        End time.
+	 * @return array
+	 */
+	private function slot( $program_id, $start = '07:00', $end = '08:00' ) {
+		return array(
+			'program_id' => $program_id,
+			'start'      => $start,
+			'end'        => $end,
+		);
+	}
+
+	/**
+	 * Stores the legacy stations, runs the migration with error_log() sent to a temporary
+	 * file (WP_DEBUG is on in the test environment) and returns the logged messages,
+	 * without their date prefix.
+	 *
+	 * @param array $stations Legacy stations.
+	 * @return string[]
+	 */
+	private function migration_log( array $stations ) {
+		$this->assertTrue( defined( 'WP_DEBUG' ) && WP_DEBUG, 'Precondition: WP_DEBUG is on.' );
+		update_option( 'radplapag_settings', array( 'stations' => $stations ) );
+		$file = (string) wp_tempnam( 'radplapag-migration-log' );
+		ini_set( 'error_log', $file ); // phpcs:ignore WordPress.PHP.IniSet.Risky -- tear_down() restores it.
+
+		try {
+			radplapag_run_legacy_migration_if_needed();
+		} finally {
+			ini_set( 'error_log', '/dev/null' ); // phpcs:ignore WordPress.PHP.IniSet.Risky -- tear_down() restores it.
+			$lines = file( $file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
+			wp_delete_file( $file );
+		}
+
+		return array_map(
+			static function ( $line ) {
+				return (string) preg_replace( '/^\[[^\]]+\] /', '', $line );
+			},
+			false === $lines ? array() : $lines
+		);
+	}
+
+	/**
+	 * A legacy program id reused with different data logs one line before any skipped
+	 * slot; the last occurrence wins.
+	 */
+	public function test_duplicate_program_id_with_differing_data_is_logged_before_skipped_slots() {
+		$log = $this->migration_log(
+			array(
+				$this->legacy_station(
+					'One',
+					array(
+						array(
+							'id'   => 'prog_shared01',
+							'name' => 'First',
+						),
+					),
+					array( 'monday' => array( $this->slot( 'prog_gone0001' ) ) )
+				),
+				$this->legacy_station(
+					'Two',
+					array(
+						array(
+							'id'   => 'prog_shared01',
+							'name' => 'Second',
+						),
+					),
+					array()
+				),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'Radio Player Page migration: duplicate legacy program id "prog_shared01" with differing data; using the last occurrence.',
+				'Radio Player Page migration: skipping schedule slot with unknown program id "prog_gone0001".',
+			),
+			$log
+		);
+		$this->assertSame( 'Second', get_posts( array( 'post_type' => 'radplapag_program' ) )[0]->post_title );
+	}
+
+	/**
+	 * A legacy program id reused with the same data logs nothing.
+	 */
+	public function test_duplicate_program_id_with_same_data_is_not_logged() {
+		$program = array(
+			'id'          => 'prog_shared01',
+			'name'        => 'Shared',
+			'description' => 'Same',
+		);
+
+		$log = $this->migration_log(
+			array(
+				$this->legacy_station( 'One', array( $program ), array( 'monday' => array( $this->slot( 'prog_shared01' ) ) ) ),
+				$this->legacy_station( 'Two', array( $program ), array( 'monday' => array( $this->slot( 'prog_shared01' ) ) ) ),
+			)
+		);
+
+		$this->assertSame( array(), $log );
+		$this->assertSame( 1, $this->count_posts( 'radplapag_program' ) );
+	}
+
+	/**
+	 * Slots with an unknown program are logged station by station, in schedule order, and
+	 * left out of the migrated schedule.
+	 */
+	public function test_skipped_slots_are_logged_in_station_order() {
+		$log = $this->migration_log(
+			array(
+				$this->legacy_station(
+					'One',
+					array(),
+					array(
+						'monday'  => array( $this->slot( 'prog_gone0001' ) ),
+						'tuesday' => array( $this->slot( 'prog_gone0002' ) ),
+					)
+				),
+				$this->legacy_station( 'Two', array(), array( 'monday' => array( $this->slot( 'prog_gone0003' ) ) ) ),
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'Radio Player Page migration: skipping schedule slot with unknown program id "prog_gone0001".',
+				'Radio Player Page migration: skipping schedule slot with unknown program id "prog_gone0002".',
+				'Radio Player Page migration: skipping schedule slot with unknown program id "prog_gone0003".',
+			),
+			$log
+		);
+		$this->assertSame( 2, $this->count_posts( 'radplapag_station' ) );
+	}
+
+	/**
+	 * Skipped slots are logged just before each station is validated: when the first
+	 * station fails, those of the second are never logged.
+	 */
+	public function test_skipped_slots_of_stations_after_a_failing_one_are_not_logged() {
+		$programs = array(
+			array(
+				'id'   => 'prog_known001',
+				'name' => 'Known',
+			),
+		);
+
+		$log = $this->migration_log(
+			array(
+				$this->legacy_station(
+					'One',
+					$programs,
+					array(
+						'monday' => array(
+							$this->slot( 'prog_gone0001' ),
+							$this->slot( 'prog_known001', 'abc', '08:00' ),
+						),
+					)
+				),
+				$this->legacy_station( 'Two', $programs, array( 'monday' => array( $this->slot( 'prog_gone0002' ) ) ) ),
+			)
+		);
+
+		$this->assertSame(
+			array( 'Radio Player Page migration: skipping schedule slot with unknown program id "prog_gone0001".' ),
+			$log
+		);
+		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
+		$this->assertStringStartsWith( 'Schedule migration failed: ', (string) get_transient( 'radplapag_migration_error_notice' ) );
+	}
+
+	/**
+	 * The schedule translation keeps only program, start and end: a legacy rerun slot is
+	 * migrated as a first broadcast.
+	 *
+	 * @see docs/known-issues.md K79
+	 */
+	public function test_currently_migrated_slot_loses_is_rerun() {
+		$slot             = $this->slot( 'prog_known001' );
+		$slot['is_rerun'] = true;
+		update_option(
+			'radplapag_settings',
+			array(
+				'stations' => array(
+					$this->legacy_station(
+						'One',
+						array(
+							array(
+								'id'   => 'prog_known001',
+								'name' => 'Known',
+							),
+						),
+						array( 'monday' => array( $slot ) )
+					),
+				),
+			)
+		);
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$station  = get_posts( array( 'post_type' => 'radplapag_station' ) )[0];
+		$schedule = json_decode( (string) get_post_meta( $station->ID, 'radplapag_station_schedule', true ), true );
+		$this->assertFalse( $schedule['monday'][0]['is_rerun'] );
+	}
+
+	// Order of the writes and of the rollback.
+
+	/**
+	 * Stores the legacy stations, runs the migration and returns its writes in order:
+	 * created posts, their radplapag_ meta, deleted posts and radplapag_ options added,
+	 * updated or deleted (transients are left out). Posts are labelled by type and title.
+	 *
+	 * @param array $stations Legacy stations.
+	 * @return string[]
+	 */
+	private function migration_writes( array $stations ) {
+		update_option( 'radplapag_settings', array( 'stations' => $stations ) );
+		$writes = array();
+		$labels = array();
+
+		add_action(
+			'wp_insert_post',
+			static function ( $post_id, $post ) use ( &$writes, &$labels ) {
+				$labels[ $post_id ] = $post->post_type . ' ' . $post->post_title;
+				$writes[]           = 'insert ' . $labels[ $post_id ];
+			},
+			10,
+			2
+		);
+		add_action(
+			'added_post_meta',
+			static function ( $meta_id, $post_id, $meta_key ) use ( &$writes, &$labels ) {
+				if ( 0 === strpos( $meta_key, 'radplapag_' ) ) {
+					$writes[] = 'meta ' . $labels[ $post_id ] . ' ' . $meta_key;
+				}
+			},
+			10,
+			3
+		);
+		add_action(
+			'deleted_post',
+			static function ( $post_id ) use ( &$writes, &$labels ) {
+				$writes[] = 'delete ' . $labels[ $post_id ];
+			}
+		);
+		foreach ( array( 'added_option', 'updated_option', 'deleted_option' ) as $hook ) {
+			add_action(
+				$hook,
+				static function ( $option ) use ( &$writes, $hook ) {
+					if ( 0 === strpos( $option, 'radplapag_' ) ) {
+						$writes[] = $hook . ' ' . $option;
+					}
+				}
+			);
+		}
+
+		radplapag_run_legacy_migration_if_needed();
+
+		return $writes;
+	}
+
+	/**
+	 * Legacy stations One (programs A and B) and Two (program B again, same data).
+	 *
+	 * @return array
+	 */
+	private function two_programs_two_stations() {
+		$program_a = array(
+			'id'   => 'prog_aaaaaaaa',
+			'name' => 'A',
+		);
+		$program_b = array(
+			'id'   => 'prog_bbbbbbbb',
+			'name' => 'B',
+		);
+
+		return array(
+			$this->legacy_station(
+				'One',
+				array( $program_a, $program_b ),
+				array( 'monday' => array( $this->slot( 'prog_aaaaaaaa' ) ) )
+			),
+			$this->legacy_station(
+				'Two',
+				array( $program_b ),
+				array( 'monday' => array( $this->slot( 'prog_bbbbbbbb' ) ) )
+			),
+		);
+	}
+
+	/**
+	 * Every program (in order of first appearance) is created with its meta before the
+	 * stations (in legacy order); then the legacy option is deleted and the version added.
+	 */
+	public function test_migration_writes_programs_then_stations_then_options() {
+		$station_meta = static function ( $label ) {
+			return array_map(
+				static function ( $key ) use ( $label ) {
+					return 'meta radplapag_station ' . $label . ' radplapag_station_' . $key;
+				},
+				array( 'stream_url', 'player_page', 'background_id', 'logo_id', 'theme_color', 'visualizer', 'schedule' )
+			);
+		};
+		$program_meta = static function ( $label ) {
+			return array_map(
+				static function ( $key ) use ( $label ) {
+					return 'meta radplapag_program ' . $label . ' radplapag_program_' . $key;
+				},
+				array( 'description', 'extended_description', 'logo_id' )
+			);
+		};
+
+		$writes = $this->migration_writes( $this->two_programs_two_stations() );
+
+		$this->assertSame(
+			array_merge(
+				array( 'insert radplapag_program A' ),
+				$program_meta( 'A' ),
+				array( 'insert radplapag_program B' ),
+				$program_meta( 'B' ),
+				array( 'insert radplapag_station One' ),
+				$station_meta( 'One' ),
+				array( 'insert radplapag_station Two' ),
+				$station_meta( 'Two' ),
+				array( 'deleted_option radplapag_settings', 'added_option radplapag_db_version' )
+			),
+			$writes
+		);
+	}
+
+	/**
+	 * When the second station cannot be created, the posts already created are deleted
+	 * newest first and no option is touched.
+	 */
+	public function test_failed_migration_rolls_back_newest_first_without_touching_options() {
+		add_filter(
+			'wp_insert_post_empty_content',
+			static function ( $maybe_empty, $postarr ) {
+				return 'Two' === $postarr['post_title'] ? true : $maybe_empty;
+			},
+			10,
+			2
+		);
+
+		$writes = $this->migration_writes( $this->two_programs_two_stations() );
+
+		$this->assertSame(
+			array(
+				'insert radplapag_program A',
+				'insert radplapag_program B',
+				'insert radplapag_station One',
+				'delete radplapag_station One',
+				'delete radplapag_program B',
+				'delete radplapag_program A',
+			),
+			array_values(
+				array_filter(
+					$writes,
+					static function ( $write ) {
+						return 0 !== strpos( $write, 'meta ' );
+					}
+				)
+			)
+		);
+		$this->assertSame( 'Content, title, and excerpt are empty.', get_transient( 'radplapag_migration_error_notice' ) );
+	}
+
 	// Admin notices.
 
 	/**

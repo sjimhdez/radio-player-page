@@ -47,6 +47,7 @@ paths:
 | Componentes `dashboard/**` | sin mínimo (e2e) | sin mínimo |
 | Visualizadores | excluidos | excluidos |
 | PHP crítico: horario, campos, migración, actualización, programa en antena, config | ≥ 80 % | ≥ 90 % |
+| PHP núcleo: `includes/src/**` salvo `wp/` (zona `core`, desde la 0005) | — | ≥ 90 % |
 | PHP resto (`includes/`, `admin/*.php`, `blocks/*/render.php`, `uninstall.php`) | ≥ 60 % | ≥ 80 % |
 | JS de admin (lógica extraída en la 0005) | — | ≥ 85 % |
 

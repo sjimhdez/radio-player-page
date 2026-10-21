@@ -10,9 +10,9 @@
 |---|---|---|---|---|
 | 0001 | [Bootstrap: spike, herramientas e ingeniería de contexto](0001-bootstrap/spec.md) | cerrada (PR #36) | `spec/0001-bootstrap` | — |
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | cerrada (PR #37) | `spec/0002-safety-net` | 0001 |
-| 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | cerrada | `spec/0003-player-dependencies` | 0002 |
+| 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | cerrada (PR #38) | `spec/0003-player-dependencies` | 0002 |
 | 0004 | ~~Dependencias de la parte WordPress~~: descartada; los bloques van en la 0003, y la raíz, Composer y las Actions fuera de una spec ([ADR 0026](../adr/0026-grouped-dependency-upgrades.md)) | descartada | — | — |
-| 0005 | Refactor de PHP y admin | pendiente de escribir | — | 0003 |
+| 0005 | [Refactor de PHP y admin](0005-php-admin-refactor/spec.md) | cerrada | `spec/0005-php-admin-refactor` | 0003 |
 | 0006 | Refactor del player | pendiente de escribir | — | 0003 |
 | 0007 | Correcciones: reproducción | pendiente de escribir | — | 0006 |
 | 0008 | Correcciones: migración y actualización | pendiente de escribir | — | 0005 |
@@ -57,6 +57,7 @@ Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec po
 | Componentes `player/src/components/dashboard/**` | sin mínimo (los cubre e2e) | sin mínimo |
 | Visualizadores | excluidos | excluidos |
 | PHP crítico: saneado y validación del horario y de los campos, migración, actualización, programa en antena, config | ≥ 80 % | ≥ 90 % |
+| PHP núcleo: `includes/src/**` salvo `includes/src/wp/**` (zona `core`, desde la 0005; ADR 0028) | — | ≥ 90 % |
 | PHP resto (`includes/`, `admin/*.php`, `blocks/*/render.php`, `uninstall.php`) | ≥ 60 % | ≥ 80 % |
 | JS de admin: lógica extraída en la 0005 | — | ≥ 85 % |
 
@@ -64,12 +65,12 @@ Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec po
 
 Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec.
 
-- **0005 Refactor de PHP y admin:**
-  - *strangler*: el código nuevo en el namespace `RadioPlayerPage\` con autoloader PSR-4 propio;
-  - las funciones `radplapag_*` como envoltorios;
-  - la lógica pura separada de los adaptadores de WP, con TDD;
-  - la lógica pura de `admin/js/*` extraída a módulos testeables, que pasan los mismos vectores del horario que PHP;
-  - del triage de la 0002: K72 (las dos `phpcs:ignore` de `error_log()` del migrador llevan su motivo en la línea, ADR 0021) y el endurecimiento del `innerHTML` del admin (el DOM se construye con `textContent` / `createElement`).
+- **Dónde queda cada corrección de WordPress tras la 0005:** la lógica pura vive en `RadioPlayerPage\` (`includes/src/`, ADR 0028) y las funciones `radplapag_*` son envoltorios que no cambian de firma. Una corrección va en el núcleo, con su test unitario (el `test_currently_*` del núcleo pasa a regresión junto al de integración), y el envoltorio solo cambia si cambia lo que lee o escribe en WordPress. La columna de archivo de `known-issues.md` apunta a los dos.
+  - **0008:** el plan de la migración en `Migration\Legacy_Plan` (K30, K32, K79) y la escritura y la reversión en `WP\Migration_Writer` (K30, K31; la validación del horario sigue en el escritor, tras crear los programas); las decisiones de la actualización en `Upgrade\Upgrade_Policy` (K4, K29, K32, K33), con los avisos, el descarte y los ganchos en `includes/radplapag-upgrade.php` (K29, K33).
+  - **0009:** `Schedule\Time` (C16), `Schedule\Slot_Validator` (C3, C10, K41), `Schedule\Now_Playing_Resolver` (C16, K52), `Schedule\Schedule_View` (C10), `Player\Globals_Builder` (C9, C10, K17, K78) y `WP\Program_Repository` (el filtro de publicados de C10); en el admin, `admin/js/schedule-rules.js` (C3). Los vectores siguen en `tests/fixtures/schedule-vectors.json` (capas `php` y `admin`).
+  - **0010:** las reglas del horario en `admin/js/schedule-rules.js` (K44, K74, K75) y el DOM en `admin/js/station-admin.js` (K15, K16, K39, K45, AX3, AX4); el guardado en `Station\Field_Sanitizer` + `WP\Station_Meta_Saver` (C13, K37, K42) y `Program\Field_Sanitizer` + `WP\Program_Meta_Saver` (K5, K34); `Schedule\Slot_Validator` (K38). El render de los meta boxes sigue en `includes/radplapag-*-cpt.php` (K36, AX3, AX4).
+  - **0012:** la lectura en `WP\Station_Repository` y `WP\Program_Repository` (K21), el guardado del programa en `WP\Program_Meta_Saver` (K43), las globales en `Player\Globals_Builder` (K21, K43) y la búsqueda de la emisora en `Data\Stations` (K24). La página limpia, las capacidades y `uninstall.php` no se movieron (C11, K7, K23, K25, K26).
+  - **0013:** el orden de `stationIndex` en `WP\Station_Repository` (K46); los datos de los bloques en `Schedule\Schedule_View`, `Programs_List_View` y `Now_Playing_Resolver`; los enlaces a la página (K50) y el markup siguen en `includes/radplapag-*-block.php` y `blocks/*/render.php`.
 - **0006 Refactor del player:**
   - núcleo `player/src/core/` sin React ni MUI: máquina de estados del audio, adaptadores por protocolo, `crossOrigin`, intro, horario, sueño, Media Session y lectura de las globales;
   - los hooks, como adaptadores finos;
@@ -91,11 +92,11 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
 - **0009 Horario y programa en antena** (tras la 0005 y la 0006):
   - alta: C16 (raíz de C4, K8 y K52; PHP, bloques y player con los mismos vectores);
   - media: C10 (la resolución ignora los programas no publicados y el admin avisa; cambia §3.3/§3.4 → ADR, con la sospecha de las contraseñas), K8, K41 (junto a C10);
-  - baja: C3, C4, C9 (la zona al player: clave nueva en una global → ADR), K10, K17 (imprimir `{}`; cambia la forma observable de una global → ADR corto, changelog y `== Upgrade Notice ==`), K52, y la sospecha de 5.8: un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución), junto a C10, fijado antes con un test `currently`.
+  - baja: C3, C4, C9 (la zona al player: clave nueva en una global → ADR), K10, K17 (imprimir `{}`; cambia la forma observable de una global → ADR corto, changelog y `== Upgrade Notice ==`), K52, K78 (junto a K17: `RADPLAPAG_PROGRAMS` sale de las franjas que se imprimen), y la sospecha de 5.8: un programa con contraseña cuenta como no publicado (bloques, `RADPLAPAG_PROGRAMS` y la resolución), junto a C10, fijado antes con un test `currently`.
 - **0010 Admin** (tras la 0005 y la 0009, que también toca `station-admin.js`):
   - alta: K15 (índice = mayor índice + 1);
   - media: C13, K5, K20, K39, K42, K45, AX3, AX4 (K45, AX3, AX4 y AX5 juntas; salen de la línea base de axe);
-  - baja: K16, K27, K34 (junto a K5), K36 (coordinada con el enlace a páginas no servidas de la 0013), K37, K38, K44, AX5, y las sospechas de 5.7: quitar «Entrada publicada» cuando hay error (la emisora se sigue publicando) y el meta box contraído con un error (primero se reproduce con un test; si no se confirma, se cierra sin cambios).
+  - baja: K16, K27, K34 (junto a K5), K36 (coordinada con el enlace a páginas no servidas de la 0013), K37, K38, K44, K74, K75, AX5, y las sospechas de 5.7: quitar «Entrada publicada» cuando hay error (la emisora se sigue publicando) y el meta box contraído con un error (primero se reproduce con un test; si no se confirma, se cierra sin cambios).
 - **0011 Interfaz, i18n y accesibilidad del player** (tras la 0006 y la 0007, que fija los estados del audio):
   - primera tarea: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (hueco de `withRules()`, ADR 0023), antes de AX6 y AX2;
   - alta: K56 (botón estable que cambia de estado);

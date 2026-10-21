@@ -87,6 +87,81 @@ function favicon( html: string ) {
 	return match ? match[ 1 ] : null;
 }
 
+/**
+ * Writes a raw schedule meta on station-minimal, which the save never would
+ * (radplapag_sanitize_station_schedule() rejects it), with a draft program,
+ * runs the callback and restores the station.
+ *
+ * @param callback Receives the program IDs as strings.
+ */
+async function withRawSchedule(
+	callback: ( ids: {
+		a: string;
+		b: string;
+		c: string;
+		draft: string;
+	} ) => Promise< void >
+) {
+	const station = seededId( 'station-minimal' );
+	const a = seededId( 'program-A' );
+	const b = seededId( 'program-B' );
+	const c = seededId( 'program-C' );
+	const draft = wpCli(
+		'post',
+		'create',
+		'--post_type=radplapag_program',
+		'--post_status=draft',
+		'--post_title=E2E Draft Program',
+		'--porcelain'
+	);
+	const slot = ( programId: unknown, start: string, end: string ) => ( {
+		program_id: programId,
+		start,
+		end,
+	} );
+
+	try {
+		wpCli(
+			'post',
+			'meta',
+			'update',
+			station,
+			'radplapag_station_schedule',
+			JSON.stringify( {
+				monday: [
+					{
+						...slot( '<b>tagged</b> id', '06:00', '07:00' ),
+						is_rerun: 'yes',
+					},
+					{ ...slot( ` ${ b }`, '07:00', '08:00' ), is_rerun: 0 },
+					slot( c, '', '09:00' ),
+					slot( a, '0', '10:00' ),
+					'not a slot',
+					slot( draft, '10:00', '11:00' ),
+				],
+				tuesday: 'not a day',
+				wednesday: [ slot( a, '08:00', '' ) ],
+				friday: [
+					{
+						...slot( Number( a ), '12:00', '13:00' ),
+						is_rerun: true,
+					},
+				],
+			} )
+		);
+		await callback( { a, b, c, draft } );
+	} finally {
+		wpCli(
+			'post',
+			'meta',
+			'delete',
+			station,
+			'radplapag_station_schedule'
+		);
+		wpCli( 'post', 'delete', draft, '--force' );
+	}
+}
+
 test.describe( 'clean page (HTTP)', () => {
 	test.skip(
 		( { browserName } ) => browserName !== 'chromium',
@@ -329,6 +404,85 @@ test.describe( 'clean page (HTTP)', () => {
 
 		expect( raw.RADPLAPAG_PROGRAMS ).toBe( '[]' );
 		expect( raw.RADPLAPAG_SCHEDULE ).toBe( '[]' );
+	} );
+
+	test( 'skips the raw schedule entries that cannot be printed', async ( {
+		request,
+	} ) => {
+		await withRawSchedule( async ( { a, b, draft } ) => {
+			const html = await getHtml( request, readSeed().urls.minimal );
+
+			// Tuesday is not an array and Wednesday ends up empty: both go.
+			expect( readGlobals( html ).RADPLAPAG_SCHEDULE ).toEqual( {
+				monday: [
+					// Not numeric: sanitize_text_field(); "yes" is a rerun.
+					{
+						program_id: 'tagged id',
+						start: '06:00',
+						end: '07:00',
+						is_rerun: true,
+					},
+					// Numeric with a leading space: cast to int.
+					{
+						program_id: b,
+						start: '07:00',
+						end: '08:00',
+						is_rerun: false,
+					},
+					// The slot of a draft program stays (C10).
+					{
+						program_id: draft,
+						start: '10:00',
+						end: '11:00',
+						is_rerun: false,
+					},
+				],
+				friday: [
+					{
+						program_id: a,
+						start: '12:00',
+						end: '13:00',
+						is_rerun: true,
+					},
+				],
+			} );
+		} );
+	} );
+
+	test( 'currently lists the program of a slot left out of the schedule (K78)', async ( {
+		request,
+	} ) => {
+		await withRawSchedule( async ( { a, b, c } ) => {
+			const html = await getHtml( request, readSeed().urls.minimal );
+
+			// C only has a slot without start, which RADPLAPAG_SCHEDULE drops;
+			// A's first slot has start '0'. The draft program is left out (C10).
+			expect(
+				readGlobals( html ).RADPLAPAG_PROGRAMS.map(
+					( program ) => program.id
+				)
+			).toEqual( [ b, c, a ] );
+		} );
+	} );
+
+	test( "falls back to the site name when the station title is '0'", async ( {
+		request,
+	} ) => {
+		const station = seededId( 'station-minimal' );
+		const title = wpCli( 'post', 'get', station, '--field=post_title' );
+		const siteName = wpCli( 'option', 'get', 'blogname' );
+
+		try {
+			wpCli( 'post', 'update', station, '--post_title=0' );
+			const html = await getHtml( request, readSeed().urls.minimal );
+
+			expect( readGlobals( html ).RADPLAPAG_CONFIG.siteTitle ).toBe(
+				siteName
+			);
+			expect( html ).toContain( `<title>${ siteName }</title>` );
+		} finally {
+			wpCli( 'post', 'update', station, `--post_title=${ title }` );
+		}
 	} );
 
 	test( 'prints timezoneOffset as a number fixed per request (C9)', async ( {

@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Release zip guard (spec 0001, phase 1):
 #   1. the zip built from the working tree lists exactly the same files as the
-#      zip built from tag v3.4.2 (the bootstrap must not change what ships);
+#      zip built from tag v3.4.2 plus the ones declared in
+#      tests/zip/expected-additions.txt (spec 0005 §4.5, ADR 0028);
 #   2. no development path ever ends up in the zip.
 # Once a release legitimately changes the file list, the reference tag moves
-# with it (REFERENCE_TAG).
+# with it (REFERENCE_TAG) and the additions list is emptied.
 set -euo pipefail
 
 REFERENCE_TAG="${REFERENCE_TAG:-v3.4.2}"
@@ -17,8 +18,8 @@ cleanup() {
 trap cleanup EXIT
 
 list_zip() {
-	# Paths inside the zip, without the version-dependent zip name, sorted.
-	unzip -Z1 "$1" | grep -v '/$' | LC_ALL=C sort
+	# Paths inside the zip relative to the plugin root, sorted.
+	unzip -Z1 "$1" | grep -v '/$' | sed 's|^radio-player-page/||' | LC_ALL=C sort
 }
 
 # Current tree.
@@ -32,8 +33,9 @@ list_zip "$WORK/reference.zip" >"$WORK/reference.txt"
 
 status=0
 
-if ! diff -u "$WORK/reference.txt" "$WORK/current.txt" >"$WORK/diff.txt"; then
-	echo "Zip file list differs from $REFERENCE_TAG:"
+if ! bash "$ROOT/tests/zip/compare-lists.sh" "$WORK/reference.txt" "$WORK/current.txt" \
+	"$ROOT/tests/zip/expected-additions.txt" >"$WORK/diff.txt"; then
+	echo "Zip file list differs from $REFERENCE_TAG + tests/zip/expected-additions.txt:"
 	cat "$WORK/diff.txt"
 	status=1
 fi
@@ -60,6 +62,6 @@ for ref_file in "$WORK/ref/player/dist/"*.js; do
 done
 
 if [ "$status" -eq 0 ]; then
-	echo "Zip OK: $(wc -l <"$WORK/current.txt" | tr -d ' ') files, same list as $REFERENCE_TAG, no development paths, license notices kept."
+	echo "Zip OK: $(wc -l <"$WORK/current.txt" | tr -d ' ') files, same list as $REFERENCE_TAG + declared additions, no development paths, license notices kept."
 fi
 exit "$status"

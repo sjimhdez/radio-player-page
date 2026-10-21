@@ -155,33 +155,13 @@ add_action( 'init', 'radplapag_register_program_meta', 20 );
  * Gets program data (name, description, extended_description, logo_id, logo_url) from CPT by post ID.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\WP\Program_Repository::data().
  * @param int  $post_id          Post ID of radplapag_program.
  * @param bool $require_published Optional. Whether to require published status. Default false.
- * @return array|null Associative array with 'name', 'description', 'extended_description', 'logo_id', 'logo_url'; null if invalid or not found.
+ * @return array{name: string, description: string, extended_description: string, logo_id: int, logo_url: string|null}|null Name, description, extended description, logo ID and logo URL; null if invalid or not found.
  */
 function radplapag_get_program_data( $post_id, $require_published = false ) {
-	$post_id = (int) $post_id;
-	if ( $post_id <= 0 ) {
-		return null;
-	}
-	$post = get_post( $post_id );
-	if ( ! $post || 'radplapag_program' !== $post->post_type ) {
-		return null;
-	}
-	if ( $require_published && 'publish' !== $post->post_status ) {
-		return null;
-	}
-	$description          = get_post_meta( $post_id, 'radplapag_program_description', true );
-	$extended_description = get_post_meta( $post_id, 'radplapag_program_extended_description', true );
-	$logo_id              = (int) get_post_meta( $post_id, 'radplapag_program_logo_id', true );
-	$logo_url             = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'full' ) : null;
-	return array(
-		'name'                 => $post->post_title,
-		'description'          => is_string( $description ) ? $description : '',
-		'extended_description' => is_string( $extended_description ) ? $extended_description : '',
-		'logo_id'              => $logo_id,
-		'logo_url'             => $logo_url ? $logo_url : null,
-	);
+	return \RadioPlayerPage\WP\Program_Repository::data( (int) $post_id, (bool) $require_published );
 }
 
 /**
@@ -274,6 +254,7 @@ function radplapag_render_program_meta_boxes( $post ) {
  * Saves program meta (description, extended description, logo_id).
  *
  * @since 3.3.0
+ * @since 3.5.0 Keeps the guards and the form reads; delegates the save to RadioPlayerPage\WP\Program_Meta_Saver::save().
  *
  * @param int $post_id Post ID.
  * @return void
@@ -292,23 +273,14 @@ function radplapag_save_program_meta( $post_id ) {
 		return;
 	}
 
-	$description = isset( $_POST['radplapag_program_description'] ) ? sanitize_text_field( wp_unslash( $_POST['radplapag_program_description'] ) ) : '';
-	$extended    = isset( $_POST['radplapag_program_extended_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['radplapag_program_extended_description'] ) ) : '';
-	$logo_id     = isset( $_POST['radplapag_program_logo_id'] ) ? absint( $_POST['radplapag_program_logo_id'] ) : 0;
-
-	if ( strlen( $description ) > 256 ) {
-		$description = substr( $description, 0, 256 );
-	}
-	if ( strlen( $extended ) > 512 ) {
-		$extended = substr( $extended, 0, 512 );
-	}
-	if ( $logo_id > 0 && ! wp_attachment_is_image( $logo_id ) ) {
-		$logo_id = 0;
-	}
-
-	update_post_meta( $post_id, 'radplapag_program_description', $description );
-	update_post_meta( $post_id, 'radplapag_program_extended_description', $extended );
-	update_post_meta( $post_id, 'radplapag_program_logo_id', $logo_id );
+	\RadioPlayerPage\WP\Program_Meta_Saver::save(
+		(int) $post_id,
+		array(
+			'description'          => isset( $_POST['radplapag_program_description'] ) ? sanitize_text_field( wp_unslash( $_POST['radplapag_program_description'] ) ) : '',
+			'extended_description' => isset( $_POST['radplapag_program_extended_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['radplapag_program_extended_description'] ) ) : '',
+			'logo_id'              => isset( $_POST['radplapag_program_logo_id'] ) ? absint( $_POST['radplapag_program_logo_id'] ) : 0,
+		)
+	);
 }
 
 /**

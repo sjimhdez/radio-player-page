@@ -248,6 +248,121 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A slot on air today whose program is a draft gives no `current` from today, but
+	 * yesterday's slots that cross midnight are still looked at.
+	 */
+	public function test_draft_program_on_air_today_falls_back_to_yesterday() {
+		$draft   = $this->factory_rpp->program( 'Draft', array(), 'draft' );
+		$station = $this->factory_rpp->station( 'Station' );
+
+		Clock::run(
+			'monday',
+			'01:00',
+			function ( Clock $clock ) use ( $draft, $station ) {
+				$this->store_schedule(
+					$station,
+					$clock->rotate_schedule(
+						array(
+							'sunday' => array(
+								array(
+									'program_id' => $this->programs['C'],
+									'start'      => '23:00',
+									'end'        => '02:00',
+								),
+							),
+							'monday' => array(
+								array(
+									'program_id' => $draft,
+									'start'      => '00:00',
+									'end'        => '06:00',
+								),
+								array(
+									'program_id' => $this->programs['A'],
+									'start'      => '00:00',
+									'end'        => '06:00',
+								),
+							),
+						)
+					)
+				);
+
+				$this->assertSame( (string) $this->programs['C'], radplapag_get_now_playing_for_station( 0 )['current']['id'] );
+			}
+		);
+	}
+
+	/**
+	 * Malformed entries (stored without the sanitizer) are skipped: entries that are
+	 * not arrays, and slots without a start (or an end, for `current`). A slot on air
+	 * whose program ID is missing or not numeric gives no `current` and stops the
+	 * search, so an overlapping valid slot after it is not reported either.
+	 */
+	public function test_malformed_entries_are_skipped() {
+		$station = $this->factory_rpp->station( 'Station' );
+
+		Clock::run(
+			'monday',
+			'23:55',
+			function ( Clock $clock ) use ( $station ) {
+				$this->store_schedule(
+					$station,
+					$clock->rotate_schedule(
+						array(
+							'monday'  => array(
+								'not an entry',
+								array(
+									'program_id' => $this->programs['A'],
+									'end'        => '23:59',
+								),
+								array(
+									'program_id' => $this->programs['A'],
+									'start'      => '23:00',
+								),
+								array(
+									'program_id' => 'not numeric',
+									'start'      => '23:50',
+									'end'        => '23:58',
+								),
+								array(
+									'program_id' => $this->programs['C'],
+									'start'      => '23:50',
+									'end'        => '23:59',
+								),
+							),
+							'tuesday' => array(
+								'not an entry',
+								array(
+									'program_id' => $this->programs['A'],
+									'end'        => '01:00',
+								),
+								array(
+									'program_id' => $this->programs['B'],
+									'start'      => '00:03',
+									'end'        => '01:00',
+								),
+							),
+						)
+					)
+				);
+
+				$result = radplapag_get_now_playing_for_station( 0 );
+
+				$this->assertNull( $result['current'] );
+				$this->assertSame(
+					array(
+						'id'         => (string) $this->programs['B'],
+						'name'       => 'B',
+						'day_label'  => radplapag_get_schedule_day_keys_and_labels()['day_labels'][ $clock->rotate_day( 'tuesday' ) ],
+						'time_range' => '00:03-01:00',
+						'is_rerun'   => false,
+					),
+					$result['upcoming']
+				);
+			}
+		);
+	}
+
+	/**
 	 * Puts the site on the vector's day and minute, stores its grid and compares the
 	 * result with the vector's top-level (3.4.2) `current` and `upcoming`.
 	 *

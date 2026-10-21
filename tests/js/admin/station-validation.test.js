@@ -10,6 +10,7 @@ import { describe, expect, it } from 'vitest';
  */
 import {
 	DAYS,
+	MARKER_STRINGS,
 	adminData,
 	mountStationScreen,
 	rowErrorCode,
@@ -347,5 +348,435 @@ describe( 'station-admin.js: rows and submit', () => {
 			expect( control.hasAttribute( 'aria-invalid' ) ).toBe( false );
 			expect( control.hasAttribute( 'aria-describedby' ) ).toBe( false );
 		} );
+	} );
+} );
+
+/**
+ * Mounts the screen with `strings` and the given slots, in order. A slot whose
+ * `label` is set shows that text on its selected option.
+ *
+ * @param {Object} strings `radplapagAdmin.strings`.
+ * @param {Object} days    Day → slots (`programId`, `start`, `end`, `label`).
+ * @return {Promise<Object>} The mounted screen.
+ */
+async function mountSlots( strings, days ) {
+	const screen = await mountStationScreen(
+		adminData( {
+			programs: [
+				{ id: 201, name: 'Morning Show' },
+				{ id: 202, name: 'Night Owl' },
+				// A program with an empty title still gets its option from PHP.
+				{ id: 203, name: '' },
+			],
+			strings,
+		} )
+	);
+	screen.clearSchedule();
+	DAYS.forEach( ( day ) => {
+		( days[ day ] || [] ).forEach( ( { label, hidden, ...slot } ) => {
+			const row = screen.addSlot( day, slot );
+			if ( label !== undefined ) {
+				row.querySelector(
+					'.radplapag-program-id'
+				).selectedOptions[ 0 ].textContent = label;
+			}
+			if ( hidden ) {
+				row.style.display = 'none';
+			}
+		} );
+	} );
+	return screen;
+}
+
+/**
+ * Message a row shows, or `null`.
+ *
+ * @param {HTMLElement} row Program row.
+ * @return {string|null} Message text.
+ */
+function rowMessage( row ) {
+	const message = row.querySelector( '.radplapag-program-error-message' );
+	return message ? message.textContent : null;
+}
+
+describe( 'station-admin.js: built-in English messages', () => {
+	it.each( [
+		[
+			'a time that is not HH:MM',
+			// <input type="time"> keeps seconds; nothing else gets past it.
+			{ programId: '201', start: '08:00:30', end: '10:00' },
+			'Invalid time format. Times must be in HH:MM format.',
+		],
+		[
+			'an end time that is not HH:MM',
+			{ programId: '201', start: '08:00', end: '10:00:30' },
+			'Invalid time format. Times must be in HH:MM format.',
+		],
+		[
+			'a start equal to the end',
+			{ programId: '201', start: '08:00', end: '08:00' },
+			'Start and end times cannot be the same',
+		],
+		[
+			'a missing time',
+			{ programId: '201', start: '08:00', end: '' },
+			'All fields are required.',
+		],
+		[
+			'times without a program',
+			{ programId: '', start: '08:00', end: '10:00' },
+			'Please select a program.',
+		],
+	] )( 'for %s', async ( _title, slot, message ) => {
+		const screen = await mountSlots( {}, { monday: [ slot ] } );
+
+		expect( screen.submit().blocked ).toBe( true );
+		expect( rowMessage( screen.rows( 'monday' )[ 0 ] ) ).toBe( message );
+	} );
+
+	it( 'for an overlap on the same day, with the English day label', async () => {
+		const screen = await mountSlots(
+			{},
+			{
+				wednesday: [
+					{ programId: '201', start: '06:00', end: '10:00' },
+					{ programId: '202', start: '09:00', end: '11:00' },
+				],
+			}
+		);
+
+		screen.submit();
+
+		expect( screen.rows( 'wednesday' ).map( rowMessage ) ).toEqual( [
+			'This time slot overlaps with: Night Owl (Wednesday, 09:00 - 11:00)',
+			'This time slot overlaps with: Morning Show (Wednesday, 06:00 - 10:00)',
+		] );
+	} );
+
+	// On submit the later day's check writes last: the previous-day check for
+	// Monday → Tuesday, the next-day check for Sunday → Monday.
+	it.each( [
+		[
+			'monday',
+			'tuesday',
+			[
+				'This time slot overlaps with: Morning Show (Tuesday, 01:00 - 03:00)',
+				'This time slot overlaps with: Night Owl (Monday, 22:00 - 02:00)',
+			],
+		],
+		[
+			'sunday',
+			'monday',
+			[
+				'This time slot overlaps with: Night Owl (Sunday, 22:00 - 02:00)',
+				'This time slot overlaps with: Morning Show (Monday, 01:00 - 03:00)',
+			],
+		],
+	] )(
+		'for an overlap across days, %s into %s',
+		async ( from, to, messages ) => {
+			const screen = await mountSlots(
+				{},
+				{
+					[ from ]: [
+						{ programId: '202', start: '22:00', end: '02:00' },
+					],
+					[ to ]: [
+						{ programId: '201', start: '01:00', end: '03:00' },
+					],
+				}
+			);
+
+			screen.submit();
+
+			expect( screen.rows().map( rowMessage ) ).toEqual( messages );
+		}
+	);
+
+	it( 'names a program without a name "Unnamed program" on the same day', async () => {
+		const screen = await mountSlots(
+			{},
+			{
+				monday: [
+					{
+						programId: '203',
+						start: '06:00',
+						end: '10:00',
+						label: '',
+					},
+					{ programId: '202', start: '09:00', end: '11:00' },
+				],
+			}
+		);
+
+		screen.submit();
+
+		expect( rowMessage( screen.rows( 'monday' )[ 1 ] ) ).toBe(
+			'This time slot overlaps with: Unnamed program (Monday, 06:00 - 10:00)'
+		);
+	} );
+
+	it( 'uses the translated day labels and unnamed program', async () => {
+		const screen = await mountSlots(
+			{
+				timeSlotOverlapsWithMessage: '[overlap] %s',
+				tuesday: 'Martes',
+				unnamedProgram: 'Sin nombre',
+			},
+			{
+				tuesday: [
+					{
+						programId: '203',
+						start: '06:00',
+						end: '10:00',
+						label: '',
+					},
+					{ programId: '202', start: '09:00', end: '11:00' },
+				],
+			}
+		);
+
+		screen.submit();
+
+		expect( screen.rows( 'tuesday' ).map( rowMessage ) ).toEqual( [
+			'[overlap] Night Owl (Martes, 09:00 - 11:00)',
+			'[overlap] Sin nombre (Martes, 06:00 - 10:00)',
+		] );
+	} );
+} );
+
+describe( 'station-admin.js: rows left out of the overlap checks', () => {
+	it( 'ignores a hidden row of the same day', async () => {
+		const screen = await mountSlots(
+			{},
+			{
+				monday: [
+					{ programId: '201', start: '06:00', end: '10:00' },
+					{
+						programId: '202',
+						start: '09:00',
+						end: '11:00',
+						hidden: true,
+					},
+				],
+			}
+		);
+
+		expect( screen.submit().blocked ).toBe( false );
+	} );
+
+	it( 'skips the row itself by its position among all rows, hidden ones included', async () => {
+		const screen = await mountSlots(
+			{},
+			{
+				monday: [
+					{
+						programId: '202',
+						start: '12:00',
+						end: '13:00',
+						hidden: true,
+					},
+					{ programId: '201', start: '06:00', end: '10:00' },
+				],
+			}
+		);
+
+		expect( screen.submit().blocked ).toBe( false );
+	} );
+
+	it( 'ignores a hidden row of the next day', async () => {
+		const screen = await mountSlots(
+			{},
+			{
+				monday: [ { programId: '202', start: '22:00', end: '02:00' } ],
+				tuesday: [
+					{
+						programId: '201',
+						start: '01:00',
+						end: '03:00',
+						hidden: true,
+					},
+				],
+			}
+		);
+
+		expect( screen.submit().blocked ).toBe( false );
+	} );
+
+	it( 'ignores a hidden row of the previous day', async () => {
+		const screen = await mountSlots(
+			{},
+			{
+				monday: [
+					{
+						programId: '202',
+						start: '22:00',
+						end: '02:00',
+						hidden: true,
+					},
+				],
+				tuesday: [ { programId: '201', start: '01:00', end: '03:00' } ],
+			}
+		);
+
+		expect( screen.submit().blocked ).toBe( false );
+	} );
+
+	it( 'ignores a next-day row without a program', async () => {
+		const screen = await mountSlots(
+			{},
+			{
+				monday: [ { programId: '202', start: '22:00', end: '02:00' } ],
+				tuesday: [ { programId: '', start: '01:00', end: '03:00' } ],
+			}
+		);
+
+		screen.submit();
+
+		expect( screen.rows().map( rowMessage ) ).toEqual( [
+			null,
+			'Please select a program.',
+		] );
+	} );
+
+	it( 'ignores a previous-day row without a program', async () => {
+		const screen = await mountSlots(
+			{},
+			{
+				monday: [ { programId: '', start: '22:00', end: '02:00' } ],
+				tuesday: [ { programId: '201', start: '01:00', end: '03:00' } ],
+			}
+		);
+
+		screen.submit();
+
+		expect( screen.rows().map( rowMessage ) ).toEqual( [
+			'Please select a program.',
+			null,
+		] );
+	} );
+} );
+
+describe( 'station-admin.js: overlaps across days', () => {
+	it( 'marks the other row before its own, in both directions', async () => {
+		const screen = await mountSlots( MARKER_STRINGS, {
+			monday: [ { programId: '202', start: '22:00', end: '02:00' } ],
+			tuesday: [ { programId: '201', start: '01:00', end: '03:00' } ],
+		} );
+		const observer = new window.MutationObserver( () => {} );
+		observer.observe( screen.container, {
+			childList: true,
+			subtree: true,
+		} );
+
+		screen.submit();
+
+		const writes = observer
+			.takeRecords()
+			.filter( ( record ) =>
+				Array.from( record.addedNodes ).some(
+					( node ) =>
+						node.classList &&
+						node.classList.contains(
+							'radplapag-program-error-message'
+						)
+				)
+			)
+			.map( ( record ) =>
+				record.target
+					.closest( '.radplapag-schedule-day' )
+					.getAttribute( 'data-day' )
+			);
+		observer.disconnect();
+		// Monday's check writes Tuesday, then Monday; Tuesday's, Monday, then
+		// Tuesday.
+		expect( writes ).toEqual( [
+			'tuesday',
+			'monday',
+			'monday',
+			'tuesday',
+		] );
+	} );
+
+	// docs/known-issues.md K74: the same-day check falls back to "Unnamed
+	// program"; the checks across days print the empty name.
+	it.each( [
+		[
+			'monday',
+			'tuesday',
+			'the crossing slot',
+			[
+				'[overlap] Morning Show (Tuesday, 01:00 - 03:00)',
+				'[overlap]  (Monday, 22:00 - 02:00)',
+			],
+		],
+		[
+			'monday',
+			'tuesday',
+			'the next-day slot',
+			[
+				'[overlap]  (Tuesday, 01:00 - 03:00)',
+				'[overlap] Night Owl (Monday, 22:00 - 02:00)',
+			],
+		],
+		[
+			'sunday',
+			'monday',
+			'the crossing slot',
+			[
+				'[overlap]  (Sunday, 22:00 - 02:00)',
+				'[overlap] Morning Show (Monday, 01:00 - 03:00)',
+			],
+		],
+		[
+			'sunday',
+			'monday',
+			'the next-day slot',
+			[
+				'[overlap] Night Owl (Sunday, 22:00 - 02:00)',
+				'[overlap]  (Monday, 01:00 - 03:00)',
+			],
+		],
+	] )(
+		'currently leaves the name empty in an overlap from %s into %s, unnamed %s (K74)',
+		async ( from, to, unnamed, messages ) => {
+			const crossing = { programId: '202', start: '22:00', end: '02:00' };
+			const next = { programId: '201', start: '01:00', end: '03:00' };
+			const nameless = { programId: '203', label: '' };
+			const screen = await mountSlots( MARKER_STRINGS, {
+				[ from ]: [
+					unnamed === 'the crossing slot'
+						? { ...crossing, ...nameless }
+						: crossing,
+				],
+				[ to ]: [
+					unnamed === 'the next-day slot'
+						? { ...next, ...nameless }
+						: next,
+				],
+			} );
+
+			screen.submit();
+
+			expect( screen.rows().map( rowMessage ) ).toEqual( messages );
+		}
+	);
+
+	// docs/known-issues.md K75: the same-day check compares with a row that has
+	// times but no program, and names it after the select's placeholder.
+	it( 'currently names the placeholder of a row without a program in an overlap (K75)', async () => {
+		const screen = await mountSlots( MARKER_STRINGS, {
+			monday: [
+				{ programId: '', start: '06:00', end: '10:00' },
+				{ programId: '202', start: '09:00', end: '11:00' },
+			],
+		} );
+
+		screen.submit();
+
+		expect( screen.rows( 'monday' ).map( rowMessage ) ).toEqual( [
+			'[invalid_program]',
+			'[overlap] Select Radio Show (Monday, 06:00 - 10:00)',
+		] );
 	} );
 } );

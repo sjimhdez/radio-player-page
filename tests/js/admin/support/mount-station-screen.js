@@ -61,7 +61,8 @@ export function adminData( overrides = {} ) {
 
 /**
  * Mounts the station meta box, sets `window.radplapagAdmin` and runs
- * `admin/js/station-admin.js` on it, as the edit screen does.
+ * `admin/js/schedule-rules.js` and `admin/js/station-admin.js` on it, as the
+ * edit screen does.
  *
  * @param {Object|null} admin `window.radplapagAdmin`; `null` leaves it unset.
  * @return {Promise<Object>} Helpers bound to the mounted screen.
@@ -83,6 +84,9 @@ export async function mountStationScreen( admin = adminData() ) {
 		window.radplapagAdmin = admin;
 	}
 	vi.resetModules();
+	// The edit screen loads the rules first (`radplapag-schedule-rules` is a
+	// dependency of `radplapag-station-admin`).
+	await import( '../../../../admin/js/schedule-rules.js' );
 	await import( '../../../../admin/js/station-admin.js' );
 
 	const form = document.getElementById( 'post' );

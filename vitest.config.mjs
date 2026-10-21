@@ -8,6 +8,11 @@ export default defineConfig( {
 			provider: 'v8',
 			include: [ 'admin/js/**/*.js' ],
 			reporter: [ 'text-summary', 'html', 'json-summary' ],
+			// Minimum of spec 0005 (A5): the schedule rules, pure and fed by the
+			// vectors. The DOM adapters have no threshold yet.
+			thresholds: {
+				'admin/js/schedule-rules.js': { lines: 85 },
+			},
 		},
 		projects: [
 			{
