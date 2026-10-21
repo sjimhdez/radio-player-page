@@ -80,7 +80,9 @@ export interface MinuteStore<T> {
  *
  * The first getSnapshot() computes the value without a timer and caches it, so the
  * reference stays the same until the next tick. The ticker starts with the first
- * subscriber and stops with the last one.
+ * subscriber and stops with the last one; if the cached value is from an earlier
+ * minute by then (render and commit on both sides of :00, or a while without
+ * subscribers), it is recomputed and the subscribers are notified.
  *
  * @param compute - Computes the value for the current time
  * @param clock - The time source and timers (the globals by default)
@@ -92,18 +94,23 @@ export function createMinuteStore<T>(
 ): MinuteStore<T> {
   const ticker = createMinuteTicker(clock)
   const listeners = new Set<() => void>()
-  let snapshot: { value: T } | null = null
+  let snapshot: { value: T; minute: number } | null = null
   let stop: (() => void) | null = null
 
+  const currentMinute = () => Math.floor(clock.now() / MINUTE_MS)
+  const recompute = () => (snapshot = { value: compute(), minute: currentMinute() })
   const tick = () => {
-    snapshot = { value: compute() }
+    recompute()
     listeners.forEach((listener) => listener())
   }
 
   return {
     subscribe(listener) {
       listeners.add(listener)
-      if (stop === null) stop = ticker.start(tick)
+      if (stop === null) {
+        if (snapshot !== null && snapshot.minute !== currentMinute()) tick()
+        stop = ticker.start(tick)
+      }
 
       return () => {
         listeners.delete(listener)
@@ -114,8 +121,7 @@ export function createMinuteStore<T>(
       }
     },
     getSnapshot() {
-      if (snapshot === null) snapshot = { value: compute() }
-      return snapshot.value
+      return (snapshot ?? recompute()).value
     },
   }
 }

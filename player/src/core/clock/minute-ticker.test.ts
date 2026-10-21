@@ -242,6 +242,49 @@ describe('createMinuteStore', () => {
     expect(fake.timerCount()).toBe(0)
   })
 
+  it('keeps the first snapshot when the first subscriber arrives in the same minute', () => {
+    const fake = createFakeClock(EXACT_MINUTE + 30000)
+    const compute = vi.fn(() => ({ minute: fake.clock.now() }))
+    const store = createMinuteStore(compute, fake.clock)
+    const listener = vi.fn()
+
+    const first = store.getSnapshot()
+    fake.advance(29999)
+    const unsubscribe = store.subscribe(listener)
+    expect(store.getSnapshot()).toBe(first)
+    expect(compute).toHaveBeenCalledTimes(1)
+    expect(listener).not.toHaveBeenCalled()
+    unsubscribe()
+  })
+
+  it('recomputes when the first subscriber arrives in a later minute than the snapshot', () => {
+    // Render at :59.999, commit at :00.001: without this, the value stays a minute
+    // behind until the next tick.
+    const fake = createFakeClock(EXACT_MINUTE + MINUTE - 1)
+    const store = createMinuteStore(() => ({ minute: fake.clock.now() }), fake.clock)
+    const listener = vi.fn()
+
+    store.getSnapshot()
+    fake.advance(2)
+    const unsubscribe = store.subscribe(listener)
+    expect(store.getSnapshot()).toEqual({ minute: EXACT_MINUTE + MINUTE + 1 })
+    expect(listener).toHaveBeenCalledTimes(1)
+    expect(fake.timerCount()).toBe(1)
+    unsubscribe()
+  })
+
+  it('recomputes when it is subscribed again after a minute without subscribers', () => {
+    const fake = createFakeClock(EXACT_MINUTE + 30000)
+    const store = createMinuteStore(() => ({ minute: fake.clock.now() }), fake.clock)
+
+    store.subscribe(() => {})()
+    store.getSnapshot()
+    fake.advance(MINUTE)
+    const unsubscribe = store.subscribe(() => {})
+    expect(store.getSnapshot()).toEqual({ minute: EXACT_MINUTE + MINUTE + 30000 })
+    unsubscribe()
+  })
+
   it('does not notify a listener after it unsubscribes', () => {
     const fake = createFakeClock(EXACT_MINUTE + 30000)
     const store = createMinuteStore(() => 0, fake.clock)
