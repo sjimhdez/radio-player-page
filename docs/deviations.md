@@ -2,6 +2,15 @@
 
 Lo que cada spec hizo distinto de lo escrito, con su motivo y quién lo decidió. Las de la spec activa están en `status.md` y pasan aquí al cerrarla (`close-phase`). Las más recientes van primero.
 
+## Spec 0006
+Detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md` y `phase-3.md`; sin cambios de contrato (ADRs 0029 y 0030).
+
+- Fase 3 (cierre): el plan numera 3.1–3.11 frente a las 3.1–3.4 de §5 (3.4–3.5 → 3.1; 3.6–3.8 → 3.2; 3.9 → 3.3; 3.10–3.11 → 3.4); los commits usan la del plan. La 3.1 (ampliación de D5), la 3.2 (e2e de Media Session) y la 3.3 (caracterización del `Dashboard`) no están en §5: salen al planificar (riesgo 5 y §4.4). D5 decía que el `NodeJS.Timeout` de `SleepMode.tsx` pasaba a `ReturnType<typeof setInterval>`; desapareció con la cuenta atrás (3.8), y la spec y el ADR 0029 se corrigen al cerrar. A1: en la 3.10, el e2e completo en `env:start:min` dio 1 fallo, el intermitente de `blocks.spec.ts` (2.20; aislado, 10/10); la CI del PR #40 pasa la matriz min/latest entera.
+- Fase 2 (cierre): el plan numera 2.1–2.13 frente a las 2.1–2.5 de §5 (2.1–2.2 → 2.1; 2.3–2.4 → 2.2; 2.5 → 2.3; 2.6–2.8 → 2.4; 2.9–2.10 → 2.5); los commits usan la del plan. La 2.11 (ADR 0030, dos commits) sale de la regresión de la 2.8, la 2.13 de la revisión y la 2.14 de la CI (el e2e del volumen de la 2.1 en WebKitGTK, con la aserción ajustada a `float32` con la aprobación del usuario). No se lanzó `a11y-reviewer` (la fase no toca componentes ni markup). Decidido por el usuario (2026-10-21).
+- Fase 2 (2.2): el caso de K80 no lanza los dos `play()` en el mismo tick, sino el segundo desde el `isSupported()` del *fake* (la misma ventana): con Vitest 5.0.5, un `import()` de un módulo con `vi.mock` lanzado mientras otro está en vuelo resuelve al módulo real.
+- Fase 1 (cierre): el plan numera 1.1–1.10 frente a las 1.1–1.5 de §5 (el reloj se parte en 1.4–1.6 y K9 es la 1.8); los commits usan la del plan. La 1.10 (valor desfasado hasta un minuto al montar y frontera de ESLint en `.tsx`) sale de la revisión. La línea base del gzip de la 1.2 se tomó con otra implementación: la 1.9 y la 1.10 miden frente a `origin/trunk` con `gzip -9` de macOS. No se lanzó `a11y-reviewer` (la fase no toca componentes ni markup). Decidido por el usuario (2026-10-21).
+- Fase 1 (plan): A4 pedía `grep -rn "process.env" player/src` vacío, pero los tests de caracterización `utils/timezone.test.ts` y `hooks/use-transmission-time.test.tsx` usan `process.env.TZ` y no se editan. A4 se limita al código publicado (`--exclude='*.test.*'`), y `"types": ["node"]` se queda en `tsconfig.app.json` porque lo usan esos tests (D5). Decidido por el usuario (2026-10-21); corregido en la spec y en el ADR 0029 (1.1).
+
 ## Spec 0005
 Detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md`, `phase-3.md` y `phase-4.md`; sin ADR, no cambian el contrato.
 

@@ -211,7 +211,7 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Test: el caso en el WebKit de Linux, el de la CI (imagen `mcr.microsoft.com/playwright:v1.64.1-noble` contra el entorno de tests).
 - Verificación: el caso en el WebKit de Linux, y `npx playwright test tests/e2e/mp3.spec.ts -g "volume slider"` en macOS.
 - Resultado: es el navegador. En el WebKit de Linux falla igual con el `player/dist` de `origin/trunk` (el hook de la 3.4.2), y también con el de `HEAD`. WebKitGTK lee el volumen de GStreamer como `float32` en cuanto suena. En macOS no se ve, porque WebKit no lo redondea. La aserción tras Play pasa a `toBeCloseTo(0.01, 5)`, con su motivo en un comentario. La de antes de Play y el `aria-valuenow` no cambian. Verde en el WebKit de Linux y en macOS (Chromium y WebKit).
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `0a12849`
 
 ## Decisiones abiertas → ADR
 

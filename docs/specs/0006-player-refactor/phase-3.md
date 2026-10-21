@@ -1,5 +1,5 @@
 # Spec 0006 · Fase 3 — Media Session, sueño y dashboard
-Estado: en curso · Inicio: 2026-10-21 · ADRs: 0004, 0013, 0017, 0018, 0021, 0029, 0030
+Estado: cerrada (2026-10-21) · Inicio: 2026-10-21 · ADRs: 0004, 0013, 0017, 0018, 0021, 0029, 0030
 
 ## Contexto (medido al planificar)
 
@@ -90,7 +90,7 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: primero (TDD).
 - Verificación: `npm --prefix player run check`
 - Resultado: `sleep-timer.test.ts` (15 casos) escrito primero y visto en rojo (módulo inexistente). `createFakeClock()` se mueve sin cambios a `src/test/fake-clock.ts`. El último `unsubscribe` para el intervalo pero conserva la cuenta; con el siguiente suscriptor, el intervalo vuelve (`StrictMode`). `cancel()` y `setPlaying(false)` sin cuenta activa no notifican. El `currently` de K66 envuelve el reloj *fake* con un `now()` adelantado 29 min (el *fake* no se toca). `npm --prefix player run check` en verde (520 tests); `sleep-timer.ts` al 100 % de líneas y 89 % de ramas.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `66c1700`
 
 ### 3.7 `use-sleep-timer.tsx` (≤ 1 h)
 - Qué: `useSleepTimer(isPlaying, onEnd)` → `{ remainingSeconds, start, cancel }`.
@@ -101,7 +101,7 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: primero (TDD).
 - Verificación: `npm --prefix player run check`
 - Resultado: `use-sleep-timer.test.tsx` (8 casos) escrito primero y visto en rojo (módulo inexistente). El `onEnd` más reciente no va en un ref: `react-hooks/refs` marca leer el ref desde el *callback* que se pasa a `createSleepTimer()` dentro del inicializador de `useState`, así que el `useState` crea el temporizador junto a un `setOnEnd()` que guarda el último `onEnd` en un cierre, y un efecto con `[onEnd]` lo llama. Mismo comportamiento y sin `eslint-disable`. `start` y `cancel` son los del núcleo (estables). Mutación: sin `setOnEnd(onEnd)`, el caso del `onEnd` más reciente falla. `npm --prefix player run check` en verde (528 tests).
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `5fdd1e3`
 
 ### 3.8 `SleepMode` y `Dashboard` solo pintan el sueño (≤ 1 h)
 - Qué:
@@ -112,7 +112,7 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: caracterización ya existente (`SleepMode.test.tsx`, `index.test.tsx` de la 3.3, `sleep.spec.ts`, `player-a11y.spec.ts` (K58)), sin tocar aserciones.
 - Verificación: `npm --prefix player run check && npm --prefix player run build && npx playwright test tests/e2e/sleep.spec.ts tests/e2e/player-a11y.spec.ts`
 - Resultado: `Dashboard` llama a `useSleepTimer(status === 'playing', pause)` y pinta `SleepTimer` con `remainingSeconds` y `onCancel={cancel}`; `SleepMode` recibe `isPlaying` y `onSelect(minutes)` (→ `start(minutes * 60)`) y solo guarda el `anchorEl` del menú: fuera los efectos, el `NodeJS.Timeout`, `onSleepTimerEnd`, `onTimerChange`, `externalTimerSeconds` y su `eslint-disable`. El `Host` de `SleepMode.test.tsx` monta `SleepMode` sobre `useSleepTimer(true, () => {})`; nombre y aserción (`1799`) intactos. `npm --prefix player run check` en verde (528 tests), build, y `sleep.spec.ts` + `player-a11y.spec.ts` en verde (26, Chromium y WebKit). Quedan las excepciones de `dashboard/index.tsx` (3.9) y `use-is-ios.tsx`.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `efced42`
 
 ### 3.9 El error visible derivado y el motivo de la excepción de iOS (≤ 1 h)
 - Qué:
@@ -122,7 +122,7 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: caracterización ya existente (`index.test.tsx` de la 3.3; e2e `cross-origin`, `intro`, `mp3`).
 - Verificación: `npm --prefix player run check && npm --prefix player run build && npx playwright test tests/e2e/cross-origin.spec.ts tests/e2e/intro.spec.ts tests/e2e/mp3.spec.ts && grep -rn "eslint-disable" src` (desde `player/`)
 - Resultado: `Dashboard` deriva `const openError = status === 'error' && !loading` en el render; fuera el `useState`, el efecto y su `eslint-disable`. En `use-is-ios.tsx`, el motivo pasa a «K13, spec 0007». `grep -rn "eslint-disable" src` solo muestra la de `use-is-ios.tsx` (A4). `npm --prefix player run check` en verde, build, y `cross-origin`, `intro` y `mp3` en verde (32, Chromium y WebKit; 4 omitidos por plataforma).
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `70e04a2`
 
 ### 3.10 Verificación de la fase (≤ 1 h)
 - Qué: `npm run check`; `npm run test:e2e` en `env:start:min` y en `env:start:latest`; A1 (`git diff origin/trunk` de los tests), A2, A4, A6; `manifest.json`; la tabla del gzip frente a `origin/trunk`. Sin commit si no cambia nada (se anota en el cierre).
@@ -154,7 +154,7 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: —
 - Verificación: `npm run check`
 - Resultado: A9 en «Verificación manual pendiente» de `docs/status.md`. `SPEC.md` §6 con la fila de la 0006 (sin cambios de contrato; `src/core/` interno; K9, K14, K70 y K80 corregidos; ADRs 0029 y 0030). En `docs/specs/README.md`, «Dónde queda cada corrección del player tras la 0006», con la 0007, la 0009 y la 0011. En `docs/known-issues.md`, la columna de archivo de C1, C2, C7, C8, K1, K11, K12, K18, K63–K67 y K81 apunta también al núcleo (`desde la 0006, …`). La tabla del bundle para el PR es la de la 3.10 (frente a `origin/trunk`, así que cubre la spec entera). `npm run check` en verde.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `5529f21`
 
 ## Decisiones abiertas → ADR
 
