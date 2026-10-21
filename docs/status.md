@@ -2,15 +2,16 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 4 (migración y actualización) · Plan: [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0005: fase 4 (migración y actualización) empezada el 2026-10-21, última de la spec: `Migration\Legacy_Plan`, `WP\Migration_Writer` y `Upgrade\Upgrade_Policy`, con los envoltorios de siempre; cierra K72. Primero se caracterizan el registro de depuración y el orden de las escrituras (4.1, 4.2).
+- Spec 0005: fase 4 (migración y actualización) empezada el 2026-10-21, última de la spec: `Migration\Legacy_Plan`, `WP\Migration_Writer` y `Upgrade\Upgrade_Policy`, con los envoltorios de siempre; cierra K72. Hecha la 4.1 (registro de depuración de la migración; K79 nuevo, decisión pendiente); sigue la 4.2 (orden de las escrituras y de la reversión).
 - Spec 0005: fase 3 (datos, guardado y globales del player) cerrada el 2026-10-21: lectura, guardado y globales en el núcleo (`Data\*`, `Station\`/`Program\Field_Sanitizer`, `Player\Globals_Builder`) y en `WP\*`; cobertura `critical` 97,23 %, `core` 100 %; baseline 84 líneas menos. K78 nuevo (a la 0009). PR #39 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tareas 4.1–4.8 de [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md); después, `close-phase` de la fase 4, que cierra la 0005 y deja el PR #39 listo.
+1. Tareas 4.2–4.8 de [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md); después, `close-phase` de la fase 4, que cierra la 0005 y deja el PR #39 listo.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
 - K76 (`completeTimeFields` sin uso, baja): decidir si se corrige y en qué spec (propuesta: 0010 admin). No bloquea la 0005.
+- K79 (la migración heredada pierde `is_rerun` de las franjas, baja): decidir si se corrige y en qué spec (propuesta: 0008 migración). No bloquea la 0005: el refactor lo conserva.
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.

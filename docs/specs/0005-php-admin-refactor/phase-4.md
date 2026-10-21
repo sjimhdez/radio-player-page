@@ -38,7 +38,8 @@ Mover el plan de la migración heredada y las decisiones de la actualización al
 - Archivos: `tests/php/integration/Migration/UpgradeFlowTest.php` (altas).
 - Test: caracterización (mutación temporal: registrar las franjas desconocidas antes de crear los programas).
 - Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: 5 tests nuevos en `UpgradeFlowTest` (47 → 52), solo altas, con un helper `migration_log()` que manda `error_log()` a un archivo de `wp_tempnam()` durante la migración (con `WP_DEBUG` del entorno, comprobado como precondición) y devuelve los mensajes sin la fecha. Fijado: un ID heredado con datos distintos da una línea antes de las de las franjas y gana la última aparición (`Second`); con los mismos datos, ninguna línea y un solo programa; las franjas con programa desconocido se registran por emisora y en el orden del horario; si la emisora 1 falla la validación (`start` `abc`), solo se registran sus franjas, no las de la 2, no se crea ninguna emisora y el aviso empieza por «Schedule migration failed: ». Rareza nueva: K79 (la franja migrada pierde `is_rerun`), con su test `currently`. Mutaciones en el migrador, revertidas: traducir el horario de todas las emisoras antes de crear la primera (registra las franjas por adelantado) falla los tres tests de orden; registrar el duplicado sin comparar la huella falla el de los mismos datos; conservar `is_rerun` al traducir falla el de K79.
 
 ### 4.2 Caracterización: orden de las escrituras y de la reversión (≤ 1 h)
 - Qué: altas que registran con `wp_insert_post`, `added_post_meta`, `deleted_post`, `deleted_option`, `added_option`/`updated_option` la secuencia de una migración de dos programas y dos emisoras, y la de una que falla en la segunda emisora (reversión del más nuevo al más viejo, sin tocar opciones).
