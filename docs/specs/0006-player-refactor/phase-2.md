@@ -94,7 +94,8 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Archivos: `player/src/core/audio/player-machine.ts`, `player-machine.test.ts`, `docs/known-issues.md` (columna «Test» de K1, K11, K63 y K64).
 - Test: primero (TDD): `player-machine.test.ts`.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: `transition()` e `initialPlayerState` con 32 casos (16 de la transición normal, 7 de «misma referencia» y 9 `currently`: K1, K11 ×2, K63 ×4 con los mismos nombres que en el hook, y K64). Un *helper* `patch()` devuelve el mismo objeto si ningún campo cambia. Se añade un evento a la lista del plan, `intro-finished`, que marca `introConsumed` (lo que hoy hace `advanceToLive()` antes de cargar el directo); `ended` no es un evento de la máquina, porque solo dispara el paso al directo en el controlador. Como en el hook, `user-paused` no hace nada en la bienvenida, y `play-failed`, `stream-error` y `error` dan `error`. Rojo primero (módulo inexistente). Mutaciones (revertidas): `canplay` limpia siempre → K64 en rojo; `pause` respeta `error` → K1 en rojo; `live-started` sin `playing` → los dos K11 en rojo; `error` libera el bloqueo → tres K63 en rojo; `patch()` sin comparar → los 7 de misma referencia en rojo. Las filas K1, K11, K63 y K64 apuntan también a `player-machine.test.ts`.
+- [x] hecha · commit: (este)
 
 ### 2.6 `core/audio/audio-controller`: directo, eventos y volumen (≤ 1 h)
 - Qué:
