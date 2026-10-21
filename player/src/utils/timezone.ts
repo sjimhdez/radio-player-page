@@ -37,7 +37,7 @@ export function getCurrentTimeInTimezone(timezoneOffset: number): {
         currentTime: hour * 60 + minute,
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.error(
           '[Radio Player] Error calculating time with offset, falling back to UTC:',
           error,
@@ -48,7 +48,7 @@ export function getCurrentTimeInTimezone(timezoneOffset: number): {
   }
 
   // Fallback: Return UTC time if offset is invalid
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     console.warn(
       '[Radio Player] Invalid timezone offset, using UTC fallback. Offset:',
       timezoneOffset,
@@ -83,7 +83,7 @@ export function getBrowserTimezoneOffset(): number {
     const offsetHours = -offsetMinutes / 60 // Invert sign: negative offset means ahead of UTC
     return offsetHours
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('[Radio Player] Error getting browser timezone offset, using UTC:', error)
     }
     return 0 // Fallback to UTC
@@ -133,7 +133,7 @@ export function formatTimeInTimezone(
 
     return `${hourStr}:${minuteStr}`
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('[Radio Player] Error formatting time in timezone, using current time:', error)
     }
     // Fallback to browser's local time

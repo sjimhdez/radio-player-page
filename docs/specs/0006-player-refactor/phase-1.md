@@ -96,7 +96,8 @@ Montar los cimientos del núcleo `player/src/core/`: ADR 0029, frontera en ESLin
 - Archivos: `player/src/utils/timezone.ts`, `player/src/utils/timezone.test.ts` (una línea), `player/dist/`.
 - Test: caracterización existente (`timezone.test.ts`); se ve fallar con `stubEnv('DEV', false)` (mutación, se revierte).
 - Verificación: `npm --prefix player run check && npm --prefix player run build && ! grep -rn "process.env" player/src --exclude='*.test.*'`
-- [ ] hecha · commit: —
+- Resultado: las cuatro condiciones de `timezone.ts` pasan a `import.meta.env.DEV`; en `timezone.test.ts` solo cambia la línea del `stubEnv` («warns … only in development»). Mutación `stubEnv('DEV', false)`: el test cae en rojo (`toHaveBeenCalledOnce`), revertida. `grep -rn "process.env" player/src --exclude='*.test.*'` vacío; `grep -c "Radio Player\] Invalid timezone" player/dist/*.min.js` → 0 en todos. `dist/` sin cambios: el build de producción reduce las dos formas a `false` y la salida es idéntica byte a byte. `npm --prefix player run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 1.8 K9: `formatTimeInTimezone` con un offset no finito (≤ 1 h)
 - Qué: con `fix-bug`. El `currently formats NaN for an invalid offset` pasa a regresión: `formatTimeInTimezone(NaN)` (y `Infinity`) da la hora local del navegador, en rojo primero. Arreglo mínimo: `if (!Number.isFinite(timezoneOffset))` va a la reserva de hora local (se extrae la rama del `catch` a una función local para no duplicarla). Fila K9 → «corregido (spec 0006)». Commit `fix(0006): … (1.8)`.

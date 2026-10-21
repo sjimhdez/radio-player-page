@@ -75,7 +75,7 @@ describe('getCurrentTimeInTimezone', () => {
   })
 
   it('warns about an invalid offset only in development', () => {
-    vi.stubEnv('NODE_ENV', 'development')
+    vi.stubEnv('DEV', true)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     getCurrentTimeInTimezone(NaN)
