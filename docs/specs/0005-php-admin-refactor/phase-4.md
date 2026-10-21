@@ -86,7 +86,8 @@ Mover el plan de la migración heredada y las decisiones de la actualización al
 - Archivos: `tests/coverage/php-zones.json` y los tests que falten.
 - Test: —
 - Verificación: `npm run test:php:integration:coverage && node scripts/check-php-coverage.mjs coverage/php-xml && git diff trunk -- phpstan-baseline.neon`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: medido en `env:start:latest` (PHP 8.4) con Xdebug, 839 tests en verde: `critical` 97,04 % (426/439), `core` 100 % (577/577; `Migration\Legacy_Plan` 83/83 y `Upgrade\Upgrade_Policy` 13/13), `rest` 89,43 %. `WP\Migration_Writer` 79/79, el migrador 18/20 y `radplapag-upgrade.php` 83/85. `php-zones.json` ya cubre todo el código nuevo de la spec (`includes/src/**` en `core` y los siete `includes/src/wp/*` en `critical`): sin cambios y sin nada que caracterizar. Baseline frente a `trunk`: 156 líneas menos y ninguna nueva.
 
 ### 4.8 Cierre de la spec: historial y notas para las correcciones (≤ 1 h)
 - Qué: `SPEC.md` §6 (namespace interno y script `radplapag-schedule-rules`, sin cambios en el contrato); en `docs/known-issues.md`, la columna de archivo de las filas que corrigen la 0008–0013 apunta también al código nuevo (K4, K29–K33 y las de horario que falten); en `docs/specs/README.md`, una nota por spec (0008, 0009, 0010, 0012, 0013) con dónde queda cada corrección.
