@@ -41,8 +41,8 @@
     "src": "src/main.tsx",
     "isEntry": true,
     "dynamicImports": [
-      "node_modules/hls.js/dist/hls.mjs",
       "node_modules/dashjs/dist/modern/esm/dash.all.min.js",
+      "node_modules/hls.js/dist/hls.mjs",
       "src/components/visualizers/oscilloscope-visualizer.tsx",
       "src/components/visualizers/bar-visualizer.tsx",
       "src/components/visualizers/particles-visualizer.tsx",

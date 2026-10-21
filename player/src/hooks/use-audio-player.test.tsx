@@ -1,7 +1,7 @@
 // Characterization of use-audio-player (spec 0002, task 1.15). ADR 0004: direct
 // sources set crossOrigin = 'anonymous'; the MSE paths (hls.js, dashjs) do not.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import { act, render } from '@testing-library/react'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -77,20 +77,25 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'
 
 type Api = ReturnType<typeof useAudioPlayer>
 
-function Harness(props: { streamUrl: string; introUrl?: string; api: { current: Api } }) {
+// The hook result reaches the test through a callback, after each render.
+function Harness(props: { streamUrl: string; introUrl?: string; onResult: (api: Api) => void }) {
+  const { onResult } = props
   const player = useAudioPlayer(props.streamUrl, props.introUrl)
-  // eslint-disable-next-line react-hooks/immutability -- test harness exposes the hook result on purpose; revisited in spec 0006
-  props.api.current = player
-  // eslint-disable-next-line react-hooks/refs -- false positive on the hook's returned ref object; revisited in spec 0006
-  return <audio ref={player.audioRef} />
+  const { audioRef } = player
+  useEffect(() => onResult(player))
+  return <audio ref={audioRef} />
+}
+
+const expose = (api: { current: Api }) => (result: Api) => {
+  api.current = result
 }
 
 function mount(streamUrl: string, introUrl?: string) {
   const api = {} as { current: Api }
-  const view = render(<Harness streamUrl={streamUrl} introUrl={introUrl} api={api} />)
+  const view = render(<Harness streamUrl={streamUrl} introUrl={introUrl} onResult={expose(api)} />)
   const audio = view.container.querySelector('audio')!
   const rerender = (url: string) =>
-    view.rerender(<Harness streamUrl={url} introUrl={introUrl} api={api} />)
+    view.rerender(<Harness streamUrl={url} introUrl={introUrl} onResult={expose(api)} />)
   return { api, audio, rerender, unmount: view.unmount }
 }
 
@@ -610,7 +615,7 @@ describe('lifecycle (spec 0006, 2.1)', () => {
     const api = {} as { current: Api }
     const view = render(
       <StrictMode>
-        <Harness streamUrl={streamUrl} introUrl={introUrl} api={api} />
+        <Harness streamUrl={streamUrl} introUrl={introUrl} onResult={expose(api)} />
       </StrictMode>,
     )
     const audio = view.container.querySelector('audio')!
