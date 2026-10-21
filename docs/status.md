@@ -1,11 +1,12 @@
 # Estado
-Spec activa: 0005 — Refactor de PHP y admin · Fase: 4 sin empezar · Plan: — (último: [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md)) · Actualizado: 2026-10-21
+Spec activa: 0005 — Refactor de PHP y admin · Fase: 4 (migración y actualización) · Plan: [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md) · Actualizado: 2026-10-21
 
 ## En curso
+- Spec 0005: fase 4 (migración y actualización) empezada el 2026-10-21, última de la spec: `Migration\Legacy_Plan`, `WP\Migration_Writer` y `Upgrade\Upgrade_Policy`, con los envoltorios de siempre; cierra K72. Primero se caracterizan el registro de depuración y el orden de las escrituras (4.1, 4.2).
 - Spec 0005: fase 3 (datos, guardado y globales del player) cerrada el 2026-10-21: lectura, guardado y globales en el núcleo (`Data\*`, `Station\`/`Program\Field_Sanitizer`, `Player\Globals_Builder`) y en `WP\*`; cobertura `critical` 97,23 %, `core` 100 %; baseline 84 líneas menos. K78 nuevo (a la 0009). PR #39 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `start-phase` de la fase 4 de la 0005 (migración y actualización), en una sesión nueva.
+1. Tareas 4.1–4.8 de [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md); después, `close-phase` de la fase 4, que cierra la 0005 y deja el PR #39 listo.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
@@ -17,7 +18,8 @@ Spec activa: 0005 — Refactor de PHP y admin · Fase: 4 sin empezar · Plan: �
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)
-Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md` y `phase-3.md`; sin ADR, no cambian el contrato):
+Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md`, `phase-3.md` y `phase-4.md`; sin ADR, no cambian el contrato):
+- Fase 4 (plan): §4.3 pone el `error_log()` de la migración en `WP\Migration_Writer`. Se queda en `Radplapag_Migrator_Settings_To_Cpt::run()`, que le pasa al escritor un closure con la comprobación de `WP_DEBUG` y un solo `phpcs:ignore` con su motivo (K72), porque `includes/src/` no lleva `phpcs:` (A6). El escritor lo llama en los mismos momentos que hoy. Decidido por el usuario (2026-10-21).
 - Fase 3 (revisión): se quitan dos guardas inalcanzables, como en la fase 1: `isset`/`is_array` de `radplapag_get_config()['stations']` en `radplapag_get_station_for_current_page()` (la función no tiene filtro y siempre da un array) e `instanceof WP_Post` en `WP\Station_Repository::published_rows()` (`get_posts()` con `suppress_filters` solo da posts; un `posts_pre_query` con un ID sin post rompe antes dentro de WP, comprobado). Los títulos y `blogname` pasan a parámetros `string`: un filtro que devolviera `null` daría un `TypeError` (WP siempre da cadenas), y `get_bloginfo( 'name' )` se lee siempre, no solo sin título. En la 3.12, `Radplapag_Station_Config` se caracterizó después de delegarla (3.5), no antes (§4.4); los tests pasan también contra la clase de `trunk`. El arnés de los tests de orden de escrituras (3.2, 3.8) escucha `set_transient` en WP ≥ 6.8 (`setted_transient` está obsoleta); las listas esperadas no cambian.
 - Fase 3 (plan): §4.3 pone el nonce, las capacidades y `$_POST` en el adaptador del guardado. Se quedan en `radplapag_save_station_meta()` y `radplapag_save_program_meta()`, con su `phpcs:ignore` de siempre, porque WPCS exige el nonce en la misma función que lee `$_POST` y A6 no admite supresiones en `includes/src/`. El adaptador (`WP\Station_Meta_Saver`, `WP\Program_Meta_Saver`) recibe `( $post_id, array $input )`. Decidido por el usuario (2026-10-21).
 - Fase 2 (plan): riesgo 1 de la spec. Las filas que añade el JS conservan el texto visible de hoy (entidades decodificadas como hacía `innerHTML`) con `DOMParser`; K21 sigue para la 0012. Decidido por el usuario (2026-10-20).

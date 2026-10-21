@@ -1,0 +1,98 @@
+# Spec 0005 · Fase 4 — Migración y actualización
+Estado: en curso · Inicio: 2026-10-21 · ADRs: 0005, 0010, 0017, 0021, 0024, 0028
+
+## Contexto (medido al planificar)
+
+- Rama `spec/0005-php-admin-refactor` con `origin/trunk` ya fusionado y PR #39 en borrador: sin push ni PR nuevos. Última fase de la spec.
+- Migración: `Radplapag_Migrator_Settings_To_Cpt` (296 líneas) mezcla el plan (deduplicar programas por ID heredado con huella `md5`, traducir el horario, descartar franjas sin programa conocido, listas blancas, `menu_order`) con la escritura (`wp_insert_post`, `update_post_meta`, reversión, `delete_option`/`update_option`) y dos `error_log()` con `WP_DEBUG` (K72).
+- El horario se valida al escribir con `radplapag_sanitize_station_schedule()`, que lee el nombre de los programas **ya guardados** (con kses) para los mensajes: el aviso de error de `corrupt-times` y de K30 lo incluye. La validación se queda en el escritor, después de crear los programas, para que el mensaje no cambie.
+- Fijado ya: `MigrationGoldenTest` (10 fixtures y sus goldens, dos pasadas) y `UpgradeFlowTest` (44 tests, K4, K21, K29–K33). **Sin fijar:** las líneas del registro de depuración (todos los tests lo mandan a `/dev/null`; `.wp-env.tests.json` tiene `WP_DEBUG`) y el orden de las escrituras y de la reversión (riesgo 6). Se caracterizan en la 4.1 y la 4.2.
+- La traducción del horario quita `is_rerun` (golden `corrupt`: `true` → `false`). No está en `known-issues.md`: se conserva y se anota en la 4.1.
+- **Decisión del usuario (2026-10-21):** `error_log()` no va en `WP\Migration_Writer` (la letra de §4.3), porque `includes/src/` no lleva `phpcs:` (A6). `Radplapag_Migrator_Settings_To_Cpt::run()` le pasa al escritor un closure que comprueba `WP_DEBUG` y llama a `error_log()`, con **un solo** `phpcs:ignore` y su motivo (K72). El escritor recibe un `callable $log` y lo llama en el mismo momento que hoy: los duplicados antes de crear nada, y las franjas descartadas de cada emisora justo antes de validarla (si falla la emisora 1, las de la 2 no se registran). Desviación anotada en `docs/status.md`.
+- Como en las fases 1 y 3, el núcleo recibe como `callable` los saneadores de WP (`sanitize_text_field`, `sanitize_textarea_field`, `esc_url_raw`, `sanitize_key`, `absint`); los textos por defecto («Program», «Radio Station») los pone el escritor con `__()` cuando el núcleo da `''`. Las listas blancas del migrador pasan a `Data\Station::THEMES`/`VISUALIZERS` (el primero es el valor por defecto, igual que hoy).
+- Actualización: los callbacks de `radplapag-upgrade.php` hacen lecturas y escrituras intercaladas (`radplapag_maybe_clear_migration_conflict_flag()` escribe entre dos comprobaciones). `Upgrade\Upgrade_Policy` son **predicados puros** (`has_migratable_stations`, `is_current`, `published_count`, `should_clear_conflict`, `is_this_plugin_update`); los callbacks siguen siendo la secuencia de hoy y los llaman, así no cambian ni el orden ni la pereza de las lecturas. Las notificaciones, el descarte (`$_GET` + nonce) y `radplapag_migration_resolve_author_user_id()` son presentación o lecturas de WP: se quedan.
+- PHPStan: salen las 10 entradas de los métodos privados del migrador al moverlos; las de firma de `radplapag-upgrade.php` se quedan si siguen.
+
+## Objetivo
+
+Mover el plan de la migración heredada y las decisiones de la actualización al núcleo `RadioPlayerPage\` (TDD) y la escritura a `WP\Migration_Writer`, dejando `Radplapag_Migrator_Settings_To_Cpt::run()` y los callbacks de `radplapag-upgrade.php` como envoltorios, sin cambiar ningún comportamiento (K4, K21, K29–K33 se conservan), cerrar K72 y dejar la spec lista para `close-phase` (A1–A9).
+
+## Criterios de aceptación
+
+| Criterio | Cómo se verifica (test o checklist manual) |
+|---|---|
+| A1 Comportamiento sin cambios | `npm run check`; `npm run test:php:integration`, `:ms` y `npm run test:e2e` en `env:start:min` y `env:start:latest`; `git diff trunk -- tests/php/integration/snapshots tests/e2e/snapshots tests/e2e/a11y-baseline.json tests/fixtures/legacy-settings` vacío; en `tests/php/integration`, solo altas (4.1, 4.2) |
+| A2 Contrato PHP | `HooksTest` y `PublicApiTest` sin cambios, en verde en las dos puntas |
+| A3 Núcleo sin WordPress | `PureCoreTest`; `tests/php/unit/{Migration,Upgrade}/` con `npm run test:php:unit` |
+| A4 Vectores | `ScheduleVectorsTest` (PHP) y `schedule-rules.test.js` (admin) sin tocar el JSON (ya cumplido; se reverifica) |
+| A5 Cobertura | `node scripts/check-php-coverage.mjs coverage/php-xml`: `core` ≥ 90 %, `critical` (con `WP\Migration_Writer`) y `rest` en verde; `npm run test:coverage` (`schedule-rules.js` ≥ 85 %) |
+| A6 Estándares | `npm run lint:php`, `npm run lint:phpstan`; `grep -rn 'phpcs:' includes/src` vacío; `git diff trunk -- phpstan-baseline.neon` solo con bajas |
+| A7 DOM del admin | `grep -nE 'innerHTML\|\.html\(\|insertAdjacentHTML' admin/js` vacío (ya cumplido; se reverifica) |
+| A8 K72 cerrada | `grep -rn 'phpcs:ignore.*error_log' includes/` con motivo en cada línea; fila K72 en «corregido (spec 0005)» |
+| A9 Zip | `npm run check:zip` con los archivos nuevos en `tests/zip/expected-additions.txt` |
+
+## Tareas
+
+### 4.1 Caracterización: registro de depuración de la migración (≤ 1 h)
+- Qué: altas en `UpgradeFlowTest` que llevan `error_log` a un archivo temporal (con `WP_DEBUG` del entorno de tests) y fijan las líneas y su orden: ID duplicado con datos distintos (una línea, antes que las de las franjas), duplicado con los mismos datos (ninguna), franjas con programa desconocido en dos emisoras (en orden de emisora), y la emisora 1 que falla la validación (las franjas de la 2 no se registran). Fija también que la franja migrada pierde `is_rerun`.
+- Archivos: `tests/php/integration/Migration/UpgradeFlowTest.php` (altas).
+- Test: caracterización (mutación temporal: registrar las franjas desconocidas antes de crear los programas).
+- Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
+- [ ] hecha · commit: —
+
+### 4.2 Caracterización: orden de las escrituras y de la reversión (≤ 1 h)
+- Qué: altas que registran con `wp_insert_post`, `added_post_meta`, `deleted_post`, `deleted_option`, `added_option`/`updated_option` la secuencia de una migración de dos programas y dos emisoras, y la de una que falla en la segunda emisora (reversión del más nuevo al más viejo, sin tocar opciones).
+- Archivos: `tests/php/integration/Migration/UpgradeFlowTest.php` (altas).
+- Test: caracterización (mutación temporal: revertir en orden de creación).
+- Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
+- [ ] hecha · commit: —
+
+### 4.3 `Migration\Legacy_Plan` (≤ 1 h)
+- Qué: `build( $raw, array $sanitizers ): ?array` → `null` sin `stations` útiles (no_data), o `programs` (por ID heredado, orden de primera aparición y datos de la última), `duplicates` (IDs con huella distinta), y `stations` (título, URL, página, adjuntos, tema y visualizador con las listas de `Data\Station`, `menu_order`, horario por ID heredado y `skipped`). Títulos vacíos como `''`. `test_currently_*` replicados: K32 (`stations: ['x']` → plan sin emisoras), K30 (el plan conserva la franja que cruza y `Slot_Validator` la rechaza). El test recorre los fixtures de `tests/fixtures/legacy-settings/` con saneadores de prueba y compara una proyección del plan (más `Slot_Validator::validate` del horario) con su golden; `v1.1-flat` da `null` y `corrupt-times` falla en la segunda emisora con `format`.
+- Archivos: `includes/src/migration/class-legacy-plan.php`, `tests/zip/expected-additions.txt`.
+- Test: primero (TDD): `tests/php/unit/Migration/LegacyPlanTest.php`.
+- Verificación: `npm run test:php:unit -- --filter LegacyPlanTest && npm run check:zip`
+- [ ] hecha · commit: —
+
+### 4.4 `WP\Migration_Writer`; el migrador delega; K72 (≤ 1 h)
+- Qué: `write( array $plan, int $author, callable $log )`: registra los duplicados, crea los programas (título por defecto con `__()`), traduce los IDs, registra las franjas descartadas de cada emisora, valida con `radplapag_sanitize_station_schedule()`, crea la emisora, revierte si algo falla y al final borra la opción y guarda la versión, en el orden de hoy. `Radplapag_Migrator_Settings_To_Cpt::run()` conserva la comprobación del autor y los dos `WP_Error`, construye el plan y le pasa el closure de registro con un `phpcs:ignore … -- Debug output only behind WP_DEBUG` (K72). Salen los métodos privados y sus 10 entradas de baseline. K72 a «corregido (spec 0005)».
+- Archivos: `includes/src/wp/class-migration-writer.php`, `includes/migration/class-radplapag-migrator-settings-to-cpt.php`, `tests/coverage/php-zones.json`, `tests/zip/expected-additions.txt`, `phpstan-baseline.neon`, `docs/known-issues.md`.
+- Test: caracterización: `MigrationGoldenTest`, `UpgradeFlowTest` (con la 4.1 y la 4.2), `PublicApiTest`, sin cambios.
+- Verificación: `npm run test:php:integration -- --filter 'MigrationGoldenTest|UpgradeFlowTest|PublicApiTest|HooksTest' && npm run lint:php && npm run lint:phpstan && grep -rn 'phpcs:ignore.*error_log' includes/`
+- [ ] hecha · commit: —
+
+### 4.5 `Upgrade\Upgrade_Policy` (≤ 1 h)
+- Qué: predicados puros: `has_migratable_stations( $raw )`, `is_current( $stored, string $target )` (`===`), `published_count( $counts )`, `should_clear_conflict( $flag, int $published )`, `is_this_plugin_update( $options, string $basename )`. `test_currently_*` de K4 (opción plana → sin emisoras migrables).
+- Archivos: `includes/src/upgrade/class-upgrade-policy.php`, `tests/zip/expected-additions.txt`.
+- Test: primero (TDD): `tests/php/unit/Upgrade/UpgradePolicyTest.php`.
+- Verificación: `npm run test:php:unit -- --filter UpgradePolicyTest && npm run check:zip`
+- [ ] hecha · commit: —
+
+### 4.6 Los callbacks de la actualización delegan (≤ 1 h)
+- Qué: `radplapag_legacy_has_migratable_stations()`, `radplapag_count_published_stations()`, `radplapag_ensure_schema_version_option()`, `radplapag_maybe_clear_migration_conflict_flag()`, `radplapag_run_legacy_migration_if_needed()` y `radplapag_on_upgrader_process_complete()` llaman a la política, con la misma secuencia de lecturas y escrituras y su `@since 3.5.0`. Avisos, descarte y autor sin cambios. Salen las entradas de baseline que desaparezcan.
+- Archivos: `includes/radplapag-upgrade.php`, `phpstan-baseline.neon`.
+- Test: caracterización: `UpgradeFlowTest`, `MigrationGoldenTest`, `HooksTest`, `PublicApiTest`, sin cambios.
+- Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest|HooksTest|PublicApiTest' && npm run lint:php && npm run lint:phpstan`
+- [ ] hecha · commit: —
+
+### 4.7 Cobertura y baseline de la fase (≤ 1 h)
+- Qué: mide en `env:start:latest -- --xdebug=coverage`: `core` ≥ 90 % (con `Migration\*` y `Upgrade\*`), `critical` con el escritor; comprueba que `php-zones.json` cubre todo el código nuevo de la spec, caracteriza lo que falte y que la baseline solo ha bajado frente a `trunk`.
+- Archivos: `tests/coverage/php-zones.json` y los tests que falten.
+- Test: —
+- Verificación: `npm run test:php:integration:coverage && node scripts/check-php-coverage.mjs coverage/php-xml && git diff trunk -- phpstan-baseline.neon`
+- [ ] hecha · commit: —
+
+### 4.8 Cierre de la spec: historial y notas para las correcciones (≤ 1 h)
+- Qué: `SPEC.md` §6 (namespace interno y script `radplapag-schedule-rules`, sin cambios en el contrato); en `docs/known-issues.md`, la columna de archivo de las filas que corrigen la 0008–0013 apunta también al código nuevo (K4, K29–K33 y las de horario que falten); en `docs/specs/README.md`, una nota por spec (0008, 0009, 0010, 0012, 0013) con dónde queda cada corrección.
+- Archivos: `SPEC.md`, `docs/known-issues.md`, `docs/specs/README.md`.
+- Test: —
+- Verificación: `npm run check`
+- [ ] hecha · commit: —
+
+## Decisiones abiertas → ADR
+
+- Ninguna nueva. El `error_log()` en el envoltorio lo decidió el usuario al planificar y va como desviación en `docs/status.md`.
+
+## Verificación de la fase (en `close-phase`)
+
+`npm run check`, integración y `:ms` y e2e completos en `env:start:min` y `env:start:latest`, cobertura PHP por zonas y `test:coverage`, `check:zip`; revisores (spec-conformance, backcompat, wp-security, wporg). Es la última fase: `close-phase` cierra la spec y deja el PR #39 listo.
