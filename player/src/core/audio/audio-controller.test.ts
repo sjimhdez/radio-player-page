@@ -1,6 +1,6 @@
 // The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
 // of the audio element, the volume, HLS/DASH and the welcome audio, as in
-// src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K12, K63, K64)
+// src/hooks/use-audio-player.test.tsx, with its currently cases (C7, K11, K12, K63, K64)
 // and the K70 regression cases (task 2.9). The concurrency suspicions of §4.5 come
 // last (task 2.10).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -214,7 +214,9 @@ describe('direct streams', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
   })
 
-  it('pauses and resumes the loaded source without reloading it', async () => {
+  // docs/known-issues.md C7: Play after a pause resumes from the buffer, behind the
+  // live stream. Fixed in spec 0007.
+  it('currently resumes the loaded live stream from the buffer after a pause (C7)', async () => {
     const { controller, audio } = setup()
     await controller.play(live())
     controller.pause()
@@ -650,6 +652,22 @@ describe('concurrency (spec 0006, 2.10)', () => {
 
     controller.dispose()
     expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+  })
+
+  // The serialization covers every protocol and keeps the options of the first call.
+  it('loads the MP3 once after a second play() while the first is pending', async () => {
+    media.hold = true
+    const { controller, audio } = setup()
+    const first = controller.play(live())
+    const second = controller.play(live(OGG))
+    expect(second).toBe(first)
+    media.release()
+    await Promise.all([first, second])
+
+    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(audio.src).toBe(MP3)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
   })
 
   it('starts a new play() once the previous one has settled', async () => {
