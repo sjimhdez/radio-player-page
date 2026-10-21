@@ -902,6 +902,168 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertFalse( $schedule['monday'][0]['is_rerun'] );
 	}
 
+	// Order of the writes and of the rollback.
+
+	/**
+	 * Stores the legacy stations, runs the migration and returns its writes in order:
+	 * created posts, their radplapag_ meta, deleted posts and radplapag_ options added,
+	 * updated or deleted (transients are left out). Posts are labelled by type and title.
+	 *
+	 * @param array $stations Legacy stations.
+	 * @return string[]
+	 */
+	private function migration_writes( array $stations ) {
+		update_option( 'radplapag_settings', array( 'stations' => $stations ) );
+		$writes = array();
+		$labels = array();
+
+		add_action(
+			'wp_insert_post',
+			static function ( $post_id, $post ) use ( &$writes, &$labels ) {
+				$labels[ $post_id ] = $post->post_type . ' ' . $post->post_title;
+				$writes[]           = 'insert ' . $labels[ $post_id ];
+			},
+			10,
+			2
+		);
+		add_action(
+			'added_post_meta',
+			static function ( $meta_id, $post_id, $meta_key ) use ( &$writes, &$labels ) {
+				if ( 0 === strpos( $meta_key, 'radplapag_' ) ) {
+					$writes[] = 'meta ' . $labels[ $post_id ] . ' ' . $meta_key;
+				}
+			},
+			10,
+			3
+		);
+		add_action(
+			'deleted_post',
+			static function ( $post_id ) use ( &$writes, &$labels ) {
+				$writes[] = 'delete ' . $labels[ $post_id ];
+			}
+		);
+		foreach ( array( 'added_option', 'updated_option', 'deleted_option' ) as $hook ) {
+			add_action(
+				$hook,
+				static function ( $option ) use ( &$writes, $hook ) {
+					if ( 0 === strpos( $option, 'radplapag_' ) ) {
+						$writes[] = $hook . ' ' . $option;
+					}
+				}
+			);
+		}
+
+		radplapag_run_legacy_migration_if_needed();
+
+		return $writes;
+	}
+
+	/**
+	 * Legacy stations One (programs A and B) and Two (program B again, same data).
+	 *
+	 * @return array
+	 */
+	private function two_programs_two_stations() {
+		$program_a = array(
+			'id'   => 'prog_aaaaaaaa',
+			'name' => 'A',
+		);
+		$program_b = array(
+			'id'   => 'prog_bbbbbbbb',
+			'name' => 'B',
+		);
+
+		return array(
+			$this->legacy_station(
+				'One',
+				array( $program_a, $program_b ),
+				array( 'monday' => array( $this->slot( 'prog_aaaaaaaa' ) ) )
+			),
+			$this->legacy_station(
+				'Two',
+				array( $program_b ),
+				array( 'monday' => array( $this->slot( 'prog_bbbbbbbb' ) ) )
+			),
+		);
+	}
+
+	/**
+	 * Every program (in order of first appearance) is created with its meta before the
+	 * stations (in legacy order); then the legacy option is deleted and the version added.
+	 */
+	public function test_migration_writes_programs_then_stations_then_options() {
+		$station_meta = static function ( $label ) {
+			return array_map(
+				static function ( $key ) use ( $label ) {
+					return 'meta radplapag_station ' . $label . ' radplapag_station_' . $key;
+				},
+				array( 'stream_url', 'player_page', 'background_id', 'logo_id', 'theme_color', 'visualizer', 'schedule' )
+			);
+		};
+		$program_meta = static function ( $label ) {
+			return array_map(
+				static function ( $key ) use ( $label ) {
+					return 'meta radplapag_program ' . $label . ' radplapag_program_' . $key;
+				},
+				array( 'description', 'extended_description', 'logo_id' )
+			);
+		};
+
+		$writes = $this->migration_writes( $this->two_programs_two_stations() );
+
+		$this->assertSame(
+			array_merge(
+				array( 'insert radplapag_program A' ),
+				$program_meta( 'A' ),
+				array( 'insert radplapag_program B' ),
+				$program_meta( 'B' ),
+				array( 'insert radplapag_station One' ),
+				$station_meta( 'One' ),
+				array( 'insert radplapag_station Two' ),
+				$station_meta( 'Two' ),
+				array( 'deleted_option radplapag_settings', 'added_option radplapag_db_version' )
+			),
+			$writes
+		);
+	}
+
+	/**
+	 * When the second station cannot be created, the posts already created are deleted
+	 * newest first and no option is touched.
+	 */
+	public function test_failed_migration_rolls_back_newest_first_without_touching_options() {
+		add_filter(
+			'wp_insert_post_empty_content',
+			static function ( $maybe_empty, $postarr ) {
+				return 'Two' === $postarr['post_title'] ? true : $maybe_empty;
+			},
+			10,
+			2
+		);
+
+		$writes = $this->migration_writes( $this->two_programs_two_stations() );
+
+		$this->assertSame(
+			array(
+				'insert radplapag_program A',
+				'insert radplapag_program B',
+				'insert radplapag_station One',
+				'delete radplapag_station One',
+				'delete radplapag_program B',
+				'delete radplapag_program A',
+			),
+			array_values(
+				array_filter(
+					$writes,
+					static function ( $write ) {
+						return 0 !== strpos( $write, 'meta ' );
+					}
+				)
+			)
+		);
+		$this->assertSame( 'Content, title, and excerpt are empty.', get_transient( 'radplapag_migration_error_notice' ) );
+	}
+
 	// Admin notices.
 
 	/**
