@@ -104,7 +104,8 @@ Montar los cimientos del núcleo `player/src/core/`: ADR 0029, frontera en ESLin
 - Archivos: `player/src/utils/timezone.ts`, `timezone.test.ts`, `docs/known-issues.md`, `player/dist/`.
 - Test: regresión en rojo primero: `src/utils/timezone.test.ts`.
 - Verificación: `npm --prefix player run check && npm --prefix player run build`
-- [ ] hecha · commit: —
+- Resultado: el `currently` pasa a `falls back to the browser local time for a non-finite offset` (TZ `Asia/Kolkata`: `NaN`, `Infinity` sin segundos y `-Infinity`). En rojo primero por la razón esperada: `expected 'NaN:NaN:NaN' to be '04:35:09'`. Arreglo: guarda `!Number.isFinite(timezoneOffset)` al principio de `formatTimeInTimezone()` y la rama del `catch` extraída a `formatBrowserLocalTime(includeSeconds)` (local, sin exportar), que usan las dos reservas. Sin nota de changelog: inalcanzable desde la página (`readConfig()` solo deja pasar offsets entre −12 y 14). Fila K9 → «corregido». `dist/`: solo `.min.js` cambia (604 679 → 604 755 B; gzip -9 186 515 → 186 519). `npm --prefix player run check` y `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 1.9 Verificación de la fase (≤ 1 h)
 - Qué: `npm run check`; `npm run test:e2e` en `env:start:min` y en `env:start:latest`; A6 (`git diff` de la zona congelada vacío); `manifest.json` (`isDynamicEntry` de `hls` y `dash`); tabla del gzip después, comparada con la de la 1.2. Sin commit si no cambia nada (se anota en el cierre).

@@ -103,6 +103,23 @@ export function getTimezoneDifference(wordPressOffset: number, browserOffset?: n
 }
 
 /**
+ * Format the browser's local time (fallback when the offset cannot be used)
+ */
+function formatBrowserLocalTime(includeSeconds: boolean): string {
+  const now = new Date()
+  const hour = now.getHours()
+  const minute = now.getMinutes()
+  const second = now.getSeconds()
+  const hourStr = hour.toString().padStart(2, '0')
+  const minuteStr = minute.toString().padStart(2, '0')
+  if (includeSeconds) {
+    const secondStr = second.toString().padStart(2, '0')
+    return `${hourStr}:${minuteStr}:${secondStr}`
+  }
+  return `${hourStr}:${minuteStr}`
+}
+
+/**
  * Format time in a specific timezone for display
  *
  * @param timezoneOffset Timezone offset in hours from UTC
@@ -113,6 +130,10 @@ export function formatTimeInTimezone(
   timezoneOffset: number,
   includeSeconds: boolean = true,
 ): string {
+  if (!Number.isFinite(timezoneOffset)) {
+    return formatBrowserLocalTime(includeSeconds)
+  }
+
   try {
     const now = new Date()
     const offsetMs = timezoneOffset * 60 * 60 * 1000
@@ -136,18 +157,7 @@ export function formatTimeInTimezone(
     if (import.meta.env.DEV) {
       console.error('[Radio Player] Error formatting time in timezone, using current time:', error)
     }
-    // Fallback to browser's local time
-    const now = new Date()
-    const hour = now.getHours()
-    const minute = now.getMinutes()
-    const second = now.getSeconds()
-    const hourStr = hour.toString().padStart(2, '0')
-    const minuteStr = minute.toString().padStart(2, '0')
-    if (includeSeconds) {
-      const secondStr = second.toString().padStart(2, '0')
-      return `${hourStr}:${minuteStr}:${secondStr}`
-    }
-    return `${hourStr}:${minuteStr}`
+    return formatBrowserLocalTime(includeSeconds)
   }
 }
 
