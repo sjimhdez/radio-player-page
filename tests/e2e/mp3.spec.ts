@@ -94,7 +94,9 @@ test( 'applies the volume slider to the audio element, before and after Play', a
 
 	await startPlayback( page );
 
-	expect( await volume() ).toBe( 0.01 );
+	// WebKitGTK (the CI's WebKit) reads the volume back from GStreamer as a
+	// float32 once it plays: 0.009999999776482582.
+	expect( await volume() ).toBeCloseTo( 0.01, 5 );
 	await expect( slider ).toHaveAttribute( 'aria-valuenow', '0.01' );
 } );
 

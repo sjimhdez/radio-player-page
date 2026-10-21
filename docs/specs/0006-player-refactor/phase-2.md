@@ -204,6 +204,15 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Resultado: `currently resumes the loaded live stream from the buffer after a pause (C7)` (antes `pauses and resumes the loaded source without reloading it`, sin cambiar sus aserciones) y `loads the MP3 once after a second play() while the first is pending` (la misma promesa, un `load()`, un `play()` del elemento, el `src` de la primera llamada y `playing`). Sin cambios en el código ni en `dist/`.
 - [x] hecha · commit: `d9ab43e`
 
+### 2.14 El e2e del volumen en el WebKit de la CI (≤ 1 h)
+- Origen: la CI del PR tras el cierre (run `39618952678`). Es la primera vez que corre el e2e de la 2.1 (el último push era anterior a la fase). En las dos puntas, en WebKit y con sus reintentos, falla `mp3.spec.ts` (`applies the volume slider to the audio element, before and after Play`): `Expected: 0.01`, `Received: 0.009999999776482582`, tras Play.
+- Qué: medir si es el refactor o el navegador, y ajustar la aserción. Edición de un test de caracterización aprobada por el usuario (2026-10-21).
+- Archivos: `tests/e2e/mp3.spec.ts`.
+- Test: el caso en el WebKit de Linux, el de la CI (imagen `mcr.microsoft.com/playwright:v1.64.1-noble` contra el entorno de tests).
+- Verificación: el caso en el WebKit de Linux, y `npx playwright test tests/e2e/mp3.spec.ts -g "volume slider"` en macOS.
+- Resultado: es el navegador. En el WebKit de Linux falla igual con el `player/dist` de `origin/trunk` (el hook de la 3.4.2), y también con el de `HEAD`. WebKitGTK lee el volumen de GStreamer como `float32` en cuanto suena. En macOS no se ve, porque WebKit no lo redondea. La aserción tras Play pasa a `toBeCloseTo(0.01, 5)`, con su motivo en un comentario. La de antes de Play y el `aria-valuenow` no cambian. Verde en el WebKit de Linux y en macOS (Chromium y WebKit).
+- [x] hecha · commit: (este)
+
 ## Decisiones abiertas → ADR
 
 - Ninguna nueva: D1–D7 están en el ADR 0029. La sospecha 2 queda como `currently` para la 0007 (decisión del usuario, 2026-10-21, §0.3). Va en «Desviaciones» de `docs/status.md` solo si el resultado medido obliga a otra cosa.
@@ -214,4 +223,4 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Revisores (lista aprobada por el usuario, 2026-10-21): `spec-conformance-reviewer` y `backcompat-reviewer`. Sin `wp-security-reviewer` ni `wporg-reviewer` (la fase no toca la parte WordPress) ni `a11y-reviewer` (no toca componentes ni markup).
 - `spec-conformance-reviewer`: sin bloqueantes. Corregido: C7 en el núcleo y el `play()` doble de un MP3 (2.13); los commits del plan; la §5 de la spec (2.4, `useState` + `subscribe()`); la cuenta del ADR 0030 (137); el test de K1 del hook en su fila; la nota de A1 sobre el *fake* de `hls.js` (2.12). La numeración del plan frente a la §5, en «Desviaciones».
 - `backcompat-reviewer`: nada roto (globales, nombres de *assets* y *chunks* dinámicos, firma y valor de `useAudioPlayer()`, orden de estados, `crossOrigin`). Tres diferencias inalcanzables, sin cambios: al terminar la bienvenida, el directo arranca con el `streamUrl`/`isIOS` de la llamada a `play()`, no con los del último render (solo difieren si cambian durante la bienvenida, y no cambian: la URL es fija por página e `isIOS` ya está resuelto antes del primer toque); la comparación al reanudar lee el estado del controlador (ya en el Contexto); `play` conserva su identidad entre renders, así que `useMediaSession` vuelve a registrar sus *handlers* menos veces.
-
+- CI del PR: tras `chore(0006): close phase 2`, falló el e2e del volumen en WebKitGTK; se corrige en la 2.14 (el refactor no es la causa).
