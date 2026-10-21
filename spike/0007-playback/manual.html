@@ -146,8 +146,9 @@
     <h2>10. <code>AudioContext</code> outside the gesture (as today)</h2>
     <ol>
       <li><b>Start</b>: plays the finite MP3 with CORS in the click; 6 s after <code>playing</code>, a timer connects
-        Web Audio (as the visualizer effect does today). Listen through that moment.</li>
-      <li>Then press <b>Resume AudioContext</b> (a real click).</li>
+        Web Audio (as the visualizer effect does today). <b>Do not pause</b>: listen through that moment and watch
+        the first word of the readout (<code>AudioContext NONE</code> → <code>SUSPENDED</code> or <code>RUNNING</code>).</li>
+      <li>Wait ~5 s more, then press <b>Resume AudioContext</b> (a real click) and listen.</li>
     </ol>
     <p class="expect">Playwright WebKit: the context stays <code>suspended</code> and the audio goes silent until the click.</p>
     <button type="button" data-start>Start</button>
@@ -193,7 +194,7 @@
         },
       }
 
-      const snapshot = () => ({ state: s.state(), rms: s.rms(), events: s.events.map((e) => `${e.t} ${e.type}`).slice(-30) })
+      const snapshot = () => ({ state: s.state(), rms: s.rms(), events: s.events.map((e) => `${e.t} ${e.type}`).slice(-60) })
 
       for (const section of document.querySelectorAll('section[data-case]')) {
         const name = section.dataset.case
@@ -222,12 +223,14 @@
         }
       }
 
-      const after = (fn) => () => { const r = fn(); if (r && r.then) r.then((v) => s.events.push({ t: s.state().t, type: `-> ${JSON.stringify(v)}` })) }
-      document.getElementById('pause').onclick = () => s.audio.pause()
-      document.getElementById('resume').onclick = after(() => s.play())
-      document.getElementById('reload').onclick = after(() => { s.reload(); return s.play() })
-      document.getElementById('retry').onclick = after(() => { s.retryWithoutCors(); return s.play() })
-      document.getElementById('ctx-resume').onclick = after(() => s.resumeContext())
+      // Every button press and its outcome go to the case's events, so the snapshot tells what was done.
+      const note = (type) => s.events.push({ t: s.state().t, type })
+      const after = (name, fn) => () => { note(`click ${name}`); const r = fn(); if (r && r.then) r.then((v) => note(`-> ${JSON.stringify(v)}`)) }
+      document.getElementById('pause').onclick = after('pause', () => s.audio.pause())
+      document.getElementById('resume').onclick = after('resume', () => s.play())
+      document.getElementById('reload').onclick = after('reload', () => { s.reload(); return s.play() })
+      document.getElementById('retry').onclick = after('retry', () => { s.retryWithoutCors(); return s.play() })
+      document.getElementById('ctx-resume').onclick = after('ctx-resume', () => s.resumeContext())
 
       document.getElementById('copy').onclick = () => {
         if (current) snapshots[current] = snapshot()
@@ -241,13 +244,16 @@
 
       const readout = document.getElementById('readout')
       const bar = document.querySelector('#meter > div')
+      let lastCtx = null
       setInterval(() => {
         if (!s.audio) return
         const st = s.state()
         const r = s.rms()
-        readout.textContent = `case ${current || '—'} · paused ${st.paused} · currentTime ${st.currentTime} · readyState ${st.readyState}` +
+        // AudioContext state changes, logged when seen (every 200 ms).
+        if (st.ctxState !== lastCtx) { if (st.ctxState) note(`ctx ${st.ctxState}`); lastCtx = st.ctxState }
+        readout.textContent = `AudioContext ${(st.ctxState || 'none').toUpperCase()} · case ${current || '—'} · paused ${st.paused} · currentTime ${st.currentTime} · readyState ${st.readyState}` +
           ` · error ${st.error ? st.error.code : '—'}\nbuffered ${JSON.stringify(st.buffered)} · crossOrigin ${st.crossOrigin}` +
-          ` · AudioContext ${st.ctxState || '—'} · RMS ${r ? r.rms : '—'}`
+          ` · RMS ${r ? r.rms : '—'}`
         bar.style.width = `${r ? Math.min(100, r.rms * 600) : 0}%`
       }, 200)
     })()
