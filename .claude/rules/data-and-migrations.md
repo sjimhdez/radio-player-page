@@ -22,6 +22,8 @@ El contrato completo está en `SPEC.md` (datos, migración y desinstalación). E
 
 ## La migración heredada (`includes/migration/`, `radplapag-upgrade.php`)
 
+Desde la 0005, el plan es `Migration\Legacy_Plan`, la escritura `WP\Migration_Writer` y las decisiones de la actualización `Upgrade\Upgrade_Policy`; el migrador y los callbacks de `radplapag-upgrade.php` son envoltorios.
+
 - Unidireccional: de `radplapag_settings` a los CPT; nunca al revés (ADR 0010).
 - Cubre los formatos de 2.0.x a 3.2.x; los de 1.x quedan fuera del contrato (ADR 0005; K4 en `docs/known-issues.md`).
 - Tiene bloqueo (`radplapag_migrating`), avisos de éxito y error, y detecta conflictos con CPT ya existentes (`radplapag_migration_skipped_cpt_conflict`).
