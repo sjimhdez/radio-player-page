@@ -68,7 +68,8 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Archivos: `player/src/core/audio/protocol.ts`, `protocol.test.ts`, `player/src/core/audio/sources/types.ts`, `direct.ts`, `direct.test.ts`.
 - Test: primero (TDD), en rojo porque los módulos no existen. Usan `installFakeAudio()` de `src/test/fake-audio.ts`.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: `detectProtocol()` con 5 casos normales y los 4 `currently` de C2, y la fila C2 apunta también a `protocol.test.ts`. `createDirectSource()` con 4 casos: el orden `src` → `crossOrigin` → `load()` → `play()` (registrado con *setters* propios en la instancia), que `start()` espera a `play()`, que un rechazo se propaga sin pasar por los *callbacks* y que `destroy()` no toca el `<audio>`. Los tests usan `new Audio()`, porque `document` está vetado en `src/core/**`. Rojo primero (módulos inexistentes). Mutaciones (revertidas): `crossOrigin` antes de `src` → 1 en rojo; `void audio.play()` en vez de `await` → 2; `.mpd` sin distinguir mayúsculas ni *query* → 2. `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 2.4 Fuentes `hls` y `dash` con cargadores inyectados (≤ 1 h)
 - Qué:
