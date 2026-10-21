@@ -12,8 +12,8 @@
 | 0002 | [Red de seguridad, auditoría y triage](0002-safety-net/spec.md) | cerrada (PR #37) | `spec/0002-safety-net` | 0001 |
 | 0003 | [Dependencias del player y de los bloques](0003-player-dependencies/spec.md) | cerrada (PR #38) | `spec/0003-player-dependencies` | 0002 |
 | 0004 | ~~Dependencias de la parte WordPress~~: descartada; los bloques van en la 0003, y la raíz, Composer y las Actions fuera de una spec ([ADR 0026](../adr/0026-grouped-dependency-upgrades.md)) | descartada | — | — |
-| 0005 | [Refactor de PHP y admin](0005-php-admin-refactor/spec.md) | cerrada | `spec/0005-php-admin-refactor` | 0003 |
-| 0006 | Refactor del player | pendiente de escribir | — | 0003 |
+| 0005 | [Refactor de PHP y admin](0005-php-admin-refactor/spec.md) | cerrada (PR #39) | `spec/0005-php-admin-refactor` | 0003 |
+| 0006 | [Refactor del player](0006-player-refactor/spec.md) | propuesta | `spec/0006-player-refactor` | 0003 |
 | 0007 | Correcciones: reproducción | pendiente de escribir | — | 0006 |
 | 0008 | Correcciones: migración y actualización | pendiente de escribir | — | 0005 |
 | 0009 | Correcciones: horario y programa en antena | pendiente de escribir | — | 0005, 0006 |
@@ -71,12 +71,6 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - **0010:** las reglas del horario en `admin/js/schedule-rules.js` (K44, K74, K75) y el DOM en `admin/js/station-admin.js` (K15, K16, K39, K45, AX3, AX4); el guardado en `Station\Field_Sanitizer` + `WP\Station_Meta_Saver` (C13, K37, K42) y `Program\Field_Sanitizer` + `WP\Program_Meta_Saver` (K5, K34); `Schedule\Slot_Validator` (K38). El render de los meta boxes sigue en `includes/radplapag-*-cpt.php` (K36, AX3, AX4).
   - **0012:** la lectura en `WP\Station_Repository` y `WP\Program_Repository` (K21), el guardado del programa en `WP\Program_Meta_Saver` (K43), las globales en `Player\Globals_Builder` (K21, K43) y la búsqueda de la emisora en `Data\Stations` (K24). La página limpia, las capacidades y `uninstall.php` no se movieron (C11, K7, K23, K25, K26).
   - **0013:** el orden de `stationIndex` en `WP\Station_Repository` (K46); los datos de los bloques en `Schedule\Schedule_View`, `Programs_List_View` y `Now_Playing_Resolver`; los enlaces a la página (K50) y el markup siguen en `includes/radplapag-*-block.php` y `blocks/*/render.php`.
-- **0006 Refactor del player:**
-  - núcleo `player/src/core/` sin React ni MUI: máquina de estados del audio, adaptadores por protocolo, `crossOrigin`, intro, horario, sueño, Media Session y lectura de las globales;
-  - los hooks, como adaptadores finos;
-  - TDD;
-  - quitar las excepciones de `react-hooks` 7 que deja la 0003 (`set-state-in-effect` e `immutability`/`refs`, lista en su §4.2 y en la tarea 1.1 de su plan) y cambiar `process.env.NODE_ENV` por `import.meta.env.DEV` en `src/utils/timezone.ts`;
-  - del triage de la 0002: K9 (el núcleo valida el offset), K14 (Media Session en el núcleo), K70 (cada adaptador por protocolo fija su `crossOrigin`) y las sospechas de dos `play()` concurrentes con HLS y de `pause()` durante la carga de un MP3 (el núcleo serializa `play()`/`pause()` y lo comprueba en sus tests; si se confirma un fallo visible, pasa como fila a la 0007).
 - **Correcciones (0007–0013), comunes a todas:**
   - cada fila se corrige con `fix-bug`: el test `currently` pasa a test de regresión en rojo y luego a verde; la fila de `known-issues.md` pasa a «corregido (versión)»;
   - la prioridad de cada fila (alta · media · baja) ordena las fases; los motivos y el detalle de cada decisión están en la columna «Decisión del usuario» de `known-issues.md`;

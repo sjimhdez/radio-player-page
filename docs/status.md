@@ -1,11 +1,13 @@
 # Estado
-Spec activa: 0005 — Refactor de PHP y admin · Fase: cerrada (1–4, el 2026-10-21; PR #39 listo, pendiente de merge en `trunk`) · Plan: [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md) · Actualizado: 2026-10-21
+Spec activa: 0006 — Refactor del player · Fase: 1 por planificar · Plan: — · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0005 (refactor de PHP y admin) cerrada el 2026-10-21: lógica pura en `RadioPlayerPage\` (`includes/src/`), adaptadores en `WP\*` y las funciones `radplapag_*` como envoltorios, sin cambios de comportamiento ni de contrato (ADR 0028). Cobertura `critical` 97,04 %, `core` 100 %; baseline 156 líneas menos. K72 corregido. PR #39 listo contra `trunk`: **el merge lo decide el usuario** (merge commit, título `Spec 0005: Refactor de PHP y admin`).
+- Spec 0006 (refactor del player) escrita el 2026-10-21, estado «propuesta»: núcleo `player/src/core/` sin React, MUI ni i18next, hooks como adaptadores con `useSyncExternalStore`, K9, K14 y K70 corregidos (ADR 0029 previsto). Tres fases. Rama `spec/0006-player-refactor` (sin push).
+- Spec 0005 cerrada y fusionada en `trunk` (PR #39, 2026-10-21).
 
 ## Siguiente (máx. 5)
-1. Tras el merge del PR #39: sesión de diseño → `write-spec` de la 0006 (refactor del player), según la hoja de ruta. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse (`docs/specs/README.md`).
+1. Sesión nueva → `start-phase` de la fase 1 de la 0006 (`docs/specs/0006-player-refactor/spec.md`).
+2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrigen y en qué spec dos rarezas bajas: K76 (`completeTimeFields` sin uso; propuesta: 0010 admin) y K79 (la migración heredada pierde `is_rerun` de las franjas, que el refactor conserva; propuesta: 0008 migración).
