@@ -107,7 +107,8 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Archivos: `player/src/core/audio/audio-controller.ts`, `audio-controller.test.ts`.
 - Test: primero (TDD): `audio-controller.test.ts`, con `installFakeAudio()` y `fake-streaming.ts`.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: `createAudioController()` con 26 casos (instantánea y suscripción, `attach`/`detach`, directo, fuentes y volumen). La elección de la fuente por protocolo ya está aquí (`detectProtocol()` + las fuentes de la 2.4), porque «la fuente anterior destruida en el siguiente `play()`» y `dispose()` solo se observan con `hls`/`dash`: se prueban con los *fakes* (HLS → MP3 destruye el `Hls`; `dispose()` resetea DASH una vez). Lo que hacen HLS y DASH al reproducir, sus errores y sus `currently` (K11, K12) siguen en la 2.7, y `introUrl` se acepta pero aún no se usa. Los siete *listeners* del hook son seis tipos de evento: los dos de `playing` son un único evento de la máquina; `ended` se escucha y de momento no hace nada (bienvenida, 2.7). Un único manejador compartido: el DOM no duplica el mismo *listener*, y `attach()` hace `detach()` del elemento anterior. La reanudación compara `audio.src === streamUrl` con el estado del controlador, no con el del render. Rojo primero (módulo inexistente). Mutaciones (revertidas): `attach()` sin `detach()` → 1 en rojo (mover a otro elemento); un manejador nuevo en cada `attach()` → 4 (los dos de `StrictMode`, *detach* y mover); volumen aplicado en iOS al enganchar → 1; reanudar ignorando `error` → 1; sin destruir la fuente anterior → 1; `setVolume()` sin mirar iOS → 1. Cobertura del archivo: 96,6 % de líneas (sin cubrir, los *callbacks* de error de HLS/DASH, que son de la 2.7). `npm --prefix player run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 2.7 `audio-controller`: bienvenida, HLS/DASH y `currently` (≤ 1 h)
 - Qué:
