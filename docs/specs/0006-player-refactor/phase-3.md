@@ -35,7 +35,7 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: —
 - Verificación: `npm run check`
 - Resultado: D5 ampliado con el `Host` de `components/dashboard/SleepMode.test.tsx` (monta `SleepMode` sobre `useSleepTimer()`; nombre y aserción `1799` intactos) en el ADR 0029 (estado, contexto, D5 y evidencia) y en la spec (§0.3, D5 y su origen). `npm run check` en verde.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `d2e5c0e`
 
 ### 3.2 Caracterización e2e de Media Session (≤ 1 h)
 - Qué: `tests/e2e/media-session.spec.ts` (Chromium y WebKit), contra el hook de hoy. Un `addInitScript` envuelve `MediaSession.prototype.setActionHandler` (como `mp3.spec.ts`; si hace falta, se saca a `tests/e2e/support/player.ts` sin cambiar el de `mp3`). Casos:
@@ -45,7 +45,8 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: `tests/e2e/media-session.spec.ts` (y `tests/e2e/support/player.ts` si hace falta).
 - Test: caracterización. Se ve fallar con una mutación temporal del hook (por ejemplo, `playbackState` siempre a `paused`, o el *artwork* vacío), que se revierte con `dist/` restaurado.
 - Verificación: `npm run check && npx playwright test tests/e2e/media-session.spec.ts`
-- [ ] hecha · commit: —
+- Resultado: cuatro casos en `tests/e2e/media-session.spec.ts` sobre la emisora `mp3` (logo JPG): metadatos (título «E2E MP3» y seis tamaños `image/jpeg` con el `logoImage`), `playbackState` (`paused` → `playing` → `paused`), los siete manejadores (`play`/`pause` funciones, los cinco de búsqueda y pista puestos a `null`) y Play/Pausa desde los manejadores capturados. La captura se queda local en el archivo (no hizo falta sacarla a `support/player.ts`; `mp3.spec.ts` intacto). 8/8 en Chromium y WebKit. Mutación (`playbackState` fijo a `paused`, *artwork* vacío, sin `seekto`, `play` → `onPause`): 8/8 en rojo; revertida con `dist/` restaurado. `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 3.3 Caracterización del `Dashboard`: error visible y sueño (≤ 1 h)
 - Qué: `components/dashboard/index.test.tsx` contra el componente de hoy, con `useAudioPlayer` sustituido por un doble controlable (`vi.mock` del hook; los dos hooks de visualización también, sin editarlos). Casos:
