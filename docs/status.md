@@ -2,12 +2,12 @@
 Spec activa: 0006 — Refactor del player · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0006-player-refactor/phase-1.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0006, fase 1 (cimientos, globales y tiempo), planificada el 2026-10-21: ADR 0029, frontera del núcleo en ESLint, umbrales, `core/config`, `core/clock`, `core/schedule`, `timezone.ts` con `import.meta.env.DEV` y K9. Nueve tareas (1.1–1.9), 1/9 hechas (1.1: ADR 0029). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
+- Spec 0006, fase 1 (cimientos, globales y tiempo), planificada el 2026-10-21: ADR 0029, frontera del núcleo en ESLint, umbrales, `core/config`, `core/clock`, `core/schedule`, `timezone.ts` con `import.meta.env.DEV` y K9. Nueve tareas (1.1–1.9), 2/9 hechas (1.1: ADR 0029; 1.2: frontera, umbrales y línea base del gzip). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
 - Spec 0005 cerrada y fusionada en `trunk` (PR #39, 2026-10-21).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.2 de la 0006: frontera del núcleo en ESLint (con su mutación), umbrales de cobertura y línea base del gzip.
-2. Tareas 1.3–1.9 en orden (`docs/specs/0006-player-refactor/phase-1.md`); después, `close-phase`.
+1. Tarea 1.3 de la 0006: `core/config/read-config` con TDD y `useConfig()` como adaptador.
+2. Tareas 1.4–1.9 en orden (`docs/specs/0006-player-refactor/phase-1.md`); después, `close-phase`.
 3. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano

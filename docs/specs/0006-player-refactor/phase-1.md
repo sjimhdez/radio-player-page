@@ -45,7 +45,19 @@ Montar los cimientos del núcleo `player/src/core/`: ADR 0029, frontera en ESLin
 - Archivos: `player/eslint.config.js`, `player/vitest.config.ts`.
 - Test: mutación temporal (ESLint).
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: bloque de `src/core/**/*.ts` en `player/eslint.config.js` con `no-restricted-imports` (5 paths, 3 grupos de patterns) y `no-restricted-globals` (4), cada uno con su mensaje. Mutación: un `src/core/_probe.ts` con `react`, `@mui/material/Box`, `src/config/i18n`, `src/hooks/use-config`, `window`, `document`, `navigator` y `localStorage` da 9 errores y `lint` sale con 1; borrado, sale con 0. Umbrales de A3 en `vitest.config.ts` (`src/core/**` 90 % líneas · 85 % ramas, `src/hooks/**` 85 %, `src/utils/**` 90 %). Vitest 5 acepta el glob vacío de `src/core/**` (pasa sin archivos), así que el umbral entra ya: con un `src/core/_probe.ts` sin test, `test:coverage` falla («Coverage for lines (0%) does not meet "src/core/**" threshold»); borrado, pasa. `dist/` no cambia. `npm run check` en verde. Línea base del gzip (`gzip -9c <f> | wc -c`, bytes):
+
+  | Archivo (`radio-player-page-3.4.2…`) | Tamaño | gzip -9 |
+  |---|---:|---:|
+  | `.min.js` | 604 804 | 186 438 |
+  | `.css` | 1 316 | 675 |
+  | `-hls.min.js` | 583 903 | 178 596 |
+  | `-dash-all-min.min.js` | 824 688 | 236 288 |
+  | `-amplitude-waterfall-visualizer.min.js` | 1 228 | 699 |
+  | `-bar-visualizer.min.js` | 2 179 | 1 076 |
+  | `-oscilloscope-visualizer.min.js` | 713 | 484 |
+  | `-particles-visualizer.min.js` | 1 890 | 969 |
+- [x] hecha · commit: (este)
 
 ### 1.3 `core/config` y `useConfig()` (≤ 1 h)
 - Qué: `src/core/config/read-config.ts` con `readConfig({ config, programs, schedule }: RawGlobals): ResolvedConfig`, puro: las listas blancas, el rango del offset, `programs` como array y `schedule` como objeto (K17 tal cual), y los mismos valores por defecto. Primero los tests (en rojo): los casos de `use-config.test.tsx` contra la función, más `it('currently keeps an empty array as the schedule')` replicado (la fila K17 apunta también al test nuevo). `useConfig()` queda como `useMemo(() => readConfig({ config: window.RADPLAPAG_CONFIG, programs: window.RADPLAPAG_PROGRAMS, schedule: window.RADPLAPAG_SCHEDULE }), [])`.
@@ -99,4 +111,4 @@ Montar los cimientos del núcleo `player/src/core/`: ADR 0029, frontera en ESLin
 ## Decisiones abiertas → ADR
 
 - Ninguna nueva: D1–D7 van al ADR 0029 (1.1), con la corrección de A4/D5 decidida por el usuario el 2026-10-21.
-- Por confirmar en la 1.2: si Vitest acepta el umbral de `src/core/**` sin archivos. Es una decisión del plan, sin ADR.
+- Confirmado en la 1.2: Vitest acepta el umbral de `src/core/**` sin archivos; entra en la 1.2. Decisión del plan, sin ADR.
