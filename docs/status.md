@@ -1,12 +1,13 @@
 # Estado
-Spec activa: 0006 — Refactor del player · Fase: 2 sin planificar · Plan: — · Actualizado: 2026-10-21
+Spec activa: 0006 — Refactor del player · Fase: 2 (audio) · Plan: [`phase-2.md`](specs/0006-player-refactor/phase-2.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0006: fase 1 (cimientos, globales y tiempo) cerrada el 2026-10-21, 10 tareas (detalle en [`phase-1.md`](specs/0006-player-refactor/phase-1.md)). Fase 2 (audio) sin planificar. Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
+- Spec 0006: fase 1 (cimientos, globales y tiempo) cerrada el 2026-10-21 ([`phase-1.md`](specs/0006-player-refactor/phase-1.md)). Fase 2 (audio) planificada: 11 tareas, de la 2.1 a la 2.11. Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. `start-phase` de la fase 2 de la 0006 (audio), en una sesión nueva.
-2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
+1. Tarea 2.1: caracterización de lo que falta en la zona del audio (StrictMode, estabilidad de `audioRef`, volumen).
+2. Tarea 2.2: las dos sospechas de §4.5 contra el hook de hoy. La sospecha 2, si se confirma, queda como `currently` (K81) para la 0007 (decisión del usuario, 2026-10-21).
+3. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrigen y en qué spec dos rarezas bajas: K76 (`completeTimeFields` sin uso; propuesta: 0010 admin) y K79 (la migración heredada pierde `is_rerun` de las franjas, que el refactor conserva; propuesta: 0008 migración).
