@@ -781,3 +781,46 @@ describe('concurrency (spec 0006, 2.2)', () => {
     expect(api.current.loading).toBe(false)
   })
 })
+
+// ADR 0030 (spec 0006, task 2.11): the render order of 3.4.2. In Chromium a failing
+// MP3 fires 'error' (and play() rejects) in one task and 'pause' in a later one
+// (docs/known-issues.md K1). The 'error' state must not reach a render before the
+// 'pause': the alert would flash. Here the microtasks stand for the end of the task.
+describe('render order (spec 0006, 2.11)', () => {
+  const globals = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  let actEnvironment: boolean | undefined
+  beforeEach(() => {
+    // Outside act(), React schedules the renders as in a browser.
+    actEnvironment = globals.IS_REACT_ACT_ENVIRONMENT
+    globals.IS_REACT_ACT_ENVIRONMENT = false
+  })
+  afterEach(() => {
+    globals.IS_REACT_ACT_ENVIRONMENT = actEnvironment
+  })
+
+  it('does not render the error of a failing MP3 before the pause that follows it (K1)', async () => {
+    media.hold = true
+    const api = {} as { current: Api }
+    const rendered: string[] = []
+    const view = render(
+      <Harness
+        streamUrl={MP3}
+        onResult={(result) => {
+          api.current = result
+          rendered.push(result.status)
+        }}
+      />,
+    )
+    const audio = view.container.querySelector('audio')!
+    const done = api.current.play()
+
+    audio.dispatchEvent(new Event('error'))
+    media.fail()
+    await done
+    for (let i = 0; i < 10; i++) await Promise.resolve()
+    audio.dispatchEvent(new Event('pause'))
+
+    await vi.waitFor(() => expect(api.current).toMatchObject({ status: 'paused', loading: false }))
+    expect(rendered).not.toContain('error')
+  })
+})

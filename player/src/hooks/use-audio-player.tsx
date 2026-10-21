@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect, useSyncExternalStore } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { useIsIOS } from 'src/hooks/use-is-ios'
 import { createAudioController } from 'src/core/audio/audio-controller'
 
@@ -8,7 +8,9 @@ import { createAudioController } from 'src/core/audio/audio-controller'
  * Automatically selects the appropriate playback method based on stream URL and device capabilities
  *
  * Adapter of the audio controller (src/core/audio/audio-controller): creates one per
- * mount, attaches it to the audio element and publishes its snapshot.
+ * mount, attaches it to the audio element and publishes its snapshot. The snapshot
+ * goes through useState, not useSyncExternalStore, so React renders it with the
+ * priority of the event that changed it, as in 3.4.2 (ADR 0030, K1).
  *
  * Features:
  * - Automatic protocol detection and library loading
@@ -33,11 +35,11 @@ import { createAudioController } from 'src/core/audio/audio-controller'
 function useAudioPlayer(streamUrl: string, introUrl?: string | null) {
   const audioRef = useRef<HTMLAudioElement>(null!)
   const [controller] = useState(() => createAudioController())
-  const { status, loading, introLocked, volume } = useSyncExternalStore(
-    controller.subscribe,
-    controller.getSnapshot,
-  )
+  const [snapshot, setSnapshot] = useState(controller.getSnapshot)
+  const { status, loading, introLocked, volume } = snapshot
   const isIOS = useIsIOS()
+
+  useEffect(() => controller.subscribe(() => setSnapshot(controller.getSnapshot())), [controller])
 
   useEffect(() => {
     const audio = audioRef.current
