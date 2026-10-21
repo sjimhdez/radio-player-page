@@ -29,7 +29,9 @@ Responder R1, R2 y R3 de la spec con mediciones reproducibles y entregar en `doc
 - Archivos: `spike/0007-playback/**`, `spike/README.md`.
 - Test: humo `tests/smoke.spec.ts` (la página carga y un MP3 con CORS avanza).
 - Verificación: `cd spike/0007-playback && npm install && npx playwright test tests/smoke.spec.ts && cd ../.. && npm run check:zip`
-- [ ] hecha · commit: —
+- Resultado: `spike/0007-playback/` con servidor (página :8910, medios :8911/:8912; `/live.mp3`, `/404.mp3`, `/live.mpd` dinámico sin `<UTCTiming>` que repite los segmentos del fixture con `tfdt` reescrito, `?exposeDate=1`, `/__requests`), `harness.html`/`harness.js` (`window.spike`: fuente directa con/sin `crossOrigin` y orden, `retryWithoutCors`, `reload`, analizador y RMS, `AudioContext`, `hls.js`, `dashjs` con/sin fuentes de hora, sonda `fetch`, gesto real con `armGesture` + `#gesture`) y `tests/helpers.ts` (aborta y registra lo que sale de `localhost`). Humo verde en Chromium y WebKit; cordura: `/live.mp3`, 404 (`error` 4 en los dos), `hls.js` y DASH en directo avanzan en los dos navegadores. `check:zip` y `npm run check` en verde.
+- Nota: con `clearDefaultUTCTimingSources()` antes de `initialize()`, `dashjs` pidió igualmente `https://time.akamai.com/?iso&ms` (Chromium y WebKit, prueba de cordura del servidor): lo mide la 0.2.
+- [x] hecha · commit: (este)
 
 ### 0.2 R2 — `dashjs` sin fuente de hora de terceros (≤ 1 h)
 - Qué: directo DASH sin `<UTCTiming>` con y sin `clearDefaultUTCTimingSources()`, con y sin `Date` expuesta: ¿avanza?, ¿qué peticiones fuera de `localhost` hay (control: sin la llamada, la de Akamai)?, distancia al borde en vivo (`player.getCurrentLiveLatency()`), avisos de `dashjs`.

@@ -1,4 +1,9 @@
-# Spike — spec 0001, phase 0 (throwaway)
+# Spikes (throwaway)
+
+One folder per spike. `0007-playback/` belongs to spec 0007, phase 0 (findings in
+`docs/spikes/0007-phase-0.md`); the rest to spec 0001, phase 0.
+
+## Spec 0001, phase 0
 
 Throwaway prototypes that answer risks R1–R7 of `docs/specs/0001-bootstrap/spec.md`.
 Findings live in `docs/spikes/0001-phase-0.md`. Nothing here ships in the release zip
@@ -14,3 +19,9 @@ Each folder is independent and has its own dependencies:
 | `player-unit/` | R4 | see `player-unit/README.md` |
 | `node/` | R6 | `./node/check-builds.sh 26.12.0 24.22.0 22.23.3 20.19.2` |
 | `php/env-zip/` | R6 (wp-env + remote plugin zip) | `npx @wordpress/env@11.17.0 start` with Node 26 |
+
+## Spec 0007, phase 0
+
+| Folder | Risk | How to run |
+|---|---|---|
+| `0007-playback/` | R1, R2, R3 | see `0007-playback/README.md` |
