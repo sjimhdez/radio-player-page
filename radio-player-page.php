@@ -226,6 +226,7 @@ function radplapag_get_station_for_current_page() {
  * calling exit() to prevent theme loading.
  *
  * @since 1.0.0
+ * @since 3.5.0 Delegates the three globals to RadioPlayerPage\Player\Globals_Builder, with the time of RadioPlayerPage\WP\Clock.
  *
  * @return void Exits execution after outputting HTML.
  */
@@ -253,29 +254,25 @@ function radplapag_output_clean_page() {
 		return;
 	}
 
-	$stream_url     = $station['stream_url'];
-	$station_title  = isset( $station['station_title'] ) ? $station['station_title'] : '';
 	$background_id  = isset( $station['background_id'] ) ? intval( $station['background_id'] ) : 0;
 	$logo_id        = isset( $station['logo_id'] ) ? intval( $station['logo_id'] ) : 0;
 	$intro_audio_id = isset( $station['intro_audio_id'] ) ? intval( $station['intro_audio_id'] ) : 0;
-	$theme_color    = isset( $station['theme_color'] ) ? sanitize_key( $station['theme_color'] ) : 'neutral';
-	$visualizer     = isset( $station['visualizer'] ) ? sanitize_key( $station['visualizer'] ) : 'oscilloscope';
-
-	// Validate theme color against whitelist for security.
-	$valid_themes = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
-	if ( ! in_array( $theme_color, $valid_themes, true ) ) {
-		$theme_color = 'neutral';
-	}
-
-	// Validate visualizer against whitelist for security.
-	$valid_visualizers = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
-	if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
-		$visualizer = 'oscilloscope';
-	}
 
 	$background_url  = $background_id ? wp_get_attachment_image_url( $background_id, 'full' ) : '';
 	$logo_url        = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
 	$intro_audio_url = $intro_audio_id ? wp_get_attachment_url( $intro_audio_id ) : '';
+
+	$config = \RadioPlayerPage\Player\Globals_Builder::config(
+		$station,
+		array(
+			'background_url'  => $background_url,
+			'logo_url'        => $logo_url,
+			'intro_audio_url' => $intro_audio_url,
+		),
+		get_bloginfo( 'name' ),
+		\RadioPlayerPage\WP\Clock::now(),
+		'sanitize_key'
+	);
 
 	$manifest_path = plugin_dir_path( __FILE__ ) . 'player/dist/manifest.json';
 	if ( ! file_exists( $manifest_path ) ) {
@@ -298,8 +295,7 @@ function radplapag_output_clean_page() {
 
 	$dist_url = plugin_dir_url( __FILE__ ) . 'player/dist/';
 
-	// Determine the title to display.
-	$display_title = ! empty( $station_title ) ? $station_title : get_bloginfo( 'name' );
+	$display_title = $config['siteTitle'];
 
 	echo '<!DOCTYPE html>';
 	echo '<html lang="' . esc_html( get_bloginfo( 'language' ) ) . '">';
@@ -338,94 +334,13 @@ function radplapag_output_clean_page() {
 	echo '<meta name="twitter:title" content="' . esc_attr( $display_title ) . '">';
 	echo '<meta name="twitter:description" content="' . esc_attr( $meta_description ) . '">';
 
-	// Get WordPress timezone object and calculate numeric offset
-	// This ensures we always have a numeric value (handles DST automatically).
-	$timezone_obj = wp_timezone();
-
-	// Calculate current offset in hours (numeric, handles DST)
-	// getOffset() returns seconds, convert to hours.
-	$now             = new DateTime();
-	$offset_seconds  = $timezone_obj->getOffset( $now );
-	$timezone_offset = $offset_seconds / 3600; // Convert to hours (float).
-
-	// Build configuration object (no schedule or programs; those are passed separately).
-	$config = array(
-		'streamUrl'       => $stream_url,
-		'siteTitle'       => $display_title,
-		'backgroundImage' => $background_url ? $background_url : null,
-		'logoImage'       => $logo_url ? $logo_url : null,
-		'introAudioUrl'   => $intro_audio_url ? $intro_audio_url : null,
-		'themeColor'      => $theme_color,
-		'visualizer'      => $visualizer,
-		'timezoneOffset'  => $timezone_offset, // Numeric offset in hours from UTC.
-	);
-
-	// Programs list: id + name + logoUrl (same format for frontend). Built from CPT via schedule program_id.
-	$programs_for_player = array();
-	$schedule_raw        = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
-	$program_ids_seen    = array();
-	foreach ( $schedule_raw as $day_entries ) {
-		if ( ! is_array( $day_entries ) ) {
-			continue;
-		}
-		foreach ( $day_entries as $entry ) {
-			if ( ! is_array( $entry ) ) {
-				continue;
-			}
-			$pid = isset( $entry['program_id'] ) ? $entry['program_id'] : null;
-			if ( null !== $pid && '' !== $pid && is_numeric( $pid ) ) {
-				$pid_int = (int) $pid;
-				if ( $pid_int > 0 && ! isset( $program_ids_seen[ $pid_int ] ) ) {
-					$program_ids_seen[ $pid_int ] = true;
-				}
-			}
-		}
+	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$program_data = array();
+	foreach ( \RadioPlayerPage\Player\Globals_Builder::program_ids( $schedule_raw ) as $post_id ) {
+		$program_data[ $post_id ] = radplapag_get_program_data( $post_id, true );
 	}
-	foreach ( array_keys( $program_ids_seen ) as $post_id ) {
-		$data = radplapag_get_program_data( $post_id, true );
-		if ( $data ) {
-			$programs_for_player[] = array(
-				'id'                  => (string) $post_id,
-				'name'                => $data['name'],
-				'description'         => '' !== $data['description'] ? $data['description'] : null,
-				'extendedDescription' => '' !== $data['extended_description'] ? $data['extended_description'] : null,
-				'logoUrl'             => $data['logo_url'] ? $data['logo_url'] : null,
-			);
-		}
-	}
-
-	// Schedule: program_id as string for frontend resolution in RADPLAPAG_PROGRAMS.
-	$schedule_for_player = array();
-	if ( isset( $station['schedule'] ) && is_array( $station['schedule'] ) && ! empty( $station['schedule'] ) ) {
-		foreach ( $station['schedule'] as $day => $day_programs ) {
-			if ( ! is_array( $day_programs ) ) {
-				continue;
-			}
-			$day_entries = array();
-			foreach ( $day_programs as $entry ) {
-				if ( ! is_array( $entry ) ) {
-					continue;
-				}
-				$program_id = isset( $entry['program_id'] ) ? $entry['program_id'] : '';
-				$program_id = is_numeric( $program_id ) ? (string) (int) $program_id : sanitize_text_field( $program_id );
-				$start      = isset( $entry['start'] ) ? $entry['start'] : '';
-				$end        = isset( $entry['end'] ) ? $entry['end'] : '';
-				$is_rerun   = ! empty( $entry['is_rerun'] );
-				if ( '' === $program_id || empty( $start ) || empty( $end ) ) {
-					continue;
-				}
-				$day_entries[] = array(
-					'program_id' => $program_id,
-					'start'      => $start,
-					'end'        => $end,
-					'is_rerun'   => $is_rerun,
-				);
-			}
-			if ( ! empty( $day_entries ) ) {
-				$schedule_for_player[ $day ] = $day_entries;
-			}
-		}
-	}
+	$programs_for_player = \RadioPlayerPage\Player\Globals_Builder::programs( $program_data );
+	$schedule_for_player = \RadioPlayerPage\Player\Globals_Builder::schedule( $schedule_raw, 'sanitize_text_field' );
 
 	$json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
 	echo '<script>';

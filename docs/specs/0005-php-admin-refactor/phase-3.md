@@ -120,7 +120,8 @@ Mover la lectura de emisoras y programas, el guardado de sus campos y el armado 
 - Archivos: `radio-player-page.php`, `phpstan-baseline.neon`.
 - Test: caracterización: `tests/e2e/clean-page.spec.ts` (incluida la 3.1) y los snapshots `tests/e2e/snapshots/` sin cambios.
 - Verificación: `npx playwright test tests/e2e/clean-page.spec.ts && git diff --exit-code trunk -- tests/e2e/snapshots`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `radplapag_output_clean_page()` conserva las guardas, la lectura de los adjuntos (las URL siguen haciendo falta para la imagen social), el manifiesto, la plantilla y `exit`, y arma `RADPLAPAG_CONFIG` con `Globals_Builder::config()` (`get_bloginfo( 'name' )`, `WP\Clock::now()`, `sanitize_key`), los programas con `program_ids()` + `radplapag_get_program_data( $id, true )` + `programs()` y el horario con `schedule()` (`sanitize_text_field`). El título de `<title>`, la descripción y Open Graph sale de `$config['siteTitle']`, la misma regla de antes. Salen del archivo las listas blancas repetidas y el cálculo del desfase. `clean-page.spec.ts` en verde (21 en Chromium; las HTTP no corren en WebKit por diseño), snapshots de `tests/e2e/snapshots` sin cambios, `HooksTest` y `PublicApiTest` (10) y `npm run check` en verde. Baseline: ninguna entrada desaparece (las dos que quedan en el archivo, `json_decode()` del manifiesto y `esc_url( get_permalink() )`, no son del armado de las globales). Sin rarezas nuevas.
 
 ### 3.12 Cobertura y baseline de la fase (≤ 1 h)
 - Qué: mide la cobertura con los adaptadores nuevos en `critical` y el núcleo en `core` (≥ 90 %). Caracteriza lo que falte y comprueba que la baseline solo ha bajado.
