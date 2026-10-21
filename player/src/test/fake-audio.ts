@@ -20,9 +20,9 @@ export const media = {
   release() {
     media.pending.shift()?.resolve()
   },
-  /** Settles the oldest pending play() with an error. */
-  fail() {
-    media.pending.shift()?.reject(new DOMException('fail', 'NotSupportedError'))
+  /** Settles the oldest pending play() with an error (AbortError after a pause). */
+  fail(name = 'NotSupportedError') {
+    media.pending.shift()?.reject(new DOMException('fail', name))
   },
 }
 

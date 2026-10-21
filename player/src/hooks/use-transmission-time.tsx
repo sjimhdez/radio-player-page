@@ -1,43 +1,19 @@
-import { useState, useEffect, useRef } from 'react'
+import { useMemo, useSyncExternalStore } from 'react'
 import useConfig from 'src/hooks/use-config'
-import {
-  getBrowserTimezoneOffset,
-  getTimezoneDifference,
-  formatTimeInTimezone,
-} from 'src/utils/timezone'
+import { createMinuteStore } from 'src/core/clock/minute-ticker'
+import { getTransmissionTime, type TransmissionTime } from 'src/core/clock/transmission-time'
 
-/**
- * Result of the station transmission time calculation (WordPress timezone)
- */
-export interface TransmissionTime {
-  /** Formatted time string in "HH:MM" format for WordPress / station timezone */
-  transmissionTime: string
-  /** Formatted time string in "HH:MM" format for browser timezone */
-  browserTime: string
-  /** Time difference in hours (positive if WordPress is ahead, negative if behind) */
-  timeDifference: number
-  /** Whether there is a timezone difference (not zero) */
-  hasDifference: boolean
-}
+export type { TransmissionTime }
 
 /**
  * Hook to calculate and update station transmission time (WordPress timezone)
  *
- * This hook:
- * - Calculates the current time in WordPress timezone (station timezone)
- * - Calculates the current time in browser timezone
- * - Calculates the timezone difference between them
- * - Updates at the start of each system minute (at :00 seconds) to show the clock
- * - Returns formatted time strings in "HH:MM" format (without seconds for better performance)
- * - Returns difference information
+ * Returns the current time in the station and browser timezones as "HH:MM" and the
+ * difference between them. The station offset comes from configuration; the browser
+ * offset is detected from the user's system settings. The timezone clock that consumes
+ * this data is shown whenever hasDifference is true, independent of playback state.
  *
- * The hook uses the WordPress timezone offset from configuration, which handles DST automatically.
- * The browser timezone is detected automatically from the user's system settings.
- * The timezone clock that consumes this data is shown whenever hasDifference is true,
- * independent of playback state.
- *
- * Updates at the start of each system minute for alignment with the user's clock, following the
- * same pattern as the program schedule hook (use-program-schedule).
+ * Updates at the start of each system minute (:00 seconds).
  *
  * @returns TransmissionTime object with transmissionTime, browserTime, timeDifference, and hasDifference
  *
@@ -51,69 +27,14 @@ export interface TransmissionTime {
  * ```
  */
 function useTransmissionTime(): TransmissionTime {
-  const config = useConfig()
-  const [transmissionTime, setTransmissionTime] = useState<string>('')
-  const [browserTime, setBrowserTime] = useState<string>('')
-  const [timeDifference, setTimeDifference] = useState<number>(0)
-  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { timezoneOffset } = useConfig()
 
-  useEffect(() => {
-    // Clear any previous timers when effect re-runs
-    if (timeoutIdRef.current !== null) {
-      clearTimeout(timeoutIdRef.current)
-      timeoutIdRef.current = null
-    }
-    if (intervalIdRef.current !== null) {
-      clearInterval(intervalIdRef.current)
-      intervalIdRef.current = null
-    }
+  const store = useMemo(
+    () => createMinuteStore(() => getTransmissionTime(timezoneOffset)),
+    [timezoneOffset],
+  )
 
-    /**
-     * Update time values
-     */
-    const updateTimes = () => {
-      const wordPressOffset = config.timezoneOffset
-      const browserOffset = getBrowserTimezoneOffset()
-      const difference = getTimezoneDifference(wordPressOffset, browserOffset)
-
-      // Format time without seconds for better performance (HH:MM instead of HH:MM:SS)
-      setTransmissionTime(formatTimeInTimezone(wordPressOffset, false))
-      setBrowserTime(formatTimeInTimezone(browserOffset, false))
-      setTimeDifference(difference)
-    }
-
-    // Update immediately
-    updateTimes()
-
-    // Align to system minute: first tick at next :00, then every 60s
-    const msIntoMinute = Date.now() % 60000
-    const delay = msIntoMinute === 0 ? 0 : 60000 - msIntoMinute
-    timeoutIdRef.current = setTimeout(() => {
-      updateTimes()
-      intervalIdRef.current = setInterval(updateTimes, 60000)
-    }, delay)
-
-    return () => {
-      if (timeoutIdRef.current !== null) {
-        clearTimeout(timeoutIdRef.current)
-        timeoutIdRef.current = null
-      }
-      if (intervalIdRef.current !== null) {
-        clearInterval(intervalIdRef.current)
-        intervalIdRef.current = null
-      }
-    }
-  }, [config.timezoneOffset])
-
-  const hasDifference = Math.abs(timeDifference) > 0.01 // Use small threshold to handle floating point precision
-
-  return {
-    transmissionTime,
-    browserTime,
-    timeDifference,
-    hasDifference,
-  }
+  return useSyncExternalStore(store.subscribe, store.getSnapshot)
 }
 
 export default useTransmissionTime

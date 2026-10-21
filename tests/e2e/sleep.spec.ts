@@ -8,8 +8,9 @@ import { audioState, startPlayback } from './support/player';
  * endless live MP3 so the stream never ends on its own.
  */
 
-// About 1800 page round trips per case: over the default timeout in WebKit CI.
-test.slow();
+// About 1800 page round trips per case: 1–1.6 min in WebKit CI, past the 90 s
+// of `test.slow()`.
+test.describe.configure( { timeout: 3 * 60 * 1000 } );
 
 // The shortest option, "30 mins": the timer pauses on its 1800th tick.
 const SHORTEST_SECONDS = 30 * 60;
@@ -140,7 +141,12 @@ test( 'currently cancels the timer when the welcome audio hands over to the live
 		return !! audio && /intro/.test( audio.src ) && audio.currentTime > 0.2;
 	} );
 	await page.getByRole( 'button', { name: 'Sleep mode' } ).click();
-	await page.getByRole( 'menuitem', { name: '30 mins' } ).click();
+	// The 2 s welcome audio can end while the menu is still opening (about
+	// 650 ms in WebKit CI). `force` skips the wait for the animation to settle.
+	// Any `playbackRate` change stalls the audio in WebKit.
+	await page
+		.getByRole( 'menuitem', { name: '30 mins' } )
+		.click( { force: true } );
 	await expect(
 		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
 	).toBeVisible();

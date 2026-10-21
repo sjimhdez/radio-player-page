@@ -32,3 +32,5 @@ Decisiones de arquitectura con formato de Michael Nygard: contexto, decisión, c
 | [0026](0026-grouped-dependency-upgrades.md) | Actualizaciones de dependencias agrupadas por proyecto; sin la spec 0004 | aceptado | 0003 · diseño |
 | [0027](0027-player-browser-support-follows-mui.md) | Navegadores del player: `build.target` de Vite 6 y soporte efectivo de MUI 9 | aceptado | 0003 · fase 1 |
 | [0028](0028-new-code-in-includes-src-with-own-autoloader.md) | Código nuevo en `includes/src/` (namespace `RadioPlayerPage\`) con autoloader propio, zip con altas declaradas y cobertura del núcleo | aceptado | 0005 · fase 1 |
+| [0029](0029-player-core-without-react.md) | Núcleo del player en `src/core/` sin React (inyección de dependencias, transición pura + controlador + `useSyncExternalStore`) | aceptado | 0006 · fase 1 |
+| [0030](0030-audio-hook-keeps-react-render-priorities.md) | `useAudioPlayer()` lee el controlador con `useState` y una suscripción (enmienda D2 del 0029 mientras K1 siga abierto) | aceptado | 0006 · fase 2 (regresión de la 2.8) |

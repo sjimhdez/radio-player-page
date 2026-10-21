@@ -8,6 +8,7 @@ import useAudioPlayer from 'src/hooks/use-audio-player'
 import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
 import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import useMediaSession from 'src/hooks/use-media-session'
+import useSleepTimer from 'src/hooks/use-sleep-timer'
 import useConfig from 'src/hooks/use-config'
 import { getVisualizer, getDefaultVisualizer, type VisualizerConfig } from 'src/config/visualizers'
 import StreamInfo from './StreamInfo'
@@ -64,10 +65,8 @@ const Dashboard = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   })
-  const [openError, setOpenError] = useState(false)
   const [openScheduleModal, setOpenScheduleModal] = useState(false)
   const [openAllProgramsModal, setOpenAllProgramsModal] = useState(false)
-  const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
   const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
@@ -88,8 +87,14 @@ const Dashboard = () => {
   const canVisualize = useCanVisualize(audioRef)
   const transmissionTimeData = useTransmissionTime()
 
+  // Show error snackbar when error occurs and loading is complete
+  const openError = status === 'error' && !loading
+
   // Configure Media Session API for lock screen
   useMediaSession(config.siteTitle, config.logoImage || '', play, pause, status)
+
+  // Sleep timer: pauses playback when the countdown runs out
+  const sleepTimer = useSleepTimer(status === 'playing', pause)
 
   // Load visualizer asynchronously (code splitting)
   useEffect(() => {
@@ -162,12 +167,6 @@ const Dashboard = () => {
     }
   }, [dimensions])
 
-  // Show error snackbar when error occurs and loading is complete
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- existing effect kept as is; spec 0006 rewrites it
-    setOpenError(status === 'error' && loading === false)
-  }, [status, loading])
-
   return (
     <Stack
       sx={{
@@ -231,11 +230,8 @@ const Dashboard = () => {
           bottom: 25,
         }}
       >
-        {sleepTimerSeconds !== null && (
-          <SleepTimer
-            remainingSeconds={sleepTimerSeconds}
-            onCancel={() => setSleepTimerSeconds(null)}
-          />
+        {sleepTimer.remainingSeconds !== null && (
+          <SleepTimer remainingSeconds={sleepTimer.remainingSeconds} onCancel={sleepTimer.cancel} />
         )}
         <Box
           sx={{
@@ -284,9 +280,7 @@ const Dashboard = () => {
           />
           <SleepMode
             isPlaying={status === 'playing'}
-            onSleepTimerEnd={pause}
-            onTimerChange={setSleepTimerSeconds}
-            externalTimerSeconds={sleepTimerSeconds}
+            onSelect={(minutes) => sleepTimer.start(minutes * 60)}
           />
         </Box>
 

@@ -4,7 +4,7 @@ Plugin de WordPress (publicado en wordpress.org) que sirve una página limpia po
 
 - **Producto:** `SPEC.md` (contrato e invariantes). **Trabajo en curso:** la spec activa en `docs/specs/` (índice y hoja de ruta en `docs/specs/README.md`). **Decisiones:** `docs/adr/`.
 - **Estado:** `docs/status.md` (se inyecta al iniciar la sesión) y el plan de la fase en `docs/specs/NNNN-slug/phase-N.md`.
-- **Bugs y rarezas conocidos:** `docs/known-issues.md`.
+- **Bugs y rarezas conocidos:** `docs/known-issues.md`. **Desviaciones de las specs cerradas:** `docs/deviations.md`.
 - Código, comentarios, commits y textos traducibles en **inglés**. Docs, specs y ADRs en español.
 
 ## Comandos

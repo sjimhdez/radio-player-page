@@ -1,6 +1,7 @@
 // Characterization of use-audio-player (spec 0002, task 1.15). ADR 0004: direct
 // sources set crossOrigin = 'anonymous'; the MSE paths (hls.js, dashjs) do not.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { StrictMode, useEffect } from 'react'
 import { act, render } from '@testing-library/react'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -17,11 +18,16 @@ const hls = vi.hoisted(() => ({
     destroy: ReturnType<typeof vi.fn>
   }>,
   supported: true,
+  /** Runs inside isSupported(): after the import, before the instance exists. */
+  onSupported: undefined as (() => void) | undefined,
 }))
 vi.mock('hls.js', () => {
   class FakeHls {
     static Events = { MANIFEST_PARSED: 'hlsManifestParsed', ERROR: 'hlsError' }
-    static isSupported = () => hls.supported
+    static isSupported = () => {
+      hls.onSupported?.()
+      return hls.supported
+    }
     handlers: Record<string, Handler> = {}
     loadSource = vi.fn()
     attachMedia = vi.fn()
@@ -71,20 +77,25 @@ const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'
 
 type Api = ReturnType<typeof useAudioPlayer>
 
-function Harness(props: { streamUrl: string; introUrl?: string; api: { current: Api } }) {
+// The hook result reaches the test through a callback, after each render.
+function Harness(props: { streamUrl: string; introUrl?: string; onResult: (api: Api) => void }) {
+  const { onResult } = props
   const player = useAudioPlayer(props.streamUrl, props.introUrl)
-  // eslint-disable-next-line react-hooks/immutability -- test harness exposes the hook result on purpose; revisited in spec 0006
-  props.api.current = player
-  // eslint-disable-next-line react-hooks/refs -- false positive on the hook's returned ref object; revisited in spec 0006
-  return <audio ref={player.audioRef} />
+  const { audioRef } = player
+  useEffect(() => onResult(player))
+  return <audio ref={audioRef} />
+}
+
+const expose = (api: { current: Api }) => (result: Api) => {
+  api.current = result
 }
 
 function mount(streamUrl: string, introUrl?: string) {
   const api = {} as { current: Api }
-  const view = render(<Harness streamUrl={streamUrl} introUrl={introUrl} api={api} />)
+  const view = render(<Harness streamUrl={streamUrl} introUrl={introUrl} onResult={expose(api)} />)
   const audio = view.container.querySelector('audio')!
   const rerender = (url: string) =>
-    view.rerender(<Harness streamUrl={url} introUrl={introUrl} api={api} />)
+    view.rerender(<Harness streamUrl={url} introUrl={introUrl} onResult={expose(api)} />)
   return { api, audio, rerender, unmount: view.unmount }
 }
 
@@ -98,6 +109,7 @@ beforeEach(() => {
   restoreAudio = installFakeAudio()
   hls.instances = []
   hls.supported = true
+  hls.onSupported = undefined
   dash.players = []
   setUserAgent(DESKTOP)
 })
@@ -581,7 +593,7 @@ describe('audit (spec 0002, 4.6)', () => {
     expect(api.current.status).toBe('playing')
   })
 
-  it('currently keeps crossOrigin anonymous on the hls.js path after the welcome audio (K70)', async () => {
+  it('clears crossOrigin on the hls.js path after the welcome audio (K70)', async () => {
     const { api, audio } = mount(HLS, INTRO)
     await act(() => api.current.play())
 
@@ -591,6 +603,224 @@ describe('audit (spec 0002, 4.6)', () => {
 
     expect(hls.instances).toHaveLength(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
-    expect(audio.crossOrigin).toBe('anonymous')
+    expect(audio.crossOrigin).toBeNull()
+  })
+
+  it('clears crossOrigin on the dashjs path after the welcome audio (K70)', async () => {
+    const { api, audio } = mount(DASH, INTRO)
+    await act(() => api.current.play())
+
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+
+    expect(dash.players).toHaveLength(1)
+    expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, DASH, true)
+    expect(audio.crossOrigin).toBeNull()
+  })
+})
+
+// Lifecycle (spec 0006, task 2.1): what the controller and its adapter must keep.
+// main.tsx mounts the player in StrictMode, which mounts, unmounts and remounts
+// every effect in development; the visualizers rely on a stable audioRef.
+describe('lifecycle (spec 0006, 2.1)', () => {
+  function mountStrict(streamUrl: string, introUrl?: string) {
+    const api = {} as { current: Api }
+    const view = render(
+      <StrictMode>
+        <Harness streamUrl={streamUrl} introUrl={introUrl} onResult={expose(api)} />
+      </StrictMode>,
+    )
+    const audio = view.container.querySelector('audio')!
+    return { api, audio, unmount: view.unmount }
+  }
+
+  it('loads and plays an MP3 once in StrictMode', async () => {
+    const { api } = mountStrict(MP3)
+    await act(() => api.current.play())
+    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(api.current.status).toBe('playing')
+    act(() => api.current.pause())
+    expect(media.pause).toHaveBeenCalledTimes(1)
+    expect(api.current.status).toBe('paused')
+  })
+
+  it('maps playing and pause to the status in StrictMode', () => {
+    const { api, audio } = mountStrict(MP3)
+    act(() => {
+      audio.dispatchEvent(new Event('playing'))
+    })
+    expect(api.current.status).toBe('playing')
+    act(() => {
+      audio.dispatchEvent(new Event('pause'))
+    })
+    expect(api.current.status).toBe('paused')
+  })
+
+  it('listens to the audio element once in StrictMode', async () => {
+    const { api, audio } = mountStrict(MP3, INTRO)
+    await act(() => api.current.play())
+    expect(media.load).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+
+    // One ended handler: the live stream loads once, not once per mounted effect.
+    expect(media.load).toHaveBeenCalledTimes(2)
+    expect(media.load).toHaveBeenLastCalledWith(MP3)
+    expect(api.current.introLocked).toBe(false)
+  })
+
+  it('creates and destroys hls.js once in StrictMode', async () => {
+    const { api, audio, unmount } = mountStrict(HLS)
+    await act(() => api.current.play())
+    expect(hls.instances).toHaveLength(1)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    unmount()
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the same audioRef across renders', async () => {
+    const { api, audio, rerender } = mount(MP3)
+    const ref = api.current.audioRef
+    expect(ref.current).toBe(audio)
+
+    await act(() => api.current.play())
+    expect(api.current.audioRef).toBe(ref)
+    act(() => api.current.pause())
+    expect(api.current.audioRef).toBe(ref)
+    act(() => api.current.handleVolumeChange(0.4))
+    expect(api.current.audioRef).toBe(ref)
+    rerender('https://radio.test/other.mp3')
+    expect(api.current.audioRef).toBe(ref)
+    expect(ref.current).toBe(audio)
+  })
+
+  it('keeps the same audioRef in StrictMode', async () => {
+    const { api, audio } = mountStrict(MP3)
+    const ref = api.current.audioRef
+    expect(ref.current).toBe(audio)
+    await act(() => api.current.play())
+    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(api.current.audioRef).toBe(ref)
+    expect(ref.current).toBe(audio)
+  })
+
+  it('keeps the changed volume on the element after another render', async () => {
+    const { api, audio, rerender } = mount(MP3)
+    act(() => api.current.handleVolumeChange(0.4))
+
+    rerender('https://radio.test/other.mp3')
+    expect(audio.volume).toBe(0.4)
+    expect(api.current.volume).toBe(0.4)
+
+    await act(() => api.current.play())
+    expect(audio.volume).toBe(0.4)
+    expect(api.current.volume).toBe(0.4)
+  })
+
+  it('applies a volume change in StrictMode', () => {
+    const { api, audio } = mountStrict(MP3)
+    act(() => api.current.handleVolumeChange(0.4))
+    expect(audio.volume).toBe(0.4)
+    expect(api.current.volume).toBe(0.4)
+  })
+})
+
+// Concurrency suspicions of the 0002 triage (spec 0006 §4.5, task 2.2), against the
+// hook of today. The core answers them again in task 2.10, which fixes K80.
+describe('concurrency (spec 0006, 2.2)', () => {
+  // docs/known-issues.md K80, fixed in the audio controller (task 2.10): the second
+  // play() gets the pending one. Two play() in the same tick cannot be tested here:
+  // while an import() of a vi.mock'ed module is in flight, the next one resolves to
+  // the real module (Vitest 5.0.5). The second play() comes in the same window
+  // instead: the first one has loaded hls.js and has not created its instance yet.
+  it('keeps a single hls.js alive after a second play() while it loads (K80)', async () => {
+    const { api, audio, unmount } = mount(HLS)
+    let second!: Promise<void>
+    hls.onSupported = () => {
+      hls.onSupported = undefined
+      second = api.current.play()
+    }
+    await act(async () => {
+      await api.current.play()
+      await second
+    })
+
+    // The same as a single call: one instance, attached once.
+    expect(hls.instances).toHaveLength(1)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledTimes(1)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    expect(api.current.status).toBe('playing')
+
+    unmount()
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+  })
+
+  // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
+  // when pause() interrupts it.
+  it('currently reports an error when a pause interrupts the loading MP3 (K81)', async () => {
+    media.hold = true
+    const { api } = mount(MP3)
+    let done!: Promise<void>
+    await act(async () => {
+      done = api.current.play()
+    })
+    act(() => api.current.pause())
+    expect(api.current.status).toBe('paused')
+
+    await act(async () => {
+      media.fail('AbortError')
+      await done
+    })
+
+    // The UI shows "Unable to play the stream" instead of Play.
+    expect(api.current.status).toBe('error')
+    expect(api.current.loading).toBe(false)
+  })
+})
+
+// ADR 0030 (spec 0006, task 2.11): the render order of 3.4.2. In Chromium a failing
+// MP3 fires 'error' (and play() rejects) in one task and 'pause' in a later one
+// (docs/known-issues.md K1). The 'error' state must not reach a render before the
+// 'pause': the alert would flash. Here the microtasks stand for the end of the task.
+describe('render order (spec 0006, 2.11)', () => {
+  const globals = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+  let actEnvironment: boolean | undefined
+  beforeEach(() => {
+    // Outside act(), React schedules the renders as in a browser.
+    actEnvironment = globals.IS_REACT_ACT_ENVIRONMENT
+    globals.IS_REACT_ACT_ENVIRONMENT = false
+  })
+  afterEach(() => {
+    globals.IS_REACT_ACT_ENVIRONMENT = actEnvironment
+  })
+
+  it('does not render the error of a failing MP3 before the pause that follows it (K1)', async () => {
+    media.hold = true
+    const api = {} as { current: Api }
+    const rendered: string[] = []
+    const view = render(
+      <Harness
+        streamUrl={MP3}
+        onResult={(result) => {
+          api.current = result
+          rendered.push(result.status)
+        }}
+      />,
+    )
+    const audio = view.container.querySelector('audio')!
+    const done = api.current.play()
+
+    audio.dispatchEvent(new Event('error'))
+    media.fail()
+    await done
+    for (let i = 0; i < 10; i++) await Promise.resolve()
+    audio.dispatchEvent(new Event('pause'))
+
+    await vi.waitFor(() => expect(api.current).toMatchObject({ status: 'paused', loading: false }))
+    expect(rendered).not.toContain('error')
   })
 })

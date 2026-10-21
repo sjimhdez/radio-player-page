@@ -37,7 +37,7 @@ export function getCurrentTimeInTimezone(timezoneOffset: number): {
         currentTime: hour * 60 + minute,
       }
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.error(
           '[Radio Player] Error calculating time with offset, falling back to UTC:',
           error,
@@ -48,7 +48,7 @@ export function getCurrentTimeInTimezone(timezoneOffset: number): {
   }
 
   // Fallback: Return UTC time if offset is invalid
-  if (process.env.NODE_ENV === 'development') {
+  if (import.meta.env.DEV) {
     console.warn(
       '[Radio Player] Invalid timezone offset, using UTC fallback. Offset:',
       timezoneOffset,
@@ -83,7 +83,7 @@ export function getBrowserTimezoneOffset(): number {
     const offsetHours = -offsetMinutes / 60 // Invert sign: negative offset means ahead of UTC
     return offsetHours
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('[Radio Player] Error getting browser timezone offset, using UTC:', error)
     }
     return 0 // Fallback to UTC
@@ -103,6 +103,23 @@ export function getTimezoneDifference(wordPressOffset: number, browserOffset?: n
 }
 
 /**
+ * Format the browser's local time (fallback when the offset cannot be used)
+ */
+function formatBrowserLocalTime(includeSeconds: boolean): string {
+  const now = new Date()
+  const hour = now.getHours()
+  const minute = now.getMinutes()
+  const second = now.getSeconds()
+  const hourStr = hour.toString().padStart(2, '0')
+  const minuteStr = minute.toString().padStart(2, '0')
+  if (includeSeconds) {
+    const secondStr = second.toString().padStart(2, '0')
+    return `${hourStr}:${minuteStr}:${secondStr}`
+  }
+  return `${hourStr}:${minuteStr}`
+}
+
+/**
  * Format time in a specific timezone for display
  *
  * @param timezoneOffset Timezone offset in hours from UTC
@@ -113,6 +130,10 @@ export function formatTimeInTimezone(
   timezoneOffset: number,
   includeSeconds: boolean = true,
 ): string {
+  if (!Number.isFinite(timezoneOffset)) {
+    return formatBrowserLocalTime(includeSeconds)
+  }
+
   try {
     const now = new Date()
     const offsetMs = timezoneOffset * 60 * 60 * 1000
@@ -133,21 +154,10 @@ export function formatTimeInTimezone(
 
     return `${hourStr}:${minuteStr}`
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.error('[Radio Player] Error formatting time in timezone, using current time:', error)
     }
-    // Fallback to browser's local time
-    const now = new Date()
-    const hour = now.getHours()
-    const minute = now.getMinutes()
-    const second = now.getSeconds()
-    const hourStr = hour.toString().padStart(2, '0')
-    const minuteStr = minute.toString().padStart(2, '0')
-    if (includeSeconds) {
-      const secondStr = second.toString().padStart(2, '0')
-      return `${hourStr}:${minuteStr}:${secondStr}`
-    }
-    return `${hourStr}:${minuteStr}`
+    return formatBrowserLocalTime(includeSeconds)
   }
 }
 

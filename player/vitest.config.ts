@@ -27,11 +27,13 @@ export default defineConfig({
         'src/vite-env.d.ts',
       ],
       reporter: ['text-summary', 'html', 'json-summary'],
-      // Minimums of spec 0002 (.claude/rules/testing.md). Each glob is checked on
-      // the lines of its files together; the visualizer hooks are excluded above.
+      // Minimums of spec 0002 (.claude/rules/testing.md), raised by spec 0006 A3.
+      // Each glob is checked on its files together; the visualizer hooks are
+      // excluded above.
       thresholds: {
+        'src/core/**': { lines: 90, branches: 85 },
         'src/utils/**': { lines: 90 },
-        'src/hooks/**': { lines: 70 },
+        'src/hooks/**': { lines: 85 },
       },
     },
   },

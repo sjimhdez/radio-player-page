@@ -1,18 +1,19 @@
-import { useState, useEffect, useRef } from 'react'
+import { useMemo, useSyncExternalStore } from 'react'
 import useConfig from 'src/hooks/use-config'
-import { getCurrentTimeInTimezone } from 'src/utils/timezone'
-import {
-  findActiveProgram,
-  findIncomingProgram,
-  type CurrentProgram,
-  type IncomingProgram,
-} from 'src/utils/program-schedule'
+import { createMinuteStore, type MinuteStore } from 'src/core/clock/minute-ticker'
+import { getNowPlaying, type NowPlaying } from 'src/core/schedule/now-playing'
+import type { CurrentProgram, IncomingProgram } from 'src/utils/program-schedule'
 
 export type { CurrentProgram, IncomingProgram }
 
-export interface ProgramScheduleResult {
-  active: CurrentProgram | null
-  incoming: IncomingProgram | null
+export type ProgramScheduleResult = NowPlaying
+
+const NO_PROGRAMS: ProgramScheduleResult = { active: null, incoming: null }
+
+// Without a schedule there is nothing to recompute, so no timer is started.
+const NO_SCHEDULE_STORE: MinuteStore<ProgramScheduleResult> = {
+  subscribe: () => () => {},
+  getSnapshot: () => NO_PROGRAMS,
 }
 
 /**
@@ -30,62 +31,17 @@ export interface ProgramScheduleResult {
  * @returns Object with active and incoming program, or null for each if none
  */
 function useProgramSchedule(): ProgramScheduleResult {
-  const config = useConfig()
-  const [result, setResult] = useState<ProgramScheduleResult>({
-    active: null,
-    incoming: null,
-  })
-  const timeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { schedule, programs, timezoneOffset } = useConfig()
 
-  useEffect(() => {
-    if (timeoutIdRef.current !== null) {
-      clearTimeout(timeoutIdRef.current)
-      timeoutIdRef.current = null
-    }
-    if (intervalIdRef.current !== null) {
-      clearInterval(intervalIdRef.current)
-      intervalIdRef.current = null
-    }
+  const store = useMemo(
+    () =>
+      schedule
+        ? createMinuteStore(() => getNowPlaying(schedule, programs, timezoneOffset))
+        : NO_SCHEDULE_STORE,
+    [schedule, programs, timezoneOffset],
+  )
 
-    const schedule = config.schedule
-    const programs = config.programs
-
-    if (!schedule) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- existing effect kept as is; spec 0006 rewrites it
-      setResult({ active: null, incoming: null })
-      return
-    }
-
-    const calculate = (): ProgramScheduleResult => {
-      const { dayOfWeek, currentTime } = getCurrentTimeInTimezone(config.timezoneOffset)
-      const active = findActiveProgram(schedule, programs, dayOfWeek, currentTime)
-      const incoming = findIncomingProgram(schedule, programs, dayOfWeek, currentTime)
-      return { active, incoming }
-    }
-
-    setResult(calculate())
-
-    const msIntoMinute = Date.now() % 60000
-    const delay = msIntoMinute === 0 ? 0 : 60000 - msIntoMinute
-    timeoutIdRef.current = setTimeout(() => {
-      setResult(calculate())
-      intervalIdRef.current = setInterval(() => setResult(calculate()), 60000)
-    }, delay)
-
-    return () => {
-      if (timeoutIdRef.current !== null) {
-        clearTimeout(timeoutIdRef.current)
-        timeoutIdRef.current = null
-      }
-      if (intervalIdRef.current !== null) {
-        clearInterval(intervalIdRef.current)
-        intervalIdRef.current = null
-      }
-    }
-  }, [config.schedule, config.programs, config.timezoneOffset])
-
-  return result
+  return useSyncExternalStore(store.subscribe, store.getSnapshot)
 }
 
 export default useProgramSchedule

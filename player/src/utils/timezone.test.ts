@@ -75,7 +75,7 @@ describe('getCurrentTimeInTimezone', () => {
   })
 
   it('warns about an invalid offset only in development', () => {
-    vi.stubEnv('NODE_ENV', 'development')
+    vi.stubEnv('DEV', true)
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     getCurrentTimeInTimezone(NaN)
@@ -159,9 +159,13 @@ describe('formatTimeInTimezone', () => {
     expect(formatTimeInTimezone(1)).toBe('00:05:09')
   })
 
-  // docs/known-issues.md K9 (not reachable: use-config only lets numbers in -12..14 through).
-  it('currently formats NaN for an invalid offset', () => {
-    expect(formatTimeInTimezone(NaN)).toBe('NaN:NaN:NaN')
+  // docs/known-issues.md K9.
+  it('falls back to the browser local time for a non-finite offset', () => {
+    useTz('Asia/Kolkata')
+
+    expect(formatTimeInTimezone(NaN)).toBe('04:35:09')
+    expect(formatTimeInTimezone(Infinity, false)).toBe('04:35')
+    expect(formatTimeInTimezone(-Infinity)).toBe('04:35:09')
   })
 
   it('falls back to the browser local time when the calculation throws', () => {
