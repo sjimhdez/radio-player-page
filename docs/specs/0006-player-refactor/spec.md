@@ -169,4 +169,4 @@ Cada fase termina con la CI en verde, sus criterios verificados y `close-phase`.
 
 - Triage de la 0002: K9, K14, K70 y las sospechas (`docs/specs/0002-safety-net/phase-5.md`, 5.3; `audit/player.md` §4–§5).
 - Excepciones de `react-hooks` 7: spec 0003 §4.2 y la tarea 1.1 de su `phase-1.md`.
-- Método de un refactor por capas con envoltorios: spec 0005 (PHP), sobre todo §4.4 y las desviaciones de su `docs/status.md`.
+- Método de un refactor por capas con envoltorios: spec 0005 (PHP), sobre todo §4.4 y sus desviaciones en `docs/deviations.md`.

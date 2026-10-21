@@ -45,7 +45,7 @@ Recorre la tabla del plan: cada criterio tiene un test que pasa, o una entrada e
 
 ## 6. Si es la última fase: cerrar la spec
 
-1. Spec: `Estado: cerrada`. Índice de `docs/specs/README.md`: estado «cerrada».
+1. Spec: `Estado: cerrada`. Índice de `docs/specs/README.md`: estado «cerrada». Sus desviaciones pasan de `docs/status.md` a `docs/deviations.md` (sección `## Spec NNNN`, la primera).
 2. `gh pr ready` para el PR de la rama. **El merge lo decide el usuario** (merge commit, sin squash, título `Spec NNNN: <título>`); puede lanzar antes `/code-review`. Solo si lo pide: `gh pr merge <n> --merge --subject "Spec NNNN: <título>" --delete-branch`, con la CI en verde.
 3. `docs/status.md`: «Siguiente: tras el merge, sesión de diseño → `write-spec` de la spec NNNN+1» (o la que toque según la hoja de ruta).
 
