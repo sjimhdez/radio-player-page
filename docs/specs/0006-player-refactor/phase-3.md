@@ -76,7 +76,7 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: regresión primero, en rojo.
 - Verificación: `npm --prefix player run check && npm --prefix player run build`
 - Resultado: los dos `currently` de K14 (núcleo y hook) pasan a `ignores the query and the hash of %s`, con `logo.jpg?ver=2` → `image/jpeg` y `logo.webp#x` → `image/webp`. Rojo primero, 4 casos por la razón esperada (`expected 'image/png' to be 'image/jpeg'` y `… 'image/webp'`). Arreglo: `url.split(/[?#]/)[0]` antes de leer la extensión. Sin nota de changelog (sin efecto visible).
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `36c10c8`
 
 ### 3.6 `core/sleep/sleep-timer` por TDD (≤ 1 h)
 - Qué:
@@ -89,7 +89,8 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: `player/src/core/sleep/sleep-timer.ts`, `sleep-timer.test.ts`, `player/src/test/fake-clock.ts`, `player/src/core/clock/minute-ticker.test.ts` (importa el *fake*).
 - Test: primero (TDD).
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: `sleep-timer.test.ts` (15 casos) escrito primero y visto en rojo (módulo inexistente). `createFakeClock()` se mueve sin cambios a `src/test/fake-clock.ts`. El último `unsubscribe` para el intervalo pero conserva la cuenta; con el siguiente suscriptor, el intervalo vuelve (`StrictMode`). `cancel()` y `setPlaying(false)` sin cuenta activa no notifican. El `currently` de K66 envuelve el reloj *fake* con un `now()` adelantado 29 min (el *fake* no se toca). `npm --prefix player run check` en verde (520 tests); `sleep-timer.ts` al 100 % de líneas y 89 % de ramas.
+- [x] hecha · commit: (este)
 
 ### 3.7 `use-sleep-timer.tsx` (≤ 1 h)
 - Qué: `useSleepTimer(isPlaying, onEnd)` → `{ remainingSeconds, start, cancel }`.
