@@ -129,7 +129,19 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: —
 - Test: —
 - Verificación: `npm run check && npm run check:zip && npm run test:e2e`
-- [ ] hecha · commit: —
+- Resultado: `npm run check` en verde (PHPUnit unit 430, Vitest de la raíz 245, Vitest del player 528; `check:zip`: 62 archivos, la lista de `v3.4.2` más las altas declaradas). E2E: `env:start:latest` (WP 7.1.3 + PHP 8.4) 211 pasan · 25 omitidos (9,2 min); `env:start:min` (WP 6.6.10 + PHP 7.4) 210 pasan · 25 omitidos · 1 falla (9,2 min). La que falla es el intermitente de la 2.20 (`blocks.spec.ts`, «the three blocks are inserted and preview the chosen station»), esta vez en Chromium: el `waitForResponse` de la vista previa del bloque `schedule` agota los 30 s. La fase no toca `blocks/`, `includes/` ni ese test, y aislado con `--repeat-each=5` pasa 10/10 en Chromium y WebKit. `sleep`, `media-session`, `mp3`, `intro`, `cross-origin`, `player-a11y`, `a11y` y `modals`, en verde en las dos puntas. A1: el `git diff origin/trunk` de los tests solo muestra altas, el `Host` de `SleepMode.test.tsx` (ampliación de D5, 3.1), el `currently` de K14 que pasa a regresión en `use-media-session.test.tsx` (3.5) y lo de las fases 1 y 2 (`timezone.test.ts`, el `Harness` de `use-audio-player.test.tsx`, K70 y K80); `mp3.spec.ts` solo tiene altas; snapshots y `a11y-baseline.json` sin cambios. A2: el bloque de `src/core/**` de ESLint cubre todo el núcleo y el `grep` de `eslint-disable` en `src/core` está vacío. A3: `src/core/**` 100 % de líneas y 98,1 % de ramas; `src/hooks/**` 100 % y 87,5 %; `src/utils/**` 100 % y 95,9 %. A4: el `grep` de `eslint-disable` solo da `use-is-ios.tsx:19`, «K13, spec 0007»; el de `process.env` está vacío. A6: el `git diff origin/trunk` de la zona congelada está vacío. A5: en `manifest.json`, `hls.mjs` y `dash.all.min.js` siguen con `isDynamicEntry: true`. Sin cambios en el código, así que no hay commit. Gzip (bytes, `/usr/bin/gzip -9`, Apple gzip 487.0.1, frente al `player/dist/` de `origin/trunk` con la misma herramienta): solo cambia el `.min.js`, de 604 804 → 605 955 B y 186 438 → 187 196 B en gzip (+758 B, +0,41 %, por debajo del 10 %).
+
+  | Archivo (`radio-player-page-3.4.2…`) | Tamaño | gzip -9 | Δ gzip frente a `trunk` |
+  |---|---:|---:|---:|
+  | `.min.js` | 605 955 | 187 196 | +758 |
+  | `.css` | 1 316 | 675 | 0 |
+  | `-hls.min.js` | 583 903 | 178 596 | 0 |
+  | `-dash-all-min.min.js` | 824 688 | 236 288 | 0 |
+  | `-amplitude-waterfall-visualizer.min.js` | 1 228 | 699 | 0 |
+  | `-bar-visualizer.min.js` | 2 179 | 1 076 | 0 |
+  | `-oscilloscope-visualizer.min.js` | 713 | 484 | 0 |
+  | `-particles-visualizer.min.js` | 1 890 | 969 | 0 |
+- [x] hecha · commit: — (sin cambios en el código; se anota en el cierre)
 
 ### 3.11 Cierre documental de la spec (≤ 1 h)
 - Qué:
@@ -141,7 +153,8 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: `docs/status.md`, `SPEC.md`, `docs/specs/README.md`, `docs/known-issues.md`.
 - Test: —
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- Resultado: A9 en «Verificación manual pendiente» de `docs/status.md`. `SPEC.md` §6 con la fila de la 0006 (sin cambios de contrato; `src/core/` interno; K9, K14, K70 y K80 corregidos; ADRs 0029 y 0030). En `docs/specs/README.md`, «Dónde queda cada corrección del player tras la 0006», con la 0007, la 0009 y la 0011. En `docs/known-issues.md`, la columna de archivo de C1, C2, C7, C8, K1, K11, K12, K18, K63–K67 y K81 apunta también al núcleo (`desde la 0006, …`). La tabla del bundle para el PR es la de la 3.10 (frente a `origin/trunk`, así que cubre la spec entera). `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ## Decisiones abiertas → ADR
 

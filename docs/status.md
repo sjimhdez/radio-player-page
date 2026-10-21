@@ -2,17 +2,18 @@
 Spec activa: 0006 — Refactor del player · Fase: 3 (Media Session, sueño y dashboard) · Plan: [`phase-3.md`](specs/0006-player-refactor/phase-3.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0006: fases 1 (cimientos, globales y tiempo) y 2 (audio) cerradas el 2026-10-21 ([`phase-1.md`](specs/0006-player-refactor/phase-1.md), [`phase-2.md`](specs/0006-player-refactor/phase-2.md)). Fase 3 (Media Session, sueño y dashboard) en curso desde el 2026-10-21: tareas 3.1–3.11, 3.1 (ampliación de D5), 3.2 (e2e de Media Session) 3.3 (caracterización del `Dashboard`), 3.4 (`core/media-session`), 3.5 (K14 corregido), 3.6 (`core/sleep/sleep-timer`), 3.7 (`use-sleep-timer`), 3.8 (`SleepMode` y `Dashboard` solo pintan el sueño) y 3.9 (error visible derivado y motivo de la excepción de iOS) hechas ([`phase-3.md`](specs/0006-player-refactor/phase-3.md)). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
+- Spec 0006: fases 1 (cimientos, globales y tiempo) y 2 (audio) cerradas el 2026-10-21 ([`phase-1.md`](specs/0006-player-refactor/phase-1.md), [`phase-2.md`](specs/0006-player-refactor/phase-2.md)). Fase 3 (Media Session, sueño y dashboard) en curso desde el 2026-10-21: tareas 3.1–3.11, 3.1 (ampliación de D5), 3.2 (e2e de Media Session) 3.3 (caracterización del `Dashboard`), 3.4 (`core/media-session`), 3.5 (K14 corregido), 3.6 (`core/sleep/sleep-timer`), 3.7 (`use-sleep-timer`), 3.8 (`SleepMode` y `Dashboard` solo pintan el sueño), 3.9 (error visible derivado y motivo de la excepción de iOS) 3.10 (verificación de la fase, sin commit) y 3.11 (cierre documental de la spec) hechas ([`phase-3.md`](specs/0006-player-refactor/phase-3.md)). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Fase 3 de la 0006: tarea 3.10 (verificación de la fase), después 3.11 y `close-phase`, que cierra la spec.
+1. Fase 3 de la 0006: `close-phase`, que cierra la spec (la tabla del bundle para el PR está en la 3.10 de `phase-3.md`).
 2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrigen y en qué spec dos rarezas bajas: K76 (`completeTimeFields` sin uso; propuesta: 0010 admin) y K79 (la migración heredada pierde `is_rerun` de las franjas, que el refactor conserva; propuesta: 0008 migración).
 
 ## Verificación manual pendiente
-- E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Si vuelve, mirar su traza en `test-results/e2e`.
+- Spec 0006 (A9): revisión visual del player en <http://localhost:8886> (la emisora con bienvenida, MP3, HLS y DASH; Play/Pausa, el error visible, el temporizador de sueño de 30 min, 1 h y 2 h, cancelarlo, los modales y Media Session en el centro de control del sistema). El refactor no debe cambiar nada visible; queda aquí hasta que el usuario la apruebe.
+- E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Volvió en la 3.10, en Chromium + WP 6.6 (el `waitForResponse` de la vista previa de `schedule` agota los 30 s); aislado, 10/10. Si vuelve, mirar su traza en `test-results/e2e`.
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66) y los controles con `100vh` bajo la barra de Safari de iOS.
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 

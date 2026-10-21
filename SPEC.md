@@ -218,3 +218,4 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 | 0001 | Contrato inicial documentado (3.4.2). Precisiones: `crossOrigin` solo en fuentes directas; migración desde 2.0.x. | 0004, 0005 |
 | 0002 | §3.8: el idioma del reproductor es el del sitio (reserva `en-US`); el navegador y `localStorage` no son contrato. | 0025 |
 | 0005 | Sin cambios en el contrato. §3.4: el namespace `RadioPlayerPage\` (`includes/src/`) es interno. §3.6: script nuevo `radplapag-schedule-rules` (`admin/js/schedule-rules.js`), dependencia de `radplapag-station-admin`, con `window.radplapagScheduleRules` interno; los handles existentes no cambian. | 0028 |
+| 0006 | Sin cambios en el contrato. §3.8: la validación de las globales vive en `src/core/config/` y `use-config.tsx` las lee; `player/src/core/` (audio, reloj, configuración, Media Session, horario y sueño) es interno. Corregidos K9, K14, K70 y K80 (sin cambio de contrato). | 0029, 0030 |
