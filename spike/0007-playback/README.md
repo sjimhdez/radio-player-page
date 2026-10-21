@@ -29,7 +29,8 @@ The media origins serve `tests/fixtures/audio/` (not copied: `/tone.mp3`, `/hls/
 - `/live.mp3`: endless, Icecast-like (no length, no Range).
 - `/404.mp3`: 404.
 - `/live.mpd`: live DASH (`type="dynamic"`) without `<UTCTiming>`, looping the four fixture
-  segments with their `tfdt` rewritten (`/live/seg-<t>.m4s`).
+  segments with their `tfdt` rewritten (`/live/seg-<t>.m4s`, 404 until the segment is complete,
+  counted as `404 /live/` in `/__requests`).
 - `?exposeDate=1` on any route adds `Date` to `Access-Control-Expose-Headers`.
 - `GET /__requests` (`DELETE` resets): requests of that origin by path and query.
 

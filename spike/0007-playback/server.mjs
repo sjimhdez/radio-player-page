@@ -6,7 +6,8 @@
 //   /live.mp3              endless, Icecast-like (tone.mp3 in a loop, no length, no Range)
 //   /404.mp3               404
 //   /live.mpd              dynamic DASH (live) built from the fixture segments, WITHOUT <UTCTiming>
-//   /live/seg-<t>.m4s      fixture segment for time t, with tfdt/sidx rewritten to t
+//   /live/seg-<t>.m4s      fixture segment for time t, with tfdt/sidx rewritten to t (404 until available;
+//                          counted under "404 /live/" in /__requests)
 //   ?exposeDate=1          on any route: adds Date to Access-Control-Expose-Headers (CORS origin only)
 //   GET|DELETE /__requests requests by path (with query) of that origin; DELETE resets
 // Listens on all interfaces so that an iPhone on the local network can open manual.html.
@@ -71,10 +72,12 @@ function liveMpd() {
 }
 
 // Fixture segment for time t, with the decode time of tfdt and the presentation time of sidx set to t.
+// Segments not yet complete (t + d beyond now) are not available: null, as the timeline itself.
 function liveSegment(t) {
   const k = Math.floor(t / LOOP)
   const i = SEG_T.indexOf(t - k * LOOP)
   if (!Number.isSafeInteger(t) || t < 0 || i < 0) return null
+  if (t + SEG_D[i] > Math.floor(((Date.now() - ast) / 1000) * TIMESCALE)) return null
   const data = Buffer.from(fs.readFileSync(path.join(audioDir, `dash/seg-0-00${i + 1}.m4s`)))
   const tfdt = data.indexOf('tfdt')
   if (data[tfdt + 4] === 1) data.writeBigUInt64BE(BigInt(t), tfdt + 8)
@@ -159,7 +162,7 @@ function mediaServer(cors) {
     const seg = /^\/live\/seg-(\d+)\.m4s$/.exec(url.pathname)
     if (seg) {
       const data = liveSegment(Number(seg[1]))
-      if (!data) return notFound(res, headers)
+      if (!data) { requests['404 /live/'] = (requests['404 /live/'] || 0) + 1; return notFound(res, headers) }
       res.writeHead(200, { ...headers, 'Content-Type': types['.m4s'], 'Content-Length': data.length })
       return res.end(req.method === 'HEAD' ? undefined : data)
     }

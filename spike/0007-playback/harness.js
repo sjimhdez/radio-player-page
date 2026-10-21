@@ -165,6 +165,7 @@
   }
 
   // dashjs as player/src/core/audio/sources/dash.ts, optionally without the default UTC timing sources (K67).
+  // clearTimeSources: false | 'before' | 'after' initialize() (the first initialize() restores the defaults).
   s.loadDash = function (url, { clearTimeSources = false, settings } = {}) {
     const d = window.dashjs.MediaPlayer().create()
     s.dash = d
@@ -173,8 +174,10 @@
     d.on(E.ERROR, (e) => log('dash:error', { code: e.error && e.error.code, message: e.error && e.error.message }))
     d.on(E.PLAYBACK_STARTED, () => log('dash:playbackStarted'))
     d.on(E.MANIFEST_LOADED, () => log('dash:manifestLoaded'))
-    if (clearTimeSources) d.clearDefaultUTCTimingSources()
+    d.on(E.CONFORMANCE_VIOLATION, (e) => log('dash:conformanceViolation', e.event && e.event.key))
+    if (clearTimeSources === 'before') d.clearDefaultUTCTimingSources()
     d.initialize(s.audio, url, true)
+    if (clearTimeSources === 'after') d.clearDefaultUTCTimingSources()
     log('loadDash', { url, clearTimeSources })
     return s.state()
   }
