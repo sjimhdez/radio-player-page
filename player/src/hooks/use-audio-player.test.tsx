@@ -18,11 +18,16 @@ const hls = vi.hoisted(() => ({
     destroy: ReturnType<typeof vi.fn>
   }>,
   supported: true,
+  /** Runs inside isSupported(): after the import, before the instance exists. */
+  onSupported: undefined as (() => void) | undefined,
 }))
 vi.mock('hls.js', () => {
   class FakeHls {
     static Events = { MANIFEST_PARSED: 'hlsManifestParsed', ERROR: 'hlsError' }
-    static isSupported = () => hls.supported
+    static isSupported = () => {
+      hls.onSupported?.()
+      return hls.supported
+    }
     handlers: Record<string, Handler> = {}
     loadSource = vi.fn()
     attachMedia = vi.fn()
@@ -99,6 +104,7 @@ beforeEach(() => {
   restoreAudio = installFakeAudio()
   hls.instances = []
   hls.supported = true
+  hls.onSupported = undefined
   dash.players = []
   setUserAgent(DESKTOP)
 })
@@ -702,5 +708,59 @@ describe('lifecycle (spec 0006, 2.1)', () => {
     act(() => api.current.handleVolumeChange(0.4))
     expect(audio.volume).toBe(0.4)
     expect(api.current.volume).toBe(0.4)
+  })
+})
+
+// Concurrency suspicions of the 0002 triage (spec 0006 §4.5, task 2.2), against the
+// hook of today. The core answers them again in task 2.10.
+describe('concurrency (spec 0006, 2.2)', () => {
+  // docs/known-issues.md K80: both calls run destroyPlayers() before either creates
+  // its hls.js. Two play() in the same tick cannot be tested here: while an import()
+  // of a vi.mock'ed module is in flight, the next one resolves to the real module
+  // (Vitest 5.0.5). The second play() comes in the same window instead: the first
+  // one has loaded hls.js and has not created its instance yet.
+  it('currently leaves the first hls.js alive after a second play() while it loads (K80)', async () => {
+    const { api, audio, unmount } = mount(HLS)
+    let second!: Promise<void>
+    hls.onSupported = () => {
+      hls.onSupported = undefined
+      second = api.current.play()
+    }
+    await act(async () => {
+      await api.current.play()
+      await second
+    })
+
+    expect(hls.instances).toHaveLength(2)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    expect(hls.instances[1].attachMedia).toHaveBeenCalledWith(audio)
+    expect(hls.instances[0].destroy).not.toHaveBeenCalled()
+
+    // Only the second one is referenced: unmounting never destroys the first.
+    unmount()
+    expect(hls.instances[0].destroy).not.toHaveBeenCalled()
+    expect(hls.instances[1].destroy).toHaveBeenCalledTimes(1)
+  })
+
+  // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
+  // when pause() interrupts it.
+  it('currently reports an error when a pause interrupts the loading MP3 (K81)', async () => {
+    media.hold = true
+    const { api } = mount(MP3)
+    let done!: Promise<void>
+    await act(async () => {
+      done = api.current.play()
+    })
+    act(() => api.current.pause())
+    expect(api.current.status).toBe('paused')
+
+    await act(async () => {
+      media.fail('AbortError')
+      await done
+    })
+
+    // The UI shows "Unable to play the stream" instead of Play.
+    expect(api.current.status).toBe('error')
+    expect(api.current.loading).toBe(false)
   })
 })

@@ -98,6 +98,53 @@ test( 'applies the volume slider to the audio element, before and after Play', a
 	await expect( slider ).toHaveAttribute( 'aria-valuenow', '0.01' );
 } );
 
+// Spec 0006, task 2.2 (K81): the system pause (lock screen, headphones) while the
+// live MP3 loads. Playwright cannot reach the lock screen: the player's Media
+// Session handlers are kept on `window` and the test calls the `pause` one.
+test( 'currently shows the play error when the system pauses the loading MP3 (K81)', async ( {
+	page,
+} ) => {
+	await page.addInitScript( () => {
+		const handlers: Partial<
+			Record< MediaSessionAction, MediaSessionActionHandler | null >
+		> = {};
+		// On the prototype: WebKit ignores an own property on navigator.mediaSession.
+		const { setActionHandler } = MediaSession.prototype;
+		MediaSession.prototype.setActionHandler = function ( action, handler ) {
+			handlers[ action ] = handler;
+			setActionHandler.call( this, action, handler );
+		};
+		Object.assign( window, { mediaSessionHandlers: handlers } );
+	} );
+	// The stream answers only after the pause, so play() is still pending.
+	let respond!: () => void;
+	const paused = new Promise< void >( ( resolve ) => ( respond = resolve ) );
+	await page.route( '**/live.mp3', async ( route ) => {
+		await paused;
+		await route.continue();
+	} );
+	await page.goto( readSeed().urls.live );
+
+	await page.getByRole( 'button', { name: 'Play' } ).click();
+	await expect( page.getByRole( 'progressbar' ) ).toBeVisible();
+	await page.evaluate( () => {
+		const { mediaSessionHandlers } = window as unknown as {
+			mediaSessionHandlers: Partial<
+				Record< MediaSessionAction, MediaSessionActionHandler >
+			>;
+		};
+		mediaSessionHandlers.pause?.( { action: 'pause' } );
+	} );
+	respond();
+
+	// play() rejects with AbortError and the player reports it as a failure.
+	await expect( page.getByRole( 'alert' ) ).toHaveText(
+		'Unable to play the stream. Try again later.'
+	);
+	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+	expect( ( await audioState( page ) ).paused ).toBe( true );
+} );
+
 test( 'currently resumes the live MP3 from the buffer after Pause and Play (C7)', async ( {
 	page,
 	browserName,
