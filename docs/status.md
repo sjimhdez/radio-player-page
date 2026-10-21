@@ -2,10 +2,10 @@
 Spec activa: 0006 — Refactor del player · Fase: 2 (audio) · Plan: [`phase-2.md`](specs/0006-player-refactor/phase-2.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0006: fase 1 (cimientos, globales y tiempo) cerrada el 2026-10-21 ([`phase-1.md`](specs/0006-player-refactor/phase-1.md)). Fase 2 (audio) en curso: 2.1 hecha (caracterización del ciclo de vida del hook y e2e del *slider* de volumen); 2.2 hecha: las dos sospechas de §4.5 se confirman (K80, K81); 2.3 hecha (`core/audio/protocol` y la fuente `direct`); 2.4 hecha (fuentes `hls` y `dash` con cargadores inyectados y `fake-streaming.ts`); 2.5 hecha (`core/audio/player-machine`, la transición pura, con los `currently` de K1, K11, K63 y K64); 2.6 hecha (`core/audio/audio-controller`: directo, eventos, volumen y `attach`/`detach` idempotentes). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
+- Spec 0006: fase 1 (cimientos, globales y tiempo) cerrada el 2026-10-21 ([`phase-1.md`](specs/0006-player-refactor/phase-1.md)). Fase 2 (audio) en curso: 2.1 hecha (caracterización del ciclo de vida del hook y e2e del *slider* de volumen); 2.2 hecha: las dos sospechas de §4.5 se confirman (K80, K81); 2.3 hecha (`core/audio/protocol` y la fuente `direct`); 2.4 hecha (fuentes `hls` y `dash` con cargadores inyectados y `fake-streaming.ts`); 2.5 hecha (`core/audio/player-machine`, la transición pura, con los `currently` de K1, K11, K63 y K64); 2.6 hecha (`core/audio/audio-controller`: directo, eventos, volumen y `attach`/`detach` idempotentes); 2.7 hecha (la bienvenida y los `currently` de K11, K12, K63, K64 y K70 en el controlador). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 2.7: `audio-controller` con la bienvenida, HLS/DASH y los `currently` del controlador (K11, K12, K63, K64, K70) (TDD).
+1. Tarea 2.8: `useAudioPlayer()` como adaptador del controlador y el `Harness` sin excepciones (los tests de caracterización del hook sin cambios).
 2. Tarea 2.10: K80 se evita en el controlador (D7) con `fix-bug`; K81 queda `currently` para la 0007.
 3. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
 

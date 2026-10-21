@@ -20,7 +20,7 @@ export interface StreamingLoaders {
 
 export interface PlayOptions {
   streamUrl: string
-  /** Welcome audio URL (not played yet: task 2.7). */
+  /** Welcome audio URL, played once per controller before the live stream. */
   introUrl?: string | null
   isIOS: boolean
 }
@@ -34,7 +34,7 @@ export interface AudioController {
   detach: () => void
   /** Destroys the current source. */
   dispose: () => void
-  /** Starts or resumes playback. */
+  /** Starts the welcome audio or the live stream, or resumes the live stream. */
   play: (options: PlayOptions) => Promise<void>
   /** Pauses playback. */
   pause: () => void
@@ -50,7 +50,8 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  * hls.js, dashjs, volume) and publishes the state of player-machine as a snapshot.
  *
  * isIOS is read on each call, never when the controller is created (it turns true
- * after the first render, docs/known-issues.md K13).
+ * after the first render, docs/known-issues.md K13). When the welcome audio ends, the
+ * live stream is loaded with the options of the play() that started it.
  *
  * @param options.loaders - Loaders of hls.js and dashjs (dynamic imports by default)
  * @returns AudioController
@@ -62,18 +63,14 @@ export function createAudioController({
   let state = initialPlayerState
   let audio: HTMLAudioElement | null = null
   let source: AudioSource | null = null
+  // The options of the play() that started the welcome audio, for 'ended'.
+  let introOptions: PlayOptions | null = null
 
   const dispatch = (event: PlayerEvent) => {
     const next = transition(state, event)
     if (next === state) return
     state = next
     listeners.forEach((listener) => listener())
-  }
-
-  const onAudioEvent = (event: Event) => {
-    // 'ended' only matters for the welcome audio (task 2.7).
-    if (event.type === 'ended') return
-    dispatch({ type: event.type as Exclude<(typeof AUDIO_EVENTS)[number], 'ended'> })
   }
 
   const createSource = (url: string, isIOS: boolean): AudioSource => {
@@ -98,6 +95,34 @@ export function createAudioController({
       onPlayRejected: () => dispatch({ type: 'play-failed' }),
     })
     dispatch({ type: 'live-started' })
+  }
+
+  /**
+   * Marks the welcome audio as consumed and loads the live stream. Used when it ends
+   * and when it fails: either way the live stream follows silently. A failure of the
+   * live stream leaves the welcome audio locked (docs/known-issues.md K63).
+   */
+  const advanceToLive = async (element: HTMLAudioElement, options: PlayOptions) => {
+    dispatch({ type: 'intro-finished' })
+    try {
+      dispatch({ type: 'load-start' })
+      await playLive(element, options.streamUrl, options.isIOS)
+    } catch {
+      dispatch({ type: 'play-failed' })
+    } finally {
+      dispatch({ type: 'load-end' })
+    }
+  }
+
+  const onAudioEvent = (event: Event) => {
+    if (event.type === 'ended') {
+      // Only the end of the welcome audio matters.
+      if (state.activeSource === 'intro' && audio !== null && introOptions !== null) {
+        void advanceToLive(audio, introOptions)
+      }
+      return
+    }
+    dispatch({ type: event.type as Exclude<(typeof AUDIO_EVENTS)[number], 'ended'> })
   }
 
   const detach = () => {
@@ -125,9 +150,32 @@ export function createAudioController({
       source?.destroy()
       source = null
     },
-    async play({ streamUrl, isIOS }) {
+    async play(options) {
+      const { streamUrl, introUrl, isIOS } = options
       const element = audio
       if (element === null) return
+
+      if (state.activeSource === null && introUrl && !state.introConsumed) {
+        introOptions = options
+        dispatch({ type: 'intro-started' })
+        try {
+          dispatch({ type: 'load-start' })
+          await createDirectSource().start(element, introUrl, {
+            onError: () => {},
+            onPlayRejected: () => {},
+          })
+          dispatch({ type: 'resumed' })
+        } catch {
+          // The welcome audio failed: the live stream follows, as if it had ended.
+          await advanceToLive(element, options)
+        } finally {
+          dispatch({ type: 'load-end' })
+        }
+        return
+      }
+
+      // The welcome audio is playing: pause() is blocked, so there is nothing to do.
+      if (state.activeSource === 'intro') return
 
       // Resume the loaded live stream if it is the same and did not fail; otherwise
       // (first play, after an error, after a stream change) load it.

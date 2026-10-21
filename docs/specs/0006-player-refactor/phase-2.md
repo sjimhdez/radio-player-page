@@ -118,7 +118,8 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Archivos: `player/src/core/audio/audio-controller.ts`, `audio-controller.test.ts`, `docs/known-issues.md`.
 - Test: primero (TDD), ampliando `audio-controller.test.ts`.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: 27 casos nuevos en `audio-controller.test.ts` (53 en total): HLS (6), DASH (2), bienvenida (12) y los siete `currently` (K11 ×2 contando el de HLS, K12, K63 ×4, K64, K70). Rojo primero: los 11 de la bienvenida y de K63/K70; los de HLS/DASH ya pasaban porque la 2.6 conectó las fuentes, y se validan con mutaciones. Cuando acaba la bienvenida, el directo se carga con las opciones del `play()` que la arrancó (el hook usaba las del último render; con una URL por emisora no cambian). Mutaciones (revertidas): sin `stream-error` → 2 en rojo; `onPlayRejected` vacío → 1; `ended` sin mirar la fuente activa → 1 (tras reforzar `ignores ended on the live stream` con bienvenida); `play()` sin el retorno de la bienvenida → 3; el fallo de la bienvenida sin pasar al directo → 1; sin `resumed` → 1 (con un caso nuevo que no deja llegar `playing`); sin `intro-finished` → 2. Cobertura del archivo: 100 % de líneas y ramas, 90 % de funciones (los dos *callbacks* vacíos de la bienvenida, que la fuente directa nunca llama). `npm --prefix player run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 2.8 `useAudioPlayer()` como adaptador y el `Harness` sin excepciones (≤ 1 h)
 - Qué:
