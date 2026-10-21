@@ -30,6 +30,7 @@
 			{ "file": "includes/src/wp/class-station-repository.php" },
 			{ "file": "includes/src/wp/class-program-repository.php" },
 			{ "file": "includes/src/wp/class-station-meta-saver.php" },
+			{ "file": "includes/src/wp/class-program-meta-saver.php" },
 			{ "file": "includes/data/class-radplapag-station-config.php" },
 			{ "file": "includes/data/class-radplapag-program-config.php" },
 			{

@@ -19,3 +19,5 @@ includes/src/data/class-program.php
 includes/src/wp/class-program-repository.php
 includes/src/station/class-field-sanitizer.php
 includes/src/wp/class-station-meta-saver.php
+includes/src/program/class-field-sanitizer.php
+includes/src/wp/class-program-meta-saver.php
