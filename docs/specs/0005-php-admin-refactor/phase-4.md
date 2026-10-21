@@ -94,7 +94,8 @@ Mover el plan de la migración heredada y las decisiones de la actualización al
 - Archivos: `SPEC.md`, `docs/known-issues.md`, `docs/specs/README.md`.
 - Test: —
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: `SPEC.md` §6 con la fila de la 0005 (sin cambios en el contrato; namespace interno y script `radplapag-schedule-rules`, ADR 0028). En `known-issues.md`, 20 filas de la 0008–0013 (y K4) apuntan también a su clase nueva: C3, C9, C10, C13, C16, K4, K29–K33, K41–K44, K46, K52, K74, K75 y K79 (esta, solo al plan, con el nombre antiguo entre paréntesis); las que ya lo hacían (K5, K17, K21, K24, K34, K37, K38, K78) y las que siguen en código sin mover (página limpia, `uninstall.php`, render de meta boxes y bloques, DOM del admin) no cambian. En `docs/specs/README.md`, una nota por spec (0008, 0009, 0010, 0012, 0013) con dónde queda cada corrección.
 
 ## Decisiones abiertas → ADR
 
