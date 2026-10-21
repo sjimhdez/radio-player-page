@@ -86,7 +86,7 @@ final class StationsTest extends TestCase {
 	/**
 	 * With page 0 (nothing queried), a station without a page matches (K24).
 	 */
-	public function test_for_page_zero_matches_a_station_without_page() {
+	public function test_currently_for_page_zero_matches_a_station_without_page() {
 		$this->assertSame( 2, Stations::for_page( array( self::station( 1, 10 ), self::station( 2, 0 ) ), 0 )['id'] );
 	}
 

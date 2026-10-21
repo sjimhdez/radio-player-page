@@ -111,7 +111,7 @@ final class FieldSanitizerTest extends TestCase {
 	/**
 	 * Background and logo that are not images go to 0, without an error (K37).
 	 */
-	public function test_non_image_attachments_go_to_zero() {
+	public function test_currently_non_image_attachments_go_to_zero_without_notice() {
 		$result = Field_Sanitizer::sanitize( self::input(), self::is_image( false ), self::mime_type( 'audio/mpeg' ), array() );
 
 		$this->assertSame( 0, $result['values']['background_id'] );
@@ -127,7 +127,7 @@ final class FieldSanitizerTest extends TestCase {
 	 *
 	 * @param mixed $mime What get_post_mime_type() returns.
 	 */
-	public function test_non_mp3_intro_goes_to_zero( $mime ) {
+	public function test_currently_non_mp3_intro_goes_to_zero_without_notice( $mime ) {
 		$result = Field_Sanitizer::sanitize( self::input(), self::is_image( true ), self::mime_type( $mime ), array() );
 
 		$this->assertSame( 0, $result['values']['intro_audio_id'] );

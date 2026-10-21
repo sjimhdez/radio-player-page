@@ -108,7 +108,7 @@ final class FieldSanitizerTest extends TestCase {
 	 * A cut inside a multibyte character keeps its first byte; the registered meta
 	 * sanitizer then saves the field empty (K5).
 	 */
-	public function test_cut_inside_a_character_keeps_half_of_it() {
+	public function test_currently_cut_inside_a_character_keeps_half_of_it() {
 		$input                         = self::input();
 		$input['description']          = str_repeat( 'a', 255 ) . 'é';
 		$input['extended_description'] = str_repeat( 'b', 511 ) . 'é';
