@@ -2,11 +2,11 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0005: fase 3 (datos, guardado y globales del player), 12 tareas en [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md); hechas la 3.1 (globales con meta cruda, e2e; K78 nuevo, a la 0009), la 3.2 (orden de las escrituras del guardado), la 3.3 (`Data\Station`), la 3.4 (`Data\Stations`), la 3.5 (la lectura de emisoras delega en `WP\Station_Repository`) la 3.6 (`Data\Program`; la lectura de programas delega en `WP\Program_Repository`) y la 3.7 (`Station\Field_Sanitizer`).
+- Spec 0005: fase 3 (datos, guardado y globales del player), 12 tareas en [`phase-3.md`](specs/0005-php-admin-refactor/phase-3.md); hechas la 3.1 (globales con meta cruda, e2e; K78 nuevo, a la 0009), la 3.2 (orden de las escrituras del guardado), la 3.3 (`Data\Station`), la 3.4 (`Data\Stations`), la 3.5 (la lectura de emisoras delega en `WP\Station_Repository`) la 3.6 (`Data\Program`; la lectura de programas delega en `WP\Program_Repository`), la 3.7 (`Station\Field_Sanitizer`) y la 3.8 (el guardado de la emisora delega en `WP\Station_Meta_Saver`).
 - Spec 0005: fase 2 (reglas y DOM del admin) cerrada el 2026-10-21: `schedule-rules.js` con los 11 vectores y ≥ 85 % de líneas en la CI, `station-admin.js` como adaptador, A7 cumplido. K74–K77 nuevos. PR en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tarea 3.8 (el guardado de la emisora delega en `WP\Station_Meta_Saver`) y después 3.9 a 3.12, en orden; al terminar, `close-phase`.
+1. Tarea 3.9 (el guardado del programa delega en `WP\Program_Meta_Saver`) y después 3.10 a 3.12, en orden; al terminar, `close-phase`.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano

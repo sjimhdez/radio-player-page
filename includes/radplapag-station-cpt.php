@@ -536,6 +536,7 @@ function radplapag_render_station_schedule_meta_box( $post ) {
  * Saves station meta on post save.
  *
  * @since 3.3.0
+ * @since 3.5.0 Keeps the guards and the form reads; delegates the save to RadioPlayerPage\WP\Station_Meta_Saver::save().
  * @param int $post_id Post ID.
  * @return void
  */
@@ -553,80 +554,23 @@ function radplapag_save_station_meta( $post_id ) {
 		return;
 	}
 
-	$stream_url_input = filter_input( INPUT_POST, 'radplapag_station_stream_url', FILTER_UNSAFE_RAW );
-	$stream_url_input = is_string( $stream_url_input ) ? wp_unslash( $stream_url_input ) : '';
-	$stream_url       = '';
-	if ( is_string( $stream_url_input ) ) {
-		$stream_url = esc_url_raw( trim( $stream_url_input ) );
-	}
-	$player_page    = isset( $_POST['radplapag_station_player_page'] ) ? absint( $_POST['radplapag_station_player_page'] ) : 0;
-	$background_id  = isset( $_POST['radplapag_station_background_id'] ) ? absint( $_POST['radplapag_station_background_id'] ) : 0;
-	$logo_id        = isset( $_POST['radplapag_station_logo_id'] ) ? absint( $_POST['radplapag_station_logo_id'] ) : 0;
-	$intro_audio_id = isset( $_POST['radplapag_station_intro_audio_id'] ) ? absint( $_POST['radplapag_station_intro_audio_id'] ) : 0;
-	$theme          = isset( $_POST['radplapag_station_theme_color'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_theme_color'] ) ) : 'neutral';
-	$visualizer     = isset( $_POST['radplapag_station_visualizer'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_visualizer'] ) ) : 'oscilloscope';
-
-	$valid_themes = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
-	if ( ! in_array( $theme, $valid_themes, true ) ) {
-		$theme = 'neutral';
-	}
-	$valid_visualizers = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
-	if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
-		$visualizer = 'oscilloscope';
-	}
-	if ( $background_id > 0 && ! wp_attachment_is_image( $background_id ) ) {
-		$background_id = 0;
-	}
-	if ( $logo_id > 0 && ! wp_attachment_is_image( $logo_id ) ) {
-		$logo_id = 0;
-	}
-	if ( $intro_audio_id > 0 && get_post_mime_type( $intro_audio_id ) !== 'audio/mpeg' ) {
-		$intro_audio_id = 0;
-	}
-
-	$field_errors = array();
-	if ( '' === $stream_url ) {
-		$field_errors[] = __( 'Streaming URL is required.', 'radio-player-page' );
-	}
-	if ( $player_page <= 0 ) {
-		$field_errors[] = __( 'Player Page is required. Please select a page.', 'radio-player-page' );
-	}
-	if ( $player_page > 0 ) {
-		$assigned_player_pages = radplapag_get_player_pages_assigned_to_other_stations( $post_id );
-		if ( in_array( $player_page, $assigned_player_pages, true ) ) {
-			$field_errors[] = __( 'This Player Page is already assigned to another station. Please choose a different page.', 'radio-player-page' );
-		}
-	}
-	if ( ! empty( $field_errors ) ) {
-		set_transient( 'radplapag_station_field_errors_' . $post_id, implode( ' ', $field_errors ), 45 );
-	} else {
-		delete_transient( 'radplapag_station_field_errors_' . $post_id );
-		update_post_meta( $post_id, 'radplapag_station_stream_url', $stream_url );
-		update_post_meta( $post_id, 'radplapag_station_player_page', $player_page );
-	}
-
-	update_post_meta( $post_id, 'radplapag_station_background_id', $background_id );
-	update_post_meta( $post_id, 'radplapag_station_logo_id', $logo_id );
-	update_post_meta( $post_id, 'radplapag_station_intro_audio_id', $intro_audio_id );
-	update_post_meta( $post_id, 'radplapag_station_theme_color', $theme );
-	update_post_meta( $post_id, 'radplapag_station_visualizer', $visualizer );
-
-	$schedule_input = array();
+	$stream_url = filter_input( INPUT_POST, 'radplapag_station_stream_url', FILTER_UNSAFE_RAW );
+	$input      = array(
+		'stream_url'     => is_string( $stream_url ) ? wp_unslash( $stream_url ) : '',
+		'player_page'    => isset( $_POST['radplapag_station_player_page'] ) ? absint( $_POST['radplapag_station_player_page'] ) : 0,
+		'background_id'  => isset( $_POST['radplapag_station_background_id'] ) ? absint( $_POST['radplapag_station_background_id'] ) : 0,
+		'logo_id'        => isset( $_POST['radplapag_station_logo_id'] ) ? absint( $_POST['radplapag_station_logo_id'] ) : 0,
+		'intro_audio_id' => isset( $_POST['radplapag_station_intro_audio_id'] ) ? absint( $_POST['radplapag_station_intro_audio_id'] ) : 0,
+		'theme_color'    => isset( $_POST['radplapag_station_theme_color'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_theme_color'] ) ) : '',
+		'visualizer'     => isset( $_POST['radplapag_station_visualizer'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_visualizer'] ) ) : '',
+		'schedule'       => array(),
+	);
 	if ( isset( $_POST['radplapag_station_schedule'] ) ) {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized by radplapag_sanitize_station_schedule().
-		$schedule_raw = wp_unslash( $_POST['radplapag_station_schedule'] );
-		if ( is_array( $schedule_raw ) ) {
-			$schedule_input = $schedule_raw;
-		}
+		$input['schedule'] = wp_unslash( $_POST['radplapag_station_schedule'] );
 	}
-	$schedule_sanitized = radplapag_sanitize_station_schedule( $schedule_input );
-	if ( is_wp_error( $schedule_sanitized ) ) {
-		set_transient( 'radplapag_station_schedule_errors_' . $post_id, $schedule_sanitized->get_error_message(), 45 );
-	} else {
-		delete_transient( 'radplapag_station_schedule_errors_' . $post_id );
-		$schedule_json = wp_json_encode( $schedule_sanitized );
-		update_post_meta( $post_id, 'radplapag_station_schedule', $schedule_json );
-	}
+
+	\RadioPlayerPage\WP\Station_Meta_Saver::save( (int) $post_id, $input );
 }
 
 /**
