@@ -107,7 +107,8 @@ Responder R1, R2 y R3 de la spec con mediciones reproducibles y entregar en `doc
 - Archivos: `docs/spikes/0007-phase-0.md`, `docs/specs/0007-playback-fixes/spec.md` (si cambia), `docs/status.md`.
 - Test: — (documento; las cifras salen de 0.2–0.5).
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- Resultado: [`docs/spikes/0007-phase-0.md`](../../spikes/0007-phase-0.md) con lo medido y la propuesta (14 puntos). El usuario eligió (2026-10-22) no visualizar la bienvenida y que WebKit nunca visualice (excepción medida por *user agent*). Spec corregida en el mismo commit: D1, D2, D7, A1, A2, A3, A3b, A15 y riesgos 1, 1b, 2, 3 y 7.
+- [x] hecha · commit: (este)
 - **Aprobación del usuario** de la propuesta antes de `close-phase` y de la fase 1.
 
 ## Decisiones abiertas → ADR
