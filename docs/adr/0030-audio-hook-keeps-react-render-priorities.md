@@ -17,7 +17,7 @@ Mientras K1 siga abierto (la 0007 lo corrige), el orden de los renders del audio
 Se probaron dos arreglos del adaptador:
 
 1. Conservar `useSyncExternalStore` y aplazar el aviso al suscriptor a una tarea `MessageChannel`, como el *scheduler*. Los e2e pasan, pero fallan 16 casos de caracterización de `use-audio-player.test.tsx`, que leen el estado justo después de `act()` y no se editan.
-2. `useState` con una suscripción en un efecto. Los e2e pasan, y los 136 casos de hooks y componentes también.
+2. `useState` con una suscripción en un efecto. Los e2e pasan, y los 137 casos de hooks y componentes también, con el de regresión.
 
 ## Decisión
 - `useAudioPlayer()` guarda la instantánea del controlador en un `useState` (inicializado con `getSnapshot()`). Se suscribe en un `useEffect` con `controller.subscribe()`, y el `setState` va en el *callback* de la suscripción, nunca en el cuerpo del efecto. Así React vuelve a elegir la prioridad según el evento que causa el cambio, como hasta la 2.7.

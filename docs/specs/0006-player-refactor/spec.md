@@ -141,7 +141,7 @@ Cada fase termina con la CI en verde, sus criterios verificados y `close-phase`.
 - 2.1 Caracterización de lo que falte en la zona del audio (§4.4) y las dos sospechas de §4.5 contra el hook de hoy.
 - 2.2 `core/audio/protocol` y las fuentes (`direct`, `hls`, `dash`) por TDD.
 - 2.3 `core/audio/player-machine` (transición pura) por TDD, con los `currently` de §4.3 replicados.
-- 2.4 `core/audio/audio-controller` por TDD; `useAudioPlayer()` como adaptador con `useSyncExternalStore`; el `Harness` del test sin sus excepciones (D5).
+- 2.4 `core/audio/audio-controller` por TDD; `useAudioPlayer()` como adaptador con `useState` + `subscribe()` (ADR 0030); el `Harness` del test sin sus excepciones (D5).
 - 2.5 K70 (§4.6) y la decisión de cada sospecha (§4.5).
 - ✅ **Criterios:** A1 (Vitest y e2e `mp3`, `hls-dash`, `intro`, `cross-origin`, `visualizers` en las dos puntas), A2, A3, A5, A6, A7 (K70), A8.
 
