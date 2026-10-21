@@ -46,7 +46,7 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: caracterización. Se ve fallar con una mutación temporal del hook (por ejemplo, `playbackState` siempre a `paused`, o el *artwork* vacío), que se revierte con `dist/` restaurado.
 - Verificación: `npm run check && npx playwright test tests/e2e/media-session.spec.ts`
 - Resultado: cuatro casos en `tests/e2e/media-session.spec.ts` sobre la emisora `mp3` (logo JPG): metadatos (título «E2E MP3» y seis tamaños `image/jpeg` con el `logoImage`), `playbackState` (`paused` → `playing` → `paused`), los siete manejadores (`play`/`pause` funciones, los cinco de búsqueda y pista puestos a `null`) y Play/Pausa desde los manejadores capturados. La captura se queda local en el archivo (no hizo falta sacarla a `support/player.ts`; `mp3.spec.ts` intacto). 8/8 en Chromium y WebKit. Mutación (`playbackState` fijo a `paused`, *artwork* vacío, sin `seekto`, `play` → `onPause`): 8/8 en rojo; revertida con `dist/` restaurado. `npm run check` en verde.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `877cb25`
 
 ### 3.3 Caracterización del `Dashboard`: error visible y sueño (≤ 1 h)
 - Qué: `components/dashboard/index.test.tsx` contra el componente de hoy, con `useAudioPlayer` sustituido por un doble controlable (`vi.mock` del hook; los dos hooks de visualización también, sin editarlos). Casos:
@@ -56,7 +56,8 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: `player/src/components/dashboard/index.test.tsx`.
 - Test: caracterización. Mutaciones (revertidas): sin `loading === false`, y sin la limpieza por `!isPlaying` de `SleepMode`.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: diez casos en `index.test.tsx` (cuatro de error y seis de sueño), con `useAudioPlayer`, `useAudioVisualizer` y `useCanVisualize` por `vi.mock`; el resto de hooks reales, sin globales `RADPLAPAG_*`. Por debajo de una hora la cuenta se pinta `m:ss` (`59:55`). Volver a elegir reinicia a `1:00:00` y un segundo después da `59:59` (un solo intervalo). Mutación sin `loading === false`: falla «hides the error alert while still loading»; mutación sin la limpieza por `!isPlaying`: falla «removes the countdown when the status goes to paused». Las dos se revirtieron. Ninguna rareza nueva. `npm --prefix player run check` en verde (483 tests).
+- [x] hecha · commit: (este)
 
 ### 3.4 `core/media-session` por TDD y `useMediaSession()` como adaptador (≤ 1 h)
 - Qué: `core/media-session/media-session.ts`:
