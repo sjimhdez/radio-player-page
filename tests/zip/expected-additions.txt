@@ -21,3 +21,4 @@ includes/src/station/class-field-sanitizer.php
 includes/src/wp/class-station-meta-saver.php
 includes/src/program/class-field-sanitizer.php
 includes/src/wp/class-program-meta-saver.php
+includes/src/player/class-globals-builder.php
