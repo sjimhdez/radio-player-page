@@ -2,11 +2,11 @@
 Spec activa: 0005 — Refactor de PHP y admin · Fase: 4 (migración y actualización) · Plan: [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0005: fase 4 (migración y actualización) empezada el 2026-10-21, última de la spec: `Migration\Legacy_Plan`, `WP\Migration_Writer` y `Upgrade\Upgrade_Policy`, con los envoltorios de siempre; cierra K72. Hechas la 4.1 (registro de depuración de la migración; K79 nuevo, decisión pendiente), la 4.2 (orden de las escrituras y de la reversión) y la 4.3 (`Migration\Legacy_Plan`); sigue la 4.4 (`WP\Migration_Writer`, cierra K72).
+- Spec 0005: fase 4 (migración y actualización) empezada el 2026-10-21, última de la spec: `Migration\Legacy_Plan`, `WP\Migration_Writer` y `Upgrade\Upgrade_Policy`, con los envoltorios de siempre; cierra K72. Hechas la 4.1 (registro de depuración de la migración; K79 nuevo, decisión pendiente), la 4.2 (orden de las escrituras y de la reversión), la 4.3 (`Migration\Legacy_Plan`) y la 4.4 (`WP\Migration_Writer`; K72 corregido); sigue la 4.5 (`Upgrade\Upgrade_Policy`).
 - Spec 0005: fase 3 (datos, guardado y globales del player) cerrada el 2026-10-21: lectura, guardado y globales en el núcleo (`Data\*`, `Station\`/`Program\Field_Sanitizer`, `Player\Globals_Builder`) y en `WP\*`; cobertura `critical` 97,23 %, `core` 100 %; baseline 84 líneas menos. K78 nuevo (a la 0009). PR #39 en borrador contra `trunk`.
 
 ## Siguiente (máx. 5)
-1. Tareas 4.4–4.8 de [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md); después, `close-phase` de la fase 4, que cierra la 0005 y deja el PR #39 listo.
+1. Tareas 4.5–4.8 de [`phase-4.md`](specs/0005-php-admin-refactor/phase-4.md); después, `close-phase` de la fase 4, que cierra la 0005 y deja el PR #39 listo.
 2. La 0006 (refactor del player) puede escribirse y ejecutarse en paralelo, en otro worktree.
 
 ## Bloqueos / preguntas para el humano
