@@ -82,7 +82,8 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Archivos: `player/src/core/audio/sources/hls.ts`, `hls.test.ts`, `dash.ts`, `dash.test.ts`, `player/src/test/fake-streaming.ts`.
 - Test: primero (TDD): `hls.test.ts` y `dash.test.ts`.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: `createHlsSource()` con 11 casos y `createDashSource()` con 5. Los cargadores por defecto se exportan (`loadHlsModule()`, `loadDashModule()`) y un caso de cada uno comprueba que resuelven al módulo real, sin crear nada (DASH real saldría a la red). Los tipos de las librerías (`HlsClass`, `HlsInstance`, `DashMediaPlayer`, `DashPlayer`) van en `sources/types.ts` con sintaxis de método: los parámetros de un método son bivariantes, y así el `on()` genérico de `hls.js` y `dashjs` es asignable sin `as`. K70 queda fijado en las dos fuentes con `it('currently …')`, y la fila K70 apunta también a ellos. `fake-streaming.ts` da `createFakeHls()` y `createFakeDash()` por test, sin estado global ni `vi.mock`. Rojo primero (módulos inexistentes). Mutaciones (revertidas), cada una con 1 caso en rojo: sin `data.fatal`; el rechazo de `play()` tragado; `preferManagedMediaSource: false`; iOS ignorado; sin `hls = null` tras `destroy()`; DASH sin *autoplay*; sin `player = null` tras `reset()`. Build de prueba a una carpeta temporal: `hls.mjs` y `dash.all.min.js` siguen con `isDynamicEntry: true` y el resultado es idéntico a `dist/`. `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 2.5 `core/audio/player-machine`: la transición pura (≤ 1 h)
 - Qué:
