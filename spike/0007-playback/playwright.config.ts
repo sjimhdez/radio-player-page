@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
 // Spike 0007 phase 0. Ports 8910–8912 do not clash with the e2e (8901–8902) nor spike/e2e (8900–8902).
-// NO_AUTOPLAY_FLAG=1 runs Chromium with its default autoplay policy (R1b).
+// AUTOPLAY_POLICY sets Chromium's --autoplay-policy (R1b); default no-user-gesture-required. Headless Chromium
+// without the flag is as permissive, so the strict case is AUTOPLAY_POLICY=user-gesture-required.
 export default defineConfig({
   testDir: 'tests',
   timeout: 60_000,
@@ -13,7 +14,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], launchOptions: { args: process.env.NO_AUTOPLAY_FLAG ? [] : ['--autoplay-policy=no-user-gesture-required'] } },
+      use: { ...devices['Desktop Chrome'], launchOptions: { args: [`--autoplay-policy=${process.env.AUTOPLAY_POLICY || 'no-user-gesture-required'}`] } },
     },
     { name: 'webkit', use: { ...devices['Desktop Safari'] } },
   ],

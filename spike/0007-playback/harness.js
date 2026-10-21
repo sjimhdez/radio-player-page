@@ -109,6 +109,12 @@
     return s.ctx.state
   }
 
+  // Phase 1 candidate: the visualizer is wired and the AudioContext resumed inside the Play gesture.
+  s.connectAndPlay = function () {
+    s.connectAnalyser()
+    return Promise.all([s.resumeContext(), s.play()]).then(([ctxState, play]) => ({ ctxState, play }))
+  }
+
   s.createContext = function () {
     if (!s.ctx) s.ctx = new (window.AudioContext || window.webkitAudioContext)()
     log('createContext', { ctxState: s.ctx.state })
@@ -207,6 +213,56 @@
     }
   }
 
+  // Resolves with the first 'playing' or 'error' event of the case, or null after `timeout` ms.
+  s.waitPlaying = function (timeout = 5000) {
+    const deadline = now() + timeout
+    return new Promise((done) => {
+      const tick = () => {
+        const e = s.events.find((x) => x.type === 'playing' || x.type === 'error')
+        if (e || now() > deadline) return done(e ? e.type : null)
+        setTimeout(tick, 20)
+      }
+      tick()
+    })
+  }
+
+  // A promise that gives up after `ms`: a resume() that is not allowed stays pending.
+  const within = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(() => r('pending'), ms))])
+
+  // ?auto=context: today's order (play, then the AudioContext after 'playing') driven by the page itself,
+  // before any page.evaluate() (Playwright evaluates with a user gesture in Chromium and WebKit, which
+  // gives the page activation). With &click=1, play() runs in a real click on #gesture and the context
+  // is created `delay` ms after 'playing' from a timer (past ~5 s, transient activation has expired).
+  // Reports through console.log('auto-done', JSON).
+  s.autoContext = async function ({ click = false, delay = 0 } = {}) {
+    const r = { click, delay }
+    s.loadDirect(`${s.CORS}/tone.mp3`)
+    s.audio.loop = true
+    const activation = () => navigator.userActivation
+      ? { sticky: navigator.userActivation.hasBeenActive, transient: navigator.userActivation.isActive } : null
+    r.activationAtLoad = activation()
+    if (click) {
+      console.log('auto-ready')
+      r.play = await new Promise((done) => { document.getElementById('gesture').onclick = () => done(s.play()) })
+    } else {
+      r.play = await within(s.play(), 3000)
+    }
+    r.playing = await s.waitPlaying(3000)
+    await new Promise((done) => setTimeout(done, delay))
+    r.activationAtContext = activation()
+    s.connectAnalyser()
+    r.created = { ctxState: s.ctx.state }
+    r.createdMeasure = await s.measure({ delta: 1.5, timeout: 3000, every: 50 })
+    r.resumedOutside = await within(s.resumeContext(), 1500)
+    r.resumedOutsideMeasure = await s.measure({ delta: 1.5, timeout: 3000, every: 50 })
+    console.log('auto-done', JSON.stringify(r))
+  }
+
   window.spike = s
-  document.addEventListener('DOMContentLoaded', () => { s.reset(); log('ready') })
+  document.addEventListener('DOMContentLoaded', () => {
+    s.reset()
+    log('ready')
+    const q = new URLSearchParams(location.search)
+    if (q.get('auto') === 'context') s.autoContext({ click: q.get('click') === '1', delay: Number(q.get('delay') || 0) })
+  })
 })()

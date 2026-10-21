@@ -11,7 +11,7 @@ No WordPress and no player build: `harness.html` + `harness.js` drive a bare `<a
 ```bash
 npm install && npx playwright install chromium webkit   # once (player/node_modules must exist)
 npx playwright test                                     # starts server.mjs; Chromium + WebKit
-NO_AUTOPLAY_FLAG=1 npx playwright test --project=chromium   # Chromium without --autoplay-policy
+AUTOPLAY_POLICY=user-gesture-required npx playwright test --project=chromium   # Chromium, strict autoplay
 npm run serve                                           # just the servers, to open the pages by hand
 ```
 
@@ -31,6 +31,8 @@ The media origins serve `tests/fixtures/audio/` (not copied: `/tone.mp3`, `/hls/
 - `/live-tagged.mp3`: endless, as `tests/e2e/media-server.mjs` (the whole `tone.mp3` in a loop, ID3 and
   Info frame included; WebKit on macOS stops at the 8.05 s the Info frame declares).
 - `/404.mp3`: 404.
+- `/frames.mp3`: finite, `tone.mp3`'s audio frames alone (no ID3, no Info frame), with length and Range.
+- `?chunked=1` on files and `/frames.mp3`: no `Content-Length`, no `Accept-Ranges`, Range ignored.
 - `/live.mpd`: live DASH (`type="dynamic"`) without `<UTCTiming>`, looping the four fixture
   segments with their `tfdt` rewritten (`/live/seg-<t>.m4s`, 404 until the segment is complete,
   counted as `404 /live/` in `/__requests`).
@@ -38,3 +40,7 @@ The media origins serve `tests/fixtures/audio/` (not copied: `/tone.mp3`, `/hls/
 - `GET /__requests` (`DELETE` resets): requests of that origin by path and query.
 
 The tests abort and record every request that leaves `localhost` (`tests/helpers.ts`).
+
+`page.evaluate()` runs with a user gesture in Chromium and WebKit, so it gives the page user
+activation. Cases that need a page without activation (or with only a real click) are driven by the
+harness itself on load (`/?auto=context[&click=1&delay=ms]`) and report through `console.log`.

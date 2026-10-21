@@ -8,9 +8,11 @@
 //   /live-tagged.mp3       as tests/e2e/media-server.mjs: the whole tone.mp3 in a loop, ID3 and Info frame
 //                          included (the Info frame says 8.05 s; WebKit on macOS stops there)
 //   /404.mp3               404
+//   /frames.mp3            finite: tone.mp3's audio frames alone (no ID3, no Info frame), with length and Range
 //   /live.mpd              dynamic DASH (live) built from the fixture segments, WITHOUT <UTCTiming>
 //   /live/seg-<t>.m4s      fixture segment for time t, with tfdt/sidx rewritten to t (404 until available;
 //                          counted under "404 /live/" in /__requests)
+//   ?chunked=1             on files and /frames.mp3: no Content-Length, no Accept-Ranges, Range ignored
 //   ?exposeDate=1          on any route: adds Date to Access-Control-Expose-Headers (CORS origin only)
 //   GET|DELETE /__requests requests by path (with query) of that origin; DELETE resets
 // Listens on all interfaces so that an iPhone on the local network can open manual.html.
@@ -105,11 +107,20 @@ function corsHeaders(cors, exposeDate) {
 function notFound(res, headers = {}) { res.writeHead(404, headers); res.end() }
 
 // Sends a file under `root` (or exactly `root`), honouring a single `Range: bytes=` request.
-function sendFile(req, res, file, headers, root) {
+function sendFile(req, res, file, headers, root, chunked = false) {
   if (file !== root && !file.startsWith(root + path.sep)) return notFound(res, headers)
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return notFound(res, headers)
-  const size = fs.statSync(file).size
-  const base = { ...headers, 'Content-Type': types[path.extname(file)] || 'application/octet-stream', 'Accept-Ranges': 'bytes' }
+  sendData(req, res, fs.readFileSync(file), types[path.extname(file)] || 'application/octet-stream', headers, chunked)
+}
+
+// `chunked`: no Content-Length, no Accept-Ranges and Range ignored, as a live stream (but finite).
+function sendData(req, res, data, type, headers, chunked) {
+  if (chunked) {
+    res.writeHead(200, { ...headers, 'Content-Type': type })
+    return res.end(req.method === 'HEAD' ? undefined : data)
+  }
+  const size = data.length
+  const base = { ...headers, 'Content-Type': type, 'Accept-Ranges': 'bytes' }
   const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '')
   let start = 0
   let end = size - 1
@@ -122,8 +133,7 @@ function sendFile(req, res, file, headers, root) {
     base['Content-Range'] = `bytes ${start}-${end}/${size}`
   }
   res.writeHead(status, { ...base, 'Content-Length': end - start + 1 })
-  if (req.method === 'HEAD') return res.end()
-  fs.createReadStream(file, { start, end }).pipe(res)
+  res.end(req.method === 'HEAD' ? undefined : data.subarray(start, end + 1))
 }
 
 // tone.mp3 without its ID3v2 tag and its Xing/Info frame (MPEG-1 Layer III, as the fixture): the frames
@@ -159,6 +169,7 @@ function mediaServer(cors) {
   return http.createServer((req, res) => {
     const url = new URL(req.url, 'http://x')
     const headers = corsHeaders(cors, url.searchParams.get('exposeDate') === '1')
+    const chunked = url.searchParams.get('chunked') === '1'
     if (url.pathname === '/__requests') {
       if (req.method === 'DELETE') requests = {}
       res.writeHead(200, { ...corsHeaders(true, false), 'Content-Type': 'application/json' })
@@ -172,6 +183,9 @@ function mediaServer(cors) {
     if (url.pathname === '/live.mp3') return sendLive(res, headers, false)
     if (url.pathname === '/live-tagged.mp3') return sendLive(res, headers, true)
     if (url.pathname === '/404.mp3') return notFound(res, headers)
+    if (url.pathname === '/frames.mp3') {
+      return sendData(req, res, mp3Frames(fs.readFileSync(path.join(audioDir, 'tone.mp3'))), 'audio/mpeg', headers, chunked)
+    }
     if (url.pathname === '/live.mpd') {
       res.writeHead(200, { ...headers, 'Content-Type': types['.mpd'], 'Cache-Control': 'no-cache, no-store' })
       return res.end(req.method === 'HEAD' ? undefined : liveMpd())
@@ -185,7 +199,7 @@ function mediaServer(cors) {
     }
     let decoded
     try { decoded = decodeURIComponent(url.pathname) } catch { return notFound(res, headers) }
-    sendFile(req, res, path.resolve(audioDir, `.${decoded}`), headers, audioDir)
+    sendFile(req, res, path.resolve(audioDir, `.${decoded}`), headers, audioDir, chunked)
   })
 }
 
