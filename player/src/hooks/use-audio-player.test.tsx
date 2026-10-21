@@ -1,6 +1,7 @@
 // Characterization of use-audio-player (spec 0002, task 1.15). ADR 0004: direct
 // sources set crossOrigin = 'anonymous'; the MSE paths (hls.js, dashjs) do not.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { StrictMode } from 'react'
 import { act, render } from '@testing-library/react'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -592,5 +593,114 @@ describe('audit (spec 0002, 4.6)', () => {
     expect(hls.instances).toHaveLength(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
     expect(audio.crossOrigin).toBe('anonymous')
+  })
+})
+
+// Lifecycle (spec 0006, task 2.1): what the controller and its adapter must keep.
+// main.tsx mounts the player in StrictMode, which mounts, unmounts and remounts
+// every effect in development; the visualizers rely on a stable audioRef.
+describe('lifecycle (spec 0006, 2.1)', () => {
+  function mountStrict(streamUrl: string, introUrl?: string) {
+    const api = {} as { current: Api }
+    const view = render(
+      <StrictMode>
+        <Harness streamUrl={streamUrl} introUrl={introUrl} api={api} />
+      </StrictMode>,
+    )
+    const audio = view.container.querySelector('audio')!
+    return { api, audio, unmount: view.unmount }
+  }
+
+  it('loads and plays an MP3 once in StrictMode', async () => {
+    const { api } = mountStrict(MP3)
+    await act(() => api.current.play())
+    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(api.current.status).toBe('playing')
+    act(() => api.current.pause())
+    expect(media.pause).toHaveBeenCalledTimes(1)
+    expect(api.current.status).toBe('paused')
+  })
+
+  it('maps playing and pause to the status in StrictMode', () => {
+    const { api, audio } = mountStrict(MP3)
+    act(() => {
+      audio.dispatchEvent(new Event('playing'))
+    })
+    expect(api.current.status).toBe('playing')
+    act(() => {
+      audio.dispatchEvent(new Event('pause'))
+    })
+    expect(api.current.status).toBe('paused')
+  })
+
+  it('listens to the audio element once in StrictMode', async () => {
+    const { api, audio } = mountStrict(MP3, INTRO)
+    await act(() => api.current.play())
+    expect(media.load).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+
+    // One ended handler: the live stream loads once, not once per mounted effect.
+    expect(media.load).toHaveBeenCalledTimes(2)
+    expect(media.load).toHaveBeenLastCalledWith(MP3)
+    expect(api.current.introLocked).toBe(false)
+  })
+
+  it('creates and destroys hls.js once in StrictMode', async () => {
+    const { api, audio, unmount } = mountStrict(HLS)
+    await act(() => api.current.play())
+    expect(hls.instances).toHaveLength(1)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    unmount()
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps the same audioRef across renders', async () => {
+    const { api, audio, rerender } = mount(MP3)
+    const ref = api.current.audioRef
+    expect(ref.current).toBe(audio)
+
+    await act(() => api.current.play())
+    expect(api.current.audioRef).toBe(ref)
+    act(() => api.current.pause())
+    expect(api.current.audioRef).toBe(ref)
+    act(() => api.current.handleVolumeChange(0.4))
+    expect(api.current.audioRef).toBe(ref)
+    rerender('https://radio.test/other.mp3')
+    expect(api.current.audioRef).toBe(ref)
+    expect(ref.current).toBe(audio)
+  })
+
+  it('keeps the same audioRef in StrictMode', async () => {
+    const { api, audio } = mountStrict(MP3)
+    const ref = api.current.audioRef
+    expect(ref.current).toBe(audio)
+    await act(() => api.current.play())
+    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(api.current.audioRef).toBe(ref)
+    expect(ref.current).toBe(audio)
+  })
+
+  it('keeps the changed volume on the element after another render', async () => {
+    const { api, audio, rerender } = mount(MP3)
+    act(() => api.current.handleVolumeChange(0.4))
+
+    rerender('https://radio.test/other.mp3')
+    expect(audio.volume).toBe(0.4)
+    expect(api.current.volume).toBe(0.4)
+
+    await act(() => api.current.play())
+    expect(audio.volume).toBe(0.4)
+    expect(api.current.volume).toBe(0.4)
+  })
+
+  it('applies a volume change in StrictMode', () => {
+    const { api, audio } = mountStrict(MP3)
+    act(() => api.current.handleVolumeChange(0.4))
+    expect(audio.volume).toBe(0.4)
+    expect(api.current.volume).toBe(0.4)
   })
 })

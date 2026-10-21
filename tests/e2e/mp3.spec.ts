@@ -76,6 +76,28 @@ test( 'plays the OGG stream as a direct source', async ( { page } ) => {
 	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
 } );
 
+// Spec 0006, task 2.1: nothing else drives the volume slider in a browser.
+test( 'applies the volume slider to the audio element, before and after Play', async ( {
+	page,
+} ) => {
+	await page.goto( readSeed().urls.mp3 );
+	const slider = page.getByRole( 'slider', { name: 'Volume' } );
+	const volume = () =>
+		page.evaluate( () => document.querySelector( 'audio' )?.volume );
+
+	expect( await volume() ).toBe( 1 );
+	await slider.focus();
+	await page.keyboard.press( 'Home' );
+	await page.keyboard.press( 'ArrowRight' );
+	await expect( slider ).toHaveAttribute( 'aria-valuenow', '0.01' );
+	expect( await volume() ).toBe( 0.01 );
+
+	await startPlayback( page );
+
+	expect( await volume() ).toBe( 0.01 );
+	await expect( slider ).toHaveAttribute( 'aria-valuenow', '0.01' );
+} );
+
 test( 'currently resumes the live MP3 from the buffer after Pause and Play (C7)', async ( {
 	page,
 	browserName,

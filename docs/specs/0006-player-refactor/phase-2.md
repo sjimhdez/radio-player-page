@@ -40,10 +40,11 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
   - `audioRef` es la misma referencia en cada render.
   - El volumen cambiado sigue aplicado al `<audio>` después de otro render.
   - Fuera del hook, se revisa la lista de §4.4 (`intro`, `cross-origin`, `hls-dash`, `visualizers`). Si falta algo, se añade aquí con el mismo commit.
-- Archivos: `player/src/hooks/use-audio-player.test.tsx`.
+- Archivos: `player/src/hooks/use-audio-player.test.tsx`, `tests/e2e/mp3.spec.ts` (el *slider* de volumen, por la revisión de §4.4).
 - Test: caracterización. Cada caso se ve fallar con una mutación temporal del hook (por ejemplo, quitar el `removeEventListener` o crear el ref en cada render) que se revierte.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: 8 casos en `describe('lifecycle (spec 0006, 2.1)')`, con un `mountStrict()` local (el `Harness` no cambia). En `StrictMode`: un MP3 hace un `load()` y un `play()` y la pausa da `paused`; `playing`/`pause` del `<audio>` dan su estado; con bienvenida, un `ended` carga el directo una sola vez (un único manejador tras montar, desmontar y volver a montar); `hls.js` se crea, se engancha y se destruye una sola vez al desmontar; el volumen cambiado se aplica. Sin `StrictMode`: `audioRef` es la misma referencia tras `play()`, `pause()`, un cambio de volumen y un cambio de `streamUrl`, y el volumen sigue en el `<audio>` y en el estado tras otro render y tras `play()`. Mutaciones (revertidas): sin `removeEventListener('ended')` → 3 `load()` en vez de 2; `audioRef` como objeto nuevo en cada render → 6 casos en rojo (el de `audioRef` en `StrictMode` se reforzó: sin comprobar el `load()`, el `play()` memoizado salía antes con un ref sin enganchar y el caso pasaba); el efecto con `audio.volume = 1` → 2; sin `destroyPlayers()` al desmontar → 1. Fuera del hook (§4.4): `intro`, `cross-origin`, `hls-dash` y `visualizers` cubren la zona, pero ningún test movía el *slider* de volumen en un navegador. Nuevo en `mp3.spec.ts`: `applies the volume slider to the audio element, before and after Play` (Chromium y WebKit, en verde). Mutación: el `onChange` del *slider* reenvía el volumen actual → rojo en los dos (`aria-valuenow` 1); `dist/` reconstruido y restaurado idéntico. Sin rarezas nuevas. `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 2.2 Las dos sospechas de §4.5 contra el hook de hoy (≤ 1 h)
 - Qué:
