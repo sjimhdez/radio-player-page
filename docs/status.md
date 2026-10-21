@@ -2,12 +2,12 @@
 Spec activa: 0006 — Refactor del player · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0006-player-refactor/phase-1.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0006, fase 1 (cimientos, globales y tiempo), planificada el 2026-10-21: ADR 0029, frontera del núcleo en ESLint, umbrales, `core/config`, `core/clock`, `core/schedule`, `timezone.ts` con `import.meta.env.DEV` y K9. Nueve tareas (1.1–1.9). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
+- Spec 0006, fase 1 (cimientos, globales y tiempo), planificada el 2026-10-21: ADR 0029, frontera del núcleo en ESLint, umbrales, `core/config`, `core/clock`, `core/schedule`, `timezone.ts` con `import.meta.env.DEV` y K9. Nueve tareas (1.1–1.9), 1/9 hechas (1.1: ADR 0029). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
 - Spec 0005 cerrada y fusionada en `trunk` (PR #39, 2026-10-21).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.1 de la 0006: ADR 0029, `.claude/rules/player.md`, `SPEC.md` §3.8 y la corrección de A4/D5 en la spec.
-2. Tareas 1.2–1.9 en orden (`docs/specs/0006-player-refactor/phase-1.md`); después, `close-phase`.
+1. Tarea 1.2 de la 0006: frontera del núcleo en ESLint (con su mutación), umbrales de cobertura y línea base del gzip.
+2. Tareas 1.3–1.9 en orden (`docs/specs/0006-player-refactor/phase-1.md`); después, `close-phase`.
 3. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano
@@ -20,7 +20,7 @@ Spec activa: 0006 — Refactor del player · Fase: 1 en curso · Plan: [`phase-1
 
 ## Desviaciones de la spec (→ ADR)
 Spec 0006:
-- Fase 1 (plan): A4 pedía `grep -rn "process.env" player/src` vacío, pero los tests de caracterización `utils/timezone.test.ts` y `hooks/use-transmission-time.test.tsx` usan `process.env.TZ` y no se editan. A4 se limita al código publicado (`--exclude='*.test.*'`), y `"types": ["node"]` se queda en `tsconfig.app.json` porque lo usan esos tests (D5). Decidido por el usuario (2026-10-21); la spec se corrige en la 1.1.
+- Fase 1 (plan): A4 pedía `grep -rn "process.env" player/src` vacío, pero los tests de caracterización `utils/timezone.test.ts` y `hooks/use-transmission-time.test.tsx` usan `process.env.TZ` y no se editan. A4 se limita al código publicado (`--exclude='*.test.*'`), y `"types": ["node"]` se queda en `tsconfig.app.json` porque lo usan esos tests (D5). Decidido por el usuario (2026-10-21); corregido en la spec y en el ADR 0029 (1.1).
 
 Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md`, `phase-3.md` y `phase-4.md`; sin ADR, no cambian el contrato):
 - Fase 4 (revisión): sin efecto en los datos ni en lo observable sin filtros de terceros. `Migration\Legacy_Plan` sanea todos los programas (cada aparición) y emisoras antes de escribir nada; en la 3.4.2, una vez por programa único y cada emisora justo antes de insertarla. Sale la guarda `(int) $post_id > 0` de la reversión (inalcanzable: los IDs vienen de `wp_insert_post( …, true )`). `radplapag_on_upgrader_process_complete()` calcula `plugin_basename()` (sin filtro) antes de comprobar `action`/`type`, no después. `Upgrade_Policy::is_current()` recibe `string $target`: un `RADPLAPAG_DB_VERSION` entero definido fuera del plugin se compararía como cadena (fuera del contrato).

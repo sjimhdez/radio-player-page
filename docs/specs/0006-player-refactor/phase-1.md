@@ -37,7 +37,8 @@ Montar los cimientos del núcleo `player/src/core/`: ADR 0029, frontera en ESLin
 - Archivos: `docs/adr/0029-player-core-without-react.md`, `docs/adr/README.md`, `.claude/rules/player.md`, `SPEC.md`, `docs/specs/0006-player-refactor/spec.md`.
 - Test: — (documentación).
 - Verificación: `grep -n '0029' docs/adr/README.md && grep -n 'src/core/config' SPEC.md .claude/rules/player.md`
-- [ ] hecha · commit: —
+- Resultado: ADR 0029 aceptado (D1–D7, frontera de A2, adaptadores, `src/core/` interno, umbrales de A3) y en el índice. `SPEC.md` §3.8 «Configuración» nombra `src/core/config/` y lo marca interno; el historial (§6) lo actualiza la 3.4. `player.md`: «Frontera con WordPress» nombra `src/core/config/`, y la sección del refactor pasa a «Núcleo, hooks y componentes» (estructura, frontera, inyección, estado, hooks). Spec: A4 con `--exclude='*.test.*'` y D5 con `"types": ["node"]` que se queda; el estado ya era «en curso». `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 1.2 Frontera, umbrales y línea base del bundle (≤ 1 h)
 - Qué: en `player/eslint.config.js`, un bloque `files: ['src/core/**/*.ts']` con `no-restricted-imports` (paths `react`, `react-dom`, `i18next`, `react-i18next`, `src/config/i18n`; patterns `react/*`, `react-dom/*`, `@mui/*`, `@emotion/*`, `src/hooks/*`, `src/components/*`) y `no-restricted-globals` (`window`, `document`, `navigator`, `localStorage`), cada uno con su mensaje. Mutación: un `src/core/_probe.ts` temporal con `import 'react'` y `window` hace fallar `npm --prefix player run lint`, y después se borra. En `vitest.config.ts`, los umbrales de A3 (si el glob vacío falla, el de `src/core/**` entra en la 1.3; se anota). Tabla del gzip de `player/dist/*.{js,css}` (`gzip -9c <f> | wc -c`) en el «Resultado:».

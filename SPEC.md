@@ -160,7 +160,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 
 ### 3.8 Reproductor (comportamiento)
 
-- **Configuración:** `hooks/use-config.tsx` lee y valida las tres globales; es la única puerta de entrada de datos.
+- **Configuración:** `hooks/use-config.tsx` lee las tres globales (una vez por montaje), las valida con `src/core/config/` y las expone; es la única puerta de entrada de datos. `src/core/` es **interno**, no es contrato (ADR 0029).
 - **Protocolo por la extensión de la URL:** termina en `.m3u8` → HLS; termina en `.mpd` → DASH; cualquier otra → audio directo (MP3/OGG, Icecast, Shoutcast).
   - HLS: nativo en iOS; con `hls.js` en el resto si lo soporta (empieza al recibir el manifiesto); si no, nativo como alternativa.
   - DASH: `dashjs` con autoplay.
