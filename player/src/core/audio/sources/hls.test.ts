@@ -1,6 +1,6 @@
 // The hls source (spec 0006, task 2.4), as in src/hooks/use-audio-player.test.tsx:
 // hls.js on non-iOS when supported, native HLS through the direct source otherwise.
-// K70: crossOrigin is left as it is on the hls.js path (fixed in task 2.9).
+// K70 (fixed in task 2.9): the hls.js path leaves crossOrigin unset (ADR 0004).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createHlsSource, loadHlsModule } from 'src/core/audio/sources/hls'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -64,13 +64,13 @@ describe('createHlsSource', () => {
     expect(cbs.onError).toHaveBeenCalledTimes(1)
   })
 
-  it('currently keeps crossOrigin anonymous on the hls.js path after a direct source (K70)', async () => {
+  it('clears crossOrigin on the hls.js path after a direct source (K70)', async () => {
     const fake = createFakeHls()
     const audio = new Audio()
     audio.crossOrigin = 'anonymous'
     await createHlsSource({ loadHls: fake.loadHls, isIOS: false }).start(audio, HLS, callbacks())
     expect(fake.instances[0].attachMedia).toHaveBeenCalledWith(audio)
-    expect(audio.crossOrigin).toBe('anonymous')
+    expect(audio.crossOrigin).toBeNull()
   })
 
   it('falls back to native HLS with crossOrigin when hls.js is not supported', async () => {

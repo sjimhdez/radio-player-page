@@ -593,7 +593,7 @@ describe('audit (spec 0002, 4.6)', () => {
     expect(api.current.status).toBe('playing')
   })
 
-  it('currently keeps crossOrigin anonymous on the hls.js path after the welcome audio (K70)', async () => {
+  it('clears crossOrigin on the hls.js path after the welcome audio (K70)', async () => {
     const { api, audio } = mount(HLS, INTRO)
     await act(() => api.current.play())
 
@@ -603,7 +603,20 @@ describe('audit (spec 0002, 4.6)', () => {
 
     expect(hls.instances).toHaveLength(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
-    expect(audio.crossOrigin).toBe('anonymous')
+    expect(audio.crossOrigin).toBeNull()
+  })
+
+  it('clears crossOrigin on the dashjs path after the welcome audio (K70)', async () => {
+    const { api, audio } = mount(DASH, INTRO)
+    await act(() => api.current.play())
+
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+
+    expect(dash.players).toHaveLength(1)
+    expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, DASH, true)
+    expect(audio.crossOrigin).toBeNull()
   })
 })
 

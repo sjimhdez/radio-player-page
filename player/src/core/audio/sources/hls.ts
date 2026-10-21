@@ -14,7 +14,7 @@ export async function loadHlsModule(): Promise<HlsClass> {
 /**
  * Creates the source for .m3u8 streams. iOS plays HLS natively through the direct
  * source; elsewhere hls.js is used when supported, with the direct source as fallback.
- * On the hls.js path crossOrigin is left as it is (docs/known-issues.md K70).
+ * On the hls.js path crossOrigin is cleared (ADR 0004, docs/known-issues.md K70).
  *
  * @param options.loadHls - Loader of the Hls class (hls.js by default)
  * @param options.isIOS - Whether the device is iOS, read when the source is created
@@ -42,6 +42,9 @@ export function createHlsSource({
       // hls.js 1.7 defaults to classic MediaSource; keep ManagedMediaSource as in 3.4.2.
       const instance = new Hls({ preferManagedMediaSource: true })
       hls = instance
+      // MSE path: no crossOrigin, even after a direct source such as the intro.
+      // Same as crossOrigin = null, which happy-dom stores as the invalid "null".
+      audio.removeAttribute('crossorigin')
       instance.loadSource(url)
       instance.attachMedia(audio)
       instance.on(Hls.Events.MANIFEST_PARSED, () => {

@@ -1,6 +1,7 @@
 // The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
 // of the audio element, the volume, HLS/DASH and the welcome audio, as in
-// src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K12, K63, K64, K70).
+// src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K12, K63, K64)
+// and the K70 regression cases (task 2.9).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAudioController } from 'src/core/audio/audio-controller'
 import { initialPlayerState } from 'src/core/audio/player-machine'
@@ -506,6 +507,27 @@ describe('welcome audio (intro)', () => {
     expect(audio.src).toBe(MP3)
     expect(controller.getSnapshot().introConsumed).toBe(false)
   })
+
+  // docs/known-issues.md K70, fixed in task 2.9 (ADR 0004)
+  it('clears crossOrigin on the hls.js path after the welcome audio (K70)', async () => {
+    const hls = createFakeHls()
+    const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(withIntro(HLS))
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(hls.instances).toHaveLength(1))
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    expect(audio.crossOrigin).toBeNull()
+  })
+
+  it('clears crossOrigin on the dashjs path after the welcome audio (K70)', async () => {
+    const dash = createFakeDash()
+    const { controller, audio } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(withIntro(DASH))
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(dash.players).toHaveLength(1))
+    expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, DASH, true)
+    expect(audio.crossOrigin).toBeNull()
+  })
 })
 
 describe('currently (docs/known-issues.md)', () => {
@@ -569,16 +591,6 @@ describe('currently (docs/known-issues.md)', () => {
     await Promise.resolve()
     expect(media.play).toHaveBeenCalledTimes(1)
     expect(controller.getSnapshot().status).toBe('playing')
-  })
-
-  it('currently keeps crossOrigin anonymous on the hls.js path after the welcome audio (K70)', async () => {
-    const hls = createFakeHls()
-    const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
-    await controller.play(withIntro(HLS))
-    audio.dispatchEvent(new Event('ended'))
-    await vi.waitFor(() => expect(hls.instances).toHaveLength(1))
-    expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
-    expect(audio.crossOrigin).toBe('anonymous')
   })
 })
 

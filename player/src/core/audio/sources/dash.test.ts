@@ -1,5 +1,5 @@
 // The dash source (spec 0006, task 2.4), as in src/hooks/use-audio-player.test.tsx:
-// dashjs with autoplay. K70: crossOrigin is left as it is (fixed in task 2.9).
+// dashjs with autoplay. K70 (fixed in task 2.9): crossOrigin is left unset (ADR 0004).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDashSource, loadDashModule } from 'src/core/audio/sources/dash'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -37,12 +37,12 @@ describe('createDashSource', () => {
     expect(cbs.onPlayRejected).not.toHaveBeenCalled()
   })
 
-  it('currently keeps crossOrigin anonymous after a direct source (K70)', async () => {
+  it('clears crossOrigin after a direct source (K70)', async () => {
     const fake = createFakeDash()
     const audio = new Audio()
     audio.crossOrigin = 'anonymous'
     await createDashSource({ loadDash: fake.loadDash }).start(audio, DASH, callbacks())
-    expect(audio.crossOrigin).toBe('anonymous')
+    expect(audio.crossOrigin).toBeNull()
   })
 
   it('destroy() resets the player once, and does nothing before start()', async () => {
