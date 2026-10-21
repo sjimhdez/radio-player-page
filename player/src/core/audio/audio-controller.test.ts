@@ -1,7 +1,8 @@
 // The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
 // of the audio element, the volume, HLS/DASH and the welcome audio, as in
 // src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K12, K63, K64)
-// and the K70 regression cases (task 2.9).
+// and the K70 regression cases (task 2.9). The concurrency suspicions of §4.5 come
+// last (task 2.10).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAudioController } from 'src/core/audio/audio-controller'
 import { initialPlayerState } from 'src/core/audio/player-machine'
@@ -616,5 +617,64 @@ describe('volume', () => {
     const controller = createAudioController()
     controller.setVolume(0.5, desktop)
     expect(controller.getSnapshot().volume).toBe(1)
+  })
+})
+
+// Concurrency suspicions of the 0002 triage (spec 0006 §4.5, D7), as in the
+// 'concurrency (spec 0006, 2.2)' cases of src/hooks/use-audio-player.test.tsx.
+describe('concurrency (spec 0006, 2.10)', () => {
+  // docs/known-issues.md K80: a second play() while hls.js loads gets the pending
+  // play(), so only one Hls is created, as with a single call.
+  it('keeps a single hls.js alive after a second play() while it loads (K80)', async () => {
+    const hls = createFakeHls()
+    let resolveLoader!: () => void
+    const loaded = new Promise<void>((resolve) => {
+      resolveLoader = resolve
+    })
+    const loadHls = vi.fn(async () => {
+      await loaded
+      return hls.Hls
+    })
+    const { controller, audio } = setup({ loaders: { loadHls } })
+    const first = controller.play(live(HLS))
+    const second = controller.play(live(HLS))
+    resolveLoader()
+    await Promise.all([first, second])
+
+    expect(second).toBe(first)
+    expect(loadHls).toHaveBeenCalledTimes(1)
+    expect(hls.instances).toHaveLength(1)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledTimes(1)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+
+    controller.dispose()
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+  })
+
+  it('starts a new play() once the previous one has settled', async () => {
+    const hls = createFakeHls()
+    const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(live(HLS))
+    controller.pause()
+    await controller.play(live(HLS))
+    // K12: the resume recreates hls.js, so the second play() was not deduplicated.
+    expect(hls.instances).toHaveLength(2)
+  })
+
+  // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
+  // when pause() interrupts it. Fixed in spec 0007.
+  it('currently reports an error when a pause interrupts the loading MP3 (K81)', async () => {
+    media.hold = true
+    const { controller } = setup()
+    const playing = controller.play(live())
+    controller.pause()
+    expect(controller.getSnapshot().status).toBe('paused')
+
+    media.fail('AbortError')
+    await playing
+
+    // The UI shows "Unable to play the stream" instead of Play.
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
   })
 })

@@ -34,7 +34,10 @@ export interface AudioController {
   detach: () => void
   /** Destroys the current source. */
   dispose: () => void
-  /** Starts the welcome audio or the live stream, or resumes the live stream. */
+  /**
+   * Starts the welcome audio or the live stream, or resumes the live stream. While a
+   * play() is pending, the next one returns its promise (docs/known-issues.md K80).
+   */
   play: (options: PlayOptions) => Promise<void>
   /** Pauses playback. */
   pause: () => void
@@ -65,6 +68,8 @@ export function createAudioController({
   let source: AudioSource | null = null
   // The options of the play() that started the welcome audio, for 'ended'.
   let introOptions: PlayOptions | null = null
+  // The pending play(), returned to the calls made before it settles (D7).
+  let pendingPlay: Promise<void> | null = null
 
   const dispatch = (event: PlayerEvent) => {
     const next = transition(state, event)
@@ -125,6 +130,57 @@ export function createAudioController({
     dispatch({ type: event.type as Exclude<(typeof AUDIO_EVENTS)[number], 'ended'> })
   }
 
+  /**
+   * Runs one play(): the welcome audio, the resume or the load of the live stream.
+   */
+  const startPlay = async (options: PlayOptions) => {
+    const { streamUrl, introUrl, isIOS } = options
+    const element = audio
+    if (element === null) return
+
+    if (state.activeSource === null && introUrl && !state.introConsumed) {
+      introOptions = options
+      dispatch({ type: 'intro-started' })
+      try {
+        dispatch({ type: 'load-start' })
+        await createDirectSource().start(element, introUrl, {
+          onError: () => {},
+          onPlayRejected: () => {},
+        })
+        dispatch({ type: 'resumed' })
+      } catch {
+        // The welcome audio failed: the live stream follows, as if it had ended.
+        await advanceToLive(element, options)
+      } finally {
+        dispatch({ type: 'load-end' })
+      }
+      return
+    }
+
+    // The welcome audio is playing: pause() is blocked, so there is nothing to do.
+    if (state.activeSource === 'intro') return
+
+    // Resume the loaded live stream if it is the same and did not fail; otherwise
+    // (first play, after an error, after a stream change) load it.
+    const resume =
+      state.activeSource !== null && element.src === streamUrl && state.status !== 'error'
+    try {
+      dispatch({ type: 'load-start' })
+      if (resume) {
+        if (element.paused) {
+          await element.play()
+          dispatch({ type: 'resumed' })
+        }
+        return
+      }
+      await playLive(element, streamUrl, isIOS)
+    } catch {
+      dispatch({ type: 'play-failed' })
+    } finally {
+      dispatch({ type: 'load-end' })
+    }
+  }
+
   const detach = () => {
     if (audio === null) return
     for (const type of AUDIO_EVENTS) audio.removeEventListener(type, onAudioEvent)
@@ -150,52 +206,13 @@ export function createAudioController({
       source?.destroy()
       source = null
     },
-    async play(options) {
-      const { streamUrl, introUrl, isIOS } = options
-      const element = audio
-      if (element === null) return
-
-      if (state.activeSource === null && introUrl && !state.introConsumed) {
-        introOptions = options
-        dispatch({ type: 'intro-started' })
-        try {
-          dispatch({ type: 'load-start' })
-          await createDirectSource().start(element, introUrl, {
-            onError: () => {},
-            onPlayRejected: () => {},
-          })
-          dispatch({ type: 'resumed' })
-        } catch {
-          // The welcome audio failed: the live stream follows, as if it had ended.
-          await advanceToLive(element, options)
-        } finally {
-          dispatch({ type: 'load-end' })
-        }
-        return
+    play(options) {
+      if (pendingPlay === null) {
+        pendingPlay = startPlay(options).finally(() => {
+          pendingPlay = null
+        })
       }
-
-      // The welcome audio is playing: pause() is blocked, so there is nothing to do.
-      if (state.activeSource === 'intro') return
-
-      // Resume the loaded live stream if it is the same and did not fail; otherwise
-      // (first play, after an error, after a stream change) load it.
-      const resume =
-        state.activeSource !== null && element.src === streamUrl && state.status !== 'error'
-      try {
-        dispatch({ type: 'load-start' })
-        if (resume) {
-          if (element.paused) {
-            await element.play()
-            dispatch({ type: 'resumed' })
-          }
-          return
-        }
-        await playLive(element, streamUrl, isIOS)
-      } catch {
-        dispatch({ type: 'play-failed' })
-      } finally {
-        dispatch({ type: 'load-end' })
-      }
+      return pendingPlay
     },
     pause() {
       // The welcome audio cannot be paused.

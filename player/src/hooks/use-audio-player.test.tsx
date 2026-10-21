@@ -730,14 +730,14 @@ describe('lifecycle (spec 0006, 2.1)', () => {
 })
 
 // Concurrency suspicions of the 0002 triage (spec 0006 §4.5, task 2.2), against the
-// hook of today. The core answers them again in task 2.10.
+// hook of today. The core answers them again in task 2.10, which fixes K80.
 describe('concurrency (spec 0006, 2.2)', () => {
-  // docs/known-issues.md K80: both calls run destroyPlayers() before either creates
-  // its hls.js. Two play() in the same tick cannot be tested here: while an import()
-  // of a vi.mock'ed module is in flight, the next one resolves to the real module
-  // (Vitest 5.0.5). The second play() comes in the same window instead: the first
-  // one has loaded hls.js and has not created its instance yet.
-  it('currently leaves the first hls.js alive after a second play() while it loads (K80)', async () => {
+  // docs/known-issues.md K80, fixed in the audio controller (task 2.10): the second
+  // play() gets the pending one. Two play() in the same tick cannot be tested here:
+  // while an import() of a vi.mock'ed module is in flight, the next one resolves to
+  // the real module (Vitest 5.0.5). The second play() comes in the same window
+  // instead: the first one has loaded hls.js and has not created its instance yet.
+  it('keeps a single hls.js alive after a second play() while it loads (K80)', async () => {
     const { api, audio, unmount } = mount(HLS)
     let second!: Promise<void>
     hls.onSupported = () => {
@@ -749,15 +749,14 @@ describe('concurrency (spec 0006, 2.2)', () => {
       await second
     })
 
-    expect(hls.instances).toHaveLength(2)
+    // The same as a single call: one instance, attached once.
+    expect(hls.instances).toHaveLength(1)
+    expect(hls.instances[0].attachMedia).toHaveBeenCalledTimes(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
-    expect(hls.instances[1].attachMedia).toHaveBeenCalledWith(audio)
-    expect(hls.instances[0].destroy).not.toHaveBeenCalled()
+    expect(api.current.status).toBe('playing')
 
-    // Only the second one is referenced: unmounting never destroys the first.
     unmount()
-    expect(hls.instances[0].destroy).not.toHaveBeenCalled()
-    expect(hls.instances[1].destroy).toHaveBeenCalledTimes(1)
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
   })
 
   // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
