@@ -8,8 +8,9 @@ import { audioState, startPlayback } from './support/player';
  * endless live MP3 so the stream never ends on its own.
  */
 
-// About 1800 page round trips per case: over the default timeout in WebKit CI.
-test.slow();
+// About 1800 page round trips per case: 1–1.6 min in WebKit CI, past the 90 s
+// of `test.slow()`.
+test.describe.configure( { timeout: 3 * 60 * 1000 } );
 
 // The shortest option, "30 mins": the timer pauses on its 1800th tick.
 const SHORTEST_SECONDS = 30 * 60;
@@ -84,8 +85,6 @@ async function expectPlaying( page: Page ) {
 test( 'counts down and pauses when the shortest option runs out', async ( {
 	page,
 } ) => {
-	// 1800 ticks take 1.1–1.6 min in WebKit CI: past the 90 s of `test.slow()`.
-	test.setTimeout( 3 * 60 * 1000 );
 	await openPlaying( page );
 	await setShortestTimer( page );
 
