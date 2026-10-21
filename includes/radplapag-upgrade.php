@@ -21,38 +21,33 @@ if ( ! defined( 'RADPLAPAG_DB_VERSION' ) ) {
  * that used `radplapag_settings`, not only 3.2.0).
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::has_migratable_stations().
  * @return bool
  */
 function radplapag_legacy_has_migratable_stations(): bool {
-	$raw = get_option( 'radplapag_settings', null );
-	if ( ! is_array( $raw ) || ! isset( $raw['stations'] ) || ! is_array( $raw['stations'] ) ) {
-		return false;
-	}
-	return count( $raw['stations'] ) > 0;
+	return \RadioPlayerPage\Upgrade\Upgrade_Policy::has_migratable_stations( get_option( 'radplapag_settings', null ) );
 }
 
 /**
  * Counts published radplapag_station posts.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::published_count().
  * @return int
  */
 function radplapag_count_published_stations(): int {
-	$counts = wp_count_posts( 'radplapag_station' );
-	if ( ! $counts || ! isset( $counts->publish ) ) {
-		return 0;
-	}
-	return (int) $counts->publish;
+	return \RadioPlayerPage\Upgrade\Upgrade_Policy::published_count( wp_count_posts( 'radplapag_station' ) );
 }
 
 /**
  * Sets radplapag_db_version when no legacy data remains to migrate.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current().
  * @return void
  */
 function radplapag_ensure_schema_version_option(): void {
-	if ( get_option( 'radplapag_db_version' ) === RADPLAPAG_DB_VERSION ) {
+	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::is_current( get_option( 'radplapag_db_version' ), RADPLAPAG_DB_VERSION ) ) {
 		return;
 	}
 	if ( ! radplapag_legacy_has_migratable_stations() ) {
@@ -87,13 +82,15 @@ function radplapag_migration_resolve_author_user_id(): int {
  * Clears conflict flag when no published stations block migration anymore.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::should_clear_conflict(); counts the stations only when the flag is set.
  * @return void
  */
 function radplapag_maybe_clear_migration_conflict_flag(): void {
-	if ( ! get_option( 'radplapag_migration_skipped_cpt_conflict' ) ) {
+	$flag = get_option( 'radplapag_migration_skipped_cpt_conflict' );
+	if ( ! $flag ) {
 		return;
 	}
-	if ( radplapag_count_published_stations() === 0 ) {
+	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::should_clear_conflict( $flag, radplapag_count_published_stations() ) ) {
 		delete_option( 'radplapag_migration_skipped_cpt_conflict' );
 	}
 }
@@ -102,6 +99,7 @@ function radplapag_maybe_clear_migration_conflict_flag(): void {
  * Runs legacy migration if needed (idempotent; uses transient lock).
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current().
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed(): void {
@@ -109,7 +107,7 @@ function radplapag_run_legacy_migration_if_needed(): void {
 		return;
 	}
 
-	if ( get_option( 'radplapag_db_version' ) === RADPLAPAG_DB_VERSION ) {
+	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::is_current( get_option( 'radplapag_db_version' ), RADPLAPAG_DB_VERSION ) ) {
 		return;
 	}
 	if ( ! radplapag_legacy_has_migratable_stations() ) {
@@ -171,23 +169,14 @@ function radplapag_schedule_legacy_migration(): void {
  * Fires migration after this plugin was updated via the upgrader.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_this_plugin_update().
  * @param WP_Upgrader $upgrader Upgrader instance (unused).
  * @param array       $options  Hook arguments.
  * @return void
  */
 function radplapag_on_upgrader_process_complete( $upgrader, array $options ): void {
-	if ( ! isset( $options['action'], $options['type'] ) || 'update' !== $options['action'] || 'plugin' !== $options['type'] ) {
-		return;
-	}
-	if ( empty( $options['plugins'] ) || ! is_array( $options['plugins'] ) ) {
-		return;
-	}
-	$basename = plugin_basename( RADPLAPAG_PLUGIN_FILE );
-	foreach ( $options['plugins'] as $plugin ) {
-		if ( $plugin === $basename ) {
-			radplapag_schedule_legacy_migration();
-			return;
-		}
+	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::is_this_plugin_update( $options, plugin_basename( RADPLAPAG_PLUGIN_FILE ) ) ) {
+		radplapag_schedule_legacy_migration();
 	}
 }
 

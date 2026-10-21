@@ -217,12 +217,6 @@ parameters:
 			path: includes/radplapag-upgrade.php
 
 		-
-			message: '#^Negated boolean expression is always false\.$#'
-			identifier: booleanNot.alwaysFalse
-			count: 1
-			path: includes/radplapag-upgrade.php
-
-		-
 			message: '#^Function radplapag_enqueue_now_playing_block_editor_assets\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1

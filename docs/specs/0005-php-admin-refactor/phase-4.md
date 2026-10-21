@@ -78,7 +78,8 @@ Mover el plan de la migración heredada y las decisiones de la actualización al
 - Archivos: `includes/radplapag-upgrade.php`, `phpstan-baseline.neon`.
 - Test: caracterización: `UpgradeFlowTest`, `MigrationGoldenTest`, `HooksTest`, `PublicApiTest`, sin cambios.
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest|HooksTest|PublicApiTest' && npm run lint:php && npm run lint:phpstan`
-- [ ] hecha · commit: —
+- [x] hecha · commit: (este)
+- Resultado: los seis callbacks llaman a `Upgrade\Upgrade_Policy` con un `@since 3.5.0` que lo dice; firmas, ganchos y secuencia de lecturas y escrituras sin cambios. `radplapag_maybe_clear_migration_conflict_flag()` sigue saliendo antes de contar emisoras si la bandera no está puesta (la pereza de la lectura se conserva), y `radplapag_run_legacy_migration_if_needed()` mantiene el `> 0` de las emisoras publicadas, que no tiene predicado. Avisos, descarte y autor sin tocar. Sale de la baseline el `booleanNot.alwaysFalse` de `radplapag_count_published_stations()`; se queda el de la firma de `radplapag_on_upgrader_process_complete()`. 74 tests en verde (`UpgradeFlowTest`, `MigrationGoldenTest`, `HooksTest`, `PublicApiTest`) sin tocarlos.
 
 ### 4.7 Cobertura y baseline de la fase (≤ 1 h)
 - Qué: mide en `env:start:latest -- --xdebug=coverage`: `core` ≥ 90 % (con `Migration\*` y `Upgrade\*`), `critical` con el escritor; comprueba que `php-zones.json` cubre todo el código nuevo de la spec, caracteriza lo que falte y que la baseline solo ha bajado frente a `trunk`.
