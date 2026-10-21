@@ -1,6 +1,6 @@
 # ADR 0029 — Núcleo del player en `src/core/` sin React
 
-- Estado: aceptado · Fecha: 2026-10-21 · Spec: 0006 (fase 1)
+- Estado: aceptado · Fecha: 2026-10-21 · Spec: 0006 (fase 1) · D2 enmendado para `useAudioPlayer()` por el [ADR 0030](0030-audio-hook-keeps-react-render-priorities.md)
 
 ## Contexto
 La lógica del player vive dentro de los hooks y de los componentes. `hooks/use-audio-player.tsx` (364 líneas) mezcla en `useCallback` y `useEffect` la detección del protocolo, la carga de `hls.js` y `dashjs`, el `crossOrigin`, la bienvenida y un estado repartido entre `useState` y cinco refs. La cuenta atrás del sueño está en `SleepMode.tsx`, con cinco efectos que se sincronizan con el padre. El reloj por minuto se repite en `use-program-schedule` y `use-transmission-time`, y la lectura de las globales (`use-config`) solo se prueba montando un hook. Quedan seis excepciones de `react-hooks` 7 de la 0003 que remiten a la 0006 (`dashboard/index.tsx`, `SleepMode.tsx`, `use-program-schedule.tsx`, `use-is-ios.tsx` y dos en el `Harness` de `use-audio-player.test.tsx`), y `utils/timezone.ts` lee `process.env.NODE_ENV` cuatro veces.

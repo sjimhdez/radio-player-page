@@ -1,5 +1,5 @@
 # Spec 0006 · Fase 2 — Audio
-Estado: en curso · Inicio: 2026-10-21 · ADRs: 0004, 0013, 0017, 0018, 0021, 0029
+Estado: en curso · Inicio: 2026-10-21 · ADRs: 0004, 0013, 0017, 0018, 0021, 0029, 0030
 
 ## Contexto (medido al planificar)
 
@@ -17,7 +17,7 @@ Estado: en curso · Inicio: 2026-10-21 · ADRs: 0004, 0013, 0017, 0018, 0021, 00
 
 ## Objetivo
 
-Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/core/audio/` con TDD. Ahí van la detección del protocolo, las fuentes `direct`, `hls` y `dash`, una función de transición pura y un controlador que ejecuta los efectos y publica una instantánea. `useAudioPlayer()` queda como adaptador con `useSyncExternalStore`, con la misma firma y el mismo valor devuelto. El `Harness` del test pierde sus dos excepciones (D5), K70 queda corregido y las dos sospechas de §4.5 quedan respondidas.
+Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/core/audio/` con TDD. Ahí van la detección del protocolo, las fuentes `direct`, `hls` y `dash`, una función de transición pura y un controlador que ejecuta los efectos y publica una instantánea. `useAudioPlayer()` queda como adaptador del controlador (con `useState` + `subscribe()` desde la 2.11, ADR 0030), con la misma firma y el mismo valor devuelto. El `Harness` del test pierde sus dos excepciones (D5), K70 queda corregido y las dos sospechas de §4.5 quedan respondidas.
 
 ## Criterios de aceptación
 
@@ -27,7 +27,7 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 | A2 Frontera del núcleo | El bloque de `src/core/**` de `eslint.config.js` cubre `core/audio/**` sin excepciones. `grep -rn "eslint-disable" player/src/core` vacío |
 | A3 Cobertura | `npm --prefix player run test:coverage`: `src/core/**` ≥ 90 % de líneas y ≥ 85 % de ramas; `src/hooks/**` ≥ 85 % de líneas |
 | A4 (parcial) | `grep -n "eslint-disable" player/src/hooks/use-audio-player.test.tsx player/src/hooks/use-audio-player.tsx` vacío |
-| A5 Assets y bundle | `npm run check:zip`. En `manifest.json`, `hls.mjs` y `dash.all.min.js` siguen con `isDynamicEntry: true`. Tabla del gzip frente a `origin/trunk` en el «Resultado:» de la 2.11; si un archivo crece más de un 10 %, se pregunta |
+| A5 Assets y bundle | `npm run check:zip`. En `manifest.json`, `hls.mjs` y `dash.all.min.js` siguen con `isDynamicEntry: true`. Tabla del gzip frente a `origin/trunk` en el «Resultado:» de la 2.12; si un archivo crece más de un 10 %, se pregunta |
 | A6 Zona congelada | `git diff origin/trunk -- player/src/components/visualizers player/src/config/visualizers.ts player/src/types/visualizers.tsx player/src/hooks/use-audio-visualizer.tsx player/src/hooks/use-can-visualize.tsx` vacío |
 | A7 (K70) | El `currently` de K70 pasa a regresión: en rojo antes del arreglo, verde después. La fila K70 pasa a «corregido (spec 0006)» |
 | A8 Sospechas | Un test del hook (2.2) y uno del núcleo (2.10) por cada sospecha, más el e2e de la sospecha 2 en `mp3.spec.ts` (Chromium y WebKit). Filas K80 y K81 en `known-issues.md` con su estado y su decisión |
@@ -155,7 +155,19 @@ Sacar la lógica del audio de `use-audio-player.tsx` y llevarla a `player/src/co
 - Resultado: K80 se corrige con `fix-bug`. En `audio-controller.test.ts`, `describe('concurrency (spec 0006, 2.10)')` con 3 casos: `keeps a single hls.js alive after a second play() while it loads (K80)` (cargador diferido que se resuelve tras el segundo `play()`: la misma promesa, un `loadHls()`, una `Hls` enganchada una vez, `playing` y un `destroy()` al `dispose()`); `starts a new play() once the previous one has settled` (la serialización no toca K12: tras pausar, el siguiente `play()` recrea `hls.js`); y el `currently` de K81 replicado (`pause()` y después `AbortError` dejan `error` y `loading` falso). Rojo primero: `expected "vi.fn()" to be called 1 times, but got 2 times` (dos `loadHls()`). En el hook, el `currently` de K80 pasa a regresión con el mismo nombre sin `currently` (una instancia, enganchada una vez, `playing`, un `destroy()` al desmontar); con el controlador de la 2.9 da `expected [ FakeHls, FakeHls ] to have a length of 1 but got 2`. Arreglo: `play()` guarda la promesa en curso (`pendingPlay`) y la devuelve hasta que se resuelve; el cuerpo de antes pasa a `startPlay()` sin cambios. Sin `??=` (`build.target` ES2020). El resultado visible es el de una única llamada (D7); K11, K12 y K81 siguen igual. Filas K80 → «corregido (spec 0006)» y K81 apunta también al test del núcleo. `npm run check` en verde y `dist/` reconstruido. E2E de la zona (`hls-dash`, `mp3`, `intro`, Chromium y WebKit): 25 en verde y 1 en rojo, el de `intro.spec.ts` de la regresión de la 2.8 (Bloqueos), que ya fallaba antes. Sin nota de changelog: K80 no se veía (la `Hls` sobrante solo duplicaba la carga).
 - [x] hecha · commit: (este)
 
-### 2.11 Verificación de la fase (≤ 1 h)
+### 2.11 Regresión de la 2.8: el orden de los renders del audio (ADR 0030) (≤ 1 h)
+- Origen: tarea nueva, decidida por el usuario el 2026-10-21 tras la 2.10. En la 2.9 se midió que, desde la 2.8, en Chromium fallan dos e2e: `cross-origin.spec.ts` (`currently does not play an MP3 without CORS, with no error shown in Chromium (C1, K1)`) e `intro.spec.ts` (`falls through to the live stream without an error when the welcome audio is broken`).
+- Qué:
+  - Una sonda temporal en Chromium mide el orden de `error`, el rechazo de `play()`, `pause` y la alerta frente a microtareas y tareas.
+  - El ADR 0030 enmienda D2 para `useAudioPlayer()`. La rule `player.md` y la spec (D2 y riesgo 1) lo nombran.
+  - Un test de regresión en el hook: un `error` (con el rechazo de `play()`) seguido de un `pause` tras las microtareas no llega a pintar `error`. Rojo con `useSyncExternalStore`, verde con el hook de la 2.7 (`f777fa8`).
+  - El arreglo: `useState(controller.getSnapshot)` y un `useEffect` con `controller.subscribe()`, con el `setState` en el *callback*.
+- Archivos: `docs/adr/0030-audio-hook-keeps-react-render-priorities.md`, `docs/adr/0029-player-core-without-react.md` (línea de estado), `docs/adr/README.md`, `.claude/rules/player.md`, `docs/specs/0006-player-refactor/spec.md`, `player/src/hooks/use-audio-player.tsx`, `player/src/hooks/use-audio-player.test.tsx`, `player/dist/`.
+- Test: regresión primero, en rojo.
+- Verificación: `npm --prefix player run check && npm --prefix player run build && npx playwright test tests/e2e/cross-origin.spec.ts tests/e2e/intro.spec.ts`
+- [ ] hecha · commit: —
+
+### 2.12 Verificación de la fase (≤ 1 h)
 - Qué:
   - `npm run check`.
   - `npm run test:e2e` en `env:start:min` y en `env:start:latest`.
