@@ -84,6 +84,8 @@ async function expectPlaying( page: Page ) {
 test( 'counts down and pauses when the shortest option runs out', async ( {
 	page,
 } ) => {
+	// 1800 ticks take 1.1–1.6 min in WebKit CI: past the 90 s of `test.slow()`.
+	test.setTimeout( 3 * 60 * 1000 );
 	await openPlaying( page );
 	await setShortestTimer( page );
 
@@ -140,7 +142,12 @@ test( 'currently cancels the timer when the welcome audio hands over to the live
 		return !! audio && /intro/.test( audio.src ) && audio.currentTime > 0.2;
 	} );
 	await page.getByRole( 'button', { name: 'Sleep mode' } ).click();
-	await page.getByRole( 'menuitem', { name: '30 mins' } ).click();
+	// The 2 s welcome audio can end while the menu is still opening (about
+	// 650 ms in WebKit CI). `force` skips the wait for the animation to settle.
+	// Any `playbackRate` change stalls the audio in WebKit.
+	await page
+		.getByRole( 'menuitem', { name: '30 mins' } )
+		.click( { force: true } );
 	await expect(
 		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
 	).toBeVisible();

@@ -1,11 +1,11 @@
 # Estado
-Spec activa: 0006 — Refactor del player · Fase: cerrada (1–3, el 2026-10-21; A9 aprobado; PR #40 mergeado en `trunk`) · Plan: [`phase-3.md`](specs/0006-player-refactor/phase-3.md) · Actualizado: 2026-10-21
+Spec activa: 0006 — Refactor del player · Fase: cerrada (1–3, el 2026-10-21; A9 aprobado; PR #40 listo, pendiente de merge en `trunk`) · Plan: [`phase-3.md`](specs/0006-player-refactor/phase-3.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0006 (Refactor del player) cerrada el 2026-10-21: fases 1, 2 y 3 ([`spec.md`](specs/0006-player-refactor/spec.md)). El usuario aprobó la revisión visual (A9) el 2026-10-21; PR #40 mergeado en `trunk`.
+- Spec 0006 (Refactor del player) cerrada el 2026-10-21: fases 1, 2 y 3 ([`spec.md`](specs/0006-player-refactor/spec.md)). El usuario aprobó la revisión visual (A9) el 2026-10-21. PR #40 listo; el merge espera a la CI en verde sin reintentos en `sleep.spec.ts` (3.12).
 
 ## Siguiente (máx. 5)
-1. Sesión de diseño → `write-spec` de la 0007 (correcciones de reproducción), que arranca la pista del player (`docs/specs/README.md`).
+1. Tras el merge de la 0006: sesión de diseño → `write-spec` de la 0007 (correcciones de reproducción), que arranca la pista del player (`docs/specs/README.md`).
 2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree.
 
 ## Bloqueos / preguntas para el humano

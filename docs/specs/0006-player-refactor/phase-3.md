@@ -156,6 +156,14 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Resultado: A9 en «Verificación manual pendiente» de `docs/status.md`. `SPEC.md` §6 con la fila de la 0006 (sin cambios de contrato; `src/core/` interno; K9, K14, K70 y K80 corregidos; ADRs 0029 y 0030). En `docs/specs/README.md`, «Dónde queda cada corrección del player tras la 0006», con la 0007, la 0009 y la 0011. En `docs/known-issues.md`, la columna de archivo de C1, C2, C7, C8, K1, K11, K12, K18, K63–K67 y K81 apunta también al núcleo (`desde la 0006, …`). La tabla del bundle para el PR es la de la 3.10 (frente a `origin/trunk`, así que cubre la spec entera). `npm run check` en verde.
 - [x] hecha · commit: `5529f21`
 
+### 3.12 Los e2e del sueño, al límite de tiempo en WebKitGTK (≤ 1 h)
+- Qué: sale de la CI del cierre (`3a097dc`, y con reintentos en `5529f21`). En WebKit + WP 6.6, «counts down and pauses…» agota los 90 s de `test.slow()` (1800 *ticks*; antes 1,1–1,3 min, ahora 1,3–1,6; en local, 22,8 s frente a 21,7 s con el `dist` de `trunk`, un 5 % más). El `currently` de K65 falla en el primer intento en 3 de 4 jobs: según la traza, el menú tarda unos 650 ms en estabilizarse y «30 mins» se pulsa con el `<audio>` ya en `live.mp3` y «Sleep mode» deshabilitado, así que el temporizador se pone con el paso al directo ya hecho (con el código de antes tampoco se cancelaría). No es un cambio de comportamiento. Edición de los dos tests de caracterización aprobada por el usuario (2026-10-21), sin tocar nombres ni aserciones: `test.setTimeout(3 min)` en el de la cuenta atrás y `click({ force: true })` en «30 mins» en el de K65 (no espera a que la animación del menú acabe). Bajar el `playbackRate` de la bienvenida no sirve: en WebKit, cualquier cambio de velocidad congela el audio.
+- Archivos: `tests/e2e/sleep.spec.ts`.
+- Test: los de `sleep.spec.ts`, sin cambiar aserciones.
+- Verificación: `npx playwright test tests/e2e/sleep.spec.ts` y la CI del PR sin reintentos en `sleep.spec.ts`.
+- Resultado: en local, `sleep.spec.ts` en verde en Chromium y WebKit, y el de K65 16/16 con `--repeat-each=8`; la cuenta atrás, 23 s en WebKit. `npm run check` en verde. La CI, con el commit siguiente.
+- [x] hecha · commit: (este)
+
 ## Decisiones abiertas → ADR
 
 - Ninguna nueva. La ampliación de D5 (el `Host` de `SleepMode.test.tsx`) es decisión del usuario (2026-10-21) y entra en el ADR 0029 en la 3.1.
