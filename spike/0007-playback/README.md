@@ -26,7 +26,10 @@ npm run serve                                           # just the servers, to o
 The media origins serve `tests/fixtures/audio/` (not copied: `/tone.mp3`, `/hls/index.m3u8`,
 `/dash/manifest.mpd`…) plus:
 
-- `/live.mp3`: endless, Icecast-like (no length, no Range).
+- `/live.mp3`: endless, Icecast-like (the audio frames of `tone.mp3` in a loop: no ID3, no Info frame,
+  no length, no Range).
+- `/live-tagged.mp3`: endless, as `tests/e2e/media-server.mjs` (the whole `tone.mp3` in a loop, ID3 and
+  Info frame included; WebKit on macOS stops at the 8.05 s the Info frame declares).
 - `/404.mp3`: 404.
 - `/live.mpd`: live DASH (`type="dynamic"`) without `<UTCTiming>`, looping the four fixture
   segments with their `tfdt` rewritten (`/live/seg-<t>.m4s`, 404 until the segment is complete,

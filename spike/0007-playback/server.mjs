@@ -3,7 +3,10 @@
 //   :8911  media origin WITH    Access-Control-Allow-Origin: *
 //   :8912  media origin WITHOUT CORS headers
 // Media origins serve tests/fixtures/audio/ (not copied) plus:
-//   /live.mp3              endless, Icecast-like (tone.mp3 in a loop, no length, no Range)
+//   /live.mp3              endless, Icecast-like: tone.mp3's audio frames in a loop (no ID3, no Info frame,
+//                          no length, no Range)
+//   /live-tagged.mp3       as tests/e2e/media-server.mjs: the whole tone.mp3 in a loop, ID3 and Info frame
+//                          included (the Info frame says 8.05 s; WebKit on macOS stops there)
 //   /404.mp3               404
 //   /live.mpd              dynamic DASH (live) built from the fixture segments, WITHOUT <UTCTiming>
 //   /live/seg-<t>.m4s      fixture segment for time t, with tfdt/sidx rewritten to t (404 until available;
@@ -123,9 +126,22 @@ function sendFile(req, res, file, headers, root) {
   fs.createReadStream(file, { start, end }).pipe(res)
 }
 
+// tone.mp3 without its ID3v2 tag and its Xing/Info frame (MPEG-1 Layer III, as the fixture): the frames
+// alone, as an Icecast server sends them. The Info frame declares the file's frame count and duration.
+function mp3Frames(data) {
+  let at = data.toString('latin1', 0, 3) === 'ID3' ? 10 + ((data[6] << 21) | (data[7] << 14) | (data[8] << 7) | data[9]) : 0
+  const bitrates = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320]
+  const rates = [44100, 48000, 32000]
+  const size = Math.floor((144 * bitrates[data[at + 2] >> 4] * 1000) / rates[(data[at + 2] >> 2) & 3]) + ((data[at + 2] >> 1) & 1)
+  const head = data.toString('latin1', at, at + size)
+  if (head.includes('Xing') || head.includes('Info')) at += size
+  return data.subarray(at)
+}
+
 // tone.mp3 is 64 kbps (8 KB/s): 8 KB every 500 ms is twice real time, which keeps the buffer ahead.
-function sendLive(res, headers) {
-  const data = fs.readFileSync(path.join(audioDir, 'tone.mp3'))
+function sendLive(res, headers, tagged) {
+  const whole = fs.readFileSync(path.join(audioDir, 'tone.mp3'))
+  const data = tagged ? whole : mp3Frames(whole)
   res.writeHead(200, { ...headers, 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-cache, no-store' })
   let offset = 0
   const write = () => {
@@ -153,7 +169,8 @@ function mediaServer(cors) {
     const key = url.pathname + url.search
     requests[key] = (requests[key] || 0) + 1
 
-    if (url.pathname === '/live.mp3') return sendLive(res, headers)
+    if (url.pathname === '/live.mp3') return sendLive(res, headers, false)
+    if (url.pathname === '/live-tagged.mp3') return sendLive(res, headers, true)
     if (url.pathname === '/404.mp3') return notFound(res, headers)
     if (url.pathname === '/live.mpd') {
       res.writeHead(200, { ...headers, 'Content-Type': types['.mpd'], 'Cache-Control': 'no-cache, no-store' })
