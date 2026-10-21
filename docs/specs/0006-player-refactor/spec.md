@@ -1,6 +1,6 @@
 # Spec 0006 — Refactor del player
 
-> Estado: **propuesta** · Fecha: 2026-10-21 · Rama: `spec/0006-player-refactor` · Depende de: 0003
+> Estado: **en curso** · Fecha: 2026-10-21 · Rama: `spec/0006-player-refactor` · Depende de: 0003
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 

@@ -1,0 +1,101 @@
+# Spec 0006 · Fase 1 — Cimientos, globales y tiempo
+Estado: en curso · Inicio: 2026-10-21 · ADRs: 0004, 0006, 0013, 0017, 0018, 0021, 0025, 0029 (nuevo)
+
+## Contexto (medido al planificar)
+
+- **Globales:** `hooks/use-config.tsx` valida dentro de un `useMemo([])` con listas blancas (8 temas, 4 visualizadores) y un offset numérico entre −12 y 14 (si no, 0). `programs` tiene que ser un array y `schedule` un objeto: `[]` pasa, y eso es K17 con su `currently`. Lo fijan los 6 bloques `it`/`it.each` de `use-config.test.tsx`, entre ellos «reads the globals once per mount».
+- **Reloj por minuto:** `use-program-schedule` y `use-transmission-time` repiten el mismo `setTimeout(60000 - now % 60000)` seguido de `setInterval(60000)`, con delay 0 si se monta en un minuto exacto. Los tests fijan: un solo temporizador vivo (`getTimerCount() === 1`), ningún temporizador sin horario (`=== 0`), 0 al desmontar, y la primera señal a los 0 ms en un minuto exacto.
+- **`useSyncExternalStore`:** `getSnapshot` tiene que devolver la misma referencia mientras no haya señal. Por eso el núcleo guarda el valor calculado en caché y solo lo recalcula en cada señal; el temporizador arranca en el primer `subscribe` y se para en el último `unsubscribe` (StrictMode, riesgo 1). Hoy el primer render da `{null, null}` y `''`, y el efecto los corrige. Con el store, el valor ya está en el primer render. Ningún test lo distingue: todos leen después del efecto. Si un e2e lo notara, se para y se pregunta.
+- **Reloj inyectable sin tocar `src/utils/`:** `getCurrentTimeInTimezone()` y `formatTimeInTimezone()` leen `new Date()`. Con D3, `utils/` no cambia de firma. El núcleo recibe el reloj donde hay temporizadores (`minute-ticker`: `now`, `setTimeout`, `clearTimeout`, `setInterval`, `clearInterval`, con los globales por defecto). Los cálculos (`now-playing`, `transmission-time`) se prueban con `vi.useFakeTimers()` + `setSystemTime`, como permite §4.4.
+- **`process.env`:** el código publicado solo lo usa en `utils/timezone.ts`, cuatro veces (`NODE_ENV`). Los tests de caracterización usan `process.env.TZ` (`timezone.test.ts`, `use-transmission-time.test.tsx`) y no se editan. **Decisión del usuario (2026-10-21):** A4 pasa a `grep -rn "process.env" player/src --exclude='*.test.*'` vacío, y `"types": ["node"]` se queda en `tsconfig.app.json` porque lo necesitan esos tests. Se corrige la spec (A4 y D5) en el commit de la 1.1 y se anota en «Desviaciones» de `docs/status.md`.
+- **`import.meta.env.DEV` en Vitest:** vale `true` en modo `test`. Desde la 1.7, los tests que pasan `NaN` a `getCurrentTimeInTimezone` escriben su `console.warn` por la salida (solo ruido, sin fallo). «warns … only in development» pasa a `vi.stubEnv('DEV', true)` (D5) y sigue comprobando lo mismo.
+- **K9:** `formatTimeInTimezone(NaN)` da `'NaN:NaN:NaN'` porque no lanza. **Reserva elegida:** la suya, la hora local del navegador (la rama del `catch`). La fila dice «su reserva no actúa», y esto la hace actuar. Ningún otro test cambia: los offsets finitos siguen por la rama principal.
+- **Cobertura actual:** hooks 96,5 % de líneas, utils 98,1 % de líneas y 96,9 % de ramas. Subir el mínimo de hooks a 85 % ya pasa. `src/core/**` sin archivos: la 1.2 comprueba si Vitest acepta un umbral sobre un glob vacío y, si no, el umbral entra con el primer módulo (1.3).
+- **Excepciones de `react-hooks` en esta fase:** solo la de `use-program-schedule.tsx:55`. Las de `use-transmission-time` no existen (usa `setState` dentro de una función). Las de `SleepMode`, `dashboard/index.tsx` y el `Harness` son de las fases 2 y 3, y la de `use-is-ios` se queda (D4).
+- **Bundle (`player/dist/`):** principal `radio-player-page-3.4.2.min.js`, `.css`, `-hls`, `-dash-all-min` y cuatro visualizadores. La línea base del gzip se toma en la 1.2.
+
+## Objetivo
+
+Montar los cimientos del núcleo `player/src/core/`: ADR 0029, frontera en ESLint, umbrales de cobertura y línea base del bundle. Mover a él la lectura de las globales, el reloj por minuto, el programa en antena y la hora de la emisora con TDD, dejar `useConfig`, `useProgramSchedule` y `useTransmissionTime` como adaptadores con la misma API, pasar `timezone.ts` a `import.meta.env.DEV` y corregir K9.
+
+## Criterios de aceptación
+
+| Criterio | Cómo se verifica (test o checklist manual) |
+|---|---|
+| A1 Comportamiento sin cambios | `npm --prefix player run check`; `npm run test:e2e` en `env:start:min` y `env:start:latest`; `git diff origin/trunk -- player/src/**/*.test.* tests/e2e` solo con las altas de `src/core/**` y la línea de D5 en `timezone.test.ts` (más el test de K9, que pasa a regresión) |
+| A2 Núcleo sin React, MUI ni i18next | Bloque de `player/eslint.config.js` para `src/core/**` (`no-restricted-imports` + `no-restricted-globals`); se ve fallar con una importación temporal de `react` y un `window` (mutación, se revierte) |
+| A3 Cobertura (núcleo y hooks de la fase) | `vitest.config.ts`: `src/core/**` ≥ 90 % líneas · ≥ 85 % ramas; `src/hooks/**` ≥ 85 % líneas; `src/utils/**` ≥ 90 % líneas (`npm --prefix player run test:coverage`) |
+| A4 (parcial) | `grep -rn "process.env" player/src --exclude='*.test.*'` vacío; `grep -rn "eslint-disable" player/src/hooks/use-program-schedule.tsx` vacío |
+| A5 Assets y bundle | `npm run check:zip`; `manifest.json`: `hls` y `dash` siguen siendo `isDynamicEntry`; tabla del gzip antes y después en el «Resultado:» de la 1.2 y la 1.9 (más de un 10 % → se pregunta) |
+| A6 Zona congelada | `git diff origin/trunk -- player/src/components/visualizers player/src/config/visualizers.ts player/src/types/visualizers.tsx player/src/hooks/use-audio-visualizer.tsx player/src/hooks/use-can-visualize.tsx` vacío |
+| A7 (K9) | `timezone.test.ts`: el `currently` pasa a regresión (en rojo antes del arreglo) y la fila K9 pasa a «corregido (spec 0006)» |
+
+## Tareas
+
+### 1.1 ADR 0029, reglas y contrato (≤ 1 h)
+- Qué: ADR 0029 «Núcleo del player en `src/core/` sin React» (D1–D7 de §4.1: inyección de dependencias, transición pura + controlador + `useSyncExternalStore`, `utils/` se queda, D4, D5 con la corrección de A4, K9/K14/K70, serialización de `play()`). Índice de ADRs. `.claude/rules/player.md`: estructura de `src/core/<zona>/`, frontera de A2 y cómo se inyectan las dependencias (la «Frontera con WordPress» pasa a nombrar `core/config/`). `SPEC.md` §3.8 «Configuración» (§3 de la spec). Spec: A4 y D5 con la decisión de 2026-10-21; estado «en curso».
+- Archivos: `docs/adr/0029-player-core-without-react.md`, `docs/adr/README.md`, `.claude/rules/player.md`, `SPEC.md`, `docs/specs/0006-player-refactor/spec.md`.
+- Test: — (documentación).
+- Verificación: `grep -n '0029' docs/adr/README.md && grep -n 'src/core/config' SPEC.md .claude/rules/player.md`
+- [ ] hecha · commit: —
+
+### 1.2 Frontera, umbrales y línea base del bundle (≤ 1 h)
+- Qué: en `player/eslint.config.js`, un bloque `files: ['src/core/**/*.ts']` con `no-restricted-imports` (paths `react`, `react-dom`, `i18next`, `react-i18next`, `src/config/i18n`; patterns `react/*`, `react-dom/*`, `@mui/*`, `@emotion/*`, `src/hooks/*`, `src/components/*`) y `no-restricted-globals` (`window`, `document`, `navigator`, `localStorage`), cada uno con su mensaje. Mutación: un `src/core/_probe.ts` temporal con `import 'react'` y `window` hace fallar `npm --prefix player run lint`, y después se borra. En `vitest.config.ts`, los umbrales de A3 (si el glob vacío falla, el de `src/core/**` entra en la 1.3; se anota). Tabla del gzip de `player/dist/*.{js,css}` (`gzip -9c <f> | wc -c`) en el «Resultado:».
+- Archivos: `player/eslint.config.js`, `player/vitest.config.ts`.
+- Test: mutación temporal (ESLint).
+- Verificación: `npm --prefix player run check`
+- [ ] hecha · commit: —
+
+### 1.3 `core/config` y `useConfig()` (≤ 1 h)
+- Qué: `src/core/config/read-config.ts` con `readConfig({ config, programs, schedule }: RawGlobals): ResolvedConfig`, puro: las listas blancas, el rango del offset, `programs` como array y `schedule` como objeto (K17 tal cual), y los mismos valores por defecto. Primero los tests (en rojo): los casos de `use-config.test.tsx` contra la función, más `it('currently keeps an empty array as the schedule')` replicado (la fila K17 apunta también al test nuevo). `useConfig()` queda como `useMemo(() => readConfig({ config: window.RADPLAPAG_CONFIG, programs: window.RADPLAPAG_PROGRAMS, schedule: window.RADPLAPAG_SCHEDULE }), [])`.
+- Archivos: `player/src/core/config/read-config.ts`, `read-config.test.ts`, `player/src/hooks/use-config.tsx`, `docs/known-issues.md` (K17), `player/dist/`.
+- Test: primero (TDD): `src/core/config/read-config.test.ts`; caracterización: `src/hooks/use-config.test.tsx` sin cambios.
+- Verificación: `npm --prefix player run check && npm --prefix player run build`
+- [ ] hecha · commit: —
+
+### 1.4 `core/clock/minute-ticker` (≤ 1 h)
+- Qué: `createMinuteTicker(clock = defaultClock)` → `start(onTick): stop`. El primer `setTimeout` va a `60000 - now() % 60000` (0 en un minuto exacto), después `setInterval(60000)`, con un solo temporizador vivo; `stop` es idempotente. Encima, `createMinuteStore(compute, clock)` → `{ subscribe, getSnapshot }`: el valor se calcula sin temporizador en el primer `getSnapshot` y se guarda, se recalcula en cada señal y avisa a los suscriptores; el ticker arranca con el primer suscriptor y para con el último (StrictMode: suscribir, desuscribir y volver a suscribir deja un único temporizador). Tests con un reloj *fake* inyectado: el minuto exacto, la alineación, un temporizador vivo, sin temporizadores tras desuscribir, la doble suscripción y la referencia estable entre señales.
+- Archivos: `player/src/core/clock/minute-ticker.ts`, `minute-ticker.test.ts`.
+- Test: primero (TDD): `src/core/clock/minute-ticker.test.ts`.
+- Verificación: `npm --prefix player run check`
+- [ ] hecha · commit: —
+
+### 1.5 `core/schedule/now-playing` y `useProgramSchedule()` (≤ 1 h)
+- Qué: `getNowPlaying(schedule, programs, timezoneOffset): { active, incoming }` sobre `getCurrentTimeInTimezone`, `findActiveProgram` y `findIncomingProgram`. Sin `schedule` da `{ active: null, incoming: null }`. Tests con `setSystemTime`: el minuto exacto, el cruce de medianoche, el horario de verano (el offset servido se mantiene, C9) y los offsets −6 y +5:30. Los vectores de `tests/fixtures/schedule-vectors.json` van si no duplican `utils/schedule-vectors.test.ts`; si los duplican, se anota. El hook queda así: sin horario devuelve una constante `{null, null}` sin store (0 temporizadores); con horario, `useMemo` crea `createMinuteStore(() => getNowPlaying(...))` con las dependencias de hoy (`schedule`, `programs`, `timezoneOffset`) y `useSyncExternalStore` lo lee. Sale el `eslint-disable`.
+- Archivos: `player/src/core/schedule/now-playing.ts`, `now-playing.test.ts`, `player/src/hooks/use-program-schedule.tsx`, `player/dist/`.
+- Test: primero (TDD): `src/core/schedule/now-playing.test.ts`; caracterización: `src/hooks/use-program-schedule.test.tsx` sin cambios.
+- Verificación: `npm --prefix player run check && npm --prefix player run build`
+- [ ] hecha · commit: —
+
+### 1.6 `core/clock/transmission-time` y `useTransmissionTime()` (≤ 1 h)
+- Qué: `getTransmissionTime(timezoneOffset): TransmissionTime` (`HH:MM` de la emisora y del navegador, la diferencia y `hasDifference` con el umbral 0,01), sobre `utils/timezone.ts`. Tests con varias `TZ` (Madrid, Ciudad de México, UTC, Kolkata), +5:30, −6, el cruce de medianoche y el horario de verano. El hook: `createMinuteStore(() => getTransmissionTime(offset))` en `useMemo([offset])` + `useSyncExternalStore`, sin `useState` ni refs. El tipo `TransmissionTime` se mueve al núcleo y el hook lo reexporta.
+- Archivos: `player/src/core/clock/transmission-time.ts`, `transmission-time.test.ts`, `player/src/hooks/use-transmission-time.tsx`, `player/dist/`.
+- Test: primero (TDD): `src/core/clock/transmission-time.test.ts`; caracterización: `src/hooks/use-transmission-time.test.tsx` sin cambios.
+- Verificación: `npm --prefix player run check && npm --prefix player run build`
+- [ ] hecha · commit: —
+
+### 1.7 `timezone.ts` con `import.meta.env.DEV` (≤ 1 h)
+- Qué: las cuatro `process.env.NODE_ENV === 'development'` pasan a `import.meta.env.DEV`. En `timezone.test.ts`, solo la línea `vi.stubEnv('NODE_ENV', 'development')` → `vi.stubEnv('DEV', true)` (D5). `"types": ["node"]` se queda (lo usan los tests: `process.env.TZ`). Se comprueba en el bundle que la rama de desarrollo desaparece (`grep -c "Radio Player\] Invalid timezone" player/dist/*.min.js` → 0, igual que hoy).
+- Archivos: `player/src/utils/timezone.ts`, `player/src/utils/timezone.test.ts` (una línea), `player/dist/`.
+- Test: caracterización existente (`timezone.test.ts`); se ve fallar con `stubEnv('DEV', false)` (mutación, se revierte).
+- Verificación: `npm --prefix player run check && npm --prefix player run build && ! grep -rn "process.env" player/src --exclude='*.test.*'`
+- [ ] hecha · commit: —
+
+### 1.8 K9: `formatTimeInTimezone` con un offset no finito (≤ 1 h)
+- Qué: con `fix-bug`. El `currently formats NaN for an invalid offset` pasa a regresión: `formatTimeInTimezone(NaN)` (y `Infinity`) da la hora local del navegador, en rojo primero. Arreglo mínimo: `if (!Number.isFinite(timezoneOffset))` va a la reserva de hora local (se extrae la rama del `catch` a una función local para no duplicarla). Fila K9 → «corregido (spec 0006)». Commit `fix(0006): … (1.8)`.
+- Archivos: `player/src/utils/timezone.ts`, `timezone.test.ts`, `docs/known-issues.md`, `player/dist/`.
+- Test: regresión en rojo primero: `src/utils/timezone.test.ts`.
+- Verificación: `npm --prefix player run check && npm --prefix player run build`
+- [ ] hecha · commit: —
+
+### 1.9 Verificación de la fase (≤ 1 h)
+- Qué: `npm run check`; `npm run test:e2e` en `env:start:min` y en `env:start:latest`; A6 (`git diff` de la zona congelada vacío); `manifest.json` (`isDynamicEntry` de `hls` y `dash`); tabla del gzip después, comparada con la de la 1.2. Sin commit si no cambia nada (se anota en el cierre).
+- Archivos: —
+- Test: —
+- Verificación: `npm run check && npm run check:zip && npm run test:e2e`
+- [ ] hecha · commit: —
+
+## Decisiones abiertas → ADR
+
+- Ninguna nueva: D1–D7 van al ADR 0029 (1.1), con la corrección de A4/D5 decidida por el usuario el 2026-10-21.
+- Por confirmar en la 1.2: si Vitest acepta el umbral de `src/core/**` sin archivos. Es una decisión del plan, sin ADR.

@@ -1,13 +1,14 @@
 # Estado
-Spec activa: 0006 — Refactor del player · Fase: 1 por planificar · Plan: — · Actualizado: 2026-10-21
+Spec activa: 0006 — Refactor del player · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0006-player-refactor/phase-1.md) · Actualizado: 2026-10-21
 
 ## En curso
-- Spec 0006 (refactor del player) escrita el 2026-10-21, estado «propuesta»: núcleo `player/src/core/` sin React, MUI ni i18next, hooks como adaptadores con `useSyncExternalStore`, K9, K14 y K70 corregidos (ADR 0029 previsto). Tres fases. Rama `spec/0006-player-refactor` (sin push).
+- Spec 0006, fase 1 (cimientos, globales y tiempo), planificada el 2026-10-21: ADR 0029, frontera del núcleo en ESLint, umbrales, `core/config`, `core/clock`, `core/schedule`, `timezone.ts` con `import.meta.env.DEV` y K9. Nueve tareas (1.1–1.9). Rama `spec/0006-player-refactor`, PR en borrador contra `trunk`.
 - Spec 0005 cerrada y fusionada en `trunk` (PR #39, 2026-10-21).
 
 ## Siguiente (máx. 5)
-1. Sesión nueva → `start-phase` de la fase 1 de la 0006 (`docs/specs/0006-player-refactor/spec.md`).
-2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
+1. Tarea 1.1 de la 0006: ADR 0029, `.claude/rules/player.md`, `SPEC.md` §3.8 y la corrección de A4/D5 en la spec.
+2. Tareas 1.2–1.9 en orden (`docs/specs/0006-player-refactor/phase-1.md`); después, `close-phase`.
+3. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree (`docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrigen y en qué spec dos rarezas bajas: K76 (`completeTimeFields` sin uso; propuesta: 0010 admin) y K79 (la migración heredada pierde `is_rerun` de las franjas, que el refactor conserva; propuesta: 0008 migración).
@@ -18,6 +19,9 @@ Spec activa: 0006 — Refactor del player · Fase: 1 por planificar · Plan: —
 - K18: en Safari (macOS e iOS), Pausa + Play de un directo MP3 se congela? (medido solo en el WebKit de Playwright en macOS, tareas 2.7 y 2.21; en la CI, WebKitGTK, no pasa).
 
 ## Desviaciones de la spec (→ ADR)
+Spec 0006:
+- Fase 1 (plan): A4 pedía `grep -rn "process.env" player/src` vacío, pero los tests de caracterización `utils/timezone.test.ts` y `hooks/use-transmission-time.test.tsx` usan `process.env.TZ` y no se editan. A4 se limita al código publicado (`--exclude='*.test.*'`), y `"types": ["node"]` se queda en `tsconfig.app.json` porque lo usan esos tests (D5). Decidido por el usuario (2026-10-21); la spec se corrige en la 1.1.
+
 Spec 0005 (detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md`, `phase-3.md` y `phase-4.md`; sin ADR, no cambian el contrato):
 - Fase 4 (revisión): sin efecto en los datos ni en lo observable sin filtros de terceros. `Migration\Legacy_Plan` sanea todos los programas (cada aparición) y emisoras antes de escribir nada; en la 3.4.2, una vez por programa único y cada emisora justo antes de insertarla. Sale la guarda `(int) $post_id > 0` de la reversión (inalcanzable: los IDs vienen de `wp_insert_post( …, true )`). `radplapag_on_upgrader_process_complete()` calcula `plugin_basename()` (sin filtro) antes de comprobar `action`/`type`, no después. `Upgrade_Policy::is_current()` recibe `string $target`: un `RADPLAPAG_DB_VERSION` entero definido fuera del plugin se compararía como cadena (fuera del contrato).
 - Fase 4 (plan): §4.3 pone el `error_log()` de la migración en `WP\Migration_Writer`. Se queda en `Radplapag_Migrator_Settings_To_Cpt::run()`, que le pasa al escritor un closure con la comprobación de `WP_DEBUG` y un solo `phpcs:ignore` con su motivo (K72), porque `includes/src/` no lleva `phpcs:` (A6). El escritor lo llama en los mismos momentos que hoy. Decidido por el usuario (2026-10-21).
