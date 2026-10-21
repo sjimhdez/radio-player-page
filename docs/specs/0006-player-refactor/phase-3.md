@@ -34,7 +34,8 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: `docs/adr/0029-player-core-without-react.md`, `docs/specs/0006-player-refactor/spec.md`.
 - Test: —
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- Resultado: D5 ampliado con el `Host` de `components/dashboard/SleepMode.test.tsx` (monta `SleepMode` sobre `useSleepTimer()`; nombre y aserción `1799` intactos) en el ADR 0029 (estado, contexto, D5 y evidencia) y en la spec (§0.3, D5 y su origen). `npm run check` en verde.
+- [x] hecha · commit: (este)
 
 ### 3.2 Caracterización e2e de Media Session (≤ 1 h)
 - Qué: `tests/e2e/media-session.spec.ts` (Chromium y WebKit), contra el hook de hoy. Un `addInitScript` envuelve `MediaSession.prototype.setActionHandler` (como `mp3.spec.ts`; si hace falta, se saca a `tests/e2e/support/player.ts` sin cambiar el de `mp3`). Casos:
