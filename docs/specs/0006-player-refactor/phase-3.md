@@ -100,7 +100,8 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Archivos: `player/src/hooks/use-sleep-timer.tsx`, `use-sleep-timer.test.tsx`.
 - Test: primero (TDD).
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: `use-sleep-timer.test.tsx` (8 casos) escrito primero y visto en rojo (módulo inexistente). El `onEnd` más reciente no va en un ref: `react-hooks/refs` marca leer el ref desde el *callback* que se pasa a `createSleepTimer()` dentro del inicializador de `useState`, así que el `useState` crea el temporizador junto a un `setOnEnd()` que guarda el último `onEnd` en un cierre, y un efecto con `[onEnd]` lo llama. Mismo comportamiento y sin `eslint-disable`. `start` y `cancel` son los del núcleo (estables). Mutación: sin `setOnEnd(onEnd)`, el caso del `onEnd` más reciente falla. `npm --prefix player run check` en verde (528 tests).
+- [x] hecha · commit: (este)
 
 ### 3.8 `SleepMode` y `Dashboard` solo pintan el sueño (≤ 1 h)
 - Qué:
