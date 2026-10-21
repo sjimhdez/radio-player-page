@@ -68,14 +68,15 @@ Sacar Media Session y la cuenta atrás del sueño al núcleo (`core/media-sessio
 - Test: primero (TDD), en `core/media-session/media-session.test.ts`, con un `MediaSession` *fake*. Los 14 casos del hook, sin tocar.
 - Verificación: `npm --prefix player run check && npm --prefix player run build && npx playwright test tests/e2e/media-session.spec.ts`
 - Resultado: `media-session.test.ts` (28 casos) escrito primero y visto en rojo (módulo inexistente). `session` es un `Pick<MediaSession, 'metadata' | 'playbackState' | 'setActionHandler'>`; el *fake* es un objeto plano y `createMetadata` devuelve el `init`. Mismo orden de llamadas que el hook (si falla `setActionHandler('play')`, no se toca `playbackState`). El hook conserva la comprobación de `navigator`, el título de reserva y las deps, y devuelve el *cleanup* del núcleo; ese *cleanup* ya no vuelve a comprobar `'mediaSession' in navigator` (no es observable: la API no desaparece entre montaje y desmontaje). Los 14 casos del hook, sin tocar, en verde. `npm --prefix player run check` en verde (505 tests); e2e de Media Session 8/8 en Chromium y WebKit.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `ee46271`
 
 ### 3.5 K14: el tipo del *artwork* por el `pathname` (≤ 1 h)
 - Qué: `fix-bug`. El `currently` del hook (`currently reports %s as image/png`) y su réplica del núcleo pasan a regresión: `logo.jpg?ver=2` da `image/jpeg` y `logo.webp#x` da `image/webp`. Primero en rojo. Arreglo mínimo en `mimeTypeFor()`: se quita lo que va desde `?` o `#` antes de leer la extensión. Fila K14 → «corregido (spec 0006)».
 - Archivos: `player/src/core/media-session/media-session.ts`, `media-session.test.ts`, `player/src/hooks/use-media-session.test.tsx` (solo el `currently` de K14), `docs/known-issues.md`, `player/dist/`.
 - Test: regresión primero, en rojo.
 - Verificación: `npm --prefix player run check && npm --prefix player run build`
-- [ ] hecha · commit: —
+- Resultado: los dos `currently` de K14 (núcleo y hook) pasan a `ignores the query and the hash of %s`, con `logo.jpg?ver=2` → `image/jpeg` y `logo.webp#x` → `image/webp`. Rojo primero, 4 casos por la razón esperada (`expected 'image/png' to be 'image/jpeg'` y `… 'image/webp'`). Arreglo: `url.split(/[?#]/)[0]` antes de leer la extensión. Sin nota de changelog (sin efecto visible).
+- [x] hecha · commit: (este)
 
 ### 3.6 `core/sleep/sleep-timer` por TDD (≤ 1 h)
 - Qué:

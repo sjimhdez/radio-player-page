@@ -80,15 +80,15 @@ describe('useMediaSession', () => {
     expect(metadata().artwork![0].type).toBe(type)
   })
 
-  // known-issues.md K14: the extension is read from the whole URL.
-  it.each(['https://site.test/logo.jpg?ver=2', 'https://cdn.test/logo.webp#x'])(
-    'currently reports %s as image/png',
-    (url) => {
-      mount('Radio Test', url)
+  // known-issues.md K14: the query and the hash are not part of the extension.
+  it.each([
+    ['https://site.test/logo.jpg?ver=2', 'image/jpeg'],
+    ['https://cdn.test/logo.webp#x', 'image/webp'],
+  ])('ignores the query and the hash of %s', (url, type) => {
+    mount('Radio Test', url)
 
-      expect(metadata().artwork![0].type).toBe('image/png')
-    },
-  )
+    expect(metadata().artwork![0].type).toBe(type)
+  })
 
   it('sends no artwork without a logo', () => {
     mount('Radio Test', '')

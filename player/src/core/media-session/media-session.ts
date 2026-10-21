@@ -34,13 +34,13 @@ export interface MediaSessionState {
 /**
  * Detects the MIME type of an image from its file extension.
  *
- * known-issues.md K14: the extension is read from the whole URL, query and hash included.
+ * The query and the hash are dropped first (known-issues.md K14).
  *
  * @param url - Image URL
  * @returns The MIME type, `image/png` when the extension is unknown
  */
 export function mimeTypeFor(url: string): string {
-  const extension = url.split('.').pop()?.toLowerCase()
+  const extension = url.split(/[?#]/)[0].split('.').pop()?.toLowerCase()
   return MIME_TYPES[extension || ''] || 'image/png'
 }
 

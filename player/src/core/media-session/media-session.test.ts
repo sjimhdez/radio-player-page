@@ -67,13 +67,13 @@ describe('mimeTypeFor', () => {
     expect(mimeTypeFor(`https://site.test/${file}`)).toBe(type)
   })
 
-  // known-issues.md K14: the extension is read from the whole URL.
-  it.each(['https://site.test/logo.jpg?ver=2', 'https://cdn.test/logo.webp#x'])(
-    'currently reports %s as image/png',
-    (url) => {
-      expect(mimeTypeFor(url)).toBe('image/png')
-    },
-  )
+  // known-issues.md K14: the query and the hash are not part of the extension.
+  it.each([
+    ['https://site.test/logo.jpg?ver=2', 'image/jpeg'],
+    ['https://cdn.test/logo.webp#x', 'image/webp'],
+  ])('ignores the query and the hash of %s', (url, type) => {
+    expect(mimeTypeFor(url)).toBe(type)
+  })
 })
 
 describe('artworkFor', () => {
