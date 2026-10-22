@@ -31,13 +31,13 @@ final class Legacy_Plan {
 	 *
 	 * Empty titles and names are '' (the writer gives the translated default). A stations
 	 * list without any array station gives a plan without stations (K32 in
-	 * docs/known-issues.md). A slot is a rerun only when the legacy slot has true.
+	 * docs/known-issues.md); slots lose is_rerun (K79).
 	 *
 	 * @since 3.5.0
 	 *
 	 * @param mixed                   $raw        Value of radplapag_settings.
 	 * @param array<string, callable> $sanitizers WordPress sanitizers by key: text (sanitize_text_field), textarea (sanitize_textarea_field), url (esc_url_raw), key (sanitize_key), absint.
-	 * @return array{programs: list<array{id: string, name: string, description: string, extended_description: string, logo_id: int}>, duplicates: list<string>, stations: list<array{title: string, stream_url: string, player_page: int, background_id: int, logo_id: int, theme_color: string, visualizer: string, menu_order: int, schedule: array<array-key, list<array{program_id: string, start: string, end: string, is_rerun: bool}>>, skipped: list<string>}>}|null Null when there is no station data (no_data).
+	 * @return array{programs: list<array{id: string, name: string, description: string, extended_description: string, logo_id: int}>, duplicates: list<string>, stations: list<array{title: string, stream_url: string, player_page: int, background_id: int, logo_id: int, theme_color: string, visualizer: string, menu_order: int, schedule: array<array-key, list<array{program_id: string, start: string, end: string}>>, skipped: list<string>}>}|null Null when there is no station data (no_data).
 	 */
 	public static function build( $raw, array $sanitizers ): ?array {
 		if ( ! is_array( $raw ) || ! isset( $raw['stations'] ) || ! is_array( $raw['stations'] ) || empty( $raw['stations'] ) ) {
@@ -130,7 +130,7 @@ final class Legacy_Plan {
 	 * @param int                     $menu_order Position among the array stations.
 	 * @param array<mixed>            $programs   Known programs by legacy ID.
 	 * @param array<string, callable> $sanitizers WordPress sanitizers by key.
-	 * @return array{title: string, stream_url: string, player_page: int, background_id: int, logo_id: int, theme_color: string, visualizer: string, menu_order: int, schedule: array<array-key, list<array{program_id: string, start: string, end: string, is_rerun: bool}>>, skipped: list<string>}
+	 * @return array{title: string, stream_url: string, player_page: int, background_id: int, logo_id: int, theme_color: string, visualizer: string, menu_order: int, schedule: array<array-key, list<array{program_id: string, start: string, end: string}>>, skipped: list<string>}
 	 */
 	private static function station( array $station, int $menu_order, array $programs, array $sanitizers ): array {
 		$theme      = (string) $sanitizers['key']( (string) ( $station['theme_color'] ?? 'neutral' ) );
@@ -162,7 +162,6 @@ final class Legacy_Plan {
 						'program_id' => $legacy_pid,
 						'start'      => $start,
 						'end'        => $end,
-						'is_rerun'   => true === ( $slot['is_rerun'] ?? false ),
 					);
 				}
 				if ( ! empty( $day_rows ) ) {

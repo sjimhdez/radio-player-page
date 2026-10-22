@@ -101,9 +101,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - Archivos: `class-legacy-plan.php`, `class-migration-writer.php`, `LegacyPlanTest.php`, `UpgradeFlowTest.php`, *golden* `corrupt` (unit e integración), `docs/known-issues.md`
 - Test: primero. Los dos `currently` de K79 pasan a regresión (`true` → `true`; sin la clave → `false`).
 - Verificación: `npm run test:php:unit -- --filter LegacyPlanTest && npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
-- Rojo (2026-10-22): en `LegacyPlanTest`, 3 fallos (falta la clave `is_rerun` en el plan): `test_slot_keeps_is_rerun` (`true` en el lunes; sin la clave y con `'1'`, `false`) y los dos que comparan el horario del plan, que pasan a esperarla con el ayudante nuevo `planned()` (cambio de forma por diseño, D7). En `UpgradeFlowTest`, `test_migrated_slot_keeps_is_rerun` (`false` en vez de `true`). Al arreglarlo, `test_cross_day_overlap_from_3_2_drops_the_later_slot` (de la 1.7) comparaba el plan con la entrada y pasa a esperar `planned()`. *Golden* `corrupt` regenerado: solo cambia la franja `is_rerun: true` de la fixture, de `false` a `true` (el mismo *golden* sirve a la unit y a la integración).
-- Changelog: «Rerun slots of the legacy settings stay reruns after the migration.»
-- [x] hecha · commit: —
+- [ ] hecha · commit: —
 
 ### 1.10 K31: `wp_slash()` en la escritura (D8) (≤ 1 h)
 - Qué: `fix-bug`. Se aplica `wp_slash()` a los arrays que se pasan a `wp_insert_post()` y a los valores de `update_post_meta()`.

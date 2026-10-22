@@ -265,8 +265,8 @@ final class LegacyPlanTest extends TestCase {
 		$this->assertNotNull( $plan );
 		$this->assertSame(
 			array(
-				'Monday'    => array( self::planned( 'prog_a', '07:00', '08:00' ) ),
-				'wednesday' => array( self::planned( 'prog_a', '09:00', '10:00' ) ),
+				'Monday'    => array( self::slot( 'prog_a', '07:00', '08:00' ) ),
+				'wednesday' => array( self::slot( 'prog_a', '09:00', '10:00' ) ),
 			),
 			$plan['stations'][0]['schedule']
 		);
@@ -284,38 +284,23 @@ final class LegacyPlanTest extends TestCase {
 		$plan = Legacy_Plan::build( self::settings( array( $two, $one ) ), self::sanitizers() );
 
 		$this->assertNotNull( $plan );
-		$this->assertSame( array( 'monday' => array( self::planned( 'prog_a', '07:00', '08:00' ) ) ), $plan['stations'][0]['schedule'] );
+		$this->assertSame( array( 'monday' => array( self::slot( 'prog_a', '07:00', '08:00' ) ) ), $plan['stations'][0]['schedule'] );
 		$this->assertSame( array(), $plan['stations'][0]['skipped'] );
 	}
 
 	/**
-	 * A migrated slot keeps is_rerun only when the legacy slot has true.
+	 * A migrated slot loses is_rerun.
 	 *
 	 * @see docs/known-issues.md K79
 	 */
-	public function test_slot_keeps_is_rerun() {
+	public function test_currently_slot_loses_is_rerun() {
 		$station             = self::station( 'One', array( self::program( 'prog_a', 'A' ) ) );
-		$station['schedule'] = array(
-			'monday'  => array( self::slot( 'prog_a', '07:00', '08:00' ) + array( 'is_rerun' => true ) ),
-			'tuesday' => array(
-				self::slot( 'prog_a', '07:00', '08:00' ),
-				self::slot( 'prog_a', '09:00', '10:00' ) + array( 'is_rerun' => '1' ),
-			),
-		);
+		$station['schedule'] = array( 'monday' => array( self::slot( 'prog_a', '07:00', '08:00' ) + array( 'is_rerun' => true ) ) );
 
 		$plan = Legacy_Plan::build( self::settings( array( $station ) ), self::sanitizers() );
 
 		$this->assertNotNull( $plan );
-		$this->assertSame(
-			array(
-				'monday'  => array( self::planned( 'prog_a', '07:00', '08:00', true ) ),
-				'tuesday' => array(
-					self::planned( 'prog_a', '07:00', '08:00' ),
-					self::planned( 'prog_a', '09:00', '10:00' ),
-				),
-			),
-			$plan['stations'][0]['schedule']
-		);
+		$this->assertSame( array( 'monday' => array( self::slot( 'prog_a', '07:00', '08:00' ) ) ), $plan['stations'][0]['schedule'] );
 	}
 
 	/**
@@ -350,13 +335,7 @@ final class LegacyPlanTest extends TestCase {
 		$plan = Legacy_Plan::build( self::settings( array( $station ) ), self::sanitizers() );
 
 		$this->assertNotNull( $plan );
-		$this->assertSame(
-			array(
-				'monday'  => array( self::planned( 'prog_late', '23:00', '02:00' ) ),
-				'tuesday' => array( self::planned( 'prog_early', '01:00', '03:00' ) ),
-			),
-			$plan['stations'][0]['schedule']
-		);
+		$this->assertSame( $station['schedule'], $plan['stations'][0]['schedule'] );
 		$result = self::filter( $plan, 0 );
 		$this->assertSame( array(), $result['errors'] );
 		$this->assertSame( array( 'monday' ), array_keys( $result['schedule'] ) );
@@ -522,19 +501,6 @@ final class LegacyPlanTest extends TestCase {
 			'start'      => $start,
 			'end'        => $end,
 		);
-	}
-
-	/**
-	 * A slot of the plan's schedule.
-	 *
-	 * @param string $program_id Legacy program ID.
-	 * @param string $start      Start.
-	 * @param string $end        End.
-	 * @param bool   $is_rerun   Rerun.
-	 * @return array{program_id: string, start: string, end: string, is_rerun: bool}
-	 */
-	private static function planned( $program_id, $start, $end, $is_rerun = false ) {
-		return self::slot( $program_id, $start, $end ) + array( 'is_rerun' => $is_rerun );
 	}
 
 	/**
