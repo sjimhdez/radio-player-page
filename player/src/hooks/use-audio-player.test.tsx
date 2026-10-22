@@ -401,6 +401,16 @@ describe('DASH', () => {
     act(() => dash.players[0].handlers.error({ error: { code: 17 } }))
     expect(api.current.status).toBe('error')
   })
+
+  // docs/known-issues.md C7 and K12 (spec 0007, ADR 0032).
+  it('recreates dashjs to return to the live edge (C7)', async () => {
+    const { api } = mount(DASH)
+    await act(() => api.current.play())
+    act(() => api.current.pause())
+    await act(() => api.current.play())
+    expect(dash.players).toHaveLength(2)
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
+  })
 })
 
 // docs/known-issues.md C2: detection is endsWith() on the whole URL.

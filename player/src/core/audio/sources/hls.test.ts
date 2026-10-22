@@ -137,6 +137,18 @@ describe('createHlsSource', () => {
     expect(source.isCorsClean()).toBe(true)
   })
 
+  it('does not retry a rejected play() on the hls.js path (C1)', async () => {
+    const fake = createFakeHls()
+    media.failing.add('')
+    const cbs = callbacks()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false, retryWithoutCors: true })
+    await source.start(new Audio(), HLS, cbs)
+    fake.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await vi.waitFor(() => expect(cbs.onPlayRejected).toHaveBeenCalledTimes(1))
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(source.isCorsClean()).toBe(true)
+  })
+
   it('retries native HLS without crossOrigin and reports it (C1)', async () => {
     media.corsBlocked.add(HLS)
     const audio = new Audio()
