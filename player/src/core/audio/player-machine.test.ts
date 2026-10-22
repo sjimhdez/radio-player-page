@@ -1,5 +1,5 @@
 // Pure transition of the audio player (spec 0006, task 2.5). The currently cases
-// replicate docs/known-issues.md K11, K63 and K64, as fixed in
+// replicate docs/known-issues.md K11 and K63, as fixed in
 // src/hooks/use-audio-player.test.tsx and tests/e2e/cross-origin.spec.ts.
 // canVisualize (spec 0007, task 1.7): false on each attempt, set by the playing event.
 import { describe, expect, it } from 'vitest'
@@ -200,11 +200,11 @@ describe('transition', () => {
     expect(state).toMatchObject({ status: 'error', introLocked: true, activeSource: 'intro' })
   })
 
-  it('currently keeps loading after a pause while buffering (K64)', () => {
+  it('clears loading on a pause while buffering (K64)', () => {
     const state = run(
       [{ type: 'waiting' }, { type: 'user-paused' }, { type: 'pause' }, { type: 'canplay' }],
       liveState,
     )
-    expect(state).toMatchObject({ status: 'paused', loading: true })
+    expect(state).toMatchObject({ status: 'paused', loading: false })
   })
 })

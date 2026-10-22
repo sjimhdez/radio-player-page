@@ -700,7 +700,7 @@ describe('audit (spec 0002, 4.6)', () => {
     expect(api.current.introLocked).toBe(true)
   })
 
-  it('currently keeps loading after a pause while buffering (K64)', async () => {
+  it('clears loading on a pause while buffering (K64)', async () => {
     const { api, audio } = mount(MP3)
     await act(() => api.current.play())
     act(() => {
@@ -712,9 +712,9 @@ describe('audit (spec 0002, 4.6)', () => {
       audio.dispatchEvent(new Event('canplay'))
     })
 
-    // The spinner replaces Play while paused.
+    // Play replaces the spinner.
     expect(api.current.status).toBe('paused')
-    expect(api.current.loading).toBe(true)
+    expect(api.current.loading).toBe(false)
   })
 
   it('currently plays HLS on MANIFEST_PARSED after a pause pressed while it loads (K11)', async () => {

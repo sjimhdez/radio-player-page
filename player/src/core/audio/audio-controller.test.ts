@@ -1,6 +1,6 @@
 // The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
 // of the audio element, the volume, HLS/DASH and the welcome audio, as in
-// src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K63, K64) and
+// src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K63) and
 // the K70 regression cases (task 2.9). Spec 0007 fixed C7 and K12: Play after a pause
 // reloads the live stream (ADR 0032). The concurrency suspicions of §4.5 come
 // last (task 2.10). C1 (spec 0007, ADR 0033): one retry without crossOrigin on the
@@ -668,14 +668,14 @@ describe('currently (docs/known-issues.md)', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'error', introLocked: true })
   })
 
-  it('currently keeps loading after a pause while buffering (K64)', async () => {
+  it('clears loading on a pause while buffering (K64)', async () => {
     const { controller, audio } = setup()
     await controller.play(live())
     audio.dispatchEvent(new Event('waiting'))
     controller.pause()
     audio.dispatchEvent(new Event('canplay'))
-    // The spinner replaces Play while paused.
-    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: true })
+    // Play replaces the spinner.
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
 
   it('currently plays HLS on MANIFEST_PARSED after a pause pressed while it loads (K11)', async () => {

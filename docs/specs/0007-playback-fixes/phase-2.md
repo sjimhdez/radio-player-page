@@ -58,7 +58,9 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - Archivos: `player/src/core/audio/{player-machine.ts,player-machine.test.ts,audio-controller.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`, `docs/known-issues.md`.
 - Test: regresión primero (rojo) en las tres.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: rojo antes del arreglo en las tres capas (máquina: `expected { status: 'paused', loading: true, … } to match object { status: 'paused', loading: false }`; controlador y hook: `loading` en `true`). Tras el arreglo, `npm --prefix player run check` (623 tests) y `npm run check` en verde.
+- Changelog: pausar mientras el directo se queda cargando (por ejemplo, desde la pantalla de bloqueo o con el temporizador de sueño) muestra el botón Play en lugar de dejar el indicador de carga para siempre.
+- [x] hecha · commit: —
 
 ### 2.4 K11 (D4): `playing` sale del evento del elemento (≤ 1 h)
 - Qué (`fix-bug`): `live-started` ya no pone `status` (solo `activeSource: 'live'` e `introLocked: false`). `playing` llega del evento del elemento, que ya limpia `loading`. Con una carga que sale bien, el controlador deja de limpiar `loading` en el `finally`. `load-end` solo se despacha tras un fallo, y los errores (`play-failed`, `stream-error`, `error`) limpian `loading`. Con el MP3 no cambia nada visible: el evento `playing` llega antes de que se resuelva `play()`. `resumed` de la bienvenida: se quita si el evento `playing` lo cubre. Regresión:
