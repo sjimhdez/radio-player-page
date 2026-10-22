@@ -148,7 +148,7 @@ Corregir K33 (con la variante de K21 en la migración), K21 y K43 en las globale
 - Changelog: «Uninstalling the plugin now also removes the legacy settings, the migration lock and every notice it stored, on every site of a network.»
 - Rojo (2026-10-23): `test_deletes_the_legacy_settings_and_the_transients` y `…_on_a_subsite` fallan en la primera aserción: `radplapag_settings` sigue siendo `array( 'stations' => array() )`. Las otras partes (transients por emisora, opción `radplapag_migrating` y meta pendiente) se vieron en rojo con mutaciones temporales del arreglo, quitando cada línea (revertidas).
 - Resultado (2026-10-23): la meta pendiente se siembra en una entrada normal (que no es de los CPT), y el test comprueba que esa clave ya no está, no que la entrada se quede sin meta: WordPress le añade `_pingme` y `_encloseme`. `PublicApiTest::UNINSTALL_FUNCTIONS` añade `radplapag_uninstall_delete_site_data` (`(): void`), función nueva que permite el ADR 0042. `Uninstall` y `PublicApi` en verde (14 tests); `Uninstall` en multisite, 4 tests en verde.
-- [x] hecha · commit: —
+- [x] hecha · commit: f82a326
 
 ## Decisiones abiertas → ADR
 - Si la medida de la 2.2 pasa de unos segundos, se pregunta (riesgo 1 de la spec).
