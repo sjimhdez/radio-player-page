@@ -27,7 +27,7 @@ Desde la 0005, el plan es `Migration\Legacy_Plan`, la escritura `WP\Migration_Wr
 - Unidireccional: de `radplapag_settings` a los CPT; nunca al revés (ADR 0010).
 - Cubre los formatos de 2.0.x a 3.2.x; los de 1.x quedan fuera del contrato (ADR 0005; K4 en `docs/known-issues.md`).
 - Contrato en el ADR 0037:
-  - Bloqueo atómico: la opción `radplapag_migrating` guarda cuándo caduca. Se toma antes de contar las emisoras. Dura 120 s mientras corre y se retiene 900 s tras un fallo. El transient heredado se ignora.
+  - Bloqueo atómico: la opción `radplapag_migrating` guarda cuándo caduca. Se toma antes de contar las emisoras. Dura 120 s desde la toma o la última renovación (el escritor la renueva antes de cada post; si la pierde, deshace y sale sin avisos) y se retiene 900 s tras un fallo. Tras tomarla se vuelven a comprobar la versión y los datos heredados (ADR 0040). El transient heredado se ignora.
   - Los posts creados llevan `_radplapag_migration_pending` hasta terminar bien. Al reintentar, los que la llevan se borran.
   - La bandera de conflicto vale `'1'` o `'dismissed'`. El aviso solo sale con `'1'`.
   - Las franjas que no validan se descartan una a una (gana la anterior). `is_rerun` no se lee: los formatos heredados no lo tienen y toda franja migra con `false` (ADR 0039).

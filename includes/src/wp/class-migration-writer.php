@@ -32,7 +32,9 @@ final class Migration_Writer {
 	 * created with its meta, and each station logs its skipped slots, drops and logs
 	 * the slots that do not validate (Migration\Slot_Filter, ADR 0037), validates the
 	 * rest with radplapag_sanitize_station_schedule() as a safety net and is created
-	 * with its meta. Every created post carries the pending meta. If anything fails,
+	 * with its meta. Every created post carries the pending meta. While this request
+	 * holds the migration lock, it renews it before each post; if another request has
+	 * taken it, nothing more is written (ADR 0040). If anything fails,
 	 * the created posts are deleted (newest first) and no option is touched. Otherwise
 	 * the pending meta is removed, radplapag_settings is deleted and
 	 * radplapag_db_version saved.
@@ -53,7 +55,10 @@ final class Migration_Writer {
 		$program_posts = array();
 		$program_names = array();
 		foreach ( $plan['programs'] as $program ) {
-			$post_id = self::insert_program( $program, $author );
+			$post_id = self::keep_lock();
+			if ( ! is_wp_error( $post_id ) ) {
+				$post_id = self::insert_program( $program, $author );
+			}
 			if ( is_wp_error( $post_id ) ) {
 				self::rollback( $created );
 				return $post_id;
@@ -65,7 +70,10 @@ final class Migration_Writer {
 
 		$dropped = array();
 		foreach ( $plan['stations'] as $station ) {
-			$post_id = self::insert_station( $station, $program_posts, $program_names, $author, $log, $dropped );
+			$post_id = self::keep_lock();
+			if ( ! is_wp_error( $post_id ) ) {
+				$post_id = self::insert_station( $station, $program_posts, $program_names, $author, $log, $dropped );
+			}
 			if ( is_wp_error( $post_id ) ) {
 				self::rollback( $created );
 				return $post_id;
@@ -81,6 +89,20 @@ final class Migration_Writer {
 			'stations' => count( $plan['stations'] ),
 			'dropped'  => $dropped,
 		);
+	}
+
+	/**
+	 * Renews the migration lock when this request holds it.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @return true|WP_Error WP_Error with the code radplapag_migration_lock_lost when another request took it.
+	 */
+	private static function keep_lock() {
+		if ( ! Migration_Lock::is_held() || Migration_Lock::renew( time(), Migration_Lock::TTL ) ) {
+			return true;
+		}
+		return new WP_Error( 'radplapag_migration_lock_lost', __( 'Another request took over the migration.', 'radio-player-page' ) );
 	}
 
 	/**

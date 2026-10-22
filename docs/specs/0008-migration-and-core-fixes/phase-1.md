@@ -1,5 +1,5 @@
 # Spec 0008 · Fase 1 — Migración
-Estado: en curso · Inicio: 2026-10-22 · ADRs: 0005, 0010, 0021, 0028; nuevos 0037 (migración) y 0038 (toma con `INSERT IGNORE`)
+Estado: en curso · Inicio: 2026-10-22 · ADRs: 0005, 0010, 0021, 0028; nuevos 0037 (migración) y 0038 (toma con `INSERT IGNORE`) y 0040 (renovación del bloqueo, tarea 1.12)
 
 ## Contexto
 Lo medido al planificar:
@@ -22,7 +22,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K31 y K32 (K79 se retiró: A
 | A1 K29 | `UpgradeFlowTest` (descarte → `'dismissed'`, no vuelve a `'1'` y no se pinta; con 0 publicadas se borra y migra; `is-dismissible`) + `UpgradePolicyTest` |
 | A2 K30 | `SlotFilterTest` (vectores) + `UpgradeFlowTest` (lunes se conserva, martes se descarta, el aviso la nombra) + *golden* `v3.2-cross-day-overlap` + `corrupt-times` regenerado |
 | A3 4.3 | `UpgradeFlowTest`: bloqueo vigente, caducado, valor cambiado entre la lectura y la toma, transient heredado ignorado, sin reintento antes de 15 min y purga de los posts pendientes |
-| A4 K79 | **Retirado** (ADR 0039): `LegacyPlanTest` y `UpgradeFlowTest` fijan `is_rerun: false`; el *golden* `corrupt` no cambia |
+| A4 K79 | **Retirado** (ADR 0039): `LegacyPlanTest` y `UpgradeFlowTest` fijan `is_rerun: false`; el *golden* `corrupt` no cambia por K79 (sí por D6) |
 | A5 K31 | `UpgradeFlowTest` (`AC\DC`, `\o/`, `C:\x`) |
 | A6 K32 | `UpgradeFlowTest`: opción borrada, `'330'` y aviso de 0 emisoras |
 | Global | `npm run check` y `npm run test:php:integration` en verde; la baseline de PHPStan no sube; `check:zip` con las altas |
@@ -74,7 +74,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K31 y K32 (K79 se retiró: A
 - Archivos: `includes/src/wp/class-migration-writer.php`, `includes/src/wp/class-migration-lock.php`, `includes/radplapag-upgrade.php`, `UpgradeFlowTest.php`, `docs/known-issues.md`
 - Test: primero. Los dos `currently` de 1.3 pasan a regresión (`…_is_retried_without_duplicates` y `…_with_a_station_is_purged_and_migrated`). Otro test nuevo comprueba que no queda ninguna meta pendiente tras el éxito.
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
-- Rojo (2026-10-22): 3 fallos en `UpgradeFlowTest`. `test_interrupted_migration_is_retried_without_duplicates` (`['Morning', 'Morning']` en vez de `['Morning']`), `test_interrupted_migration_with_a_station_is_purged_and_migrated` (la opción heredada se queda: conflicto) y `test_pending_posts_in_any_status_are_purged_before_migrating` (el programa en `trash` sigue). `test_successful_migration_leaves_no_pending_meta` pasaba sin la meta: se vio en rojo con una mutación temporal (sin `delete_post_meta_by_key()`), revertida. La purga es `Migration_Writer::purge_pending()`, con todos los estados de `get_post_stati()`.
+- Rojo (2026-10-22): 3 fallos en `UpgradeFlowTest`. `test_interrupted_migration_is_retried_without_duplicates` (`['Morning', 'Morning']` en vez de `['Morning']`), `test_interrupted_migration_with_a_station_is_purged_and_migrated` (la opción heredada se queda: conflicto) y `test_pending_posts_in_any_status_are_purged_before_migrating` (el programa en `trash` sigue). `test_successful_migration_leaves_no_pending_meta` pasaba sin la meta: se vio en rojo con una mutación temporal (sin `delete_post_meta_by_key()`), revertida. La purga es `Migration_Writer::purge_pending()`, con todos los estados de `get_post_stati()`. Su `meta_key` lleva en su línea `phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key` con el motivo (solo corre con una migración pendiente; ADR 0021).
 - Changelog: «An interrupted legacy migration is now retried without duplicating radio shows and without being blocked by its own stations.»
 - [x] hecha · commit: `354b0d2`
 
@@ -101,8 +101,8 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K31 y K32 (K79 se retiró: A
 - Archivos: `class-legacy-plan.php`, `class-migration-writer.php`, `LegacyPlanTest.php`, `UpgradeFlowTest.php`, *golden* `corrupt` (unit e integración), `docs/known-issues.md`
 - Test: primero. Los dos `currently` de K79 pasan a regresión (`true` → `true`; sin la clave → `false`).
 - Verificación: `npm run test:php:unit -- --filter LegacyPlanTest && npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
-- Anulada (2026-10-22, decisión del usuario): se implementó en `0dd208b` (con `45b3ef3`) y el usuario señaló que `is_rerun` es posterior a la migración. Comprobado: no aparece en ningún tag de la 3.1.0 a la 3.3.1 y entra en la 3.4.0, ya con los CPT; la única franja heredada con el campo es la fixture `corrupt.json`. Se revierten los dos commits y el ADR 0039 retira el punto 9 del 0037 y la D7. Los dos `currently` de K79 pierden el prefijo con la misma aserción (`test_slot_ignores_is_rerun`, `test_migrated_slot_is_never_a_rerun`); el *golden* `corrupt` no cambia. Sin changelog.
-- [x] anulada · commit: ver el del ADR 0039
+- Anulada (2026-10-22, decisión del usuario): se implementó en `0dd208b` (con `45b3ef3`) y el usuario señaló que `is_rerun` es posterior a la migración. Comprobado: no aparece en ningún tag de la 3.1.0 a la 3.3.1 y entra en la 3.4.0, ya con los CPT; la única franja heredada con el campo es la fixture `corrupt.json`. Se revierten los dos commits y el ADR 0039 retira el punto 9 del 0037 y la D7. Los dos `currently` de K79 pierden el prefijo con la misma aserción (`test_slot_ignores_is_rerun`, `test_migrated_slot_is_never_a_rerun`); el *golden* `corrupt` no cambia por K79 (sí por D6, en la 1.8). Sin changelog.
+- [x] anulada · commit: `547521a` (ADR 0039; los reverts son `1ee74e0` y `a41971e`)
 
 ### 1.10 K31: `wp_slash()` en la escritura (D8) (≤ 1 h)
 - Qué: `fix-bug`. Se aplica `wp_slash()` a los arrays que se pasan a `wp_insert_post()` y a los valores de `update_post_meta()`.
@@ -121,6 +121,15 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K31 y K32 (K79 se retiró: A
 - Rojo (2026-10-22): `test_stations_without_any_station_report_none_migrated` falla con «Radio Player Page: 0 radio stations and their radio shows were migrated…». `Migration_Notice::success()` devuelve el texto nuevo con `stations === 0` (sin lista: no puede haber franjas descartadas sin emisoras). Resultado: `test_stations_without_any_station_give_an_empty_plan` pierde el prefijo con la misma aserción. Los *goldens* no cambian.
 - Changelog: «When the legacy settings hold no radio station, the migration notice now says that none was found instead of reporting 0 migrated radio stations.»
 - [x] hecha · commit: `5fee3fe`
+
+### 1.12 K85: renovar el bloqueo y volver a comprobar tras tomarlo (≤ 1 h)
+- Qué: `fix-bug` (hallazgo de `backcompat-reviewer` al cerrar la fase; decisión del usuario del 2026-10-22). ADR 0040. Tras `acquire()`, se vuelven a comprobar la versión y los datos heredados. `Migration_Lock::renew()` (compare-and-set sobre el valor propio) e `is_held()`; `Migration_Writer` renueva antes de cada post y, si lo pierde, deshace y devuelve `radplapag_migration_lock_lost`, con el que el flujo sale sin avisos. Junto a ella, los menores del mismo informe que eligió el usuario: `ctype_digit()` fuera de `Upgrade_Policy::is_lock_held()` (`preg_match`), la vuelta atrás a la 3.4.2 y `run()` interno en el ADR 0037 y `SPEC.md` §3.4.
+- Archivos: `includes/radplapag-upgrade.php`, `includes/src/wp/class-migration-lock.php`, `includes/src/wp/class-migration-writer.php`, `includes/src/upgrade/class-upgrade-policy.php`, `UpgradeFlowTest.php`, `UpgradePolicyTest.php`, `docs/adr/0040-*.md`, `docs/adr/0037-*.md`, `docs/adr/README.md`, `SPEC.md`, `.claude/rules/data-and-migrations.md`, `docs/known-issues.md`
+- Test: primero. `test_migration_lock_renews_only_while_held`, `test_migration_checks_again_after_taking_the_lock` y `test_lost_lock_stops_the_migration`; vector `"1000\n"` en `data_no_lock`.
+- Verificación: `npm run test:php:unit -- --filter UpgradePolicyTest && npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
+- Rojo (2026-10-22): `Call to undefined method Migration_Lock::renew()`; `test_migration_checks_again_after_taking_the_lock` falla con la bandera a `'1'` (conflicto falso) y `test_lost_lock_stops_the_migration` porque la migración termina (la opción heredada ya no está). `UpgradeFlowTest::set_up()` suelta el bloqueo para que el estado en memoria de `Migration_Lock` no pase de un test a otro.
+- Changelog: — (el bug no llegó a publicarse).
+- [x] hecha · commit: (este)
 
 ## Decisiones abiertas → ADR
 - Los valores de la espera (120 s y 900 s) y la toma del bloqueo antes de contar las emisoras: se fijan en el ADR 0037 (1.1).

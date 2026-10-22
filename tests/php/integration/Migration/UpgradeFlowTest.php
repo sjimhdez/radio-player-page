@@ -65,6 +65,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$_SERVER['REQUEST_URI'] = self::REQUEST_URI;
 		$_GET                   = array();
 		delete_option( 'radplapag_db_version' );
+		\RadioPlayerPage\WP\Migration_Lock::release();
 	}
 
 	/**
@@ -461,6 +462,88 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		\RadioPlayerPage\WP\Migration_Lock::release();
 		$this->assertNull( $this->stored_lock() );
 		$this->assertTrue( \RadioPlayerPage\WP\Migration_Lock::acquire( $now, 120 ) );
+	}
+
+	/**
+	 * The lock adapter renews only the lock it holds: a renewal to the same time keeps
+	 * it, and once another request has taken it the renewal fails and changes nothing.
+	 */
+	public function test_migration_lock_renews_only_while_held() {
+		global $wpdb;
+
+		$this->assertTrue( \RadioPlayerPage\WP\Migration_Lock::acquire( 1000, 120 ) );
+		$this->assertTrue( \RadioPlayerPage\WP\Migration_Lock::renew( 1060, 120 ) );
+		$this->assertSame( '1180', $this->stored_lock() );
+		$this->assertTrue( \RadioPlayerPage\WP\Migration_Lock::renew( 1060, 120 ) );
+		$this->assertSame( '1180', $this->stored_lock() );
+
+		$wpdb->update( $wpdb->options, array( 'option_value' => '5000' ), array( 'option_name' => 'radplapag_migrating' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Another request takes the lock, bypassing the cache.
+
+		$this->assertFalse( \RadioPlayerPage\WP\Migration_Lock::renew( 1100, 120 ) );
+		$this->assertSame( '5000', $this->stored_lock() );
+	}
+
+	/**
+	 * A request that passed the checks while another one was migrating takes the lock
+	 * after that one finished: it checks again, releases the lock and does nothing (no
+	 * error, no false conflict).
+	 */
+	public function test_migration_checks_again_after_taking_the_lock() {
+		global $wpdb;
+		$this->legacy_settings();
+		$done   = false;
+		$finish = function ( $query ) use ( &$done, $wpdb ) {
+			if ( ! $done && false !== strpos( $query, 'INSERT IGNORE' ) ) {
+				$done = true;
+				$wpdb->replace( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- The other request finishes, bypassing the cache.
+					$wpdb->options,
+					array(
+						'option_name'  => 'radplapag_db_version',
+						'option_value' => '330',
+						'autoload'     => 'on',
+					)
+				);
+				$wpdb->delete( $wpdb->options, array( 'option_name' => 'radplapag_settings' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Same.
+				$this->factory_rpp->station( 'Migrated' );
+			}
+			return $query;
+		};
+		add_filter( 'query', $finish );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		remove_filter( 'query', $finish );
+		$this->assertTrue( $done, 'Precondition: the other request finished.' );
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertNull( $this->stored_lock() );
+		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertFalse( get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertFalse( get_transient( 'radplapag_migration_error_notice' ) );
+		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
+	}
+
+	/**
+	 * If the lock expires mid-migration and another request takes it, the next renewal
+	 * fails: this request deletes what it created and stops without touching the other
+	 * request's lock or recording any outcome.
+	 */
+	public function test_lost_lock_stops_the_migration() {
+		global $wpdb;
+		$settings = $this->legacy_settings();
+		$other    = (string) ( time() + 500 );
+		$take     = static function ( $post_id, $post ) use ( $wpdb, $other ) {
+			if ( 'radplapag_program' === $post->post_type ) {
+				$wpdb->update( $wpdb->options, array( 'option_value' => $other ), array( 'option_name' => 'radplapag_migrating' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Another request takes the expired lock, bypassing the cache.
+			}
+		};
+		add_action( 'wp_insert_post', $take, 10, 2 );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		remove_action( 'wp_insert_post', $take, 10 );
+		$this->assert_not_migrated( $settings );
+		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
+		$this->assertSame( $other, $this->stored_lock() );
 	}
 
 	// Conflict with published stations.

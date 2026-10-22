@@ -109,7 +109,7 @@ final class Upgrade_Policy {
 		if ( is_int( $stored ) ) {
 			return $stored > $now;
 		}
-		if ( ! is_string( $stored ) || ! ctype_digit( $stored ) ) {
+		if ( ! is_string( $stored ) || 1 !== preg_match( '/\A\d+\z/', $stored ) ) {
 			return false;
 		}
 		return (int) $stored > $now;

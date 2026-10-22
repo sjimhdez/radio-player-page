@@ -194,6 +194,7 @@ final class UpgradePolicyTest extends TestCase {
 			'empty'          => array( '' ),
 			'not a number'   => array( 'locked' ),
 			'decimal'        => array( '1000.5' ),
+			'trailing line'  => array( "1000\n" ),
 			'array'          => array( array( 1000 ) ),
 		);
 	}

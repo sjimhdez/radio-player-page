@@ -14,7 +14,7 @@ El ADR 0037 (punto 9) y la D7 de la spec 0008 decidieron que la migración conse
 
 1. Se retira el punto 9 del ADR 0037. La migración **no lee** `is_rerun` de la franja heredada: todas las franjas migradas llevan `is_rerun: false` (lo pone `radplapag_sanitize_station_schedule()`), como en la 3.4.2.
 2. K79 queda como «no se reproduce»: no es un bug. Sus dos tests `currently` pierden el prefijo y conservan la aserción (`test_slot_ignores_is_rerun` en `LegacyPlanTest` y `test_migrated_slot_is_never_a_rerun` en `UpgradeFlowTest`).
-3. La D7 y el criterio A4 de la spec 0008 se retiran, y la tarea 1.9 se anula (`0dd208b` y `45b3ef3` se revierten). El *golden* `corrupt` no cambia: `is_rerun: true` en su fixture queda como un dato desconocido que se ignora.
+3. La D7 y el criterio A4 de la spec 0008 se retiran, y la tarea 1.9 se anula (`0dd208b` y `45b3ef3` se revierten). El *golden* `corrupt` no cambia por esto (solo por el resumen del aviso, punto 10 del 0037): `is_rerun: true` en su fixture queda como un dato desconocido que se ignora.
 
 ## Consecuencias
 

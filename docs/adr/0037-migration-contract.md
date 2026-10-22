@@ -1,6 +1,6 @@
 # ADR 0037 — Contrato de la migración: bloqueo atómico, reintento sin duplicados, descarte de franjas y avisos
 
-- Estado: aceptado; punto 2 enmendado por [ADR 0038](0038-migration-lock-first-take-with-insert-ignore.md) (la primera toma usa `INSERT IGNORE`, no `add_option()`); punto 9 retirado por [ADR 0039](0039-legacy-slots-have-no-is-rerun.md) (los formatos heredados no tienen `is_rerun`; K79 no es un bug) · Fecha: 2026-10-22 · Spec: 0008 (fase 1)
+- Estado: aceptado; punto 2 enmendado por [ADR 0038](0038-migration-lock-first-take-with-insert-ignore.md) (la primera toma usa `INSERT IGNORE`, no `add_option()`); punto 9 retirado por [ADR 0039](0039-legacy-slots-have-no-is-rerun.md) (los formatos heredados no tienen `is_rerun`; K79 no es un bug); puntos 3 y 5 enmendados por [ADR 0040](0040-migration-lock-renewal.md) (el bloqueo se renueva antes de cada post y se vuelve a comprobar todo tras tomarlo) · Fecha: 2026-10-22 · Spec: 0008 (fase 1)
 
 ## Contexto
 
@@ -19,7 +19,7 @@ Las decisiones D2 a D7 de la spec 0008 (§4.1) las corrigen. Cambian claves y va
 
 ### Bloqueo
 
-1. `radplapag_migrating` pasa a ser una **opción** sin autoload (`add_option( …, 'no' )`). Su valor es la marca de tiempo Unix (entero, en segundos) en que caduca.
+1. `radplapag_migrating` pasa a ser una **opción** sin autoload (`add_option( …, 'no' )`; desde el ADR 0038, la primera toma es un `INSERT IGNORE` con `autoload` `'off'`). Su valor es la marca de tiempo Unix (entero, en segundos) en que caduca.
 2. **Toma atómica.** Primero `add_option()`, que solo gana una petición porque `option_name` es único. Si la opción ya existe y su valor es una hora pasada, se toma con un `UPDATE` condicional sobre el valor leído (`WHERE option_name = %s AND option_value = %s`, con `$wpdb->prepare()`). Solo gana si cambia una fila; después se borran de la caché la opción, `alloptions` y `notoptions`. Borrar y volver a añadir no vale, porque no es atómico. La excepción de PHPCS (`DirectDatabaseQuery`) va en su línea con el motivo (ADR 0021). Esa lógica la tiene el adaptador `WP\Migration_Lock`, y el predicado puro `Upgrade_Policy::is_lock_held()`.
 3. **Esperas.** Mientras corre, el bloqueo dura **120 s**. Si la escritura falla, no se suelta: se retiene **900 s** (15 min) desde el fallo, para que un fallo determinista no se repita en cada petición. Al terminar bien se borra la opción.
 4. El transient `radplapag_migrating` de versiones anteriores **se ignora** (no bloquea ni se lee). Caduca solo; la desinstalación lo borra (spec 0008, fase 2).
@@ -52,10 +52,12 @@ Las decisiones D2 a D7 de la spec 0008 (§4.1) las corrigen. Cambian claves y va
 - Tras un fallo, el administrador ve el error durante 15 min y la migración no se reintenta en ese tiempo. Si el fallo era pasajero, migra en la primera petición tras la espera.
 - `'dismissed'` deja `radplapag_settings` para siempre en un sitio con conflicto (riesgo 4 de la spec). Es lo que elige quien descarta. La desinstalación la borra (fase 2).
 - Una migración de la 3.2 con solapes entre días ya no se bloquea. A cambio se pierde una franja, y el aviso la nombra para que se pueda rehacer a mano (A2).
-- Los 8 *goldens* que migran cambian en una sola clave, `transients.radplapag_migration_success_notice`. Los *goldens* `corrupt-times` y `corrupt` cambian por K30 y K79 (spec 0008, §4.3).
+- Los *goldens* que migran cambian en una sola clave, `transients.radplapag_migration_success_notice`: los 8 de antes más `corrupt-times` y el nuevo `v3.2-cross-day-overlap`, que migran por K30 (spec 0008, §4.3). `corrupt` no cambia por K79 (ADR 0039).
 - La rule de datos dice que una opción nueva va también a la desinstalación. La opción `radplapag_migrating` y la meta pendiente entran en `uninstall.php` en la fase 2 (D11). Hasta entonces, la opción solo puede quedar si un fallo deja el bloqueo retenido, y la meta si una migración se corta. Las dos son residuos internos.
 - `Slot_Filter` depende solo de la API pública de `Slot_Validator`. Si la 0009 rehace el validador, los vectores de `SlotFilterTest` lo protegen.
 - Si `wporg-reviewer` objeta el `UPDATE` directo, se pregunta al usuario (riesgo 3 de la spec).
+- **Vuelta atrás a la 3.4.2:** el código antiguo trata `'dismissed'` como verdadero, así que el aviso de conflicto reaparece y vuelve K29. Lo demás que queda (la opción del bloqueo, la meta pendiente y el transient de éxito con el resumen, que la 3.4.2 solo mira como verdadero) es inocuo para ella.
+- `Radplapag_Migrator_Settings_To_Cpt::run()` devuelve el resumen en vez de `true`. Su clase es **interna** aunque lleve el prefijo `Radplapag_`: `SPEC.md` §3.4 la excluye explícitamente del contrato. Con `is_wp_error()` o una comprobación de verdad, un tercero sigue funcionando; con `true === run()`, no.
 
 ## Alternativas descartadas
 

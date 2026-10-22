@@ -22,6 +22,7 @@ if ( ! defined( 'RADPLAPAG_DB_VERSION' ) ) {
  *
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::has_migratable_stations().
+ * @phpstan-impure Reads radplapag_settings, which another request may delete.
  * @return bool
  */
 function radplapag_legacy_has_migratable_stations(): bool {
@@ -99,7 +100,7 @@ function radplapag_maybe_clear_migration_conflict_flag(): void {
  * Runs legacy migration if needed (idempotent; uses an atomic lock).
  *
  * @since 3.3.0
- * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). Once taken, the posts left pending by a cut migration are deleted. After a failed write the lock is held for 900 s and the error notice lasts as long The success notice stores the migrator's summary.
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). Once taken, the posts left pending by a cut migration are deleted. Once taken, the version and the legacy data are checked again, and the writer renews the lock before each post; a migration that lost it stops without a notice (ADR 0040). After a failed write the lock is held for 900 s and the error notice lasts as long. The success notice stores the migrator's summary.
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed(): void {
@@ -120,7 +121,14 @@ function radplapag_run_legacy_migration_if_needed(): void {
 		return;
 	}
 
-	if ( ! \RadioPlayerPage\WP\Migration_Lock::acquire( time(), 120 ) ) {
+	if ( ! \RadioPlayerPage\WP\Migration_Lock::acquire( time(), \RadioPlayerPage\WP\Migration_Lock::TTL ) ) {
+		return;
+	}
+
+	// Another request may have finished while this one waited for the lock (ADR 0040).
+	$version = get_option( 'radplapag_db_version' );
+	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::is_current( $version, RADPLAPAG_DB_VERSION ) || ! radplapag_legacy_has_migratable_stations() ) {
+		\RadioPlayerPage\WP\Migration_Lock::release();
 		return;
 	}
 
@@ -142,6 +150,9 @@ function radplapag_run_legacy_migration_if_needed(): void {
 
 	wp_set_current_user( $prev_user );
 
+	if ( is_wp_error( $result ) && 'radplapag_migration_lock_lost' === $result->get_error_code() ) {
+		return;
+	}
 	if ( is_wp_error( $result ) ) {
 		\RadioPlayerPage\WP\Migration_Lock::hold_until( time() + 900 );
 		set_transient(
