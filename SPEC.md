@@ -175,7 +175,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - **Reloj de la emisora:** si la zona horaria de la emisora difiere de la del oyente, muestra la hora de la emisora y la diferencia.
 - **Modales** del horario semanal y de todos los programas.
 - **El horario es solo informativo:** nunca inicia, detiene ni cambia la reproducción.
-- **Errores:** si el stream falla, se muestra «Unable to play the stream. Try again later.» (traducido) (con las excepciones de K1 en `docs/known-issues.md`).
+- **Errores:** si el stream falla, se muestra «Unable to play the stream. Try again later.» (traducido), en Chromium y en WebKit; una pausa no lo borra (spec 0007, K1).
 - **i18n:** 14 locales en `player/src/locales/` (`cs`, `da-DK`, `de-DE`, `en-US`, `es`, `es-MX`, `gl-ES`, `hr`, `it-IT`, `nl-NL`, `pt-BR`, `ro-RO`, `ru-RU`, `sv-SE`). Idioma: el del sitio, por el `lang` del `<html>`; si no tiene traducción, reserva `en-US`. El idioma del navegador no se usa (ADR 0025).
 
 ### 3.9 Visualizadores (zona congelada, ADR 0018 y 0031)
@@ -221,3 +221,4 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 | 0002 | §3.8: el idioma del reproductor es el del sitio (reserva `en-US`); el navegador y `localStorage` no son contrato. | 0025 |
 | 0005 | Sin cambios en el contrato. §3.4: el namespace `RadioPlayerPage\` (`includes/src/`) es interno. §3.6: script nuevo `radplapag-schedule-rules` (`admin/js/schedule-rules.js`), dependencia de `radplapag-station-admin`, con `window.radplapagScheduleRules` interno; los handles existentes no cambian. | 0028 |
 | 0006 | Sin cambios en el contrato. §3.8: la validación de las globales vive en `src/core/config/` y `use-config.tsx` las lee; `player/src/core/` (audio, reloj, configuración, Media Session, horario y sueño) es interno. Corregidos K9, K14, K70 y K80 (sin cambio de contrato). | 0029, 0030 |
+| 0007 | §3.8 y §3.9: fuentes directas con `crossOrigin` y un reintento sin él; el núcleo decide la visualización (`canVisualize`); Play tras una pausa recarga el directo; DASH sin fuente de hora de terceros; protocolo por el sufijo del `pathname`; estados del audio fieles (`loading` hasta `playing`, la pausa cancela la carga, el error no se borra); la bienvenida nunca bloquea el reproductor; temporizador de sueño contra una hora límite y deshabilitado durante la bienvenida; volumen por capacidad y HLS nativo también en iPadOS. Corregidos C1, C2, C7, K1, K11, K12, K13, K63–K67, K81 y K82; K18 era del *fixture*. | 0031, 0032, 0033, 0034, 0035, 0036 |
