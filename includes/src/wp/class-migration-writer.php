@@ -116,21 +116,23 @@ final class Migration_Writer {
 	 */
 	private static function insert_program( array $program, int $author ) {
 		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'radplapag_program',
-				'post_status'  => 'publish',
-				'post_title'   => self::program_title( $program ),
-				'post_author'  => $author,
-				'post_content' => '',
-				'meta_input'   => array( self::PENDING_META => '1' ),
+			wp_slash(
+				array(
+					'post_type'    => 'radplapag_program',
+					'post_status'  => 'publish',
+					'post_title'   => self::program_title( $program ),
+					'post_author'  => $author,
+					'post_content' => '',
+					'meta_input'   => array( self::PENDING_META => '1' ),
+				)
 			),
 			true
 		);
 		if ( is_wp_error( $post_id ) ) {
 			return $post_id;
 		}
-		update_post_meta( $post_id, 'radplapag_program_description', $program['description'] );
-		update_post_meta( $post_id, 'radplapag_program_extended_description', $program['extended_description'] );
+		update_post_meta( $post_id, 'radplapag_program_description', wp_slash( $program['description'] ) );
+		update_post_meta( $post_id, 'radplapag_program_extended_description', wp_slash( $program['extended_description'] ) );
 		update_post_meta( $post_id, 'radplapag_program_logo_id', $program['logo_id'] );
 		return $post_id;
 	}
@@ -196,14 +198,16 @@ final class Migration_Writer {
 		}
 
 		$post_id = wp_insert_post(
-			array(
-				'post_type'    => 'radplapag_station',
-				'post_status'  => 'publish',
-				'post_title'   => $title,
-				'post_author'  => $author,
-				'menu_order'   => $station['menu_order'],
-				'post_content' => '',
-				'meta_input'   => array( self::PENDING_META => '1' ),
+			wp_slash(
+				array(
+					'post_type'    => 'radplapag_station',
+					'post_status'  => 'publish',
+					'post_title'   => $title,
+					'post_author'  => $author,
+					'menu_order'   => $station['menu_order'],
+					'post_content' => '',
+					'meta_input'   => array( self::PENDING_META => '1' ),
+				)
 			),
 			true
 		);
@@ -211,13 +215,13 @@ final class Migration_Writer {
 			return $post_id;
 		}
 
-		update_post_meta( $post_id, 'radplapag_station_stream_url', $station['stream_url'] );
+		update_post_meta( $post_id, 'radplapag_station_stream_url', wp_slash( $station['stream_url'] ) );
 		update_post_meta( $post_id, 'radplapag_station_player_page', $station['player_page'] );
 		update_post_meta( $post_id, 'radplapag_station_background_id', $station['background_id'] );
 		update_post_meta( $post_id, 'radplapag_station_logo_id', $station['logo_id'] );
-		update_post_meta( $post_id, 'radplapag_station_theme_color', $station['theme_color'] );
-		update_post_meta( $post_id, 'radplapag_station_visualizer', $station['visualizer'] );
-		update_post_meta( $post_id, 'radplapag_station_schedule', wp_json_encode( $sanitized ) );
+		update_post_meta( $post_id, 'radplapag_station_theme_color', wp_slash( $station['theme_color'] ) );
+		update_post_meta( $post_id, 'radplapag_station_visualizer', wp_slash( $station['visualizer'] ) );
+		update_post_meta( $post_id, 'radplapag_station_schedule', wp_slash( wp_json_encode( $sanitized ) ) );
 
 		return $post_id;
 	}

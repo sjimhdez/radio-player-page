@@ -109,7 +109,9 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K31 y K32 (K79 se retiró: A
 - Archivos: `class-migration-writer.php`, `UpgradeFlowTest.php`, `docs/known-issues.md`
 - Test: primero. `test_currently_migration_strips_backslashes` pasa a `test_migration_keeps_backslashes`.
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
-- [ ] hecha · commit: —
+- Rojo (2026-10-22): `test_migration_keeps_backslashes` falla con `'ACDC'` en vez de `'AC\DC'`. Se pasan por `wp_slash()` los dos arrays de `wp_insert_post()` y las metas de texto (descripciones, URL, color, visualizador y el JSON del horario); las numéricas no. Los *goldens* no cambian.
+- Changelog: «Backslashes in the legacy station and radio show titles and texts are now kept by the migration.»
+- [x] hecha · commit: —
 
 ### 1.11 K32: el aviso con 0 emisoras (D6) (≤ 1 h)
 - Qué: `fix-bug`. Con `stations === 0`, el aviso dice «No radio station was found to migrate; the old settings entry was removed». La opción se sigue borrando y la versión pasa a `'330'`. El docblock de K32 en `Upgrade_Policy`/`Legacy_Plan` se actualiza; el plan vacío se mantiene, así que su test pierde el prefijo `currently` y conserva la aserción (se anota como «Resultado»).

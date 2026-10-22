@@ -6,7 +6,7 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tareas 1.10 y 1.11 de la fase 1 de la 0008, en orden (la 1.9 se anuló: K79 no es un bug, ADR 0039). La 1.8 dejó el resumen `{ stations, dropped }` en el transient de éxito y `WP\Migration_Notice` lo pinta; con 0 emisoras aún dice «0 radio stations … were migrated» (K32, la 1.11). Los *goldens* se regeneran con `RADPLAPAG_UPDATE_SNAPSHOTS=1` dentro del `env` de `wp-env run` (desde fuera no llega).
+1. Tarea 1.11 de la fase 1 de la 0008 (la 1.9 se anuló: K79 no es un bug, ADR 0039; la 1.10, K31, hecha). La 1.8 dejó el resumen `{ stations, dropped }` en el transient de éxito y `WP\Migration_Notice` lo pinta; con 0 emisoras aún dice «0 radio stations … were migrated» (K32, la 1.11). Los *goldens* se regeneran con `RADPLAPAG_UPDATE_SNAPSHOTS=1` dentro del `env` de `wp-env run` (desde fuera no llega).
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano

@@ -997,12 +997,12 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The migrator passes the legacy values to wp_insert_post() and update_post_meta()
-	 * without wp_slash(), and both unslash them: backslashes are lost.
+	 * The writer slashes the legacy values it passes to wp_insert_post() and
+	 * update_post_meta(), which unslash them: backslashes are kept.
 	 *
 	 * @see docs/known-issues.md K31
 	 */
-	public function test_currently_migration_strips_backslashes() {
+	public function test_migration_keeps_backslashes() {
 		$settings                                       = $this->legacy_settings();
 		$settings['stations'][0]['station_title']       = 'AC\\DC';
 		$settings['stations'][0]['programs'][0]['name'] = '\\o/';
@@ -1012,9 +1012,9 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		radplapag_run_legacy_migration_if_needed();
 
 		$program = get_posts( array( 'post_type' => 'radplapag_program' ) )[0];
-		$this->assertSame( 'ACDC', get_posts( array( 'post_type' => 'radplapag_station' ) )[0]->post_title );
-		$this->assertSame( 'o/', $program->post_title );
-		$this->assertSame( 'C:x', get_post_meta( $program->ID, 'radplapag_program_description', true ) );
+		$this->assertSame( 'AC\\DC', get_posts( array( 'post_type' => 'radplapag_station' ) )[0]->post_title );
+		$this->assertSame( '\\o/', $program->post_title );
+		$this->assertSame( 'C:\\x', get_post_meta( $program->ID, 'radplapag_program_description', true ) );
 	}
 
 	/**
