@@ -43,7 +43,7 @@ Corregir K66, K65 y K13 con su regresión en las capas que cita `known-issues.md
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/sleep.spec.ts tests/e2e/intro.spec.ts`
 - Rojo (antes del arreglo): `index.test.tsx` `expected false to be true`; `sleep.spec.ts` (Chromium y WebKit) `{ intro: true, disabled: false }`. El e2e lee el botón y la fuente del audio en un solo `evaluate`: un `toBeDisabled()` con reintentos pasaba con el `dist/` anterior, porque el relevo al directo pasa por `paused` dentro de sus 5 s. El temporizador del directo se pone sin `setShortestTimer()` (con reloj real, `30:00` puede pasar a `29:59` antes de la aserción).
 - Changelog: «Sleep mode» no se puede activar mientras suena el audio de bienvenida; antes, el paso al directo cancelaba el temporizador sin avisar.
-- [x] hecha · commit: —
+- [x] hecha · commit: `262540c`
 
 ### 3.3 ADR 0036 y caracterización del volumen en iOS (≤ 1 h)
 - Qué (`write-adr` + `characterize`): ADR 0036 «Volumen por capacidad y detección de iOS en el núcleo». Recoge (1) y (2) del contexto, las alternativas descartadas (`canPlayType` para HLS cambia Safari de macOS; `hls.js` donde haya MSE pasa el iPhone a ManagedMediaSource sin medir) y la consecuencia de que `isIOS` salga de las firmas del controlador. Enmienda D8 y A12 de la spec en el mismo commit; `SPEC.md` §3.8 («Volumen»: oculto donde el sistema no deja cambiarlo; HLS nativo en iOS, también en iPadOS). Antes de tocar nada se comprueba que lo que se va a cambiar está fijado: si `VolumeControl` no tiene test de «oculto en iOS» o el `Dashboard` no lo cubre, se añade como caracterización contra el código actual.
