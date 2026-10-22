@@ -74,7 +74,7 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - `resumed` se queda: `reports playing when the intro play() resolves, without waiting for the playing event` (spec 0006) fija que la bienvenida no depende del evento, así que el evento no lo cubre. Sí se quita el `finally` de la bienvenida: tras un fallo de la bienvenida limpiaba `loading` antes de que sonara HLS. Regresión nueva en el controlador: «keeps loading until HLS plays when it fails (K11)».
 - Resultado: rojo antes del arreglo en las tres capas (`expected { status: 'playing', … } to match object { status: 'idle', loading: true }`), y en el caso de la bienvenida que falla. Tras el arreglo, `npm --prefix player run check` (625 tests) y los tres e2e en verde (27 pasan, 3 se saltan).
 - Changelog: con HLS y DASH, el botón muestra el indicador de carga hasta que el directo suena de verdad, en lugar de mostrar Pausa mientras aún carga.
-- [x] hecha · commit: —
+- [x] hecha · commit: 5f4d157
 
 ### 2.5 K81 y K11 con pausa (D3): una pausa durante la carga la cancela (≤ 1 h)
 - Qué (`fix-bug`): el controlador lleva un contador de generación. `pause()` lo incrementa, suelta `pendingPlay` (el Play siguiente empieza de cero) y, si hay una carga en curso (`loading`), destruye la fuente. Al resolverse o rechazarse un intento viejo, y con los `onError`/`onPlayRejected` de su fuente, no se despacha nada: el `AbortError` queda ignorado. `hls.ts` no llama a `play()` en un `MANIFEST_PARSED` tras `destroy()`. `dash.ts` hace `reset()` (corta el *autoplay*). El `finally` de un intento viejo no borra el `pendingPlay` de otro. Regresión:
