@@ -264,38 +264,85 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	// Guards of the migration.
 
 	/**
-	 * Off the admin side, nothing runs.
+	 * Off the admin side, the migration runs (ADR 0041).
+	 *
+	 * @see docs/known-issues.md K33
 	 */
-	public function test_migration_does_not_run_off_admin() {
-		$settings = $this->legacy_settings();
+	public function test_migration_runs_off_admin() {
+		$this->legacy_settings();
 		set_current_screen( 'front' );
 
 		radplapag_run_legacy_migration_if_needed();
 
-		$this->assert_not_migrated( $settings );
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
+		$this->assertSame( $this->admin, get_current_user_id() );
 	}
 
 	/**
-	 * Logged out, nothing runs.
+	 * Logged out, the migration runs and the visitor stays logged out (ADR 0041).
+	 *
+	 * @see docs/known-issues.md K33
 	 */
-	public function test_migration_does_not_run_logged_out() {
-		$settings = $this->legacy_settings();
+	public function test_migration_runs_logged_out() {
+		$this->legacy_settings();
 		wp_set_current_user( 0 );
 
 		radplapag_run_legacy_migration_if_needed();
 
-		$this->assert_not_migrated( $settings );
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
+		$this->assertSame( 0, get_current_user_id() );
 	}
 
 	/**
-	 * Without manage_options (an editor), nothing runs.
+	 * Without manage_options (an editor), the migration runs as the first administrator
+	 * and the editor is restored (ADR 0041).
+	 *
+	 * @see docs/known-issues.md K33
 	 */
-	public function test_migration_does_not_run_without_manage_options() {
-		$settings = $this->legacy_settings();
-		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+	public function test_migration_runs_without_manage_options() {
+		$this->legacy_settings();
+		$editor = self::factory()->user->create( array( 'role' => 'editor' ) );
+		wp_set_current_user( $editor );
 
 		radplapag_run_legacy_migration_if_needed();
 
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
+		$this->assertSame( $editor, get_current_user_id() );
+	}
+
+	/**
+	 * The migration is hooked on init at 100, after the post types and the meta exist,
+	 * and stays on admin_init at 20 (ADR 0041).
+	 */
+	public function test_migration_is_hooked_on_init_at_100() {
+		$this->assertSame( 100, has_action( 'init', 'radplapag_run_legacy_migration_if_needed' ) );
+		$this->assertSame( 20, has_action( 'admin_init', 'radplapag_run_legacy_migration_if_needed' ) );
+	}
+
+	/**
+	 * On the front, with the conflict flag set, the pass returns without counting the
+	 * stations: clearing the flag is left to the admin (ADR 0041).
+	 */
+	public function test_front_pass_with_conflict_flag_does_not_count_stations() {
+		$settings = $this->legacy_settings();
+		update_option( 'radplapag_migration_skipped_cpt_conflict', '1' );
+		set_current_screen( 'front' );
+		$counts = 0;
+		add_filter(
+			'wp_count_posts',
+			static function ( $counts_by_status ) use ( &$counts ) {
+				++$counts;
+				return $counts_by_status;
+			}
+		);
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( 0, $counts );
+		$this->assertSame( '1', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
 		$this->assert_not_migrated( $settings );
 	}
 
@@ -624,7 +671,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 	/**
 	 * Success: content created, option removed, version recorded, lock released and the
-	 * summary as the success notice for 60 s. The current user is restored after running as the author.
+	 * summary as the success notice. The current user is restored after running as the author.
 	 */
 	public function test_successful_migration_records_outcome_and_releases_lock() {
 		$this->legacy_settings();
@@ -644,8 +691,22 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 			),
 			get_transient( 'radplapag_migration_success_notice' )
 		);
-		$this->assertSame( 60, $this->transient_ttl( 'radplapag_migration_success_notice' ) );
 		$this->assertSame( $this->admin, get_current_user_id() );
+	}
+
+	/**
+	 * The success notice does not expire: it waits for an administrator to open the
+	 * admin, since the migration may run on the front (ADR 0041).
+	 */
+	public function test_success_notice_does_not_expire() {
+		$this->legacy_settings();
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertNotFalse( get_transient( 'radplapag_migration_success_notice' ) );
+		if ( ! wp_using_ext_object_cache() ) {
+			$this->assertFalse( get_option( '_transient_timeout_radplapag_migration_success_notice' ) );
+		}
 	}
 
 	/**
@@ -1129,13 +1190,13 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * After an update (an automatic one runs from cron, off the admin), the migration
-	 * waits for an administrator to open the admin; meanwhile the station page no longer
-	 * serves the player, because only the CPT is read.
+	 * After an update (an automatic one runs from cron, off the admin), the first front
+	 * request of a visitor migrates on init and the station page serves the player in
+	 * that same request; the visitor stays logged out (ADR 0041).
 	 *
 	 * @see docs/known-issues.md K33
 	 */
-	public function test_currently_station_page_is_not_served_until_an_admin_visits() {
+	public function test_station_page_is_served_on_the_first_front_request() {
 		$settings = $this->legacy_settings();
 		wp_set_current_user( 0 );
 		set_current_screen( 'front' );
@@ -1145,8 +1206,11 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->go_to( get_permalink( $settings['stations'][0]['player_page'] ) );
 
 		$this->assertTrue( is_page() );
-		$this->assertFalse( radplapag_get_station_for_current_page() );
-		$this->assertSame( $settings, get_option( 'radplapag_settings' ) );
+		$station = radplapag_get_station_for_current_page();
+		$this->assertIsArray( $station );
+		$this->assertSame( 'One', $station['station_title'] );
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertSame( 0, get_current_user_id() );
 	}
 
 	// Debug log and schedule translation.
@@ -1863,7 +1927,8 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Other upgrader runs do not touch the legacy data.
+	 * Other upgrader runs do not touch the legacy data. Whether they hook init is not
+	 * checked: the migration is always hooked there (ADR 0041).
 	 *
 	 * @dataProvider ignored_upgrader_options
 	 *
@@ -1875,7 +1940,6 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		radplapag_on_upgrader_process_complete( null, $options );
 
 		$this->assert_not_migrated( $settings );
-		$this->assertFalse( has_action( 'init', 'radplapag_run_legacy_migration_if_needed' ) );
 	}
 
 	/**

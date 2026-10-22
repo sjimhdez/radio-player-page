@@ -69,6 +69,8 @@ Corregir K33 (con la variante de K21 en la migración), K21 y K43 en las globale
     - `test_success_notice_does_not_expire`: `_transient_timeout_…` ausente.
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
 - Changelog: «After updating from a version before 3.3.0, the radio station pages are served again right away, without waiting for an administrator to open the dashboard.»
+- Rojo (2026-10-23): 6 fallos en `UpgradeFlowTest`. Los 3 de D1 (`false` en vez de `'330'`), `test_migration_is_hooked_on_init_at_100` (`false` en vez de `100`), `test_success_notice_does_not_expire` (con `_transient_timeout_…`) y `test_station_page_is_served_on_the_first_front_request` (`false` en vez de la emisora). `test_front_pass_with_conflict_flag_does_not_count_stations` ya pasaba (la guarda salía antes): se vio en rojo con una mutación temporal (la limpieza sin `is_admin()`, 2 recuentos), revertida.
+- Resultado (2026-10-23): la aserción de los 60 s sale de `test_successful_migration_records_outcome_and_releases_lock` (la cubre el test nuevo). En la caracterización `test_upgrader_ignores_other_runs` sale `assertFalse( has_action( 'init', … ) )`: con D1 la migración siempre está enganchada en `init` 100 y la aserción ya no distingue nada (ADR 0041); se queda `assert_not_migrated()`. `HooksTest::EXPECTED` añade `init` → `radplapag_run_legacy_migration_if_needed` (100), la fila de `SPEC.md` §3.4 de la 2.1. Medida en el front, con el usuario 0 y el *fixture* `multi-station` (3 emisoras): 12–20 ms en 3 pasadas, con una prueba temporal borrada después.
 - [ ] hecha · commit: —
 
 ### 2.3 K21 (migración): escribir sin el kses del usuario cambiado (D9) (≤ 1 h)

@@ -3,11 +3,11 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 
 ## En curso
 - Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)). Fase 1 (migración) cerrada el 2026-10-22: K29, K30, K31, K32, K84 y K85 corregidos (ADR 0037, 0038, 0039 y 0040; K79 retirado). Fase 2 (actualización, entidades y desinstalación: K33, K21, K43, C11, K7) en curso desde el 2026-10-23, con 7 tareas; nuevos ADR 0041 (migración sin admin; el aviso de éxito ya no caduca) y 0042 (desinstalación). Queda la 3, página limpia y API (K23 con RTL, K26, K24, K25).
-- **No publicar una versión entre la fase 1 y la 2:** la desinstalación aún no borra la opción `radplapag_migrating` (`backcompat-reviewer`).
+- **No publicar una versión entre la fase 1 y la 2:** la desinstalación aún no borra la opción `radplapag_migrating` (`backcompat-reviewer`) ni el aviso de éxito, que desde la 2.2 no caduca (hasta la 2.7).
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 2.2 de la fase 2 (K33, `fix-bug`; la 2.1, ADR 0041, hecha) y después las siguientes del plan, en orden.
+1. Tarea 2.3 de la fase 2 (K21 en la migración, `fix-bug`; la 2.1 y la 2.2, K33, hechas) y después las siguientes del plan, en orden.
 2. La fase 1 se cerró con revisión mínima (decisión del usuario): solo `spec-conformance-reviewer` y `backcompat-reviewer`. Al cerrar la fase 2, pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente).
 3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
