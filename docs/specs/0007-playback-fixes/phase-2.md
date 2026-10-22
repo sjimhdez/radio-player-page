@@ -89,7 +89,7 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - Ajuste aprobado (decisión del usuario, 2026-10-22): `destroys the previous source on the next play()` (controlador) pausaba HLS mientras cargaba y esperaba que la pausa no lo destruyera, lo contrario de D3. Ahora dispara `MANIFEST_PARSED` antes del `pause()`: con el directo sonando, la pausa no destruye y el Play siguiente sí.
 - Resultado: rojo antes del arreglo en el núcleo (8: el controlador seguía en `error`, no destruía `hls.js` ni hacía `reset()`, devolvía la promesa vieja; las fuentes llamaban a `play()`/`onError` tras `destroy()` y creaban la instancia tras destruirse), en el hook (3: `expected 'error' to be 'paused'`, sin `destroy`/`reset`) y en `mp3.spec.ts` con el `dist/` anterior (Chromium y WebKit: la alerta seguía). Tras el arreglo, `npm --prefix player run check` (632 tests) y los cuatro e2e en verde (39 pasan, 3 se saltan). K80 sigue en verde en el núcleo y en el hook.
 - Changelog: pausar mientras el directo carga (desde la pantalla de bloqueo, los auriculares o el temporizador de sueño) deja el botón Play sin mostrar «Unable to play the stream», y con HLS o DASH el directo ya no empieza a sonar tras la pausa.
-- [x] hecha · commit: —
+- [x] hecha · commit: 486d84f
 
 ### 2.6 K63 (D5): la bienvenida no bloquea el reproductor (≤ 1 h)
 - Qué (`fix-bug`): `intro-finished` pone `introConsumed: true`, `introLocked: false` y `activeSource: null`, así que Play pasa por la carga del directo. En el controlador:
