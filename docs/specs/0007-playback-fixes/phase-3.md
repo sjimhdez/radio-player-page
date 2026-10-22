@@ -14,7 +14,7 @@ Corregir K66, K65 y K13 con su regresión en las capas que cita `known-issues.md
 ## Criterios de aceptación
 | Criterio | Cómo se verifica |
 |---|---|
-| A11 (K66) | `sleep-timer.test.ts`, `use-sleep-timer.test.tsx` y `SleepMode.test.tsx`: con los *ticks* retenidos 29 min, el siguiente muestra el tiempo real (60 s, no 1799); con el reloj pasado de la hora límite, el siguiente *tick* llama a `onEnd` una vez. Los tests existentes de cuenta atrás siguen en verde sin editarlos |
+| A11 (K66) | `sleep-timer.test.ts`, `use-sleep-timer.test.tsx` y `SleepMode.test.tsx`: con los *ticks* retenidos 29 min, el siguiente muestra el tiempo real (59 s, no 1799); con el reloj pasado de la hora límite, el siguiente *tick* llama a `onEnd` una vez. Los tests existentes de cuenta atrás siguen en verde sin editarlos |
 | A10 (K65) | `index.test.tsx`: «Sleep mode» deshabilitado con `status: 'playing'` e `introLocked: true`. `sleep.spec.ts` (Chromium y WebKit): deshabilitado mientras suena la bienvenida, habilitado cuando suena el directo, y el temporizador puesto en el directo sigue. `sleep-timer.test.ts`: el `currently` de K65 pasa a test con la regla |
 | A12 (K13, enmendado por el ADR 0036) | `core/audio/volume.test.ts`: un elemento que ignora la escritura de `volume` no es controlable; uno normal sí, y la sonda no cambia el volumen del elemento real. `audio-controller.test.ts`: `volumeControllable` está en la primera instantánea (correcto en el primer render) y, si es `false`, ni `attach()` ni `setVolume()` escriben `volume`. `VolumeControl`/`index.test.tsx`: sin deslizador si `volumeControllable` es `false`. `core/audio/platform.test.ts`: `iphone\|ipad\|ipod` y `Macintosh` + `maxTouchPoints > 1` son iOS; un Mac sin táctil, Android y Windows no. `audio-controller.test.ts`: con iPadOS de escritorio, HLS va por el nativo. `grep -rn "eslint-disable" player/src` vacío y sin `use-is-ios.tsx`. Manual: en iPhone y iPad reales, sin deslizador y con HLS nativo (se añade a «Verificación manual pendiente») |
 | ADR y contrato | ADR 0035 (sueño: hora límite y deshabilitado durante la bienvenida). `SPEC.md` §3.8 (sueño, errores sin K1) y §6 (fila 0007, ADR 0031–0036). Filas K65, K66, K13 → «corregido (spec 0007)». Rule `player.md` sin la excepción de `use-is-ios.tsx`. Hoja de ruta: notas de la 0011 |
@@ -28,6 +28,8 @@ Corregir K66, K65 y K13 con su regresión en las capas que cita `known-issues.md
 - Archivos: `player/src/core/sleep/{sleep-timer.ts,sleep-timer.test.ts}`, `player/src/hooks/{use-sleep-timer.tsx,use-sleep-timer.test.tsx}`, `player/src/components/dashboard/SleepMode.test.tsx`, `docs/adr/0035-*.md`, `docs/adr/README.md`, `SPEC.md`, `docs/known-issues.md`.
 - Test: regresión primero (rojo) en las tres capas.
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/sleep.spec.ts`
+- Rojo (antes del arreglo): las tres capas `expected 1799 to be 59`; «ends on the first tick past the deadline» `expected 1799 to be null`; «catches up … comes back» `expected 1800 to be 1200`. El test espera **59**, no 60: 29 min retenidos más el *tick* de 1 s dejan 30:00 − 29:01. Se añade «catches up with the deadline when the first subscriber comes back (K66)» para el recálculo al volver el primer suscriptor.
+- Changelog: el temporizador de sueño pausa a su hora aunque el navegador retrase los temporizadores (pestaña en segundo plano).
 - [ ] hecha · commit: —
 
 ### 3.2 K65: «Sleep mode» deshabilitado durante la bienvenida (≤ 1 h)

@@ -13,7 +13,8 @@ export interface SleepTimerState {
 /**
  * Hook for the sleep countdown (src/core/sleep/sleep-timer.ts)
  *
- * Counts down one second per tick and calls the latest onEnd when it runs out. Any pause
+ * Counts down against a deadline (known-issues.md K66, ADR 0035) and calls the latest onEnd
+ * when it runs out. Any pause
  * (isPlaying false) cancels it (known-issues.md K65). start and cancel are stable.
  *
  * @param isPlaying - Whether the stream is playing

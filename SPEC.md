@@ -170,7 +170,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - **Audio de bienvenida:** si `introAudioUrl` existe, suena una vez, en la primera reproducción, antes del directo; mientras suena no se puede pausar; al terminar, si falla al arrancar o si da un error mientras suena, pasa al directo sin mostrar error. Si algo externo la pausa (una llamada, unos auriculares que se desconectan), queda en pausa y Play carga el directo. Si falla el directo que la sigue, se muestra el error y Play lo vuelve a cargar: la bienvenida nunca bloquea el reproductor (ADR 0034).
 - **Volumen:** control deslizante; oculto en iOS.
 - **Media Session:** título de la emisora y logo en la pantalla de bloqueo; acciones de reproducir y pausar.
-- **Temporizador de sueño:** 30, 60 o 120 minutos con cuenta atrás; al llegar a cero pausa; se cancela si se pausa a mano.
+- **Temporizador de sueño:** 30, 60 o 120 minutos con cuenta atrás contra una hora límite (el tiempo real, aunque los temporizadores del navegador se retrasen); al llegar a cero pausa; se cancela si se pausa a mano (ADR 0035).
 - **Programa actual y siguiente:** según el horario y `timezoneOffset`, incluidas las reposiciones y las franjas que cruzan la medianoche. El siguiente se anuncia si empieza en 10 minutos o menos.
 - **Reloj de la emisora:** si la zona horaria de la emisora difiere de la del oyente, muestra la hora de la emisora y la diferencia.
 - **Modales** del horario semanal y de todos los programas.

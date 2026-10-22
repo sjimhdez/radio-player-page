@@ -25,15 +25,17 @@ export interface SleepTimer {
 /**
  * Creates the sleep countdown behind the sleep mode.
  *
- * Each tick of a one-second interval takes one second off, whatever the time elapsed
- * (known-issues.md K66). The interval only runs while the countdown is active and has
- * subscribers.
+ * The countdown runs against a deadline: each tick of a one-second interval works out
+ * the seconds left from the clock, so held back or suspended timers do not stretch it
+ * (known-issues.md K66, ADR 0035). The interval only runs while the countdown is active
+ * and has subscribers; the first subscriber to come back catches up with the deadline.
  *
  * @param options - onEnd and the clock
  * @returns SleepTimer
  */
 export function createSleepTimer({ onEnd, clock = defaultClock }: SleepTimerOptions): SleepTimer {
   const listeners = new Set<() => void>()
+  let deadline: number | null = null
   let remainingSeconds: number | null = null
   let interval: TimerHandle | null = null
 
@@ -46,14 +48,20 @@ export function createSleepTimer({ onEnd, clock = defaultClock }: SleepTimerOpti
     }
   }
 
+  // Rounded to the nearest second, so the drift of the interval neither skips nor
+  // repeats a second.
+  const secondsLeft = (end: number) => Math.round((end - clock.now()) / TICK_MS)
+
   const tick = () => {
-    if (remainingSeconds === null) return
-    if (remainingSeconds <= 1) {
+    if (deadline === null) return
+    const seconds = secondsLeft(deadline)
+    if (seconds <= 0) {
+      deadline = null
       remainingSeconds = null
       stopInterval()
       onEnd()
     } else {
-      remainingSeconds -= 1
+      remainingSeconds = seconds
     }
     notify()
   }
@@ -66,7 +74,8 @@ export function createSleepTimer({ onEnd, clock = defaultClock }: SleepTimerOpti
   }
 
   const cancel = () => {
-    if (remainingSeconds === null) return
+    if (deadline === null) return
+    deadline = null
     remainingSeconds = null
     stopInterval()
     notify()
@@ -74,6 +83,7 @@ export function createSleepTimer({ onEnd, clock = defaultClock }: SleepTimerOpti
 
   return {
     start(seconds) {
+      deadline = clock.now() + seconds * TICK_MS
       remainingSeconds = seconds
       startInterval()
       notify()
@@ -84,6 +94,13 @@ export function createSleepTimer({ onEnd, clock = defaultClock }: SleepTimerOpti
     },
     subscribe(listener) {
       listeners.add(listener)
+      if (interval === null && deadline !== null) {
+        // Back from no subscribers: the snapshot catches up with the deadline, silently
+        // unless it has run out.
+        const seconds = secondsLeft(deadline)
+        if (seconds <= 0) tick()
+        else remainingSeconds = seconds
+      }
       if (interval === null) startInterval()
 
       return () => {
