@@ -1260,14 +1260,14 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The schedule translation keeps only program, start and end: a legacy rerun slot is
-	 * migrated as a first broadcast.
+	 * A legacy rerun slot is migrated as a rerun; a slot without the key, as a first
+	 * broadcast.
 	 *
 	 * @see docs/known-issues.md K79
 	 */
-	public function test_currently_migrated_slot_loses_is_rerun() {
-		$slot             = $this->slot( 'prog_known001' );
-		$slot['is_rerun'] = true;
+	public function test_migrated_slot_keeps_is_rerun() {
+		$rerun             = $this->slot( 'prog_known001' );
+		$rerun['is_rerun'] = true;
 		update_option(
 			'radplapag_settings',
 			array(
@@ -1280,7 +1280,10 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 								'name' => 'Known',
 							),
 						),
-						array( 'monday' => array( $slot ) )
+						array(
+							'monday'  => array( $rerun ),
+							'tuesday' => array( $this->slot( 'prog_known001' ) ),
+						)
 					),
 				),
 			)
@@ -1290,7 +1293,8 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 		$station  = get_posts( array( 'post_type' => 'radplapag_station' ) )[0];
 		$schedule = json_decode( (string) get_post_meta( $station->ID, 'radplapag_station_schedule', true ), true );
-		$this->assertFalse( $schedule['monday'][0]['is_rerun'] );
+		$this->assertTrue( $schedule['monday'][0]['is_rerun'] );
+		$this->assertFalse( $schedule['tuesday'][0]['is_rerun'] );
 	}
 
 	// Order of the writes and of the rollback.

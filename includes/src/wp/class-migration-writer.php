@@ -39,9 +39,9 @@ final class Migration_Writer {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array{programs: list<array{id: string, name: string, description: string, extended_description: string, logo_id: int}>, duplicates: list<string>, stations: list<array{title: string, stream_url: string, player_page: int, background_id: int, logo_id: int, theme_color: string, visualizer: string, menu_order: int, schedule: array<array-key, list<array{program_id: string, start: string, end: string}>>, skipped: list<string>}>} $plan Plan of Legacy_Plan::build().
-	 * @param int                                                                                                                                                                                                                                                                                                                                                                                                                                       $author Post author of the created posts.
-	 * @param callable(string): void                                                                                                                                                                                                                                                                                                                                                                                                                    $log    Receives each debug message.
+	 * @param array{programs: list<array{id: string, name: string, description: string, extended_description: string, logo_id: int}>, duplicates: list<string>, stations: list<array{title: string, stream_url: string, player_page: int, background_id: int, logo_id: int, theme_color: string, visualizer: string, menu_order: int, schedule: array<array-key, list<array{program_id: string, start: string, end: string, is_rerun: bool}>>, skipped: list<string>}>} $plan Plan of Legacy_Plan::build().
+	 * @param int                                                                                                                                                                                                                                                                                                                                                                                                                                                       $author Post author of the created posts.
+	 * @param callable(string): void                                                                                                                                                                                                                                                                                                                                                                                                                                    $log    Receives each debug message.
 	 * @return array{stations: int, dropped: list<array{station: string, day: string, start: string, end: string, program: string}>}|WP_Error Summary on success, WP_Error on failure.
 	 */
 	public static function write( array $plan, int $author, callable $log ) {
@@ -152,12 +152,12 @@ final class Migration_Writer {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @param array{title: string, stream_url: string, player_page: int, background_id: int, logo_id: int, theme_color: string, visualizer: string, menu_order: int, schedule: array<array-key, list<array{program_id: string, start: string, end: string}>>, skipped: list<string>} $station       Planned station.
-	 * @param array<array-key, int>                                                                                                                                                                                                                                                  $program_posts Legacy program ID => new program post ID.
-	 * @param array<int, string>                                                                                                                                                                                                                                                     $program_names New program post ID => title.
-	 * @param int                                                                                                                                                                                                                                                                    $author        Post author.
-	 * @param callable(string): void                                                                                                                                                                                                                                                 $log           Receives each debug message.
-	 * @param list<array{station: string, day: string, start: string, end: string, program: string}>                                                                                                                                                                                 $dropped       Receives the dropped slots.
+	 * @param array{title: string, stream_url: string, player_page: int, background_id: int, logo_id: int, theme_color: string, visualizer: string, menu_order: int, schedule: array<array-key, list<array{program_id: string, start: string, end: string, is_rerun: bool}>>, skipped: list<string>} $station       Planned station.
+	 * @param array<array-key, int>                                                                                                                                                                                                                                                                  $program_posts Legacy program ID => new program post ID.
+	 * @param array<int, string>                                                                                                                                                                                                                                                                     $program_names New program post ID => title.
+	 * @param int                                                                                                                                                                                                                                                                                    $author        Post author.
+	 * @param callable(string): void                                                                                                                                                                                                                                                                 $log           Receives each debug message.
+	 * @param list<array{station: string, day: string, start: string, end: string, program: string}>                                                                                                                                                                                                 $dropped       Receives the dropped slots.
 	 * @return int|WP_Error New post ID or error.
 	 */
 	private static function insert_station( array $station, array $program_posts, array $program_names, int $author, callable $log, array &$dropped ) {
@@ -172,6 +172,7 @@ final class Migration_Writer {
 					'program_id' => $program_posts[ $slot['program_id'] ],
 					'start'      => $slot['start'],
 					'end'        => $slot['end'],
+					'is_rerun'   => $slot['is_rerun'],
 				);
 			}
 		}
