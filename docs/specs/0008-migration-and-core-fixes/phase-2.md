@@ -104,7 +104,7 @@ Corregir K33 (con la variante de K21 en la migración), K21 y K43 en las globale
 - Changelog: «The player no longer shows HTML entities such as &amp;amp; or &amp;lt; in radio station and radio show names and descriptions.»
 - Rojo (2026-10-23): `test_titles_and_descriptions_are_decoded` falla con `'Rock &amp; Roll'` en vez de `'Rock & Roll'`. En `clean-page.spec.ts`, «decodes the entities of a title saved through kses (K21)» falla en el JSON crudo: `"siteTitle":"Rock \u0026amp; Roll"`. El `<title>` ya decía `Rock &amp; Roll` (`esc_html()` no codifica dos veces).
 - Resultado (2026-10-23): el test unitario cubre también el `siteTitle` que cae al nombre del sitio, decodificado una sola vez (`Tom &amp;amp; Jerry` → `Tom &amp; Jerry`). La variante `entities` del *seed* escribe el título con `$wpdb->update()` después de crearla (un `phpcs:ignore` en su línea, como el resto del *seeder*) y añade `'entities'` a `SeedUrlKey`. Los snapshots (`mp3`, `minimal`) no cambian. `GlobalsBuilderTest`, `ConfigTest`, `SaveProgramMetaTest` y `CleanPage` en verde; `clean-page.spec.ts` en verde en Chromium (en WebKit se salta, como el resto del archivo); `npm run check` en verde.
-- [ ] hecha · commit: —
+- [x] hecha · commit: 274e39b
 
 ### 2.5 ADR 0042: la desinstalación borra todo lo que guarda el plugin (≤ 1 h)
 - Qué: `write-adr`. Fija la lista completa de §3.1 que se borra en cada sitio:
