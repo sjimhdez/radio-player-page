@@ -1,8 +1,8 @@
 # Spec 0007 · Fase 0 — Spike (R1 C1 y visualización, R2 K67, R3 K18)
-Estado: en curso · Inicio: 2026-10-21 · ADRs: 0004, 0013, 0018, 0029, 0031
+Estado: cerrada (2026-10-22) · Inicio: 2026-10-21 · ADRs: 0004, 0013, 0018, 0029, 0031
 
 ## Contexto
-- La spec 0007 está en «propuesta», con su §0; la rama `spec/0007-playback-fixes` existe, sin push ni PR. Esta fase no toca código publicado: todo va en `spike/0007-playback/` (excluido por ESLint, `spike/**`, y fuera del zip por la lista de inclusión).
+- La spec 0007 está en «propuesta», con su §0; la rama `spec/0007-playback-fixes` existía, sin push ni PR, al planificar (después, PR #41 en borrador). Esta fase no toca código publicado: todo va en `spike/0007-playback/` (excluido por ESLint, `spike/**`, y fuera del zip por la lista de inclusión).
 - Lo que hay hoy (lo leído): `core/audio/sources/direct.ts` pone `crossOrigin = 'anonymous'` tras `src`; `dash.ts` hace `initialize(audio, url, true)` sin tocar las fuentes de hora; `audio-controller.ts` tiene la rama `resume` (C7/K12); `use-can-visualize.tsx` decide al montar por *user agent*; `use-audio-visualizer.tsx` crea el `AudioContext` en un efecto al pasar a `playing` (fuera del gesto) y llama a `createMediaElementSource()` aunque el canvas esté oculto. Coincide con lo que dicen la spec y el ADR 0031: no hay nada falso que parar.
 - `tests/e2e/media-server.mjs` ya da dos orígenes (con y sin CORS), `/live.mp3` infinito y un 404, pero no expone `Date` ni sirve un MPD dinámico; el spike lleva su servidor propio (puertos 8910–8912, para no chocar con el e2e, 8901–8902, ni con `spike/e2e`, 8900–8902) que sirve los *fixtures* de `tests/fixtures/audio/` sin copiarlos.
 - `hls.js` y `dashjs` (5.2.1, con `clearDefaultUTCTimingSources()`) se sirven desde `player/node_modules/*/dist`: las mismas versiones que el player, sin instalar nada nuevo en él.
@@ -31,7 +31,7 @@ Responder R1, R2 y R3 de la spec con mediciones reproducibles y entregar en `doc
 - Verificación: `cd spike/0007-playback && npm install && npx playwright test tests/smoke.spec.ts && cd ../.. && npm run check:zip`
 - Resultado: `spike/0007-playback/` con servidor (página :8910, medios :8911/:8912; `/live.mp3`, `/404.mp3`, `/live.mpd` dinámico sin `<UTCTiming>` que repite los segmentos del fixture con `tfdt` reescrito, `?exposeDate=1`, `/__requests`), `harness.html`/`harness.js` (`window.spike`: fuente directa con/sin `crossOrigin` y orden, `retryWithoutCors`, `reload`, analizador y RMS, `AudioContext`, `hls.js`, `dashjs` con/sin fuentes de hora, sonda `fetch`, gesto real con `armGesture` + `#gesture`) y `tests/helpers.ts` (aborta y registra lo que sale de `localhost`). Humo verde en Chromium y WebKit; cordura: `/live.mp3`, 404 (`error` 4 en los dos), `hls.js` y DASH en directo avanzan en los dos navegadores. `check:zip` y `npm run check` en verde.
 - Nota: con `clearDefaultUTCTimingSources()` antes de `initialize()`, `dashjs` pidió igualmente `https://time.akamai.com/?iso&ms` (Chromium y WebKit, prueba de cordura del servidor): lo mide la 0.2.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 01e92d1
 
 ### 0.2 R2 — `dashjs` sin fuente de hora de terceros (≤ 1 h)
 - Qué: directo DASH sin `<UTCTiming>` con y sin `clearDefaultUTCTimingSources()`, con y sin `Date` expuesta: ¿avanza?, ¿qué peticiones fuera de `localhost` hay (control: sin la llamada, la de Akamai)?, distancia al borde en vivo (`player.getCurrentLiveLatency()`), avisos de `dashjs`.
@@ -45,7 +45,7 @@ Responder R1, R2 y R3 de la spec con mediciones reproducibles y entregar en `doc
   - Distancia al borde real (reloj de Node), con el mismo reloj en cliente y servidor: ~6,1–6,3 s en todos (el `suggestedPresentationDelay` es de 6 s); con la `Date` expuesta, +0,6–0,8 s (la cabecera tiene resolución de 1 s).
   - Riesgo 3, con el reloj del cliente desfasado y la `Date` oculta: con −20 s arranca a 26 s del borde (`getCurrentLiveLatency()` dice 6 s: miente con el mismo reloj); con +20 s espera ~16 s a que los segmentos existan (11 peticiones del MPD, ningún 404) y arranca a 3,8 s del borde. Con la `Date` expuesta, la desviación se corrige (6,2–7,3 s, arranque normal). Con la sincronización desactivada, el comportamiento es igual que con la `Date` oculta.
   - Propuesta para la 0.6: `clearDefaultUTCTimingSources()` **después** de `initialize()`, conservando `useManifestDateHeaderTimeSource` (corrige el reloj si la emisora expone la `Date`), e ignorar en `dash.ts` el error 16 (o solo los errores no fatales). Cambia D7 y A1 de la spec (el test de `dash.test.ts` comprueba el orden contrario).
-- [x] hecha · commit: (este)
+- [x] hecha · commit: a47ca9f
 
 ### 0.3 R1a — MP3 sin CORS: reintento y Web Audio (≤ 1 h)
 - Qué: en Chromium y WebKit, `/live.mp3` del origen sin CORS: (a) con `crossOrigin` falla (control C1); (b) reintento en el mismo elemento sin `crossOrigin` suena; (c) igual tras `createMediaElementSource()` sobre el elemento (bienvenida con visualizador): ¿avanza?, ¿analizador plano? (= silencio); (d) sin conectar Web Audio, suena; (e) 404 con y sin CORS frente a «sin CORS»: `MediaError.code`/`message`, tiempo hasta el error, y si una sonda `fetch` lo distingue. Mismo caso con el archivo finito `/tone.mp3`.
@@ -60,7 +60,7 @@ Responder R1, R2 y R3 de la spec con mediciones reproducibles y entregar en `doc
   - **(e) 404 frente a «sin CORS»: el elemento no los distingue.** Los dos dan `error` 4, con el mismo mensaje y en el mismo tiempo, en los dos navegadores. Una sonda `fetch` en modo `cors` solo distingue un 404 de un origen **con** CORS (`status` 404). Sin CORS falla igual tanto con 200 como con 404 (`TypeError`), y en modo `no-cors` todo es opaco (`status` 0). Reintentar un 404 cuesta una petición más y da el mismo error en 2–6 ms. Propuesta para la 0.6: reintentar siempre una vez (riesgo 2 acotado a una petición).
   - **Hallazgo del *fixture* (afecta a K18 y al e2e):** el `/live.mp3` de `tests/e2e/media-server.mjs` (y el de este spike hasta ahora) repite `tone.mp3` entero, con su ID3 y su marco `Info` (308 marcos, 8,05 s). El WebKit de macOS se fía de esa duración: al pasar de 8,05 s en el buffer, lo vacía y la posición se para en 1,76 s, **sin pausar**, sin error y sin petición nueva. Es el síntoma de K18. Ahora el `/live.mp3` del spike emite solo los marcos de audio, como Icecast, y suena sin cortes; la variante con cabeceras queda en `/live-tagged.mp3` (test «fixture»). La 0.5 mide K18 con los dos streams: puede que K18 sea un artefacto del *fixture* y no de Pausa + Play.
   - **WebKit, directo MP3 con CORS por Web Audio: ceros.** Con `/live.mp3` del origen con CORS y `createMediaElementSource()`, el analizador da ceros durante 7 s mientras avanza, con `crossOrigin` antes o después de `src`; con `/tone.mp3`, señal desde ~0,5 s. Chromium da señal en los dos. Si en Safari es igual, visualizar un MP3 en directo con CORS en WebKit lo deja **mudo**, lo que va contra el riesgo 1b y la regla «directa con `crossOrigin`: visualizable» de A3b. Lo investiga la 0.4 (¿falta de longitud? ¿falta de `Range`?) y lo comprueba `manual.html` en Safari real.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: c0cdf82
 
 ### 0.4 R1b — Con CORS: datos del analizador y `AudioContext` (≤ 1 h)
 - Qué: con CORS, ¿datos reales en el analizador con MP3 directo, `hls.js` y `dashjs` (Chromium y WebKit)? `AudioContext` creado fuera del gesto (como hoy, tras `playing`) frente a dentro del clic de Play, con y sin `--autoplay-policy=user-gesture-required` en Chromium: `state`, si `resume()` fuera del gesto lo arranca, si el audio desviado queda mudo (analizador plano con `currentTime` avanzando). Cuánto tarda el analizador en dar datos (base para una red de seguridad de «analizador plano N s»).
@@ -74,7 +74,7 @@ Responder R1, R2 y R3 de la spec con mediciones reproducibles y entregar en `doc
   - **`AudioContext` fuera del gesto (como hoy, tras `playing`), con Play en un clic real.** Chromium: `running` siempre, también 6 s después del clic, ya sin activación transitoria y solo con la permanente. WebKit: nace `suspended` en los dos casos. Dentro de la activación transitoria (0 ms tras `playing`) arranca solo y da datos a los ~0,7 s. **Pasada la activación transitoria (6 s), sigue `suspended`, `resume()` fuera del gesto queda pendiente y el elemento avanza con el analizador a cero**, o sea, el audio desviado queda mudo. Un clic real con `resume()` lo arranca al momento. Propuesta: crear o reanudar el `AudioContext` dentro del gesto de Play (y de cualquier gesto que active el visualizador), nunca desde un efecto.
   - **Sin ninguna activación** (`?auto=context` sin clic), `play()` se rechaza en Chromium estricto y en WebKit. El contexto sale `running` en Chromium y `suspended` en WebKit (que pasa a `running` con `resume()`, pero sin audio que analizar). Es un caso que no se da en el player, porque Play siempre es un clic.
   - **Red de seguridad «analizador plano N s».** Chromium da datos en ≤ 55 ms y WebKit, cuando los da, en ≤ 0,85 s; en los casos planos no llegan nunca (7–10 s medidos). Un umbral de ~2 s separaría los dos casos. Pero en WebKit el audio ya está mudo y el elemento queda atado al grafo para siempre: la red solo sirve para mostrar la animación estática, no para devolver el sonido.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 8b0019c
 
 ### 0.5 R3 — K18: reanudar frente a recargar, y la página manual de Safari (≤ 1 h)
 - Qué: `/live.mp3` con CORS, Pausa + Play reanudando (hoy) y recargando (`src` de nuevo + `load()` + `play()`): peticiones nuevas, `currentTime`, `buffered`, si se congela (WebKit macOS y Chromium). `manual.html`: página con botones y lecturas en vivo (estado, `currentTime`, RMS del analizador, `AudioContext.state`) y la checklist de Safari real: K18 reanudar/recargar, MP3 sin CORS con reintento (¿se oye?), MP3 con CORS y HLS nativo (`/hls/index.m3u8` en `audio.src`) con visualizador (¿se oye y se mueve?), `AudioContext` fuera del gesto. Instrucciones en el README para abrirla en macOS (`localhost:8910`) y en iOS (IP de la red local).
@@ -99,7 +99,7 @@ Responder R1, R2 y R3 de la spec con mediciones reproducibles y entregar en `doc
   - **Caso 5, reintento sin CORS con el grafo ya conectado: se oye y el analizador da ceros** en los dos. En Safari el elemento contaminado tampoco se queda mudo. En Chromium (0.3 c) el analizador da ceros, pero no se ha comprobado de oído en un Chrome real.
   - **Caso 10, `AudioContext` creado 6 s después de `playing` desde un temporizador: confirmado en los dos.** Nace `suspended` (~120–200 ms tras crearlo) y el tono **se calla**, porque el MP3 finito sí pasa por el grafo. Al pulsar «Resume AudioContext» (un clic real) pasa a `running` en ~3–170 ms y vuelve a oírse (macOS RMS 0,084). Es lo mismo que el WebKit de Playwright (0.4).
   - **Para la 0.6:** en Safari el riesgo real no es dejar muda la emisora por conectar el grafo, sino crear el `AudioContext` fuera del gesto, que sí la deja muda cuando la fuente pasa por el grafo. El contexto se crea o se reanuda dentro del clic de Play. En WebKit, solo una fuente directa con longitud da datos al analizador. La red de seguridad del «analizador plano ~2 s → animación estática» es viable y no cuesta sonido en Safari. A15 (K18 y C1 en Safari real) queda verificado en macOS e iOS.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: dee4761, 4c9e3d5, 7b2d200
 - **Bloqueo humano:** el usuario corre `manual.html` en Safari real y me da los resultados (o se aplaza a «Verificación manual pendiente», riesgo 7).
 
 ### 0.6 Informe y propuesta (≤ 1 h)
@@ -108,9 +108,10 @@ Responder R1, R2 y R3 de la spec con mediciones reproducibles y entregar en `doc
 - Test: — (documento; las cifras salen de 0.2–0.5).
 - Verificación: `npm run check`
 - Resultado: [`docs/spikes/0007-phase-0.md`](../../spikes/0007-phase-0.md) con lo medido y la propuesta (14 puntos). El usuario eligió (2026-10-22) no visualizar la bienvenida y que WebKit nunca visualice (excepción medida por *user agent*). Spec corregida en el mismo commit: D1, D2, D7, A1, A2, A3, A3b, A15 y riesgos 1, 1b, 2, 3 y 7.
-- [x] hecha · commit: (este)
-- **Aprobación del usuario** de la propuesta antes de `close-phase` y de la fase 1.
+- Al cerrar: `npm run check` y `npm run check:zip` en verde (zip: 62 archivos, la lista de `v3.4.2` más las altas declaradas; nada de `spike/`). `results/results.json` y las respuestas JSON de Safari no se versionan (`spike/.gitignore`); lo que importa de ellos queda en este plan y en el informe.
+- [x] hecha · commit: 1c7aea4
+- **Aprobada por el usuario** el 2026-10-22: la propuesta completa del informe (puntos 1–14), con las elecciones 9 (la bienvenida no se visualiza) y 12 (WebKit nunca visualiza).
 
 ## Decisiones abiertas → ADR
-- C1 (reintento sin `crossOrigin`; enmienda 0004 y 0013) y la regla de visualización concreta (amplía el 0031): se escriben en la fase 1 con lo aprobado aquí, no en esta fase.
+- C1 (reintento sin `crossOrigin`; enmienda 0004 y 0013) y la regla de visualización concreta (amplía el 0031): se escriben en la fase 1 con lo aprobado aquí, no en esta fase. Ese ADR deja sin efecto la consecuencia del 0031 «en WebKit con CORS se verá el visualizador» y reescribe `SPEC.md` §3.9 (línea 184).
 - Si el spike muestra que K67 se resuelve sin cambio de contrato, la fase 1 lo justifica sin ADR (spec §3).
