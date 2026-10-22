@@ -34,7 +34,9 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Archivos: `player/src/core/audio/sources/{dash.ts,types.ts,dash.test.ts}`, `player/src/test/fake-streaming.ts`, `tests/e2e/hls-dash.spec.ts`, `docs/known-issues.md`.
 - Test: regresión primero (rojo): `dash.test.ts` (orden de las llamadas y error 16) y `hls-dash.spec.ts`.
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/hls-dash.spec.ts`
-- [ ] hecha · commit: —
+- Resultado: rojo primero: `dash.test.ts` con 2 fallos (no se llama a `clearDefaultUTCTimingSources()`; el error 16 llega a `onError()`) y el e2e en Chromium y WebKit con tres peticiones a `https://time.akamai.com/?iso&ms`. Arreglo en `dash.ts` (constante `TIME_SYNC_FAILED = 16`, el código de `dashjs`); `DashPlayer` gana `clearDefaultUTCTimingSources()` y el evento `DashErrorEvent` (`error.code`, como `MediaPlayerErrorEvent` de `dashjs`). El MPD reescrito del e2e suena como directo con el reloj local en los dos navegadores: no hace falta el `/live.mpd` del spike. Fuera de la lista de archivos: el `vi.mock('dashjs')` de `hooks/use-audio-player.test.tsx` gana el método (si no, la fuente lanza), y los tests `sets error on a dashjs error` del controlador y del hook pasan un evento con código 17 (`FRAGMENT_LOADER_LOADING_FAILURE`); su aserción no cambia. Verde: player `check` (530 tests), `hls-dash.spec.ts` 8/8 y `npm run check`.
+- Changelog: un directo DASH sin `<UTCTiming>` ya no pide la hora a `time.akamai.com`.
+- [x] hecha · commit: be5c1b2
 
 ### 1.2 K18: el `/live.mp3` del e2e emite solo los marcos de audio (≤ 1 h)
 - Qué (`fix-bug`, del *fixture*): primero, `currently freezes…` pasa a «does not freeze the live MP3 after Pause and Play in Safari's WebKit (K18)», en rojo con el *fixture* actual (solo macOS). Después, `sendLive()` quita el ID3 y el marco `Info` de `tone.mp3` y repite solo los marcos, como `spike/0007-playback/server.mjs`. Así queda en verde sin tocar el player. Comentario de cabecera de `media-server.mjs`. Fila K18 → «no es del player (*fixture*); corregido el *fixture* (spec 0007)».

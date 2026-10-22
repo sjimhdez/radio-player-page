@@ -46,7 +46,7 @@ vi.mock('hls.js', () => {
 
 const dash = vi.hoisted(() => ({
   players: [] as Array<{
-    handlers: Record<string, () => void>
+    handlers: Record<string, (event: { error: { code: number } }) => void>
     initialize: ReturnType<typeof vi.fn>
     reset: ReturnType<typeof vi.fn>
   }>,
@@ -55,10 +55,11 @@ vi.mock('dashjs', () => ({
   MediaPlayer: () => ({
     create: () => {
       const player = {
-        handlers: {} as Record<string, () => void>,
+        handlers: {} as Record<string, (event: { error: { code: number } }) => void>,
         initialize: vi.fn(),
+        clearDefaultUTCTimingSources: vi.fn(),
         reset: vi.fn(),
-        on: (event: string, cb: () => void) => {
+        on: (event: string, cb: (event: { error: { code: number } }) => void) => {
           player.handlers[event] = cb
         },
       }
@@ -289,7 +290,7 @@ describe('DASH', () => {
   it('sets error on a dashjs error', async () => {
     const { api } = mount(DASH)
     await act(() => api.current.play())
-    act(() => dash.players[0].handlers.error())
+    act(() => dash.players[0].handlers.error({ error: { code: 17 } }))
     expect(api.current.status).toBe('error')
   })
 })

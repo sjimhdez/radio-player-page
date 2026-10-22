@@ -383,7 +383,7 @@ describe('DASH', () => {
     const dash = createFakeDash()
     const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
     await controller.play(live(DASH))
-    dash.players[0].handlers.error()
+    dash.players[0].handlers.error({ error: { code: 17 } })
     expect(controller.getSnapshot().status).toBe('error')
   })
 })

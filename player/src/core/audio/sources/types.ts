@@ -44,11 +44,19 @@ export interface HlsClass {
 }
 
 /**
+ * The part of a dashjs error event the dash source reads.
+ */
+export interface DashErrorEvent {
+  error: { code: number }
+}
+
+/**
  * The part of a dashjs MediaPlayer instance the dash source uses.
  */
 export interface DashPlayer {
   initialize(view: HTMLMediaElement, url: string, autoPlay: boolean): void
-  on(type: string, listener: () => void): void
+  clearDefaultUTCTimingSources(): void
+  on(type: string, listener: (event: DashErrorEvent) => void): void
   reset(): void
 }
 

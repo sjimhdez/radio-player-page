@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import type { Page, Request } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { readSeed } from './seed';
-import { audioState, startPlayback } from './support/player';
+import { audioState, startPlayback, waitForPlayback } from './support/player';
 
 /**
  * Scenario 2 (spec 0002 §4.4): HLS and DASH play, and which path each browser
@@ -108,11 +108,11 @@ test( 'requests neither hls.js nor dashjs for MP3', async ( { page } ) => {
 	expect( [ ...chunks ] ).toEqual( [] );
 } );
 
-test( 'currently asks time.akamai.com for the time on a live DASH stream without UTCTiming (K67)', async ( {
+test( 'plays a live DASH stream without UTCTiming and asks no third party for the time (K67)', async ( {
 	page,
 } ) => {
-	// The fixture as a live (dynamic) manifest. dashjs syncs its clock with
-	// its default UTC source when the MPD names none.
+	// The fixture as a live (dynamic) manifest. Without <UTCTiming>, dashjs
+	// would sync its clock with its default source, time.akamai.com.
 	const now = Date.now();
 	const manifest = readFileSync(
 		join( __dirname, '../fixtures/audio/dash/manifest.mpd' ),
@@ -134,8 +134,8 @@ test( 'currently asks time.akamai.com for the time on a live DASH stream without
 			body: manifest,
 		} )
 	);
-	// Answered here, so it never leaves the machine (and the fixture that
-	// blocks external requests does not see it).
+	// Still intercepted to detect the request; answered here, so it would
+	// never leave the machine.
 	const timeRequests: string[] = [];
 	await page.route( 'https://time.akamai.com/**', ( route ) => {
 		timeRequests.push( route.request().url() );
@@ -144,8 +144,8 @@ test( 'currently asks time.akamai.com for the time on a live DASH stream without
 	await page.goto( readSeed().urls.dash );
 
 	await page.getByRole( 'button', { name: 'Play' } ).click();
+	await waitForPlayback( page, 1 );
 
-	await expect
-		.poll( () => timeRequests )
-		.toContain( 'https://time.akamai.com/?iso&ms' );
+	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
+	expect( timeRequests ).toEqual( [] );
 } );
