@@ -287,7 +287,7 @@ const Dashboard = () => {
             onPause={pause}
           />
           <SleepMode
-            isPlaying={status === 'playing'}
+            isPlaying={status === 'playing' && !introLocked}
             onSelect={(minutes) => sleepTimer.start(minutes * 60)}
           />
         </Box>

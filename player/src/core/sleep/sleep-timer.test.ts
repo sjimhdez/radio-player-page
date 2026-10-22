@@ -122,9 +122,10 @@ describe('createSleepTimer', () => {
     expect(listener).not.toHaveBeenCalled()
   })
 
-  it('currently cancels on any setPlaying(false), also the welcome handing over to the live stream (K65)', () => {
+  it('cancels on any setPlaying(false); sleep mode is off during the welcome audio, so its handover never finds a timer (K65)', () => {
     // The welcome audio ends with pause before ended: the status goes through paused
-    // while the live stream loads, and that counts as a pause.
+    // while the live stream loads, and that counts as a pause. The Dashboard disables
+    // sleep mode while introLocked (ADR 0035), so no timer is running then.
     const { onEnd, timer } = setup()
     timer.subscribe(() => {})
 

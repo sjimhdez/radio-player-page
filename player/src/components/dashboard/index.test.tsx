@@ -9,6 +9,7 @@ import type { PlayerStatus } from 'src/types/player'
 const player = vi.hoisted(() => ({
   status: 'idle' as PlayerStatus,
   loading: false,
+  introLocked: false,
   play: () => {},
   pause: () => {},
   audioRef: { current: null },
@@ -19,7 +20,7 @@ vi.mock('src/hooks/use-audio-player', () => ({
     audioRef: player.audioRef,
     status: player.status,
     loading: player.loading,
-    introLocked: false,
+    introLocked: player.introLocked,
     play: player.play,
     pause: player.pause,
     volume: 1,
@@ -35,6 +36,7 @@ const ERROR_TEXT = 'Unable to play the stream. Try again later.'
 function setPlayer(status: PlayerStatus, loading = false) {
   player.status = status
   player.loading = loading
+  player.introLocked = false
 }
 
 beforeEach(() => {
@@ -98,6 +100,14 @@ describe('Dashboard sleep mode', () => {
   }
 
   it('disables the sleep mode button when nothing is playing', () => {
+    render(<Dashboard />)
+
+    expect(screen.getByRole('button', { name: 'Sleep mode' }).hasAttribute('disabled')).toBe(true)
+  })
+
+  it('disables sleep mode while the welcome audio plays (K65)', () => {
+    setPlayer('playing')
+    player.introLocked = true
     render(<Dashboard />)
 
     expect(screen.getByRole('button', { name: 'Sleep mode' }).hasAttribute('disabled')).toBe(true)

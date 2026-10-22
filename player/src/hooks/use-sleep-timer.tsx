@@ -15,7 +15,9 @@ export interface SleepTimerState {
  *
  * Counts down against a deadline (known-issues.md K66, ADR 0035) and calls the latest onEnd
  * when it runs out. Any pause
- * (isPlaying false) cancels it (known-issues.md K65). start and cancel are stable.
+ * (isPlaying false) cancels it; the Dashboard disables sleep mode during the welcome
+ * audio, whose handover goes through paused (known-issues.md K65). start and cancel
+ * are stable.
  *
  * @param isPlaying - Whether the stream is playing
  * @param onEnd - Called once when the countdown runs out (the player pauses)

@@ -131,7 +131,7 @@ test( 'the cancel button stops the timer', async ( { page } ) => {
 	await expectPlaying( page );
 } );
 
-test( 'currently cancels the timer when the welcome audio hands over to the live stream (K65)', async ( {
+test( 'disables sleep mode during the welcome audio and keeps the timer set on the live stream (K65)', async ( {
 	page,
 } ) => {
 	await page.goto( readSeed().urls.intro );
@@ -140,19 +140,20 @@ test( 'currently cancels the timer when the welcome audio hands over to the live
 		const audio = document.querySelector( 'audio' );
 		return !! audio && /intro/.test( audio.src ) && audio.currentTime > 0.2;
 	} );
-	await page.getByRole( 'button', { name: 'Sleep mode' } ).click();
-	// The 2 s welcome audio can end while the menu is still opening (about
-	// 650 ms in WebKit CI). `force` skips the wait for the animation to settle.
-	// Any `playbackRate` change stalls the audio in WebKit.
-	await page
-		.getByRole( 'menuitem', { name: '30 mins' } )
-		.click( { force: true } );
-	await expect(
-		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
-	).toBeVisible();
+	// Read in one go: a retried `toBeDisabled()` would also pass once the
+	// handover goes through `paused`.
+	expect(
+		await page.evaluate( () => ( {
+			intro: /intro/.test( document.querySelector( 'audio' )?.src ?? '' ),
+			disabled:
+				document.querySelector< HTMLButtonElement >(
+					'button[aria-label="Sleep mode"]'
+				)?.disabled ?? null,
+		} ) )
+	).toEqual( { intro: true, disabled: true } );
 
 	// The end of the welcome audio fires `pause` before `ended`: the status
-	// goes through `paused` and the timer clears itself.
+	// goes through `paused`, which would cancel a running timer.
 	await page.waitForFunction( () => {
 		const audio = document.querySelector( 'audio' );
 		return (
@@ -161,9 +162,16 @@ test( 'currently cancels the timer when the welcome audio hands over to the live
 			audio.currentTime > 1
 		);
 	} );
-
+	await page.getByRole( 'button', { name: 'Sleep mode' } ).click();
+	await page.getByRole( 'menuitem', { name: '30 mins' } ).click();
 	await expect(
 		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
-	).toHaveCount( 0 );
-	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
+	).toBeVisible();
+
+	// Real time: the timer is still set a few seconds into the live stream.
+	await page.waitForTimeout( 3000 );
+	await expect(
+		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+	).toBeVisible();
+	await expectPlaying( page );
 } );
