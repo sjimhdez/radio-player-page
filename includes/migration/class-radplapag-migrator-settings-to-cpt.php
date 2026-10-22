@@ -22,9 +22,10 @@ class Radplapag_Migrator_Settings_To_Cpt {
 	 * Runs migration when legacy settings exist and preconditions are met.
 	 *
 	 * @since 3.3.0
-	 * @since 3.5.0 Delegates to RadioPlayerPage\Migration\Legacy_Plan and RadioPlayerPage\WP\Migration_Writer.
+	 * @since 3.5.0 Delegates to RadioPlayerPage\Migration\Legacy_Plan and RadioPlayerPage\WP\Migration_Writer,
+	 *              and returns the summary (stations and dropped slots) instead of true.
 	 * @param int $author_user_id WordPress user ID for post_author on created posts.
-	 * @return true|WP_Error True on success, WP_Error on failure.
+	 * @return array{stations: int, dropped: list<array{station: string, day: string, start: string, end: string, program: string}>}|WP_Error Summary on success, WP_Error on failure.
 	 */
 	public static function run( int $author_user_id ) {
 		$author_user_id = (int) $author_user_id;

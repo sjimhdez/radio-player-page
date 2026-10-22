@@ -1,0 +1,64 @@
+{
+    "stations": [
+        {
+            "title": "Late Nights",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 1}}",
+                "radplapag_station_schedule": "{\"monday\":[{\"program_id\":\"{{PROGRAM:Late Show}}\",\"start\":\"23:00\",\"end\":\"02:00\",\"is_rerun\":false}],\"tuesday\":[{\"program_id\":\"{{PROGRAM:Early Show}}\",\"start\":\"06:00\",\"end\":\"08:00\",\"is_rerun\":false}]}",
+                "radplapag_station_stream_url": "https://stream.example.test/one.mp3",
+                "radplapag_station_theme_color": "blue",
+                "radplapag_station_visualizer": "bars"
+            }
+        },
+        {
+            "title": "Weekend",
+            "status": "publish",
+            "menu_order": 1,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 2}}",
+                "radplapag_station_schedule": "{\"monday\":[{\"program_id\":\"{{PROGRAM:Early Show}}\",\"start\":\"01:00\",\"end\":\"03:00\",\"is_rerun\":false}]}",
+                "radplapag_station_stream_url": "https://stream.example.test/two.mp3",
+                "radplapag_station_theme_color": "neutral",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
+        }
+    ],
+    "programs": [
+        {
+            "title": "Late Show",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        },
+        {
+            "title": "Early Show",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        }
+    ],
+    "options": {
+        "radplapag_settings": "{{ABSENT}}",
+        "radplapag_db_version": "330",
+        "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
+    },
+    "transients": {
+        "radplapag_migrating": false,
+        "radplapag_migration_success_notice": "1",
+        "radplapag_migration_error_notice": false
+    }
+}

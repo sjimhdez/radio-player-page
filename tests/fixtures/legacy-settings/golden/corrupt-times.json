@@ -1,59 +1,64 @@
 {
-    "stations": [],
-    "programs": [],
-    "options": {
-        "radplapag_settings": {
-            "stations": [
-                {
-                    "stream_url": "https://stream.example.test/one.mp3",
-                    "player_page": "{{PAGE:Player 1}}",
-                    "station_title": "Valid",
-                    "programs": [
-                        {
-                            "id": "prog_valid0001",
-                            "name": "Valid Show",
-                            "logo_id": 0
-                        }
-                    ],
-                    "schedule": {
-                        "monday": [
-                            {
-                                "program_id": "prog_valid0001",
-                                "start": "07:00",
-                                "end": "09:00"
-                            }
-                        ]
-                    }
-                },
-                {
-                    "stream_url": "https://stream.example.test/two.mp3",
-                    "player_page": "{{PAGE:Player 2}}",
-                    "station_title": "Broken",
-                    "programs": [
-                        {
-                            "id": "prog_broken001",
-                            "name": "Broken Show",
-                            "logo_id": 0
-                        }
-                    ],
-                    "schedule": {
-                        "friday": [
-                            {
-                                "program_id": "prog_broken001",
-                                "start": "7:00",
-                                "end": "25:00"
-                            }
-                        ]
-                    }
-                }
-            ]
+    "stations": [
+        {
+            "title": "Valid",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 1}}",
+                "radplapag_station_schedule": "{\"monday\":[{\"program_id\":\"{{PROGRAM:Valid Show}}\",\"start\":\"07:00\",\"end\":\"09:00\",\"is_rerun\":false}]}",
+                "radplapag_station_stream_url": "https://stream.example.test/one.mp3",
+                "radplapag_station_theme_color": "neutral",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
         },
-        "radplapag_db_version": "{{ABSENT}}",
+        {
+            "title": "Broken",
+            "status": "publish",
+            "menu_order": 1,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 2}}",
+                "radplapag_station_schedule": "[]",
+                "radplapag_station_stream_url": "https://stream.example.test/two.mp3",
+                "radplapag_station_theme_color": "neutral",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
+        }
+    ],
+    "programs": [
+        {
+            "title": "Valid Show",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        },
+        {
+            "title": "Broken Show",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        }
+    ],
+    "options": {
+        "radplapag_settings": "{{ABSENT}}",
+        "radplapag_db_version": "330",
         "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
     },
     "transients": {
         "radplapag_migrating": false,
-        "radplapag_migration_success_notice": false,
-        "radplapag_migration_error_notice": "Schedule migration failed: Radio show \"Broken Show\" on Friday: Invalid time format. Times must be in HH:MM format."
+        "radplapag_migration_success_notice": "1",
+        "radplapag_migration_error_notice": false
     }
 }

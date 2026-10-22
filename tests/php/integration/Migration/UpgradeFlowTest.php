@@ -843,46 +843,76 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 	/**
 	 * 3.1.x and 3.2.x saved a slot crossing midnight that overlaps the next day (3.2.0
-	 * only warned). The schedule sanitizer rejects it, so every admin request after the
-	 * wait creates and deletes the posts and shows the error again; the site never
-	 * migrates.
+	 * only warned). The migration keeps Monday's slot, drops Tuesday's, logs it and
+	 * migrates the station.
 	 *
 	 * @see docs/known-issues.md K30
 	 */
-	public function test_currently_cross_day_overlap_from_3_2_never_migrates() {
+	public function test_cross_day_overlap_from_3_2_drops_the_later_slot() {
 		$settings                                       = $this->legacy_settings();
 		$settings['stations'][0]['programs'][]          = array(
 			'id'      => 'prog_early0001',
 			'name'    => 'Early',
 			'logo_id' => 0,
 		);
-		$settings['stations'][0]['schedule']['monday']  = array(
+		$settings['stations'][0]['schedule']['monday']  = array( $this->slot( 'prog_morning01', '23:00', '02:00' ) );
+		$settings['stations'][0]['schedule']['tuesday'] = array( $this->slot( 'prog_early0001', '01:00', '03:00' ) );
+
+		$log = $this->migration_log( $settings['stations'] );
+
+		$this->assertSame(
+			array( 'Radio Player Page migration: dropping schedule slot "Early" on tuesday 01:00-03:00 of station "One"; it does not validate with the earlier slots.' ),
+			$log
+		);
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertSame( 2, $this->count_posts( 'radplapag_program' ) );
+		$this->assertFalse( get_transient( 'radplapag_migration_error_notice' ) );
+		$station  = get_posts( array( 'post_type' => 'radplapag_station' ) )[0];
+		$schedule = json_decode( (string) get_post_meta( $station->ID, 'radplapag_station_schedule', true ), true );
+		$this->assertSame( array( 'monday' ), array_keys( $schedule ) );
+		$this->assertSame( array( '23:00', '02:00' ), array( $schedule['monday'][0]['start'], $schedule['monday'][0]['end'] ) );
+	}
+
+	/**
+	 * The migrator returns the summary of the migration: the stations and the dropped
+	 * slots, with their station, day, times and program.
+	 *
+	 * @see docs/known-issues.md K30
+	 */
+	public function test_migrator_returns_the_summary() {
+		$programs = array(
 			array(
-				'program_id' => 'prog_morning01',
-				'start'      => '23:00',
-				'end'        => '02:00',
+				'id'   => 'prog_known001',
+				'name' => 'Known',
 			),
 		);
-		$settings['stations'][0]['schedule']['tuesday'] = array(
+		update_option(
+			'radplapag_settings',
 			array(
-				'program_id' => 'prog_early0001',
-				'start'      => '01:00',
-				'end'        => '03:00',
-			),
+				'stations' => array(
+					$this->legacy_station( 'One', $programs, array( 'friday' => array( $this->slot( 'prog_known001', '7:00', '25:00' ) ) ) ),
+					$this->legacy_station( 'Two', $programs, array( 'monday' => array( $this->slot( 'prog_known001' ) ) ) ),
+				),
+			)
 		);
-		update_option( 'radplapag_settings', $settings );
+		require_once RADPLAPAG_TESTS_PLUGIN_DIR . '/includes/migration/class-radplapag-migrator-settings-to-cpt.php';
 
-		radplapag_run_legacy_migration_if_needed();
-		$this->assertStringContainsString( 'overlaps with "Early" on Tuesday', (string) get_transient( 'radplapag_migration_error_notice' ) );
-		delete_transient( 'radplapag_migration_error_notice' );
-		update_option( 'radplapag_migrating', (string) ( time() - 1 ), false );
-		radplapag_run_legacy_migration_if_needed();
-
-		$this->assertSame( $settings, get_option( 'radplapag_settings' ) );
-		$this->assertFalse( get_option( 'radplapag_db_version' ) );
-		$this->assertSame( 0, $this->count_posts( 'radplapag_program' ) );
-		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
-		$this->assertStringContainsString( 'overlaps with "Early" on Tuesday', (string) get_transient( 'radplapag_migration_error_notice' ) );
+		$this->assertSame(
+			array(
+				'stations' => 2,
+				'dropped'  => array(
+					array(
+						'station' => 'One',
+						'day'     => 'friday',
+						'start'   => '7:00',
+						'end'     => '25:00',
+						'program' => 'Known',
+					),
+				),
+			),
+			\Radplapag_Migrator_Settings_To_Cpt::run( self::factory()->user->create( array( 'role' => 'administrator' ) ) )
+		);
 	}
 
 	/**
@@ -1169,10 +1199,12 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Skipped slots are logged just before each station is validated: when the first
-	 * station fails, those of the second are never logged.
+	 * Each station logs its skipped slots and then its dropped ones; a dropped slot does
+	 * not stop the migration, so the next station logs its own.
+	 *
+	 * @see docs/known-issues.md K30
 	 */
-	public function test_skipped_slots_of_stations_after_a_failing_one_are_not_logged() {
+	public function test_skipped_and_dropped_slots_are_logged_station_by_station() {
 		$programs = array(
 			array(
 				'id'   => 'prog_known001',
@@ -1197,11 +1229,15 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		);
 
 		$this->assertSame(
-			array( 'Radio Player Page migration: skipping schedule slot with unknown program id "prog_gone0001".' ),
+			array(
+				'Radio Player Page migration: skipping schedule slot with unknown program id "prog_gone0001".',
+				'Radio Player Page migration: dropping schedule slot "Known" on monday abc-08:00 of station "One"; it does not validate with the earlier slots.',
+				'Radio Player Page migration: skipping schedule slot with unknown program id "prog_gone0002".',
+			),
 			$log
 		);
-		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
-		$this->assertStringStartsWith( 'Schedule migration failed: ', (string) get_transient( 'radplapag_migration_error_notice' ) );
+		$this->assertSame( 2, $this->count_posts( 'radplapag_station' ) );
+		$this->assertFalse( get_transient( 'radplapag_migration_error_notice' ) );
 	}
 
 	/**

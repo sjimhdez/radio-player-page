@@ -19,7 +19,8 @@ defined( 'ABSPATH' ) || exit;
  * (order of first appearance, data of the last one; a different md5 fingerprint makes
  * it a duplicate), station values go through the WordPress sanitizers and the
  * whitelists of Data\Station, and schedules keep the legacy program IDs. A slot whose
- * program is unknown is skipped; the writer logs it and validates the rest.
+ * program is unknown is skipped; the writer logs it, drops the slots that do not
+ * validate (Slot_Filter) and validates the rest.
  *
  * @since 3.5.0
  */
