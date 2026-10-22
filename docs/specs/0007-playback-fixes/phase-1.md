@@ -125,7 +125,7 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/visualization.spec.ts tests/e2e/visualizers.spec.ts tests/e2e/cross-origin.spec.ts`
 - Resultado: player `check`: 615 (−10 con `use-can-visualize.test.tsx`, −2 netos en `use-audio-visualizer.test.tsx`, de 14 a 12, y +7 en `use-audio-player.test.tsx`); los hooks salen de la exclusión de cobertura y el umbral de `src/hooks/**` se cumple; e2e de la verificación: 34/34. Rojo antes del arreglo: 7 de dibujo de `use-audio-visualizer.test.tsx` (el hook viejo espera `status` y no lee el analizador) y, con el `dist/` de la 1.7, «static animation … without CORS» y «… during the welcome audio» en Chromium (opacidad `1`, esperado `0`). Los casos trasladados a `useAudioPlayer()` pasaban ya: los decide el controlador desde la 1.7. «never creates an AudioContext» pasaba con el hook viejo porque `true !== 'playing'`; lo hace fallar la mutación «`new AudioContext()` en el efecto». Mutaciones (revertidas): ignorar `active` (3 fallan), un contexto propio (1) y `frequency` → `time` (2). El `getAnalyser` del controlador es estable, así que no reinicia el bucle en cada render. En el e2e no se leen píxeles (ADR 0018): que el canvas de Chromium con CORS dibuje lo cubre el smoke de `visualizers.spec.ts`, sin errores en consola.
 - Changelog: en Chrome, Edge y Firefox, el visualizador ya no aparece durante el audio de bienvenida ni con un stream sin CORS (sale la animación estática), y el contexto de audio se crea al pulsar Play.
-- [x] hecha · commit: (este)
+- [x] hecha · commit: 9b2d7c0
 
 ## Decisiones abiertas → ADR
 - ADR 0032 (1.3): C7, y K67 sin cambio de contrato con la consecuencia del reloj del cliente.
