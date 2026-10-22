@@ -11,8 +11,8 @@ use RadioPlayerPage\Tests\Integration\Support\Factory;
 use WP_UnitTestCase;
 
 /**
- * Pins what uninstalling removes (both post types with their meta, two options) and
- * what it leaves behind.
+ * Pins what uninstalling removes (both post types with their meta, the options, the
+ * transients and the pending migration meta) and what it leaves behind.
  */
 final class UninstallTest extends WP_UnitTestCase {
 
@@ -112,25 +112,38 @@ final class UninstallTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * C11 (docs/known-issues.md): the legacy option and the transients survive.
+	 * C11 (docs/known-issues.md, fixed in spec 0008): the legacy option, the migration
+	 * lock, every transient (the legacy one and those of a trashed station included)
+	 * and the pending migration meta go too.
 	 */
-	public function test_currently_keeps_the_legacy_settings_and_the_transients() {
+	public function test_deletes_the_legacy_settings_and_the_transients() {
 		$station = $this->factory_rpp->station( 'Station' );
+		$trashed = $this->factory_rpp->station( 'Trashed', array( 'status' => 'trash' ) );
+		$post    = self::factory()->post->create();
 		update_option( 'radplapag_settings', array( 'stations' => array() ) );
+		update_option( 'radplapag_migrating', time() + 120 );
 		foreach ( self::TRANSIENTS as $transient ) {
 			set_transient( $transient, '1', 60 );
 		}
-		set_transient( 'radplapag_station_field_errors_' . $station, 'Error', 45 );
-		set_transient( 'radplapag_station_schedule_errors_' . $station, 'Error', 45 );
+		foreach ( array( $station, $trashed ) as $id ) {
+			set_transient( 'radplapag_station_field_errors_' . $id, 'Error', 45 );
+			set_transient( 'radplapag_station_schedule_errors_' . $id, 'Error', 45 );
+		}
+		update_post_meta( $post, '_radplapag_migration_pending', '1' );
 
 		self::uninstall();
 
-		$this->assertSame( array( 'stations' => array() ), get_option( 'radplapag_settings' ) );
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertFalse( get_option( 'radplapag_migrating' ) );
 		foreach ( self::TRANSIENTS as $transient ) {
-			$this->assertSame( '1', get_transient( $transient ), $transient );
+			$this->assertFalse( get_transient( $transient ), $transient );
 		}
-		$this->assertSame( 'Error', get_transient( 'radplapag_station_field_errors_' . $station ) );
-		$this->assertSame( 'Error', get_transient( 'radplapag_station_schedule_errors_' . $station ) );
+		foreach ( array( $station, $trashed ) as $id ) {
+			$this->assertFalse( get_transient( 'radplapag_station_field_errors_' . $id ), "Station $id" );
+			$this->assertFalse( get_transient( 'radplapag_station_schedule_errors_' . $id ), "Station $id" );
+		}
+		$this->assertNotNull( get_post( $post ) );
+		$this->assertNotContains( '_radplapag_migration_pending', self::meta_rows( $post ) );
 	}
 
 	/**

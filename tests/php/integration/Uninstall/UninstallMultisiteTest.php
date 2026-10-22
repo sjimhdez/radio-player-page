@@ -13,7 +13,7 @@ use RadioPlayerPage\Tests\Integration\Support\Factory;
 use WP_UnitTestCase;
 
 /**
- * Pins that uninstalling cleans every site of the network, and what it leaves on each.
+ * Pins that uninstalling cleans every site of the network.
  *
  * @group ms-required
  */
@@ -109,21 +109,36 @@ final class UninstallMultisiteTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * C11 (docs/known-issues.md): the legacy option and the transients survive on
-	 * every site.
+	 * C11 (docs/known-issues.md, fixed in spec 0008): the legacy option, the migration
+	 * lock, every transient (the legacy one and those of a trashed station included)
+	 * and the pending migration meta go on every site.
 	 */
-	public function test_currently_keeps_the_legacy_settings_and_the_transients_on_a_subsite() {
+	public function test_deletes_the_legacy_settings_and_the_transients_on_a_subsite() {
 		$site = self::factory()->blog->create();
 		switch_to_blog( $site );
+		$station = ( new Factory() )->station( 'Trashed', array( 'status' => 'trash' ) );
+		$post    = self::factory()->post->create();
 		update_option( 'radplapag_settings', array( 'stations' => array() ) );
-		set_transient( 'radplapag_migration_success_notice', '1', 60 );
+		update_option( 'radplapag_migrating', time() + 120 );
+		foreach ( UninstallTest::TRANSIENTS as $transient ) {
+			set_transient( $transient, '1', 60 );
+		}
+		set_transient( 'radplapag_station_field_errors_' . $station, 'Error', 45 );
+		set_transient( 'radplapag_station_schedule_errors_' . $station, 'Error', 45 );
+		update_post_meta( $post, '_radplapag_migration_pending', '1' );
 		restore_current_blog();
 
 		UninstallTest::uninstall();
 
 		switch_to_blog( $site );
-		$this->assertSame( array( 'stations' => array() ), get_option( 'radplapag_settings' ) );
-		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertFalse( get_option( 'radplapag_migrating' ) );
+		foreach ( UninstallTest::TRANSIENTS as $transient ) {
+			$this->assertFalse( get_transient( $transient ), $transient );
+		}
+		$this->assertFalse( get_transient( 'radplapag_station_field_errors_' . $station ) );
+		$this->assertFalse( get_transient( 'radplapag_station_schedule_errors_' . $station ) );
+		$this->assertNotContains( '_radplapag_migration_pending', UninstallTest::meta_rows( $post ) );
 		restore_current_blog();
 	}
 }

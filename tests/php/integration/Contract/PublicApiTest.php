@@ -118,9 +118,10 @@ final class PublicApiTest extends WP_UnitTestCase {
 	 * Functions of uninstall.php, as in FUNCTIONS, read by tokens.
 	 */
 	const UNINSTALL_FUNCTIONS = array(
-		'radplapag_uninstall_delete_programs' => '(): void',
-		'radplapag_uninstall_delete_stations' => '(): void',
-		'radplapag_uninstall_plugin'          => '(): void',
+		'radplapag_uninstall_delete_programs'  => '(): void',
+		'radplapag_uninstall_delete_stations'  => '(): void',
+		'radplapag_uninstall_delete_site_data' => '(): void',
+		'radplapag_uninstall_plugin'           => '(): void',
 	);
 
 	/**
