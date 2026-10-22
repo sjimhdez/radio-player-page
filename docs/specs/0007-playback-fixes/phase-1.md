@@ -72,7 +72,7 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Test: caracterización.
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/visualization.spec.ts`
 - Resultado: 24 tests nuevos en los hooks (player `check`: 555) y 2 e2e (el de la bienvenida se salta en WebKit, que nunca visualiza). happy-dom no da contexto 2D: el test de `useAudioVisualizer()` espía `getContext()` y controla `requestAnimationFrame()`. El canvas oculto se fija en el hook con `opacity` 0: el hook no recibe `canVisualize` y el panel le pasa siempre su canvas. En el e2e, la animación estática se lee por la altura de su `Collapse`: plegado mide 0 px, pero sus puntos conservan caja y `visibility: visible`, y `toBeVisible()` no los distingue. Mutaciones (revertidas): efecto sin dependencias, sin la condición de mismo origen, `createMediaElementSource()` sin la guarda, `frequency` → `time`, `status !== 'playing'` → `=== 'idle'` y `fftSize` 512 fallan en Vitest; `canVisualize` falso en Chromium y verdadero en WebKit fallan en el e2e (con el player reconstruido; `dist/` vuelve a quedar igual). Quitar `Edg` de la expresión no cambia nada: el *user agent* de Edge lleva `Chrome`.
-- [x] hecha · commit: —
+- [x] hecha · commit: 5e75c10
 
 ### 1.5 Grafo de Web Audio y excepción de WebKit en el núcleo (≤ 1 h)
 - Qué (TDD, lógica nueva sin uso todavía): `core/audio/web-audio.ts` con:
@@ -81,7 +81,8 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Archivos: `player/src/core/audio/web-audio.ts`, `player/src/core/audio/web-audio.test.ts`.
 - Test: primero (TDD): `web-audio.test.ts`, con `fake-web-audio.ts`.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: 29 tests nuevos (player `check`: 584), rojo con el módulo sin crear. `isWebKitBrowser()` queda en `AppleWebKit` sin `Chrome` ni `Chromium`: la cláusula de iOS y los tokens `Edg`/`OPR` del plan son código muerto (las mutaciones sobrevivían). Ningún navegador de iOS lleva `Chrome` (CriOS, FxiOS y EdgiOS tampoco) y Edge y Opera de escritorio llevan `Chrome`; la tabla del test cubre los casos de iOS. Un contexto que no se puede crear o un `createMediaElementSource()` que lanza dejan el grafo sin conectar sin cortar la reproducción; un `resume()` rechazado se captura. `connect()` antes de `prepare()` no hace nada (nunca crea el contexto fuera del gesto). Mutaciones (revertidas): sin `Chromium`, sin `AppleWebKit`, `fftSize` 512, `connect()` sin la guarda, `resume()` nunca, sin el `catch` y sin el `return` tras crear fallan en Vitest.
+- [x] hecha · commit: —
 
 ### 1.6 C1: un reintento sin `crossOrigin` en las fuentes directas, y ADR 0033 (≤ 1 h)
 - Qué (`fix-bug`):
