@@ -120,7 +120,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K31 y K32 (K79 se retiró: A
 - Verificación: `npm run check && npm run test:php:integration`
 - Rojo (2026-10-22): `test_stations_without_any_station_report_none_migrated` falla con «Radio Player Page: 0 radio stations and their radio shows were migrated…». `Migration_Notice::success()` devuelve el texto nuevo con `stations === 0` (sin lista: no puede haber franjas descartadas sin emisoras). Resultado: `test_stations_without_any_station_give_an_empty_plan` pierde el prefijo con la misma aserción. Los *goldens* no cambian.
 - Changelog: «When the legacy settings hold no radio station, the migration notice now says that none was found instead of reporting 0 migrated radio stations.»
-- [x] hecha · commit: —
+- [x] hecha · commit: `5fee3fe`
 
 ## Decisiones abiertas → ADR
 - Los valores de la espera (120 s y 900 s) y la toma del bloqueo antes de contar las emisoras: se fijan en el ADR 0037 (1.1).
