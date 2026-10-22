@@ -504,7 +504,13 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		radplapag_run_legacy_migration_if_needed();
 
 		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
-		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertSame(
+			array(
+				'stations' => 1,
+				'dropped'  => array(),
+			),
+			get_transient( 'radplapag_migration_success_notice' )
+		);
 	}
 
 	/**
@@ -534,8 +540,8 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	// Outcome.
 
 	/**
-	 * Success: content created, option removed, version recorded, lock released and a
-	 * success notice for 60 s. The current user is restored after running as the author.
+	 * Success: content created, option removed, version recorded, lock released and the
+	 * summary as the success notice for 60 s. The current user is restored after running as the author.
 	 */
 	public function test_successful_migration_records_outcome_and_releases_lock() {
 		$this->legacy_settings();
@@ -548,7 +554,13 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertSame( 1, $this->count_posts( 'radplapag_program' ) );
 		$this->assertNull( $this->stored_lock() );
 		$this->assertFalse( get_transient( 'radplapag_migration_error_notice' ) );
-		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertSame(
+			array(
+				'stations' => 1,
+				'dropped'  => array(),
+			),
+			get_transient( 'radplapag_migration_success_notice' )
+		);
 		$this->assertSame( 60, $this->transient_ttl( 'radplapag_migration_success_notice' ) );
 		$this->assertSame( $this->admin, get_current_user_id() );
 	}
@@ -750,7 +762,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertFalse( get_option( 'radplapag_settings' ) );
 		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
 		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
-		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertSame( 1, get_transient( 'radplapag_migration_success_notice' )['stations'] );
 		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
 		$this->assertSame( 1, $this->count_posts( 'radplapag_program' ) );
 		$station = get_posts( array( 'post_type' => 'radplapag_station' ) )[0];
@@ -872,6 +884,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$schedule = json_decode( (string) get_post_meta( $station->ID, 'radplapag_station_schedule', true ), true );
 		$this->assertSame( array( 'monday' ), array_keys( $schedule ) );
 		$this->assertSame( array( '23:00', '02:00' ), array( $schedule['monday'][0]['start'], $schedule['monday'][0]['end'] ) );
+		$this->assertStringContainsString( '<li>One: Tuesday 01:00–03:00, &quot;Early&quot;</li>', $this->notices() );
 	}
 
 	/**
@@ -953,7 +966,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
 		$this->assertFalse( get_option( 'radplapag_settings' ) );
-		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertSame( 1, get_transient( 'radplapag_migration_success_notice' )['stations'] );
 	}
 
 	/**
@@ -1018,7 +1031,13 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
 		$this->assertFalse( get_option( 'radplapag_settings' ) );
 		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
-		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertSame(
+			array(
+				'stations' => 0,
+				'dropped'  => array(),
+			),
+			get_transient( 'radplapag_migration_success_notice' )
+		);
 	}
 
 	/**
@@ -1462,6 +1481,90 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		);
 		$this->assertFalse( get_transient( 'radplapag_migration_success_notice' ) );
 		$this->assertSame( '', $this->notices() );
+	}
+
+	/**
+	 * The summary prints the number of stations and, below, the dropped slots with their
+	 * station, translated day, times and program, all escaped.
+	 */
+	public function test_success_notice_lists_the_dropped_slots() {
+		set_transient(
+			'radplapag_migration_success_notice',
+			array(
+				'stations' => 2,
+				'dropped'  => array(
+					array(
+						'station' => 'One <b>FM</b>',
+						'day'     => 'tuesday',
+						'start'   => '01:00',
+						'end'     => '03:00',
+						'program' => 'Early',
+					),
+					array(
+						'station' => 'Two',
+						'day'     => 'sunday',
+						'start'   => '7:00',
+						'end'     => '25:00',
+						'program' => 'Late & "Loud"',
+					),
+				),
+			),
+			60
+		);
+
+		$this->assertSame(
+			'<div class="notice notice-success is-dismissible"><p>Radio Player Page: 2 radio stations and their radio shows were migrated from the previous storage format to the new editor. The old settings entry was removed.</p>'
+			. '<p>These schedule slots were dropped because they overlap an earlier slot or are not valid. Add them again in their radio station if you need them:</p>'
+			. '<ul><li>One &lt;b&gt;FM&lt;/b&gt;: Tuesday 01:00–03:00, &quot;Early&quot;</li><li>Two: Sunday 7:00–25:00, &quot;Late &amp; &quot;Loud&quot;&quot;</li></ul></div>',
+			$this->notices()
+		);
+		$this->assertFalse( get_transient( 'radplapag_migration_success_notice' ) );
+	}
+
+	/**
+	 * With one station and no dropped slot, the summary prints the singular and no list.
+	 */
+	public function test_success_notice_of_one_station_without_dropped_slots() {
+		set_transient(
+			'radplapag_migration_success_notice',
+			array(
+				'stations' => 1,
+				'dropped'  => array(),
+			),
+			60
+		);
+
+		$this->assertSame(
+			'<div class="notice notice-success is-dismissible"><p>Radio Player Page: 1 radio station and its radio shows were migrated from the previous storage format to the new editor. The old settings entry was removed.</p></div>',
+			$this->notices()
+		);
+	}
+
+	/**
+	 * With a single dropped slot, its sentence is singular.
+	 */
+	public function test_success_notice_with_one_dropped_slot() {
+		set_transient(
+			'radplapag_migration_success_notice',
+			array(
+				'stations' => 1,
+				'dropped'  => array(
+					array(
+						'station' => 'One',
+						'day'     => 'monday',
+						'start'   => '07:00',
+						'end'     => '09:00',
+						'program' => 'Morning',
+					),
+				),
+			),
+			60
+		);
+
+		$this->assertStringContainsString(
+			'<p>This schedule slot was dropped because it overlaps an earlier slot or is not valid. Add it again in its radio station if you need it:</p><ul><li>One: Monday 07:00–09:00, &quot;Morning&quot;</li></ul>',
+			$this->notices()
+		);
 	}
 
 	/**

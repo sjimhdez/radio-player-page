@@ -92,7 +92,9 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - Archivos: `includes/src/wp/class-migration-notice.php` (nuevo), `includes/radplapag-upgrade.php`, `UpgradeFlowTest.php`, los 8 *goldens*, `tests/zip/expected-additions.txt`
 - Test: primero. Los 2 tests de D6, el aviso de K30 con la franja descartada y `test_success_notice_is_printed_once` en verde sin cambios. Se regeneran los *goldens* y se revisa que solo cambie esa clave.
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
-- [ ] hecha · commit: —
+- Rojo (2026-10-22): 7 fallos y 2 errores en `UpgradeFlowTest`. Los 2 de D6 (`'1'` en vez del resumen); el aviso de K30 (`test_cross_day_overlap_from_3_2_drops_the_later_slot` sin la franja descartada); 3 nuevos del aviso (`test_success_notice_lists_the_dropped_slots`, con el escape; `…_of_one_station_without_dropped_slots` y `…_with_one_dropped_slot`, los singulares de `_n()`); `test_interrupted_migration_with_a_station_is_purged_and_migrated` y `test_dismissed_conflict_is_cleared_and_migration_runs_without_published_stations` (de esta spec, leen `['stations']`), y `test_currently_stations_without_any_station_report_success` (K32), que pasa a esperar `{ stations: 0, dropped: [] }` sin perder el prefijo hasta la 1.11. `test_success_notice_is_printed_once` y `test_notices_print_in_order_success_error_conflict` siguen con `'1'`, sin cambios. `Schedule_Messages::day_label()` pasa a pública. El adaptador devuelve el HTML ya escapado y el envoltorio lo imprime con `wp_kses_post()`. *Goldens* revisados: cambian **10**, no 8, porque `corrupt-times` y `v3.2-cross-day-overlap` migran desde la 1.7; en todos solo cambia esa clave (con `dropped` en esos dos).
+- Changelog: «After migrating the legacy settings, the success notice says how many radio stations were migrated and lists any schedule slot that was dropped, so it can be added again by hand.»
+- [x] hecha · commit: —
 
 ### 1.9 K79: se conserva `is_rerun` (D7) (≤ 1 h)
 - Qué: `fix-bug`. `Legacy_Plan::station()` añade `is_rerun => true === ( $slot['is_rerun'] ?? false )` (tipos de PHPDoc incluidos), y el escritor lo pasa.

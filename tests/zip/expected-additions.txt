@@ -26,4 +26,5 @@ includes/src/migration/class-legacy-plan.php
 includes/src/wp/class-migration-writer.php
 includes/src/upgrade/class-upgrade-policy.php
 includes/src/wp/class-migration-lock.php
+includes/src/wp/class-migration-notice.php
 includes/src/migration/class-slot-filter.php

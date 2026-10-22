@@ -58,7 +58,25 @@
     },
     "transients": {
         "radplapag_migrating": false,
-        "radplapag_migration_success_notice": "1",
+        "radplapag_migration_success_notice": {
+            "stations": 2,
+            "dropped": [
+                {
+                    "station": "Late Nights",
+                    "day": "tuesday",
+                    "start": "01:00",
+                    "end": "03:00",
+                    "program": "Early Show"
+                },
+                {
+                    "station": "Weekend",
+                    "day": "sunday",
+                    "start": "23:00",
+                    "end": "02:00",
+                    "program": "Late Show"
+                }
+            ]
+        },
         "radplapag_migration_error_notice": false
     }
 }

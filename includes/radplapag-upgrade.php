@@ -99,7 +99,7 @@ function radplapag_maybe_clear_migration_conflict_flag(): void {
  * Runs legacy migration if needed (idempotent; uses an atomic lock).
  *
  * @since 3.3.0
- * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). Once taken, the posts left pending by a cut migration are deleted. After a failed write the lock is held for 900 s and the error notice lasts as long.
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). Once taken, the posts left pending by a cut migration are deleted. After a failed write the lock is held for 900 s and the error notice lasts as long The success notice stores the migrator's summary.
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed(): void {
@@ -154,7 +154,7 @@ function radplapag_run_legacy_migration_if_needed(): void {
 
 	\RadioPlayerPage\WP\Migration_Lock::release();
 	delete_option( 'radplapag_migration_skipped_cpt_conflict' );
-	set_transient( 'radplapag_migration_success_notice', '1', 60 );
+	set_transient( 'radplapag_migration_success_notice', $result, 60 );
 }
 
 /**
@@ -216,6 +216,7 @@ function radplapag_handle_migration_notice_dismiss(): void {
  *
  * @since 3.3.0
  * @since 3.5.0 The conflict notice shows only with the flag at '1' and is dismissible.
+ * @since 3.5.0 The success notice is built by RadioPlayerPage\WP\Migration_Notice from the migration summary.
  * @return void
  */
 function radplapag_migration_admin_notices(): void {
@@ -226,7 +227,7 @@ function radplapag_migration_admin_notices(): void {
 	$success = get_transient( 'radplapag_migration_success_notice' );
 	if ( $success ) {
 		delete_transient( 'radplapag_migration_success_notice' );
-		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Radio Player Page: Your radio stations and radio shows were migrated from the previous storage format to the new editor. The old settings entry was removed.', 'radio-player-page' ) . '</p></div>';
+		echo wp_kses_post( \RadioPlayerPage\WP\Migration_Notice::success( $success ) );
 	}
 
 	$error = get_transient( 'radplapag_migration_error_notice' );

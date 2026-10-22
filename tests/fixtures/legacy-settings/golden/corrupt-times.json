@@ -58,7 +58,18 @@
     },
     "transients": {
         "radplapag_migrating": false,
-        "radplapag_migration_success_notice": "1",
+        "radplapag_migration_success_notice": {
+            "stations": 2,
+            "dropped": [
+                {
+                    "station": "Broken",
+                    "day": "friday",
+                    "start": "7:00",
+                    "end": "25:00",
+                    "program": "Broken Show"
+                }
+            ]
+        },
         "radplapag_migration_error_notice": false
     }
 }

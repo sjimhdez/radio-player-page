@@ -23,7 +23,10 @@
     },
     "transients": {
         "radplapag_migrating": false,
-        "radplapag_migration_success_notice": "1",
+        "radplapag_migration_success_notice": {
+            "stations": 1,
+            "dropped": []
+        },
         "radplapag_migration_error_notice": false
     }
 }
