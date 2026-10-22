@@ -45,7 +45,7 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Verificación: `npm run test:e2e -- tests/e2e/mp3.spec.ts tests/e2e/intro.spec.ts tests/e2e/media-session.spec.ts`
 - Resultado: rojo primero en el WebKit de macOS: con el *fixture* antiguo, `waitForPlayback( paused + 1 )` agota los 30 s (la posición se para). El test nuevo espera a que la posición pase de la pausa + 1 s, deja `QUIET_MS` y comprueba que sigue avanzando (> pausa + 2 s), sin pausa, error ni alerta; ya no fija `buffered` ni el número de peticiones (eso es de C7, 1.3). Arreglo: `mp3Frames()` en `media-server.mjs`, como el del spike pero sin operadores de bits (`no-bitwise`); su salida es idéntica byte a byte a la del spike (64 365 bytes, empieza en `ff fb`). Verde: las tres suites, 26 pasan y 4 saltados por plataforma. El `skip` del test de C7 en el WebKit de macOS («freezes instead (K18)») queda obsoleto; lo quita la 1.3, como dice su plan.
 - Changelog: nada (solo el *fixture* e2e).
-- [x] hecha · commit: —
+- [x] hecha · commit: a1eb7ae
 
 ### 1.3 C7 y K12: Play tras una pausa vuelve al directo, y ADR 0032 (≤ 1 h)
 - Qué (`fix-bug`): sale la rama `resume` de `startPlay()`. Si el directo está cargado y suena (`status === 'playing'` y el elemento no está en pausa), `play()` no hace nada. En cualquier otro caso (pausa, error o cambio de emisora) se llama a `playLive()`, que recarga. La bienvenida no cambia. Regresiones, en el mismo commit:
@@ -57,7 +57,9 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Archivos: `player/src/core/audio/audio-controller.ts` (+ test), `player/src/hooks/use-audio-player.test.tsx`, `tests/e2e/mp3.spec.ts`, `docs/adr/0032-*.md`, `docs/adr/README.md`, `SPEC.md`, `docs/known-issues.md`.
 - Test: regresión primero (rojo) en el núcleo, el hook y el e2e.
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/mp3.spec.ts tests/e2e/hls-dash.spec.ts tests/e2e/media-session.spec.ts tests/e2e/sleep.spec.ts tests/e2e/intro.spec.ts`
-- [ ] hecha · commit: —
+- Resultado: rojo primero: el MP3 en el núcleo y el hook (`media.load` 1 vez, se esperaban 2) y el e2e en Chromium (1 petición a `/live.mp3`, se esperaban 2) y WebKit (2, se esperaban 3). HLS y DASH ya recargaban por K12 (el `blob:` no coincide con la URL): sus tests pasan a fijarlo como comportamiento buscado (más «recreates dashjs to return to the live edge after a pause (C7)», nuevo en el núcleo). Arreglo: fuera la rama `resume`; el controlador guarda `liveUrl` (la URL cargada) y `play()` no hace nada solo si ese directo suena (`activeSource === 'live'`, misma URL, `playing` y el elemento sin pausa). El WebKit de Playwright hace dos peticiones por carga: el e2e comprueba que hay peticiones nuevas, no una exacta, y que la posición vuelve por debajo de la de la pausa. Fuera de la lista de archivos (riesgo 4, consecuencia directa de C7 y cubierto por el ADR 0032): `intro.spec.ts` «plays the welcome audio once, unpausable, then the live stream» fijaba la reanudación (un solo `loadstart live` y la espera a `play` por K18); ahora espera dos `loadstart live` y a `playing`. El comentario del test del controlador «starts a new play() once the previous one has settled» ya no cita K12. Verde: player `check` (531 tests) y las cinco suites e2e en Chromium y WebKit.
+- Changelog: Play tras una pausa vuelve al directo, en todos los formatos (antes, con MP3/OGG seguía desde el buffer, por detrás del directo).
+- [x] hecha · commit: —
 
 ### 1.4 Caracterización de `useCanVisualize()` y `useAudioVisualizer()` (≤ 1 h)
 - Qué (`characterize`, sin tocar los hooks):

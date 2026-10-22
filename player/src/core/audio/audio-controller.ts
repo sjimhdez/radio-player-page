@@ -35,8 +35,10 @@ export interface AudioController {
   /** Destroys the current source. */
   dispose: () => void
   /**
-   * Starts the welcome audio or the live stream, or resumes the live stream. While a
-   * play() is pending, the next one returns its promise (docs/known-issues.md K80).
+   * Starts the welcome audio or loads the live stream. After a pause, an error or a
+   * stream change it reloads the live stream, back to the live edge (ADR 0032); while
+   * that stream plays, it does nothing. While a play() is pending, the next one
+   * returns its promise (docs/known-issues.md K80).
    */
   play: (options: PlayOptions) => Promise<void>
   /** Pauses playback. */
@@ -70,6 +72,8 @@ export function createAudioController({
   let introOptions: PlayOptions | null = null
   // The pending play(), returned to the calls made before it settles (D7).
   let pendingPlay: Promise<void> | null = null
+  // The URL of the loaded live stream; with hls.js and dashjs audio.src is a blob:.
+  let liveUrl: string | null = null
 
   const dispatch = (event: PlayerEvent) => {
     const next = transition(state, event)
@@ -95,6 +99,7 @@ export function createAudioController({
   const playLive = async (element: HTMLAudioElement, url: string, isIOS: boolean) => {
     source?.destroy()
     source = createSource(url, isIOS)
+    liveUrl = url
     await source.start(element, url, {
       onError: () => dispatch({ type: 'stream-error' }),
       onPlayRejected: () => dispatch({ type: 'play-failed' }),
@@ -131,7 +136,7 @@ export function createAudioController({
   }
 
   /**
-   * Runs one play(): the welcome audio, the resume or the load of the live stream.
+   * Runs one play(): the welcome audio or the load of the live stream.
    */
   const startPlay = async (options: PlayOptions) => {
     const { streamUrl, introUrl, isIOS } = options
@@ -160,19 +165,19 @@ export function createAudioController({
     // The welcome audio is playing: pause() is blocked, so there is nothing to do.
     if (state.activeSource === 'intro') return
 
-    // Resume the loaded live stream if it is the same and did not fail; otherwise
-    // (first play, after an error, after a stream change) load it.
-    const resume =
-      state.activeSource !== null && element.src === streamUrl && state.status !== 'error'
+    // The same live stream is playing: nothing to do. Otherwise (first play, after a
+    // pause, an error or a stream change) load it, so it plays from the live edge
+    // instead of the buffer (docs/known-issues.md C7, ADR 0032).
+    if (
+      state.activeSource === 'live' &&
+      liveUrl === streamUrl &&
+      state.status === 'playing' &&
+      !element.paused
+    ) {
+      return
+    }
     try {
       dispatch({ type: 'load-start' })
-      if (resume) {
-        if (element.paused) {
-          await element.play()
-          dispatch({ type: 'resumed' })
-        }
-        return
-      }
       await playLive(element, streamUrl, isIOS)
     } catch {
       dispatch({ type: 'play-failed' })

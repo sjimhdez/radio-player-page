@@ -1,7 +1,8 @@
 // The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
 // of the audio element, the volume, HLS/DASH and the welcome audio, as in
-// src/hooks/use-audio-player.test.tsx, with its currently cases (C7, K11, K12, K63, K64)
-// and the K70 regression cases (task 2.9). The concurrency suspicions of §4.5 come
+// src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K63, K64) and
+// the K70 regression cases (task 2.9). Spec 0007 fixed C7 and K12: Play after a pause
+// reloads the live stream (ADR 0032). The concurrency suspicions of §4.5 come
 // last (task 2.10).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAudioController } from 'src/core/audio/audio-controller'
@@ -214,9 +215,9 @@ describe('direct streams', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
   })
 
-  // docs/known-issues.md C7: Play after a pause resumes from the buffer, behind the
-  // live stream. Fixed in spec 0007.
-  it('currently resumes the loaded live stream from the buffer after a pause (C7)', async () => {
+  // docs/known-issues.md C7: Play after a pause reloads the live stream, so it plays
+  // from the live edge instead of the buffer (spec 0007, ADR 0032).
+  it('reloads the live stream on play() after a pause (C7)', async () => {
     const { controller, audio } = setup()
     await controller.play(live())
     controller.pause()
@@ -224,8 +225,9 @@ describe('direct streams', () => {
     expect(audio.paused).toBe(true)
     await controller.play(live())
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
-    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(media.load).toHaveBeenCalledTimes(2)
     expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.src).toBe(MP3)
   })
 
   it('does nothing on play() when the loaded source is already playing', async () => {
@@ -355,8 +357,9 @@ describe('HLS', () => {
     expect(controller.getSnapshot().status).toBe('playing')
   })
 
-  // docs/known-issues.md K12
-  it('currently recreates hls.js when resuming after a pause', async () => {
+  // docs/known-issues.md C7 and K12: the reload no longer depends on comparing
+  // audio.src with a blob: URL (spec 0007, ADR 0032).
+  it('recreates hls.js to return to the live edge (C7)', async () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
@@ -364,6 +367,7 @@ describe('HLS', () => {
     await controller.play(live(HLS))
     expect(hls.instances).toHaveLength(2)
     expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+    expect(hls.instances[1].loadSource).toHaveBeenCalledWith(HLS)
   })
 })
 
@@ -385,6 +389,18 @@ describe('DASH', () => {
     await controller.play(live(DASH))
     dash.players[0].handlers.error({ error: { code: 17 } })
     expect(controller.getSnapshot().status).toBe('error')
+  })
+
+  // docs/known-issues.md C7 (spec 0007, ADR 0032).
+  it('recreates dashjs to return to the live edge after a pause (C7)', async () => {
+    const dash = createFakeDash()
+    const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    controller.pause()
+    await controller.play(live(DASH))
+    expect(dash.players).toHaveLength(2)
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
+    expect(dash.players[1].initialize).toHaveBeenCalledWith(expect.anything(), DASH, true)
   })
 })
 
@@ -676,7 +692,8 @@ describe('concurrency (spec 0006, 2.10)', () => {
     await controller.play(live(HLS))
     controller.pause()
     await controller.play(live(HLS))
-    // K12: the resume recreates hls.js, so the second play() was not deduplicated.
+    // Play after a pause reloads the live stream (C7), so the second play() was not
+    // deduplicated.
     expect(hls.instances).toHaveLength(2)
   })
 

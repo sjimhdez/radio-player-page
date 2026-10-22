@@ -162,14 +162,15 @@ describe('direct streams', () => {
     expect(api.current.status).toBe('playing')
   })
 
-  it('pauses and resumes the loaded source without reloading it', async () => {
+  // docs/known-issues.md C7 (spec 0007, ADR 0032).
+  it('reloads the live stream on play() after a pause (C7)', async () => {
     const { api, audio } = mount(MP3)
     await act(() => api.current.play())
     act(() => api.current.pause())
     expect(media.pause).toHaveBeenCalledTimes(1)
     expect(api.current.status).toBe('paused')
     await act(() => api.current.play())
-    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(media.load).toHaveBeenCalledTimes(2)
     expect(media.play).toHaveBeenCalledTimes(2)
     expect(audio.src).toBe(MP3)
     expect(api.current.status).toBe('playing')
@@ -265,8 +266,8 @@ describe('HLS', () => {
     expect(media.play).toHaveBeenCalledWith(HLS)
   })
 
-  // docs/known-issues.md K12
-  it('currently recreates hls.js when resuming after a pause', async () => {
+  // docs/known-issues.md C7 and K12 (spec 0007, ADR 0032).
+  it('recreates hls.js to return to the live edge (C7)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     act(() => api.current.pause())

@@ -147,34 +147,30 @@ test( 'currently shows the play error when the system pauses the loading MP3 (K8
 	expect( ( await audioState( page ) ).paused ).toBe( true );
 } );
 
-test( 'currently resumes the live MP3 from the buffer after Pause and Play (C7)', async ( {
-	page,
-	browserName,
-} ) => {
-	test.skip(
-		browserName === 'webkit' && ! GSTREAMER,
-		"Safari's WebKit freezes instead (K18)"
-	);
+// C7 (spec 0007, ADR 0032): Play after a pause reloads the live stream, so it
+// plays from the live edge instead of the buffer.
+test( 'reloads the live MP3 after Pause and Play (C7)', async ( { page } ) => {
 	await page.goto( readSeed().urls.live );
 	await startPlayback( page );
+	await waitForPlayback( page, 3 );
 	const requests = await mediaRequests();
 
 	await page.getByRole( 'button', { name: 'Pause' } ).click();
 	const paused = await audioState( page );
-	const resumed = waitForPlayback( page, paused.currentTime + 1 );
+	const reloaded = waitForAudioEvent( page, 'playing' );
 	await page.getByRole( 'button', { name: 'Play' } ).click();
-	await resumed;
+	await reloaded;
+	await waitForPlayback( page, 0.5 );
 
-	// No new request: the same connection keeps feeding the buffer, and the
-	// position goes on from where it paused (behind the live edge).
-	expect( await mediaRequests() ).toEqual( requests );
+	// New requests (WebKit makes two per load), and the position starts again
+	// near 0 (the live edge).
+	expect( ( await mediaRequests() )[ '/live.mp3' ] ).toBeGreaterThan(
+		requests[ '/live.mp3' ]
+	);
 	const state = await audioState( page );
 	expect( state.src ).toBe( paused.src );
-	expect( state.currentTime ).toBeGreaterThan( paused.currentTime );
-	// GStreamer reports no buffered ranges for a live stream.
-	if ( browserName === 'chromium' ) {
-		expect( state.buffered[ 0 ]?.[ 0 ] ).toBe( 0 );
-	}
+	expect( state.currentTime ).toBeLessThan( paused.currentTime );
+	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
 } );
 
 test( "does not freeze the live MP3 after Pause and Play in Safari's WebKit (K18)", async ( {

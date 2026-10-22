@@ -163,9 +163,10 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - **Configuración:** `hooks/use-config.tsx` lee las tres globales (una vez por montaje), las valida con `src/core/config/` y las expone; es la única puerta de entrada de datos. `src/core/` es **interno**, no es contrato (ADR 0029).
 - **Protocolo por la extensión de la URL:** termina en `.m3u8` → HLS; termina en `.mpd` → DASH; cualquier otra → audio directo (MP3/OGG, Icecast, Shoutcast).
   - HLS: nativo en iOS; con `hls.js` en el resto si lo soporta (empieza al recibir el manifiesto); si no, nativo como alternativa.
-  - DASH: `dashjs` con autoplay.
+  - DASH: `dashjs` con autoplay, sin fuente de hora de terceros: usa `<UTCTiming>` del MPD o la cabecera `Date`; si no, el reloj del cliente (ADR 0032).
   - `hls.js` y `dashjs` se cargan con `import()` dinámico, solo cuando hacen falta.
 - **`crossOrigin = 'anonymous'`** en toda fuente asignada directamente a `audio.src` (audio directo, HLS nativo y audio de bienvenida). Las rutas MSE (`hls.js`, `dashjs`) cargan por XHR/fetch con CORS y dejan el atributo en `null` (ADR 0004). Consecuencia conocida: un stream sin cabeceras CORS no suena (C1 en `docs/known-issues.md`).
+- **Pausa y Play:** Play tras una pausa (o un error, o un cambio de emisora) recarga el directo, en todos los protocolos, y vuelve al borde en vivo; si el directo ya suena, no hace nada (ADR 0032).
 - **Audio de bienvenida:** si `introAudioUrl` existe, suena una vez, en la primera reproducción, antes del directo; mientras suena no se puede pausar; al terminar, o si falla, pasa al directo sin mostrar error.
 - **Volumen:** control deslizante; oculto en iOS.
 - **Media Session:** título de la emisora y logo en la pantalla de bloqueo; acciones de reproducir y pausar.
