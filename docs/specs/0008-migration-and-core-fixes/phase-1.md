@@ -67,7 +67,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - Archivos: `includes/radplapag-upgrade.php`, `UpgradeFlowTest.php`
 - Test: primero. `test_failed_migration_rolls_back_and_records_error` (bloqueo retenido, 900 s) y `test_failed_migration_is_retried_on_next_request` pasa a `…_is_not_retried_until_the_wait_expires` (no reintenta; con la opción caducada, sí).
 - Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
-- [ ] hecha · commit: —
+- [x] hecha · commit: `805d5ee`
 
 ### 1.6 Reintento sin duplicados (D5) (≤ 1 h)
 - Qué: `Migration_Writer` crea cada post con `meta_input => [ '_radplapag_migration_pending' => '1' ]` y, al terminar bien, llama a `delete_post_meta_by_key()`. Tras tomar el bloqueo y antes de contar las emisoras, `Migration_Lock::purge_pending()` (o una función en el escritor) borra para siempre los posts que tienen la meta, en cualquier estado. El *rollback* actual se queda.
