@@ -44,6 +44,6 @@ Con K1 corregido (la 2.2: `pause` ya no pisa `error`), se probó a volver a `use
 
 La causa ya no es K1, sino el reintento sin `crossOrigin` del ADR 0033, que llegó después de este ADR. Según el código (no se midió con una sonda): el primer intento dispara `error` (`status: 'error'`, `loading` sigue en `true`). El `canplay` del reintento, con `status: 'error'`, limpia `loading`, y el `Dashboard` abre la alerta (`status === 'error' && !loading`) hasta que llega `playing`. Con `useSyncExternalStore` ese estado intermedio se pinta. Con `useState` no llega a pintarse, como pasaba con K1.
 
-Decisión: `useAudioPlayer()` sigue con `useState` + `subscribe()`. Para volver a `useSyncExternalStore` primero hay que dejar de publicar `error` durante el reintento de C1, lo que cambia el núcleo y queda fuera de la 2.7. Lo protegen los dos e2e de arriba en Chromium.
+Decisión: `useAudioPlayer()` sigue con `useState` + `subscribe()`. Para volver a `useSyncExternalStore` primero hay que dejar de publicar `error` durante el reintento de C1 (K83 en `known-issues.md`), lo que cambia el núcleo y queda fuera de la 2.7. Lo protegen los dos e2e de arriba en Chromium.
 
 Evidencia: [`phase-2.md`](../specs/0006-player-refactor/phase-2.md) de la 0006, tareas 2.9 (la regresión) y 2.11 (la sonda y las dos variantes); [`phase-2.md`](../specs/0007-playback-fixes/phase-2.md) de la 0007, tarea 2.7.

@@ -829,6 +829,36 @@ describe('currently (docs/known-issues.md)', () => {
     // Play replaces the spinner.
     expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
+
+  it('currently publishes an error without loading while the C1 retry loads (K83)', async () => {
+    media.corsBlocked.add(MP3)
+    media.hold = true
+    const { controller, audio } = setup()
+    const published: Array<{ status: string; loading: boolean }> = []
+    controller.subscribe(() => {
+      const { status, loading } = controller.getSnapshot()
+      const last = published[published.length - 1]
+      if (last?.status !== status || last.loading !== loading) published.push({ status, loading })
+    })
+
+    const playing = controller.play(live())
+    // The browser fires the error of the attempt with crossOrigin before play() rejects.
+    audio.dispatchEvent(new Event('error'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenCalledTimes(2))
+    // The retry without crossOrigin loads and can play.
+    audio.dispatchEvent(new Event('canplay'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+    media.release()
+    await playing
+
+    // The Dashboard opens its alert on status 'error' with loading false.
+    expect(published).toEqual([
+      { status: 'idle', loading: true },
+      { status: 'error', loading: true },
+      { status: 'error', loading: false },
+      { status: 'playing', loading: false },
+    ])
+  })
 })
 
 describe('volume', () => {
