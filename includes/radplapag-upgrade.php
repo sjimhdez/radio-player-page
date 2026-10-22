@@ -99,7 +99,7 @@ function radplapag_maybe_clear_migration_conflict_flag(): void {
  * Runs legacy migration if needed (idempotent; uses an atomic lock).
  *
  * @since 3.3.0
- * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037).
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). After a failed write the lock is held for 900 s and the error notice lasts as long.
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed(): void {
@@ -139,17 +139,18 @@ function radplapag_run_legacy_migration_if_needed(): void {
 	$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
 
 	wp_set_current_user( $prev_user );
-	\RadioPlayerPage\WP\Migration_Lock::release();
 
 	if ( is_wp_error( $result ) ) {
+		\RadioPlayerPage\WP\Migration_Lock::hold_until( time() + 900 );
 		set_transient(
 			'radplapag_migration_error_notice',
 			$result->get_error_message(),
-			120
+			900
 		);
 		return;
 	}
 
+	\RadioPlayerPage\WP\Migration_Lock::release();
 	delete_option( 'radplapag_migration_skipped_cpt_conflict' );
 	set_transient( 'radplapag_migration_success_notice', '1', 60 );
 }

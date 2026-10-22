@@ -604,7 +604,8 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 	/**
 	 * A failing insert rolls back the posts already created, keeps the option, records
-	 * no version, releases the lock and leaves the error for the notice (120 s).
+	 * no version, holds the lock for 900 s and leaves the error for the notice for as
+	 * long (ADR 0037).
 	 */
 	public function test_failed_migration_rolls_back_and_records_error() {
 		$settings = $this->legacy_settings();
@@ -623,17 +624,18 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertFalse( get_option( 'radplapag_db_version' ) );
 		$this->assertSame( 0, $this->count_posts( 'radplapag_program' ), 'The program created before the failure is deleted.' );
 		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
-		$this->assertNull( $this->stored_lock() );
+		$this->assertSame( 900, (int) $this->stored_lock() - time() );
 		$this->assertFalse( get_transient( 'radplapag_migration_success_notice' ) );
 		$this->assertSame( 'Content, title, and excerpt are empty.', get_transient( 'radplapag_migration_error_notice' ) );
-		$this->assertSame( 120, $this->transient_ttl( 'radplapag_migration_error_notice' ) );
+		$this->assertSame( 900, $this->transient_ttl( 'radplapag_migration_error_notice' ) );
 		$this->assertSame( $this->admin, get_current_user_id() );
 	}
 
 	/**
-	 * After a failure, the next request tries again.
+	 * After a failure, the migration is not tried again until the wait expires (no loop
+	 * on a deterministic failure); then the next request migrates.
 	 */
-	public function test_failed_migration_is_retried_on_next_request() {
+	public function test_failed_migration_is_not_retried_until_the_wait_expires() {
 		$this->legacy_settings();
 		$fail = static function () {
 			return true;
@@ -642,6 +644,12 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		radplapag_run_legacy_migration_if_needed();
 		remove_filter( 'wp_insert_post_empty_content', $fail );
 
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertFalse( get_option( 'radplapag_db_version' ) );
+		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
+
+		update_option( 'radplapag_migrating', (string) ( time() - 1 ), false );
 		radplapag_run_legacy_migration_if_needed();
 
 		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
@@ -769,8 +777,9 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 	/**
 	 * 3.1.x and 3.2.x saved a slot crossing midnight that overlaps the next day (3.2.0
-	 * only warned). The schedule sanitizer rejects it, so every admin request creates
-	 * and deletes the posts and shows the error again; the site never migrates.
+	 * only warned). The schedule sanitizer rejects it, so every admin request after the
+	 * wait creates and deletes the posts and shows the error again; the site never
+	 * migrates.
 	 *
 	 * @see docs/known-issues.md K30
 	 */
@@ -800,6 +809,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		radplapag_run_legacy_migration_if_needed();
 		$this->assertStringContainsString( 'overlaps with "Early" on Tuesday', (string) get_transient( 'radplapag_migration_error_notice' ) );
 		delete_transient( 'radplapag_migration_error_notice' );
+		update_option( 'radplapag_migrating', (string) ( time() - 1 ), false );
 		radplapag_run_legacy_migration_if_needed();
 
 		$this->assertSame( $settings, get_option( 'radplapag_settings' ) );
