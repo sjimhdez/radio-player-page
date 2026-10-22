@@ -59,7 +59,7 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/mp3.spec.ts tests/e2e/hls-dash.spec.ts tests/e2e/media-session.spec.ts tests/e2e/sleep.spec.ts tests/e2e/intro.spec.ts`
 - Resultado: rojo primero: el MP3 en el núcleo y el hook (`media.load` 1 vez, se esperaban 2) y el e2e en Chromium (1 petición a `/live.mp3`, se esperaban 2) y WebKit (2, se esperaban 3). HLS y DASH ya recargaban por K12 (el `blob:` no coincide con la URL): sus tests pasan a fijarlo como comportamiento buscado (más «recreates dashjs to return to the live edge after a pause (C7)», nuevo en el núcleo). Arreglo: fuera la rama `resume`; el controlador guarda `liveUrl` (la URL cargada) y `play()` no hace nada solo si ese directo suena (`activeSource === 'live'`, misma URL, `playing` y el elemento sin pausa). El WebKit de Playwright hace dos peticiones por carga: el e2e comprueba que hay peticiones nuevas, no una exacta, y que la posición vuelve por debajo de la de la pausa. Fuera de la lista de archivos (riesgo 4, consecuencia directa de C7 y cubierto por el ADR 0032): `intro.spec.ts` «plays the welcome audio once, unpausable, then the live stream» fijaba la reanudación (un solo `loadstart live` y la espera a `play` por K18); ahora espera dos `loadstart live` y a `playing`. El comentario del test del controlador «starts a new play() once the previous one has settled» ya no cita K12. Verde: player `check` (531 tests) y las cinco suites e2e en Chromium y WebKit.
 - Changelog: Play tras una pausa vuelve al directo, en todos los formatos (antes, con MP3/OGG seguía desde el buffer, por detrás del directo).
-- [x] hecha · commit: —
+- [x] hecha · commit: 40ab3f8
 
 ### 1.4 Caracterización de `useCanVisualize()` y `useAudioVisualizer()` (≤ 1 h)
 - Qué (`characterize`, sin tocar los hooks):
@@ -71,7 +71,8 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Archivos: `player/src/test/fake-web-audio.ts`, `player/src/hooks/use-can-visualize.test.tsx`, `player/src/hooks/use-audio-visualizer.test.tsx`, `tests/e2e/visualization.spec.ts`, `docs/known-issues.md`.
 - Test: caracterización.
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/visualization.spec.ts`
-- [ ] hecha · commit: —
+- Resultado: 24 tests nuevos en los hooks (player `check`: 555) y 2 e2e (el de la bienvenida se salta en WebKit, que nunca visualiza). happy-dom no da contexto 2D: el test de `useAudioVisualizer()` espía `getContext()` y controla `requestAnimationFrame()`. El canvas oculto se fija en el hook con `opacity` 0: el hook no recibe `canVisualize` y el panel le pasa siempre su canvas. En el e2e, la animación estática se lee por la altura de su `Collapse`: plegado mide 0 px, pero sus puntos conservan caja y `visibility: visible`, y `toBeVisible()` no los distingue. Mutaciones (revertidas): efecto sin dependencias, sin la condición de mismo origen, `createMediaElementSource()` sin la guarda, `frequency` → `time`, `status !== 'playing'` → `=== 'idle'` y `fftSize` 512 fallan en Vitest; `canVisualize` falso en Chromium y verdadero en WebKit fallan en el e2e (con el player reconstruido; `dist/` vuelve a quedar igual). Quitar `Edg` de la expresión no cambia nada: el *user agent* de Edge lleva `Chrome`.
+- [x] hecha · commit: —
 
 ### 1.5 Grafo de Web Audio y excepción de WebKit en el núcleo (≤ 1 h)
 - Qué (TDD, lógica nueva sin uso todavía): `core/audio/web-audio.ts` con:
