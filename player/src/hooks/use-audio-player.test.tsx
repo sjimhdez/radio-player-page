@@ -324,12 +324,16 @@ describe('HLS', () => {
     expect(hls.instances[0].config).toEqual({ preferManagedMediaSource: true })
   })
 
-  // docs/known-issues.md K11
-  it('currently reports playing before MANIFEST_PARSED', async () => {
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until the element plays (K11)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     expect(media.play).not.toHaveBeenCalled()
-    expect(api.current.status).toBe('playing')
+    expect(api.current).toMatchObject({ status: 'idle', loading: true })
+    await act(async () => {
+      hls.instances[0].handlers.hlsManifestParsed()
+    })
+    expect(api.current).toMatchObject({ status: 'playing', loading: false })
   })
 
   it('sets error when play() after MANIFEST_PARSED rejects', async () => {
@@ -347,7 +351,7 @@ describe('HLS', () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     act(() => hls.instances[0].handlers.hlsError(undefined, { fatal: false }))
-    expect(api.current.status).toBe('playing')
+    expect(api.current.status).toBe('idle')
     act(() => hls.instances[0].handlers.hlsError(undefined, { fatal: true }))
     expect(api.current.status).toBe('error')
   })
@@ -392,7 +396,6 @@ describe('DASH', () => {
     expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, DASH, true)
     expect(audio.crossOrigin).toBeNull()
     expect(media.play).not.toHaveBeenCalled()
-    expect(api.current.status).toBe('playing')
   })
 
   it('sets error on a dashjs error', async () => {
@@ -891,6 +894,9 @@ describe('concurrency (spec 0006, 2.2)', () => {
     expect(hls.instances).toHaveLength(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledTimes(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    await act(async () => {
+      hls.instances[0].handlers.hlsManifestParsed()
+    })
     expect(api.current.status).toBe('playing')
 
     unmount()

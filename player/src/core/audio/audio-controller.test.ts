@@ -331,12 +331,15 @@ describe('HLS', () => {
     expect(audio.crossOrigin).toBeNull()
   })
 
-  // docs/known-issues.md K11
-  it('currently reports playing before MANIFEST_PARSED', async () => {
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until the element plays (K11)', async () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
     expect(media.play).not.toHaveBeenCalled()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: true })
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await Promise.resolve()
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
   })
 
@@ -355,7 +358,7 @@ describe('HLS', () => {
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
     hls.instances[0].handlers.hlsError('hlsError', { fatal: false })
-    expect(controller.getSnapshot().status).toBe('playing')
+    expect(controller.getSnapshot().status).toBe('idle')
     hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
     expect(controller.getSnapshot().status).toBe('error')
   })
@@ -395,7 +398,17 @@ describe('DASH', () => {
     expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, DASH, true)
     expect(audio.crossOrigin).toBeNull()
     expect(media.play).not.toHaveBeenCalled()
-    expect(controller.getSnapshot().status).toBe('playing')
+  })
+
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until the element plays with DASH (K11)', async () => {
+    const dash = createFakeDash()
+    const { controller, audio } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: true })
+    // The dashjs autoplay.
+    audio.dispatchEvent(new Event('playing'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
   })
 
   it('sets error on a dashjs error', async () => {
@@ -515,6 +528,18 @@ describe('welcome audio (intro)', () => {
       activeSource: 'live',
       introConsumed: true,
     })
+  })
+
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until HLS plays when it fails (K11)', async () => {
+    media.failing.add(INTRO)
+    const hls = createFakeHls()
+    const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(withIntro(HLS))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: true })
+    // What the element fires once hls.js plays on MANIFEST_PARSED.
+    audio.dispatchEvent(new Event('playing'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
   })
 
   it('sets error when it fails and the live stream fails too', async () => {
@@ -742,6 +767,8 @@ describe('concurrency (spec 0006, 2.10)', () => {
     expect(hls.instances).toHaveLength(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledTimes(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await Promise.resolve()
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
 
     controller.dispose()

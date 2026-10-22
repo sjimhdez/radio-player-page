@@ -69,9 +69,9 @@ function patch(state: PlayerState, changes: Partial<PlayerState>): PlayerState {
  * Pure transition of the audio player.
  *
  * Replicates the 3.4.2 hook, quirks included (docs/known-issues.md, fixed in spec 0007):
- * live-started reports playing before the HLS manifest is parsed (K11) and the welcome
- * audio stays locked after a failure, an external pause or an error (K63). A pause keeps
- * the error status (K1), and the user's pause clears loading (K64).
+ * the welcome audio stays locked after a failure, an external pause or an error (K63).
+ * A pause keeps the error status (K1), the user's pause clears loading (K64), and the
+ * status turns playing with the playing event of the element, not with live-started (K11).
  *
  * @param state - Current state
  * @param event - What happened
@@ -90,7 +90,8 @@ export function transition(state: PlayerState, event: PlayerEvent): PlayerState 
     case 'intro-finished':
       return patch(state, { introConsumed: true })
     case 'live-started':
-      return patch(state, { activeSource: 'live', introLocked: false, status: 'playing' })
+      // playing comes from the element: hls.js plays on MANIFEST_PARSED, dashjs autoplays (K11).
+      return patch(state, { activeSource: 'live', introLocked: false })
     case 'resumed':
       return patch(state, { status: 'playing' })
     case 'playing':

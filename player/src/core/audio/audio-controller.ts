@@ -134,7 +134,6 @@ export function createAudioController({
       await playLive(element, options.streamUrl, options.isIOS)
     } catch {
       dispatch({ type: 'play-failed' })
-    } finally {
       dispatch({ type: 'load-end' })
     }
   }
@@ -189,11 +188,10 @@ export function createAudioController({
           },
         )
         dispatch({ type: 'resumed' })
+        dispatch({ type: 'load-end' })
       } catch {
         // The welcome audio failed: the live stream follows, as if it had ended.
         await advanceToLive(element, options)
-      } finally {
-        dispatch({ type: 'load-end' })
       }
       return
     }
@@ -212,12 +210,12 @@ export function createAudioController({
     ) {
       return
     }
+    // loading stays on until the playing event of the element (K11).
     try {
       dispatch({ type: 'load-start' })
       await playLive(element, streamUrl, isIOS)
     } catch {
       dispatch({ type: 'play-failed' })
-    } finally {
       dispatch({ type: 'load-end' })
     }
   }

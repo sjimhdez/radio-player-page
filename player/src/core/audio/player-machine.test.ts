@@ -1,5 +1,5 @@
 // Pure transition of the audio player (spec 0006, task 2.5). The currently cases
-// replicate docs/known-issues.md K11 and K63, as fixed in
+// replicate docs/known-issues.md K63 (K11 is fixed in spec 0007), as fixed in
 // src/hooks/use-audio-player.test.tsx and tests/e2e/cross-origin.spec.ts.
 // canVisualize (spec 0007, task 1.7): false on each attempt, set by the playing event.
 import { describe, expect, it } from 'vitest'
@@ -13,7 +13,12 @@ import {
 const run = (events: PlayerEvent[], from: PlayerState = initialPlayerState) =>
   events.reduce(transition, from)
 
-const liveState = run([{ type: 'load-start' }, { type: 'live-started' }, { type: 'load-end' }])
+// The live stream playing: since K11, playing comes from the element (spec 0007, ADR 0034).
+const liveState = run([
+  { type: 'load-start' },
+  { type: 'live-started' },
+  { type: 'playing', visualizable: false },
+])
 
 const introState = run([
   { type: 'intro-started' },
@@ -59,7 +64,7 @@ describe('transition', () => {
       { type: 'intro-finished' },
       { type: 'live-started' },
     ])
-    expect(state).toMatchObject({ activeSource: 'live', introLocked: false, status: 'playing' })
+    expect(state).toMatchObject({ activeSource: 'live', introLocked: false, status: 'idle' })
   })
 
   it('reports playing with resumed', () => {
@@ -151,18 +156,18 @@ describe('transition', () => {
     expect(failed.status).toBe('error')
   })
 
-  it('currently reports playing on live-started before the HLS manifest is parsed (K11)', () => {
+  it('keeps loading until the element plays (K11)', () => {
     const state = run([{ type: 'load-start' }, { type: 'live-started' }])
-    expect(state).toMatchObject({ status: 'playing', loading: true })
-    expect(transition(state, { type: 'load-end' })).toMatchObject({
+    expect(state).toMatchObject({ status: 'idle', loading: true, activeSource: 'live' })
+    expect(transition(state, { type: 'playing', visualizable: false })).toMatchObject({
       status: 'playing',
       loading: false,
     })
   })
 
-  it('currently reports playing on live-started after a pause pressed while it loads (K11)', () => {
+  it('respects a pause pressed while it loads (K11)', () => {
     const state = run([{ type: 'load-start' }, { type: 'user-paused' }, { type: 'live-started' }])
-    expect(state.status).toBe('playing')
+    expect(state).toMatchObject({ status: 'paused', loading: false })
   })
 
   it('currently stays locked in the welcome audio when the live stream fails after it (K63)', () => {
