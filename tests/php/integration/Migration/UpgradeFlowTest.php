@@ -1260,12 +1260,12 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The schedule translation keeps only program, start and end: a legacy rerun slot is
-	 * migrated as a first broadcast.
+	 * The schedule translation keeps only program, start and end: the legacy formats never
+	 * had is_rerun, so a migrated slot is never a rerun.
 	 *
-	 * @see docs/known-issues.md K79
+	 * @see docs/adr/0039-legacy-slots-have-no-is-rerun.md
 	 */
-	public function test_currently_migrated_slot_loses_is_rerun() {
+	public function test_migrated_slot_is_never_a_rerun() {
 		$slot             = $this->slot( 'prog_known001' );
 		$slot['is_rerun'] = true;
 		update_option(

@@ -289,11 +289,11 @@ final class LegacyPlanTest extends TestCase {
 	}
 
 	/**
-	 * A migrated slot loses is_rerun.
+	 * The plan does not read is_rerun: the legacy formats never had it.
 	 *
-	 * @see docs/known-issues.md K79
+	 * @see docs/adr/0039-legacy-slots-have-no-is-rerun.md
 	 */
-	public function test_currently_slot_loses_is_rerun() {
+	public function test_slot_ignores_is_rerun() {
 		$station             = self::station( 'One', array( self::program( 'prog_a', 'A' ) ) );
 		$station['schedule'] = array( 'monday' => array( self::slot( 'prog_a', '07:00', '08:00' ) + array( 'is_rerun' => true ) ) );
 

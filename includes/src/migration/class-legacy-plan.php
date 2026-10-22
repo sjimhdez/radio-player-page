@@ -31,7 +31,7 @@ final class Legacy_Plan {
 	 *
 	 * Empty titles and names are '' (the writer gives the translated default). A stations
 	 * list without any array station gives a plan without stations (K32 in
-	 * docs/known-issues.md); slots lose is_rerun (K79).
+	 * docs/known-issues.md). Slots carry no is_rerun: the legacy formats never had it (ADR 0039).
 	 *
 	 * @since 3.5.0
 	 *

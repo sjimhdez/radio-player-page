@@ -14,7 +14,7 @@ Lo medido al planificar:
 - `Slot_Validator::validate()` ordena por inicio y solo informa del primer solape entre días. D3 llama a `validate()` con lo aceptado más la franja candidata, así que no depende de eso.
 
 ## Objetivo
-Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test de regresión. `SPEC.md` §3.1 y §3.2, el ADR 0037 y la rule de datos quedan al día.
+Corregir K29, el bloqueo y el reintento (4.3), K30, K31 y K32 (K79 se retiró: ADR 0039) con su test de regresión. `SPEC.md` §3.1 y §3.2, el ADR 0037 y la rule de datos quedan al día.
 
 ## Criterios de aceptación
 | Criterio | Cómo se verifica |
@@ -22,7 +22,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 | A1 K29 | `UpgradeFlowTest` (descarte → `'dismissed'`, no vuelve a `'1'` y no se pinta; con 0 publicadas se borra y migra; `is-dismissible`) + `UpgradePolicyTest` |
 | A2 K30 | `SlotFilterTest` (vectores) + `UpgradeFlowTest` (lunes se conserva, martes se descarta, el aviso la nombra) + *golden* `v3.2-cross-day-overlap` + `corrupt-times` regenerado |
 | A3 4.3 | `UpgradeFlowTest`: bloqueo vigente, caducado, valor cambiado entre la lectura y la toma, transient heredado ignorado, sin reintento antes de 15 min y purga de los posts pendientes |
-| A4 K79 | `LegacyPlanTest` + `UpgradeFlowTest` + *golden* `corrupt` |
+| A4 K79 | **Retirado** (ADR 0039): `LegacyPlanTest` y `UpgradeFlowTest` fijan `is_rerun: false`; el *golden* `corrupt` no cambia |
 | A5 K31 | `UpgradeFlowTest` (`AC\DC`, `\o/`, `C:\x`) |
 | A6 K32 | `UpgradeFlowTest`: opción borrada, `'330'` y aviso de 0 emisoras |
 | Global | `npm run check` y `npm run test:php:integration` en verde; la baseline de PHPStan no sube; `check:zip` con las altas |
@@ -96,12 +96,13 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - Changelog: «After migrating the legacy settings, the success notice says how many radio stations were migrated and lists any schedule slot that was dropped, so it can be added again by hand.»
 - [x] hecha · commit: `1b6f482`
 
-### 1.9 K79: se conserva `is_rerun` (D7) (≤ 1 h)
+### 1.9 ~~K79: se conserva `is_rerun` (D7)~~ — anulada (ADR 0039)
 - Qué: `fix-bug`. `Legacy_Plan::station()` añade `is_rerun => true === ( $slot['is_rerun'] ?? false )` (tipos de PHPDoc incluidos), y el escritor lo pasa.
 - Archivos: `class-legacy-plan.php`, `class-migration-writer.php`, `LegacyPlanTest.php`, `UpgradeFlowTest.php`, *golden* `corrupt` (unit e integración), `docs/known-issues.md`
 - Test: primero. Los dos `currently` de K79 pasan a regresión (`true` → `true`; sin la clave → `false`).
 - Verificación: `npm run test:php:unit -- --filter LegacyPlanTest && npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
-- [ ] hecha · commit: —
+- Anulada (2026-10-22, decisión del usuario): se implementó en `0dd208b` (con `45b3ef3`) y el usuario señaló que `is_rerun` es posterior a la migración. Comprobado: no aparece en ningún tag de la 3.1.0 a la 3.3.1 y entra en la 3.4.0, ya con los CPT; la única franja heredada con el campo es la fixture `corrupt.json`. Se revierten los dos commits y el ADR 0039 retira el punto 9 del 0037 y la D7. Los dos `currently` de K79 pierden el prefijo con la misma aserción (`test_slot_ignores_is_rerun`, `test_migrated_slot_is_never_a_rerun`); el *golden* `corrupt` no cambia. Sin changelog.
+- [x] anulada · commit: ver el del ADR 0039
 
 ### 1.10 K31: `wp_slash()` en la escritura (D8) (≤ 1 h)
 - Qué: `fix-bug`. Se aplica `wp_slash()` a los arrays que se pasan a `wp_insert_post()` y a los valores de `update_post_meta()`.

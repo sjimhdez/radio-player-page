@@ -24,7 +24,7 @@ La 0005 dejó la migración heredada partida en un plan puro (`Migration\Legacy_
   - Un horario de la 3.2 con un solape entre días no se migra nunca y reintenta en bucle (K30).
   - La página del player deja de servirse hasta que un administrador abre el admin (K33).
   - El bloqueo no es atómico y una migración cortada a medias duplica lo creado (auditoría 4.3).
-  - Se pierden `is_rerun` (K79) y las barras invertidas (K31).
+  - Se pierden las barras invertidas (K31). (K79, la pérdida de `is_rerun`, no es un bug: los formatos heredados no lo tienen; ADR 0039.)
   - Un aviso de éxito puede ser falso (K32).
 - **Desinstalación:** deja opciones, transients y entradas en la papelera (C11, K7).
 - **Núcleo PHP:**
@@ -51,7 +51,7 @@ Cada fila, con `fix-bug`. «Regresión» = el `currently` que cita `known-issues
 | A1 | K29 | `UpgradeFlowTest`: tras «Dismiss This Notice», la bandera vale `'dismissed'`. En las peticiones siguientes, `radplapag_run_legacy_migration_if_needed()` no la devuelve a `'1'` y el aviso no sale. Al despublicar todas las emisoras, la bandera se borra y la migración corre (el test existente `test_conflict_flag_is_cleared_and_migration_runs_without_published_stations` sigue en verde). El aviso lleva `is-dismissible`. `UpgradePolicyTest`: los predicados nuevos o cambiados (D2) |
 | A2 | K30 | `UpgradeFlowTest`: el horario de la 3.2 con el lunes 23:00–02:00 y el martes 01:00–03:00 migra. Se conserva la franja del lunes, se descarta la del martes, se migran todas las emisoras y sale el aviso que nombra la franja descartada. `LegacyPlanTest` (o la clase pura que diga el plan): el filtrado voraz de D3, con vectores de solape en el mismo día, entre días, del domingo al lunes y de hora malformada. Fixture nuevo `tests/fixtures/legacy-settings/v3.2-cross-day-overlap.json` con su *golden*. El *golden* `corrupt-times` cambia (§4.3) |
 | A3 | 4.3 | `UpgradeFlowTest`: con el bloqueo puesto, otra pasada no migra. Un bloqueo caducado se puede tomar y dos tomas simultáneas no ganan las dos (D4). Si la escritura falla, no se reintenta antes de que caduque la espera (sin bucle). Si una migración se corta tras crear posts (se simula con posts marcados con la meta de D5 y el bloqueo caducado), el reintento los borra antes de crear y no queda nada duplicado. El transient heredado `radplapag_migrating` se ignora |
-| A4 | K79 | `LegacyPlanTest` y `UpgradeFlowTest`: una franja heredada con `is_rerun: true` se migra con `is_rerun: true`; sin la clave, `false`. El *golden* `corrupt` cambia (§4.3) |
+| A4 | K79 | **Retirado** (ADR 0039): K79 no es un bug. `LegacyPlanTest` y `UpgradeFlowTest` fijan que la franja migra con `is_rerun: false`; el *golden* `corrupt` no cambia |
 | A5 | K31 | `UpgradeFlowTest`: «AC\DC», `\o/` y `C:\x` se migran intactos (título, nombre y meta) |
 | A6 | K32 | `UpgradeFlowTest`: `stations: ['x']` borra la opción y fija `'330'` (ADR 0010). El aviso dice que no se migró ninguna emisora, no «were migrated» |
 | A7 | K33 + K21 (migración) | `UpgradeFlowTest`: con el usuario 0 y una petición del front, la migración corre en `init` y la página del player se sirve en esa misma petición (`radplapag_get_station_for_current_page()` devuelve la emisora). Al terminar, el usuario actual es el de antes. Con un primer administrador sin `unfiltered_html`, los títulos migrados no llevan `&amp;`. La migración en `admin_init` sigue funcionando |
@@ -71,7 +71,7 @@ Cada fila, con `fix-bug`. «Regresión» = el `currently` que cita `known-issues
 | Meta interna `_radplapag_migration_pending` en los posts que crea una migración en curso; se borra al terminar | §3.1 | el mismo | 1 |
 | `radplapag_migration_skipped_cpt_conflict` puede valer `'dismissed'` (sigue siendo verdadero) | §3.1, §3.2 | el mismo | 1 |
 | `radplapag_migration_success_notice` guarda el resumen (emisoras migradas y franjas descartadas); `'1'` se sigue leyendo como éxito. El de error cambia de caducidad si lo pide la espera de D4 | §3.1 | el mismo | 1 |
-| Una franja que no valida se descarta (la posterior), el resto migra, el aviso la nombra y no hay reintento en bucle. `is_rerun` se conserva. Con 0 emisoras, el aviso lo dice | §3.2 | el mismo, enmienda el ADR 0010 | 1 |
+| Una franja que no valida se descarta (la posterior), el resto migra, el aviso la nombra y no hay reintento en bucle. Con 0 emisoras, el aviso lo dice | §3.2 | el mismo, enmienda el ADR 0010 | 1 |
 | La migración corre en `init` (prioridad 100) en cualquier petición, no solo en `admin_init` con `manage_options`, y sin el kses del usuario cambiado. Callback nuevo enganchado (o el mismo en un segundo hook, según el ADR) | §3.2 paso 2, §3.4 | nuevo (K33) | 2 |
 | La desinstalación borra todas las opciones y transients de §3.1 y los posts en cualquier estado, en cada sitio | §3.7 | nuevo (desinstalación) | 2 |
 | La página limpia imprime `<meta name="robots" content="noindex, nofollow">` según `blog_public` (sin `wp_robots`) y `dir="rtl"` con `is_rtl()` | §3.3 | nuevo, precisa el ADR 0008 | 3 |
@@ -92,7 +92,7 @@ Cada fila, con `fix-bug`. «Regresión» = el `currently` que cita `known-issues
 | D4 | **Bloqueo (4.3):** la opción `radplapag_migrating` guarda la hora en que caduca y se toma con un `INSERT IGNORE` que gana con 1 fila, atómico porque `option_name` es único (ADR 0038: `add_option()` hace `ON DUPLICATE KEY UPDATE` y pueden ganar dos peticiones). Un bloqueo caducado se toma con una actualización condicional (compara y cambia sobre el valor leído, con `$wpdb->prepare()`); no vale borrar y añadir. Si la escritura falla, el bloqueo se queda hasta una espera más larga, para que un fallo determinista no se repita en cada petición. Propuesta: 120 s mientras corre y 15 min tras un fallo; el ADR fija los valores y el aviso de error dura lo mismo. Al terminar bien, se borra | triage 0002 (5.5); diseño |
 | D5 | **Reintento sin duplicados (4.3):** cada post que crea la migración lleva `_radplapag_migration_pending` (`meta_input` de `wp_insert_post()`). Al terminar bien, `delete_post_meta_by_key()`. Al tomar el bloqueo, si quedan posts con esa meta (una migración cortada), se borran antes de empezar. El *rollback* de hoy se queda para los fallos controlados | diseño |
 | D6 | **K32:** el aviso de éxito pasa a ser un resumen en el transient (emisoras migradas y franjas descartadas con emisora, día, horas y programa). Con 0 emisoras, el texto lo dice y la opción se borra igual (ADR 0010). El adaptador traduce el resumen con `__()`. El `'1'` de una versión anterior se pinta como hoy | triage 0002; diseño |
-| D7 | **K79:** `Legacy_Plan` conserva `is_rerun` (booleano estricto: `true` solo si la franja heredada trae `true`) | usuario, 2026-10-22 |
+| D7 | ~~**K79:** `Legacy_Plan` conserva `is_rerun`~~ **Retirada** (ADR 0039, usuario, 2026-10-22): los formatos heredados nunca tuvieron `is_rerun` (llega en la 3.4.0); la migración no lo lee | usuario, 2026-10-22 |
 | D8 | **K31:** `wp_slash()` en los datos que el escritor pasa a `wp_insert_post()` y `update_post_meta()` | triage 0002 |
 | D9 | **K21 (migración):** la escritura corre sin los filtros de kses del usuario cambiado (`kses_remove_filters()` y, al restaurar el usuario, lo que corresponda a quien estaba). Los datos ya llegan saneados por el plan (`sanitize_text_field`, etc.) | triage 0002 |
 | D10 | **K21, K43:** `Player\Globals_Builder` decodifica las entidades (`html_entity_decode( …, ENT_QUOTES \| ENT_HTML5, 'UTF-8' )`, PHP puro) de `siteTitle` y de `name`, `description` y `extendedDescription`. Lo guardado y la API de §3.4 no cambian. El `<title>` y las `meta` usan el valor decodificado y siguen escapando con `esc_html()`/`esc_attr()` | triage 0002 |
@@ -109,7 +109,6 @@ Cada fila, con `fix-bug`. «Regresión» = el `currently` que cita `known-issues
 | K29 | `Upgrade\Upgrade_Policy` | `includes/radplapag-upgrade.php` (descarte, aviso, pasada) |
 | K30 (D3) | `Migration\` (clase o método nuevo, sobre `Schedule\Slot_Validator`) | `WP\Migration_Writer` |
 | 4.3 (D4, D5) | `Upgrade\Upgrade_Policy` (caducidad, si hace falta) | `includes/radplapag-upgrade.php` y `WP\Migration_Writer`, o un adaptador nuevo `WP\Migration_Lock` si el plan lo prefiere |
-| K79 | `Migration\Legacy_Plan::station()` | — |
 | K31 | — | `WP\Migration_Writer` |
 | K32 (D6) | `Migration\Legacy_Plan` / resumen | `WP\Migration_Writer`, `radplapag_migration_admin_notices()` |
 | K33, K21 migración | `Upgrade\Upgrade_Policy` | `includes/radplapag-upgrade.php` (enganche en `init`, guarda y kses) |
@@ -126,8 +125,6 @@ Cada clase nueva de `includes/src/` va en `tests/zip/expected-additions.txt` en 
 - **Antes de corregir**, cada fase comprueba que sus filas tienen su `currently` en las capas que cita `known-issues.md`. Lo que falte se caracteriza primero, con su commit: K23 y K26 (hoy solo hay reproducción) en `clean-page.spec.ts`, y el bloqueo de 4.3 en `UpgradeFlowTest`.
 - **Goldens que cambian a propósito:**
   - `corrupt-times`: con D3 se descarta la franja malformada y migran las dos emisoras (antes, *rollback* total).
-  - `corrupt`: con D7, `is_rerun: true` se conserva.
-
   - Con D6, `transients.radplapag_migration_success_notice` en los 8 *goldens* que migran (solo esa clave).
 
   Se regeneran con `RADPLAPAG_UPDATE_SNAPSHOTS=1` **en el commit de su fila** y el diff se revisa en el plan. Los demás *goldens* no cambian; si cambia otro, se para.
@@ -151,7 +148,7 @@ Cada fase termina con la CI en verde, sus criterios verificados y `close-phase`.
   1. K29.
   2. El bloqueo atómico y el reintento sin duplicados (D4, D5), que K30 necesita para no reintentar en bucle.
   3. K30 con su aviso (D3, D6).
-  4. K79, K31 y K32.
+  4. K31 y K32 (K79 se retiró: ADR 0039).
 
   Un ADR de la migración con `SPEC.md` §3.1 y §3.2 y la rule de datos.
 - ✅ **Criterios:** A1–A6.

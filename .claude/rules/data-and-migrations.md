@@ -30,7 +30,7 @@ Desde la 0005, el plan es `Migration\Legacy_Plan`, la escritura `WP\Migration_Wr
   - Bloqueo atómico: la opción `radplapag_migrating` guarda cuándo caduca. Se toma antes de contar las emisoras. Dura 120 s mientras corre y se retiene 900 s tras un fallo. El transient heredado se ignora.
   - Los posts creados llevan `_radplapag_migration_pending` hasta terminar bien. Al reintentar, los que la llevan se borran.
   - La bandera de conflicto vale `'1'` o `'dismissed'`. El aviso solo sale con `'1'`.
-  - Las franjas que no validan se descartan una a una (gana la anterior) y `is_rerun` se conserva.
+  - Las franjas que no validan se descartan una a una (gana la anterior). `is_rerun` no se lee: los formatos heredados no lo tienen y toda franja migra con `false` (ADR 0039).
   - El aviso de éxito es un resumen; `'1'` se sigue leyendo.
 - Los fixtures de los formatos reales están en `tests/fixtures/legacy-settings/` y sus *goldens* en `golden/` (`MigrationGoldenTest`); `v1.1-flat` solo fija K4.
 
