@@ -1,6 +1,6 @@
 # ADR 0037 — Contrato de la migración: bloqueo atómico, reintento sin duplicados, descarte de franjas y avisos
 
-- Estado: aceptado; punto 2 enmendado por [ADR 0038](0038-migration-lock-first-take-with-insert-ignore.md) (la primera toma usa `INSERT IGNORE`, no `add_option()`); punto 9 retirado por [ADR 0039](0039-legacy-slots-have-no-is-rerun.md) (los formatos heredados no tienen `is_rerun`; K79 no es un bug); puntos 3 y 5 enmendados por [ADR 0040](0040-migration-lock-renewal.md) (el bloqueo se renueva antes de cada post y se vuelve a comprobar todo tras tomarlo) · Fecha: 2026-10-22 · Spec: 0008 (fase 1)
+- Estado: aceptado; punto 2 enmendado por [ADR 0038](0038-migration-lock-first-take-with-insert-ignore.md) (la primera toma usa `INSERT IGNORE`, no `add_option()`); punto 9 retirado por [ADR 0039](0039-legacy-slots-have-no-is-rerun.md) (los formatos heredados no tienen `is_rerun`; K79 no es un bug); puntos 3 y 5 enmendados por [ADR 0040](0040-migration-lock-renewal.md) (el bloqueo se renueva antes de cada post y se vuelve a comprobar todo tras tomarlo); punto 10 enmendado por [ADR 0041](0041-migration-runs-without-an-administrator.md) (el aviso de éxito no caduca) · Fecha: 2026-10-22 · Spec: 0008 (fase 1)
 
 ## Contexto
 

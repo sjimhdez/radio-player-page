@@ -31,7 +31,10 @@ Desde la 0005, el plan es `Migration\Legacy_Plan`, la escritura `WP\Migration_Wr
   - Los posts creados llevan `_radplapag_migration_pending` hasta terminar bien. Al reintentar, los que la llevan se borran.
   - La bandera de conflicto vale `'1'` o `'dismissed'`. El aviso solo sale con `'1'`.
   - Las franjas que no validan se descartan una a una (gana la anterior). `is_rerun` no se lee: los formatos heredados no lo tienen y toda franja migra con `false` (ADR 0039).
-  - El aviso de éxito es un resumen; `'1'` se sigue leyendo.
+  - El aviso de éxito es un resumen; `'1'` se sigue leyendo. No caduca: se borra al pintarlo (ADR 0041).
+- Corre en `init` 100 en cualquier petición (y en `admin_init` 20), sin guarda de admin ni de capacidad (ADR 0041):
+  - Como el primer administrador, sin kses (`kses_remove_filters()`); al terminar restaura el usuario y llama a `kses_init()`. Cualquier cambio en la pasada debe dejar el usuario y los filtros como estaban, también si sale antes.
+  - Un sitio ya migrado o con conflicto no paga ninguna consulta en el front: con la bandera puesta la pasada sale sin contar emisoras, y la limpieza de la bandera solo se hace en el admin.
 - Los fixtures de los formatos reales están en `tests/fixtures/legacy-settings/` y sus *goldens* en `golden/` (`MigrationGoldenTest`); `v1.1-flat` solo fija K4.
 
 ## Desinstalación
