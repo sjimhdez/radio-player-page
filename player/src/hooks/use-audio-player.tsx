@@ -10,7 +10,8 @@ import { createAudioController } from 'src/core/audio/audio-controller'
  * Adapter of the audio controller (src/core/audio/audio-controller): creates one per
  * mount, attaches it to the audio element and publishes its snapshot. The snapshot
  * goes through useState, not useSyncExternalStore, so React renders it with the
- * priority of the event that changed it, as in 3.4.2 (ADR 0030, K1). It injects
+ * priority of the event that changed it, as in 3.4.2: the transient error of the C1
+ * retry without crossOrigin is never painted (ADR 0030, reviewed in spec 0007). It injects
  * window.AudioContext and navigator.userAgent for the Web Audio graph (ADR 0031).
  *
  * Features:

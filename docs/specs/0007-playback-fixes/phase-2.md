@@ -121,11 +121,12 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - Archivos: `player/src/hooks/use-audio-player.tsx`, `docs/adr/0030-*.md` (y `0034`, `README.md`), `.claude/rules/player.md`.
 - Test: los existentes (no se editan); la mutación es el propio cambio.
 - Verificación: `npm --prefix player run check && npm run test:e2e -- --project=chromium tests/e2e/cross-origin.spec.ts tests/e2e/intro.spec.ts` (el nombre del proyecto, según `playwright.config.ts`)
-- [ ] hecha · commit: —
+- Resultado: con `useSyncExternalStore`, `npm --prefix player run check` en verde (641 tests), pero en Chromium fallan dos e2e de C1 de `cross-origin.spec.ts`: `plays an MP3 without CORS by retrying without crossOrigin (C1)` y `plays the welcome audio and the live stream without CORS (C1)` (sale la alerta «Unable to play the stream», tres veces en el segundo). Con el `dist/` de HEAD (`useState`) los dos pasan. La causa ya no es K1, sino el reintento del ADR 0033: el `error` del primer intento y el `canplay` del reintento dejan `status: 'error'` con `loading: false` hasta `playing`, y `useSyncExternalStore` lo pinta. Se revierte el hook. El ADR 0030 se queda, con la sección «Revisión en la 0007» (el motivo medido y lo que haría falta para volver). Al día: el JSDoc del hook, la rule `player.md`, el índice de ADRs. La spec 0006 no cambia (cita el ADR 0030, sin plazo). `intro.spec.ts` en verde.
+- [x] hecha · commit: —
 
 ## Decisiones abiertas → ADR
 - ADR 0034 (2.1): C2, D3, D4 y D5, este con la decisión del usuario sobre el error a mitad de la bienvenida (cambia D5 y A9 de la spec en el mismo commit).
-- ADR 0030 (2.7): sustituido o actualizado según A13.
+- ADR 0030 (2.7): actualizado (se queda por el reintento de C1).
 - Ajuste del `currently` de C8 en WebKitGTK por K1: aprobado por el usuario (2026-10-22), sin ADR.
 
 ## Verificación de la fase

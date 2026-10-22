@@ -1,6 +1,6 @@
 # ADR 0030 — `useAudioPlayer()` lee el controlador con `useState` y una suscripción, no con `useSyncExternalStore`
 
-- Estado: aceptado · Fecha: 2026-10-21 · Spec: 0006 (fase 2) · Enmienda D2 del [ADR 0029](0029-player-core-without-react.md) solo para `useAudioPlayer()`
+- Estado: aceptado (revisado en la 0007, tarea 2.7: se queda) · Fecha: 2026-10-21 · Spec: 0006 (fase 2) · Enmienda D2 del [ADR 0029](0029-player-core-without-react.md) solo para `useAudioPlayer()`
 
 ## Contexto
 En la 2.8, `useAudioPlayer()` pasó a ser un adaptador del controlador del audio con `useSyncExternalStore` (ADR 0029, D2). En la 2.9 se midió una regresión: en Chromium fallan dos e2e de caracterización porque la alerta «Unable to play the stream» aparece un instante. Son `cross-origin.spec.ts` (`currently does not play an MP3 without CORS, with no error shown in Chromium (C1, K1)`) e `intro.spec.ts` (`falls through to the live stream without an error when the welcome audio is broken`). Con el `dist/` de la 2.7 pasan.
@@ -22,7 +22,7 @@ Se probaron dos arreglos del adaptador:
 ## Decisión
 - `useAudioPlayer()` guarda la instantánea del controlador en un `useState` (inicializado con `getSnapshot()`). Se suscribe en un `useEffect` con `controller.subscribe()`, y el `setState` va en el *callback* de la suscripción, nunca en el cuerpo del efecto. Así React vuelve a elegir la prioridad según el evento que causa el cambio, como hasta la 2.7.
 - El resto de D2 no cambia: la transición pura, el controlador, `subscribe()`/`getSnapshot()`, la instantánea inmutable y la misma referencia mientras no cambie nada. Los demás hooks del núcleo (`config`, `clock`, `schedule` y los de la fase 3) siguen con `useSyncExternalStore`.
-- La 0007 lo revisa al corregir K1. Si `pause` ya no pisa `error`, el orden de los renders deja de ser visible y el hook puede volver a `useSyncExternalStore`.
+- La 0007 lo revisa al corregir K1. Si `pause` ya no pisa `error`, el orden de los renders deja de ser visible y el hook puede volver a `useSyncExternalStore`. Revisado en la 0007: se queda (ver «Revisión en la 0007»).
 
 ## Consecuencias
 - Vuelve el render intermedio de `useState` + efecto: el primer render lee `getSnapshot()` y la suscripción empieza tras el commit. No se pierde ningún aviso, porque el controlador solo cambia con `play()`, `pause()`, `setVolume()` o los eventos del `<audio>`, y todos llegan después de los efectos (`attach` no publica nada).
@@ -36,4 +36,14 @@ Se probaron dos arreglos del adaptador:
 - **Que `pause` no pise `error` (corregir K1):** cambia algo visible y es de la 0007 (D7, decisión del usuario).
 - **Aceptar el destello y editar los dos e2e:** son de caracterización y no se editan para que pasen.
 
-Evidencia: [`phase-2.md`](../specs/0006-player-refactor/phase-2.md), tareas 2.9 (la regresión) y 2.11 (la sonda y las dos variantes).
+## Revisión en la 0007 (tarea 2.7, 2026-10-22)
+Con K1 corregido (la 2.2: `pause` ya no pisa `error`), se probó a volver a `useSyncExternalStore(controller.subscribe, controller.getSnapshot)`. Los 641 tests del player pasan, pero en Chromium fallan dos e2e de C1 de `cross-origin.spec.ts`, que con el hook de este ADR pasan (medido con el `dist/` de los dos):
+
+- `plays an MP3 without CORS by retrying without crossOrigin (C1)`;
+- `plays the welcome audio and the live stream without CORS (C1)` (tres alertas: `expected [] … received ["Unable to play the stream. Try again later." ×3]`).
+
+La causa ya no es K1, sino el reintento sin `crossOrigin` del ADR 0033, que llegó después de este ADR. Según el código (no se midió con una sonda): el primer intento dispara `error` (`status: 'error'`, `loading` sigue en `true`). El `canplay` del reintento, con `status: 'error'`, limpia `loading`, y el `Dashboard` abre la alerta (`status === 'error' && !loading`) hasta que llega `playing`. Con `useSyncExternalStore` ese estado intermedio se pinta. Con `useState` no llega a pintarse, como pasaba con K1.
+
+Decisión: `useAudioPlayer()` sigue con `useState` + `subscribe()`. Para volver a `useSyncExternalStore` primero hay que dejar de publicar `error` durante el reintento de C1, lo que cambia el núcleo y queda fuera de la 2.7. Lo protegen los dos e2e de arriba en Chromium.
+
+Evidencia: [`phase-2.md`](../specs/0006-player-refactor/phase-2.md) de la 0006, tareas 2.9 (la regresión) y 2.11 (la sonda y las dos variantes); [`phase-2.md`](../specs/0007-playback-fixes/phase-2.md) de la 0007, tarea 2.7.
