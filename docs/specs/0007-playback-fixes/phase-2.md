@@ -51,7 +51,7 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/cross-origin.spec.ts tests/e2e/mp3.spec.ts tests/e2e/intro.spec.ts`
 - Resultado: rojo antes del arreglo en la máquina (`expected { status: 'paused', … } to be { status: 'error', … }`), en el hook (`expected … to match object { status: 'error', loading: false }`; hizo falta esperar una tarea real tras el `pause`, porque con solo microtareas React aún no había pintado y el test pasaba con el código viejo) y en `cross-origin.spec.ts` en Chromium (sin `role="alert"`; WebKit en verde). Tras el arreglo, `npm --prefix player run check` (623 tests) y los tres e2e en verde (37 pasan, 3 se saltan). El C8 de WebKitGTK se salta en macOS: su ajuste se verifica en la CI de Linux.
 - Changelog: en Chromium, un MP3 que no se puede cargar (por ejemplo, un 404) muestra «Unable to play the stream» en lugar de quedarse en silencio con el botón Play.
-- [x] hecha · commit: —
+- [x] hecha · commit: a091597
 
 ### 2.3 K64: `pause()` limpia `loading` (≤ 1 h)
 - Qué (`fix-bug`): `user-paused` pone `status: 'paused'` y `loading: false`, salvo con la bienvenida. Los tres `currently keeps loading after a pause while buffering (K64)` pasan a «clears loading on a pause while buffering (K64)». JSDoc y fila K64.
