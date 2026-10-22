@@ -33,7 +33,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - Archivos: `docs/adr/0037-*.md`, `docs/adr/README.md`, `SPEC.md`, `.claude/rules/data-and-migrations.md`
 - Test: — (docs)
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: `865a49a`
 
 ### 1.2 K29: el descarte se recuerda (≤ 1 h)
 - Qué: `fix-bug`. El descarte pone la bandera a `'dismissed'`. Tras `radplapag_maybe_clear_migration_conflict_flag()` (que la sigue borrando con cualquier valor si hay 0 emisoras publicadas), si la bandera sigue puesta, la pasada sale sin contar las emisoras. Solo se fija `'1'` sin bandera previa. El aviso sale solo con `'1'` y lleva `is-dismissible`. En `Upgrade_Policy`, el predicado nuevo `shows_conflict_notice( $flag )`.
