@@ -165,6 +165,17 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Value of the radplapag_migrating option row, read from the table (not the cache).
+	 *
+	 * @return string|null Null without the row.
+	 */
+	private function stored_lock() {
+		global $wpdb;
+
+		return $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", 'radplapag_migrating' ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Reads the stored row, not the cache.
+	}
+
+	/**
 	 * Output of radplapag_migration_admin_notices().
 	 *
 	 * @return string
@@ -317,12 +328,139 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	 */
 	public function test_migration_does_not_run_while_locked() {
 		$settings = $this->legacy_settings();
-		set_transient( 'radplapag_migrating', '1', 120 );
+		$until    = (string) ( time() + 60 );
+		update_option( 'radplapag_migrating', $until, false );
 
 		radplapag_run_legacy_migration_if_needed();
 
 		$this->assert_not_migrated( $settings );
-		$this->assertSame( '1', get_transient( 'radplapag_migrating' ) );
+		$this->assertSame( $until, $this->stored_lock() );
+	}
+
+	/**
+	 * An expired lock (a request that died mid-migration) is taken and the migration runs.
+	 */
+	public function test_expired_lock_is_taken() {
+		$this->legacy_settings();
+		update_option( 'radplapag_migrating', (string) ( time() - 1 ), false );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertNull( $this->stored_lock() );
+	}
+
+	/**
+	 * If another request takes an expired lock between the read and the take, the
+	 * conditional update changes no row and this request does not run.
+	 */
+	public function test_lock_changed_between_read_and_take_is_not_taken() {
+		$settings = $this->legacy_settings();
+		$until    = (string) ( time() + 60 );
+		update_option( 'radplapag_migrating', $until, false );
+		$stale = static function () {
+			return (string) ( time() - 10 );
+		};
+		add_filter( 'option_radplapag_migrating', $stale );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		remove_filter( 'option_radplapag_migrating', $stale );
+		$this->assert_not_migrated( $settings );
+		$this->assertSame( $until, $this->stored_lock() );
+	}
+
+	/**
+	 * A lock in the table is not taken even when the object cache says the option is
+	 * missing (add_option() would overwrite it; ADR 0038).
+	 */
+	public function test_lock_in_the_table_is_not_taken_when_the_cache_says_it_is_missing() {
+		global $wpdb;
+		$settings = $this->legacy_settings();
+		$until    = (string) ( time() + 60 );
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Bypasses the cache on purpose.
+			$wpdb->options,
+			array(
+				'option_name'  => 'radplapag_migrating',
+				'option_value' => $until,
+				'autoload'     => 'off',
+			)
+		);
+		$notoptions                        = wp_cache_get( 'notoptions', 'options' );
+		$notoptions                        = is_array( $notoptions ) ? $notoptions : array();
+		$notoptions['radplapag_migrating'] = true;
+		wp_cache_set( 'notoptions', $notoptions, 'options' );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assert_not_migrated( $settings );
+		$this->assertSame( $until, $this->stored_lock() );
+	}
+
+	/**
+	 * The transient lock of earlier versions is ignored.
+	 */
+	public function test_legacy_lock_transient_is_ignored() {
+		$this->legacy_settings();
+		set_transient( 'radplapag_migrating', '1', 120 );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+	}
+
+	/**
+	 * The lock is taken before counting the published stations: while it is held, a
+	 * published station raises no conflict.
+	 */
+	public function test_lock_is_taken_before_counting_published_stations() {
+		$this->legacy_settings();
+		$this->factory_rpp->station( 'Existing' );
+		update_option( 'radplapag_migrating', (string) ( time() + 60 ), false );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+	}
+
+	/**
+	 * A conflict releases the lock it took.
+	 */
+	public function test_conflict_releases_the_lock() {
+		$this->legacy_settings();
+		$this->factory_rpp->station( 'Existing' );
+		$released = 0;
+		$count    = static function () use ( &$released ) {
+			++$released;
+		};
+		add_action( 'delete_option_radplapag_migrating', $count );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		remove_action( 'delete_option_radplapag_migrating', $count );
+		$this->assertSame( '1', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertSame( 1, $released );
+		$this->assertNull( $this->stored_lock() );
+	}
+
+	/**
+	 * The lock adapter: one take wins until it is released, and a later hold blocks it.
+	 */
+	public function test_migration_lock_takes_holds_and_releases() {
+		$now = time();
+
+		$this->assertTrue( \RadioPlayerPage\WP\Migration_Lock::acquire( $now, 120 ) );
+		$this->assertFalse( \RadioPlayerPage\WP\Migration_Lock::acquire( $now, 120 ) );
+		$this->assertSame( (string) ( $now + 120 ), $this->stored_lock() );
+
+		\RadioPlayerPage\WP\Migration_Lock::hold_until( $now + 900 );
+		$this->assertSame( (string) ( $now + 900 ), $this->stored_lock() );
+		$this->assertFalse( \RadioPlayerPage\WP\Migration_Lock::acquire( $now + 899, 120 ) );
+		$this->assertTrue( \RadioPlayerPage\WP\Migration_Lock::acquire( $now + 900, 120 ) );
+
+		\RadioPlayerPage\WP\Migration_Lock::release();
+		$this->assertNull( $this->stored_lock() );
+		$this->assertTrue( \RadioPlayerPage\WP\Migration_Lock::acquire( $now, 120 ) );
 	}
 
 	// Conflict with published stations.
@@ -408,7 +546,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
 		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
 		$this->assertSame( 1, $this->count_posts( 'radplapag_program' ) );
-		$this->assertFalse( get_transient( 'radplapag_migrating' ) );
+		$this->assertNull( $this->stored_lock() );
 		$this->assertFalse( get_transient( 'radplapag_migration_error_notice' ) );
 		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
 		$this->assertSame( 60, $this->transient_ttl( 'radplapag_migration_success_notice' ) );
@@ -417,21 +555,29 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 	/**
 	 * The lock is taken for 120 s while the migration runs, so a request that dies
-	 * mid-migration does not block it for good.
+	 * mid-migration does not block it for good. It is an option without autoload and
+	 * is deleted on success.
 	 */
 	public function test_migration_lock_expires_in_120_seconds() {
+		global $wpdb;
 		$this->legacy_settings();
-		$expirations = array();
-		$capture     = static function ( $value, $expiration ) use ( &$expirations ) {
-			$expirations[] = $expiration;
+		$rows    = array();
+		$before  = time();
+		$capture = static function ( $post_id, $post ) use ( &$rows, $wpdb ) {
+			if ( 'radplapag_program' === $post->post_type ) {
+				$rows[] = $wpdb->get_row( $wpdb->prepare( "SELECT option_value, autoload FROM {$wpdb->options} WHERE option_name = %s", 'radplapag_migrating' ), ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Reads the stored row, not the cache.
+			}
 		};
-		add_action( 'set_transient_radplapag_migrating', $capture, 10, 2 );
+		add_action( 'wp_insert_post', $capture, 10, 2 );
 
 		radplapag_run_legacy_migration_if_needed();
 
-		remove_action( 'set_transient_radplapag_migrating', $capture, 10 );
-		$this->assertSame( array( 120 ), $expirations );
-		$this->assertFalse( get_transient( 'radplapag_migrating' ) );
+		remove_action( 'wp_insert_post', $capture, 10 );
+		$this->assertCount( 1, $rows );
+		$this->assertSame( 'off', $rows[0]['autoload'] );
+		$this->assertGreaterThanOrEqual( $before + 120, (int) $rows[0]['option_value'] );
+		$this->assertLessThanOrEqual( time() + 120, (int) $rows[0]['option_value'] );
+		$this->assertNull( $this->stored_lock() );
 	}
 
 	/**
@@ -477,7 +623,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertFalse( get_option( 'radplapag_db_version' ) );
 		$this->assertSame( 0, $this->count_posts( 'radplapag_program' ), 'The program created before the failure is deleted.' );
 		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ) );
-		$this->assertFalse( get_transient( 'radplapag_migrating' ) );
+		$this->assertNull( $this->stored_lock() );
 		$this->assertFalse( get_transient( 'radplapag_migration_success_notice' ) );
 		$this->assertSame( 'Content, title, and excerpt are empty.', get_transient( 'radplapag_migration_error_notice' ) );
 		$this->assertSame( 120, $this->transient_ttl( 'radplapag_migration_error_notice' ) );
@@ -505,7 +651,8 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	/**
 	 * Runs the migration and cuts it as a fatal error or max_execution_time would: the
 	 * hook throws and nothing after it runs, so there is no rollback and the lock is
-	 * not released. Then the lock expires and the original user is back.
+	 * not released. Then the lock expires (its time is moved to the past) and the
+	 * original user is back.
 	 *
 	 * @param string   $hook          Hook that cuts the migration.
 	 * @param int      $accepted_args Arguments of the hook.
@@ -530,8 +677,8 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		remove_filter( $hook, $cut, 10 );
 		wp_set_current_user( $this->admin );
 		$this->assertTrue( $interrupted, 'Precondition: the migration is interrupted.' );
-		$this->assertSame( '1', get_transient( 'radplapag_migrating' ), 'Precondition: the lock is left behind.' );
-		delete_transient( 'radplapag_migrating' );
+		$this->assertNotNull( $this->stored_lock(), 'Precondition: the lock is left behind.' );
+		update_option( 'radplapag_migrating', (string) ( time() - 1 ), false );
 	}
 
 	/**
@@ -1020,7 +1167,8 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	/**
 	 * Stores the legacy stations, runs the migration and returns its writes in order:
 	 * created posts, their radplapag_ meta, deleted posts and radplapag_ options added,
-	 * updated or deleted (transients are left out). Posts are labelled by type and title.
+	 * updated or deleted. Transients and the radplapag_migrating lock are left out, as
+	 * the lock was a transient before ADR 0037. Posts are labelled by type and title.
 	 *
 	 * @param array $stations Legacy stations.
 	 * @return string[]
@@ -1059,7 +1207,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 			add_action(
 				$hook,
 				static function ( $option ) use ( &$writes, $hook ) {
-					if ( 0 === strpos( $option, 'radplapag_' ) ) {
+					if ( 0 === strpos( $option, 'radplapag_' ) && 'radplapag_migrating' !== $option ) {
 						$writes[] = $hook . ' ' . $option;
 					}
 				}

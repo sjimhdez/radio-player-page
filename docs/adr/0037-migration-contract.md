@@ -1,6 +1,6 @@
 # ADR 0037 — Contrato de la migración: bloqueo atómico, reintento sin duplicados, descarte de franjas y avisos
 
-- Estado: aceptado · Fecha: 2026-10-22 · Spec: 0008 (fase 1)
+- Estado: aceptado; punto 2 enmendado por [ADR 0038](0038-migration-lock-first-take-with-insert-ignore.md) (la primera toma usa `INSERT IGNORE`, no `add_option()`) · Fecha: 2026-10-22 · Spec: 0008 (fase 1)
 
 ## Contexto
 

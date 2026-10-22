@@ -93,6 +93,28 @@ final class Upgrade_Policy {
 	}
 
 	/**
+	 * Whether the migration lock is held: its expiration time is still ahead.
+	 *
+	 * Anything that is not an integer time (no option, an empty or unknown value)
+	 * does not hold the lock, so it can be taken (ADR 0037).
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param mixed $stored Value of the radplapag_migrating option.
+	 * @param int   $now    Current Unix time.
+	 * @return bool
+	 */
+	public static function is_lock_held( $stored, int $now ): bool {
+		if ( is_int( $stored ) ) {
+			return $stored > $now;
+		}
+		if ( ! is_string( $stored ) || ! ctype_digit( $stored ) ) {
+			return false;
+		}
+		return (int) $stored > $now;
+	}
+
+	/**
 	 * Whether an upgrader_process_complete run updated this plugin.
 	 *
 	 * @since 3.5.0

@@ -2,11 +2,11 @@
 Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0008-migration-and-core-fixes/phase-1.md) · Actualizado: 2026-10-22
 
 ## En curso
-- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)), fase 1 (migración) planificada el 2026-10-22: 11 tareas, de K29 a K32, con el ADR 0037. §4.3 amplía las excepciones a los tests de caracterización que cambian por diseño (decisión del usuario). Fusiona la 0008 y la 0012 de la hoja de ruta (decisión del usuario): comparten `uninstall.php` y `SPEC.md` §3.7. Tres fases: migración (K29, K30 con el bloqueo atómico, K79, K31, K32), actualización, entidades y desinstalación (K33, K21, K43, C11, K7) y página limpia y API (K23 con RTL, K26, K24, K25).
+- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)), fase 1 (migración) planificada el 2026-10-22: 11 tareas, de K29 a K32, con el ADR 0037. El ADR 0038 (2026-10-22, decisión del usuario en la 1.4) enmienda su punto 2: la primera toma del bloqueo usa `INSERT IGNORE`, porque `add_option()` hace `ON DUPLICATE KEY UPDATE` y pueden ganar dos peticiones. §4.3 amplía las excepciones a los tests de caracterización que cambian por diseño (decisión del usuario). Fusiona la 0008 y la 0012 de la hoja de ruta (decisión del usuario): comparten `uninstall.php` y `SPEC.md` §3.7. Tres fases: migración (K29, K30 con el bloqueo atómico, K79, K31, K32), actualización, entidades y desinstalación (K33, K21, K43, C11, K7) y página limpia y API (K23 con RTL, K26, K24, K25).
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.4 de la fase 1 de la 0008 (bloqueo atómico como opción, D4), y después de la 1.5 a la 1.11 en orden. La 1.3 fijó la migración cortada (K84: duplica los programas o se queda en conflicto para siempre); la 1.6 la corrige.
+1. Tarea 1.5 de la fase 1 de la 0008 (espera de 15 min tras un fallo, D4), y después de la 1.6 a la 1.11 en orden. La 1.3 fijó la migración cortada (K84: duplica los programas o se queda en conflicto para siempre); la 1.6 la corrige.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano

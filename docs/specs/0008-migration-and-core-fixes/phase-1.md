@@ -1,5 +1,5 @@
 # Spec 0008 · Fase 1 — Migración
-Estado: en curso · Inicio: 2026-10-22 · ADRs: 0005, 0010, 0021, 0028; nuevo 0037 (migración)
+Estado: en curso · Inicio: 2026-10-22 · ADRs: 0005, 0010, 0021, 0028; nuevos 0037 (migración) y 0038 (toma con `INSERT IGNORE`)
 
 ## Contexto
 Lo medido al planificar:
@@ -53,11 +53,14 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - [x] hecha · commit: `d65a0fd`
 
 ### 1.4 Bloqueo atómico como opción (D4, primera parte) (≤ 1 h)
-- Qué: adaptador nuevo `WP\Migration_Lock` (`acquire( int $now, int $ttl ): bool`, `hold_until( int $until )`, `release()`). `add_option( 'radplapag_migrating', $until, '', 'no' )`. Si ha caducado, se toma con `$wpdb->query( $wpdb->prepare( 'UPDATE … WHERE option_name = %s AND option_value = %s' ) )` y solo gana si cambia 1 fila; después, `wp_cache_delete()` de la opción, `alloptions` y `notoptions`. La excepción de PHPCS va en su línea con el motivo. En `Upgrade_Policy`, el predicado `is_lock_held( $stored, int $now )`. El transient heredado se ignora. Orden de la pasada: versión, datos heredados, bandera, tomar el bloqueo, contar las emisoras publicadas (si hay conflicto se suelta el bloqueo) y migrar.
+- Qué: adaptador nuevo `WP\Migration_Lock` (`acquire( int $now, int $ttl ): bool`, `hold_until( int $until )`, `release()`). Primero `$wpdb->query( $wpdb->prepare( 'INSERT IGNORE INTO … ( option_name, option_value, autoload ) VALUES ( %s, %s, \'off\' )' ) )` (ADR 0038). Si ya existe y ha caducado, se toma con `$wpdb->query( $wpdb->prepare( 'UPDATE … WHERE option_name = %s AND option_value = %s' ) )`. Las dos solo ganan si cambian 1 fila; después, `wp_cache_delete()` de la opción, `alloptions` y `notoptions`. La excepción de PHPCS va en su línea con el motivo. En `Upgrade_Policy`, el predicado `is_lock_held( $stored, int $now )`. El transient heredado se ignora. Orden de la pasada: versión, datos heredados, bandera, tomar el bloqueo, contar las emisoras publicadas (si hay conflicto se suelta el bloqueo) y migrar.
 - Archivos: `includes/src/wp/class-migration-lock.php` (nuevo), `includes/src/upgrade/class-upgrade-policy.php`, `includes/radplapag-upgrade.php`, `tests/zip/expected-additions.txt`, `UpgradeFlowTest.php`, `UpgradePolicyTest.php`
-- Test: primero. Los tests de D4 sobre el bloqueo vigente, el de 120 s y el orden de escrituras, más tests nuevos: caducado → se toma; valor cambiado entre la lectura y la toma (un filtro `option_radplapag_migrating` devuelve un valor viejo) → no se toma; el transient heredado no bloquea.
+- Test: primero. Los tests de D4 sobre el bloqueo vigente, el de 120 s y el orden de escrituras, más tests nuevos: caducado → se toma; valor cambiado entre la lectura y la toma (un filtro `option_radplapag_migrating` devuelve un valor viejo) → no se toma; el transient heredado no bloquea; la opción en la tabla con `notoptions` en la caché diciendo que no existe → no se toma (ADR 0038).
 - Verificación: `npm run test:php:unit -- --filter UpgradePolicyTest && npm run test:php:integration -- --filter UpgradeFlowTest`
-- [ ] hecha · commit: —
+- ADR 0038 (2026-10-22, decisión del usuario): al empezar se vio que `add_option()` hace `INSERT … ON DUPLICATE KEY UPDATE` y deja ganar a dos peticiones, así que la primera toma es un `INSERT IGNORE`. Se enmiendan el punto 2 del ADR 0037, la D4, §3 de la spec y `SPEC.md` §3.1.
+- Rojo (2026-10-22): en `UpgradePolicyTest`, 6 errores (`Call to undefined method Upgrade_Policy::is_lock_held()`). En `UpgradeFlowTest`, 2 errores (`Migration_Lock` no existe) y 9 fallos: el bloqueo vigente, caducado, cambiado entre la lectura y la toma, en la tabla con `notoptions`, el transient heredado, la toma antes de contar, el conflicto que suelta el bloqueo, los 120 s y los dos de K84 (su precondición del bloqueo). Mutación temporal (la primera toma con `add_option()`): solo falla `test_lock_in_the_table_is_not_taken_when_the_cache_says_it_is_missing`; revertida.
+- Ajustes de ayudantes por D4, sin cambiar aserciones de tests fuera de la lista: `migration_writes()` deja fuera la opción del bloqueo, como antes dejaba el transient (el test del orden de escrituras y el del *rollback* siguen sin cambios), e `interrupt_migration()` (K84) comprueba que queda la opción y la caduca moviendo su hora al pasado. `test_successful_…` y `test_failed_migration_rolls_back_…` comprueban la opción en vez del transient (en la 1.5 el segundo pasa a retenerla 900 s).
+- [x] hecha · commit: —
 
 ### 1.5 Espera de 15 min tras un fallo (D4, segunda parte) (≤ 1 h)
 - Qué: si la escritura falla, `hold_until( now + 900 )` en lugar de soltar el bloqueo, y el aviso de error dura 900 s. Si termina bien, `release()`.

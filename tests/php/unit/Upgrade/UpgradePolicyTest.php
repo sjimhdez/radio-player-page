@@ -163,6 +163,42 @@ final class UpgradePolicyTest extends TestCase {
 	}
 
 	/**
+	 * The migration lock is held while its expiration time is still ahead.
+	 */
+	public function test_is_lock_held() {
+		$this->assertTrue( Upgrade_Policy::is_lock_held( '1000', 999 ) );
+		$this->assertTrue( Upgrade_Policy::is_lock_held( 1000, 999 ) );
+		$this->assertFalse( Upgrade_Policy::is_lock_held( '1000', 1000 ) );
+		$this->assertFalse( Upgrade_Policy::is_lock_held( '1000', 1001 ) );
+	}
+
+	/**
+	 * Anything that is not an expiration time does not hold the lock.
+	 *
+	 * @dataProvider data_no_lock
+	 *
+	 * @param mixed $stored Value of the radplapag_migrating option.
+	 */
+	public function test_is_lock_not_held( $stored ) {
+		$this->assertFalse( Upgrade_Policy::is_lock_held( $stored, 999 ) );
+	}
+
+	/**
+	 * Inputs for test_is_lock_not_held().
+	 *
+	 * @return array<string, array{mixed}>
+	 */
+	public function data_no_lock() {
+		return array(
+			'missing option' => array( false ),
+			'empty'          => array( '' ),
+			'not a number'   => array( 'locked' ),
+			'decimal'        => array( '1000.5' ),
+			'array'          => array( array( 1000 ) ),
+		);
+	}
+
+	/**
 	 * A plugin update that lists this plugin is this plugin's update.
 	 */
 	public function test_is_this_plugin_update() {
