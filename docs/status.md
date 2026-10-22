@@ -1,13 +1,13 @@
 # Estado
-Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 2 por empezar · Plan anterior: [`phase-1.md`](specs/0008-migration-and-core-fixes/phase-1.md) · Actualizado: 2026-10-22
+Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0008-migration-and-core-fixes/phase-2.md) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)). Fase 1 (migración) cerrada el 2026-10-22: K29, K30, K31, K32, K84 y K85 corregidos (ADR 0037, 0038, 0039 y 0040; K79 retirado). Quedan la fase 2, actualización, entidades y desinstalación (K33, K21, K43, C11, K7; también `radplapag_migrating` y `_radplapag_migration_pending` en `uninstall.php`, D11), y la 3, página limpia y API (K23 con RTL, K26, K24, K25).
+- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)). Fase 1 (migración) cerrada el 2026-10-22: K29, K30, K31, K32, K84 y K85 corregidos (ADR 0037, 0038, 0039 y 0040; K79 retirado). Fase 2 (actualización, entidades y desinstalación: K33, K21, K43, C11, K7) en curso desde el 2026-10-23, con 7 tareas; nuevos ADR 0041 (migración sin admin; el aviso de éxito ya no caduca) y 0042 (desinstalación). Queda la 3, página limpia y API (K23 con RTL, K26, K24, K25).
 - **No publicar una versión entre la fase 1 y la 2:** la desinstalación aún no borra la opción `radplapag_migrating` (`backcompat-reviewer`).
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Fase 2 de la 0008 con `start-phase`, en una sesión nueva.
+1. Tarea 2.1 de la fase 2 (ADR 0041) y después las siguientes del plan, en orden.
 2. La fase 1 se cerró con revisión mínima (decisión del usuario): solo `spec-conformance-reviewer` y `backcompat-reviewer`. Al cerrar la fase 2, pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente).
 3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
