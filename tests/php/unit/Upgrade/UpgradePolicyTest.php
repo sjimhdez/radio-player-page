@@ -144,6 +144,25 @@ final class UpgradePolicyTest extends TestCase {
 	}
 
 	/**
+	 * A dismissed conflict flag is still cleared once no station is published.
+	 */
+	public function test_should_clear_dismissed_conflict() {
+		$this->assertTrue( Upgrade_Policy::should_clear_conflict( 'dismissed', 0 ) );
+		$this->assertFalse( Upgrade_Policy::should_clear_conflict( 'dismissed', 1 ) );
+	}
+
+	/**
+	 * The conflict notice shows only while the conflict is not dismissed.
+	 */
+	public function test_shows_conflict_notice() {
+		$this->assertTrue( Upgrade_Policy::shows_conflict_notice( '1' ) );
+		$this->assertFalse( Upgrade_Policy::shows_conflict_notice( 'dismissed' ) );
+		$this->assertFalse( Upgrade_Policy::shows_conflict_notice( false ) );
+		$this->assertFalse( Upgrade_Policy::shows_conflict_notice( '' ) );
+		$this->assertFalse( Upgrade_Policy::shows_conflict_notice( 1 ) );
+	}
+
+	/**
 	 * A plugin update that lists this plugin is this plugin's update.
 	 */
 	public function test_is_this_plugin_update() {

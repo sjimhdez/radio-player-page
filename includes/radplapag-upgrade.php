@@ -99,7 +99,7 @@ function radplapag_maybe_clear_migration_conflict_flag(): void {
  * Runs legacy migration if needed (idempotent; uses transient lock).
  *
  * @since 3.3.0
- * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current().
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed').
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed(): void {
@@ -115,6 +115,10 @@ function radplapag_run_legacy_migration_if_needed(): void {
 	}
 
 	radplapag_maybe_clear_migration_conflict_flag();
+
+	if ( get_option( 'radplapag_migration_skipped_cpt_conflict' ) ) {
+		return;
+	}
 
 	if ( radplapag_count_published_stations() > 0 ) {
 		update_option( 'radplapag_migration_skipped_cpt_conflict', '1' );
@@ -184,6 +188,7 @@ function radplapag_on_upgrader_process_complete( $upgrader, array $options ): vo
  * Dismisses persistent migration notices when query args and nonce are valid.
  *
  * @since 3.3.0
+ * @since 3.5.0 Marks the conflict flag as 'dismissed' instead of deleting it.
  * @return void
  */
 function radplapag_handle_migration_notice_dismiss(): void {
@@ -198,7 +203,7 @@ function radplapag_handle_migration_notice_dismiss(): void {
 		return;
 	}
 	if ( 'migration_conflict' === $dismiss ) {
-		delete_option( 'radplapag_migration_skipped_cpt_conflict' );
+		update_option( 'radplapag_migration_skipped_cpt_conflict', 'dismissed' );
 	}
 	wp_safe_redirect( remove_query_arg( array( 'radplapag_dismiss', '_wpnonce' ) ) );
 	exit;
@@ -208,6 +213,7 @@ function radplapag_handle_migration_notice_dismiss(): void {
  * Outputs admin notices for migration outcomes.
  *
  * @since 3.3.0
+ * @since 3.5.0 The conflict notice shows only with the flag at '1' and is dismissible.
  * @return void
  */
 function radplapag_migration_admin_notices(): void {
@@ -227,12 +233,12 @@ function radplapag_migration_admin_notices(): void {
 		echo '<div class="notice notice-error is-dismissible"><p><strong>' . esc_html__( 'Radio Player Page migration error', 'radio-player-page' ) . '</strong></p><p>' . esc_html( $error ) . '</p></div>';
 	}
 
-	if ( get_option( 'radplapag_migration_skipped_cpt_conflict' ) ) {
+	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::shows_conflict_notice( get_option( 'radplapag_migration_skipped_cpt_conflict' ) ) ) {
 		$dismiss = wp_nonce_url(
 			add_query_arg( 'radplapag_dismiss', 'migration_conflict' ),
 			'radplapag_dismiss_migration_conflict'
 		);
-		echo '<div class="notice notice-warning"><p>' . esc_html__( 'Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.', 'radio-player-page' ) . '</p><p><a href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Dismiss This Notice', 'radio-player-page' ) . '</a></p></div>';
+		echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.', 'radio-player-page' ) . '</p><p><a href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Dismiss This Notice', 'radio-player-page' ) . '</a></p></div>';
 	}
 }
 

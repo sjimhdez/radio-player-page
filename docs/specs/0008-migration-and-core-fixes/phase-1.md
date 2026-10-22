@@ -40,7 +40,9 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - Archivos: `includes/radplapag-upgrade.php`, `includes/src/upgrade/class-upgrade-policy.php`, `tests/php/integration/Migration/UpgradeFlowTest.php`, `tests/php/unit/Upgrade/UpgradePolicyTest.php`
 - Test: primero. `test_currently_conflict_notice_reappears_after_dismissal` pasa a `test_dismissed_conflict_notice_stays_dismissed`. Además, los 2 tests de D2 y un test nuevo: `'dismissed'` con 0 publicadas → se borra y migra.
 - Verificación: `npm run test:php:unit -- --filter UpgradePolicyTest && npm run test:php:integration -- --filter UpgradeFlowTest`
-- [ ] hecha · commit: —
+- Rojo (2026-10-22): `Call to undefined method Upgrade_Policy::shows_conflict_notice()`; en `UpgradeFlowTest`, 3 fallos: `test_dismissed_conflict_notice_stays_dismissed` y `test_dismiss_with_valid_nonce_marks_flag_dismissed_and_redirects` (`false` en vez de `'dismissed'`) y `test_conflict_notice_links_to_nonced_dismiss_url` (sin `is-dismissible`). `test_dismissed_conflict_is_cleared_and_migration_runs_without_published_stations` ya pasaba (la limpieza borra con cualquier valor): se vio en rojo con una mutación temporal (`should_clear_conflict()` solo con `'1'`), revertida. `test_dismiss_with_valid_nonce_deletes_flag_and_redirects` pasa a `test_dismiss_with_valid_nonce_marks_flag_dismissed_and_redirects`.
+- Changelog: «The migration conflict notice can now be dismissed, and stays dismissed.»
+- [x] hecha · commit: (este)
 
 ### 1.3 Caracterizar el bloqueo y la migración cortada (≤ 1 h)
 - Qué: `characterize`. Dos tests nuevos: `test_currently_interrupted_migration_duplicates_programs` (programas creados, bloqueo caducado → al reintentar quedan duplicados) y `test_currently_interrupted_migration_with_a_station_is_a_conflict`. Se validan con una mutación temporal y se apuntan en `known-issues.md` (fila nueva o nota en 4.3, según lo que diga la skill).

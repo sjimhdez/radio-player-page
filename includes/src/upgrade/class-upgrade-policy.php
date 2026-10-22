@@ -81,6 +81,18 @@ final class Upgrade_Policy {
 	}
 
 	/**
+	 * Whether the conflict notice shows: the conflict is flagged and not dismissed.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param mixed $flag Value of radplapag_migration_skipped_cpt_conflict ('1' or 'dismissed').
+	 * @return bool
+	 */
+	public static function shows_conflict_notice( $flag ): bool {
+		return '1' === $flag;
+	}
+
+	/**
 	 * Whether an upgrader_process_complete run updated this plugin.
 	 *
 	 * @since 3.5.0

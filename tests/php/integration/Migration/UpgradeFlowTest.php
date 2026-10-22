@@ -566,12 +566,12 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Dismissing the conflict notice deletes the flag, but the next admin request (the
-	 * redirect itself) raises it again: the notice cannot be dismissed.
+	 * Dismissing the conflict notice marks the flag as dismissed, and later admin
+	 * requests (the redirect itself) neither raise it again nor print the notice.
 	 *
 	 * @see docs/known-issues.md K29
 	 */
-	public function test_currently_conflict_notice_reappears_after_dismissal() {
+	public function test_dismissed_conflict_notice_stays_dismissed() {
 		$this->legacy_settings();
 		$this->factory_rpp->station( 'Existing' );
 		radplapag_run_legacy_migration_if_needed();
@@ -581,13 +581,29 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 				'_wpnonce'          => wp_create_nonce( 'radplapag_dismiss_migration_conflict' ),
 			)
 		);
-		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertSame( 'dismissed', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
 
 		radplapag_maybe_clear_migration_conflict_flag();
 		radplapag_run_legacy_migration_if_needed();
 
-		$this->assertSame( '1', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
-		$this->assertStringContainsString( 'notice-warning', $this->notices() );
+		$this->assertSame( 'dismissed', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertSame( '', $this->notices() );
+	}
+
+	/**
+	 * A dismissed conflict is cleared once no station is published, and the migration runs.
+	 *
+	 * @see docs/known-issues.md K29
+	 */
+	public function test_dismissed_conflict_is_cleared_and_migration_runs_without_published_stations() {
+		$this->legacy_settings();
+		update_option( 'radplapag_migration_skipped_cpt_conflict', 'dismissed' );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
 	}
 
 	/**
@@ -1115,14 +1131,14 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The conflict notice stays while the flag is set and links to a nonced dismiss URL
-	 * built on the current URL.
+	 * The conflict notice is dismissible, stays while the flag is '1' and links to a
+	 * nonced dismiss URL built on the current URL.
 	 */
 	public function test_conflict_notice_links_to_nonced_dismiss_url() {
 		update_option( 'radplapag_migration_skipped_cpt_conflict', '1' );
 		$nonce = wp_create_nonce( 'radplapag_dismiss_migration_conflict' );
 
-		$expected = '<div class="notice notice-warning"><p>Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.</p>'
+		$expected = '<div class="notice notice-warning is-dismissible"><p>Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.</p>'
 			. '<p><a href="/wp-admin/index.php?foo=bar&#038;radplapag_dismiss=migration_conflict&#038;_wpnonce=' . $nonce . '">Dismiss This Notice</a></p></div>';
 
 		$this->assertSame( $expected, $this->notices() );
@@ -1150,9 +1166,10 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	// Dismissing the conflict notice.
 
 	/**
-	 * A valid nonce deletes the conflict flag and redirects to the URL without the args.
+	 * A valid nonce marks the conflict flag as dismissed and redirects to the URL without
+	 * the args.
 	 */
-	public function test_dismiss_with_valid_nonce_deletes_flag_and_redirects() {
+	public function test_dismiss_with_valid_nonce_marks_flag_dismissed_and_redirects() {
 		update_option( 'radplapag_migration_skipped_cpt_conflict', '1' );
 		$_SERVER['REQUEST_URI'] = '/wp-admin/index.php?foo=bar&radplapag_dismiss=migration_conflict&_wpnonce=x';
 
@@ -1164,7 +1181,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( '/wp-admin/index.php?foo=bar', $location );
-		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertSame( 'dismissed', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
 	}
 
 	/**
