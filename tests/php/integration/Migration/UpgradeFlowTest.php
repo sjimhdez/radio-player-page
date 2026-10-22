@@ -1114,21 +1114,34 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The migration switches to the first administrator, which re-runs kses_init: if
-	 * that user lacks unfiltered_html (a site administrator in a network, or with
-	 * DISALLOW_UNFILTERED_HTML), titles go through kses and `&` is stored as `&amp;`.
+	 * Denies unfiltered_html to the given user and grants it to everyone else.
+	 *
+	 * @param int $denied User without unfiltered_html.
+	 */
+	private function deny_unfiltered_html_to( $denied ) {
+		add_filter(
+			'map_meta_cap',
+			static function ( $caps, $cap, $user_id ) use ( $denied ) {
+				if ( 'unfiltered_html' !== $cap ) {
+					return $caps;
+				}
+				return (int) $user_id === (int) $denied ? array( 'do_not_allow' ) : array( 'exist' );
+			},
+			10,
+			3
+		);
+	}
+
+	/**
+	 * The migration switches to the first administrator; if that user lacks
+	 * unfiltered_html (a site administrator in a network, or with
+	 * DISALLOW_UNFILTERED_HTML), the titles are still written without kses.
 	 *
 	 * @see docs/known-issues.md K21
 	 */
-	public function test_currently_migration_without_unfiltered_html_stores_entities() {
-		add_filter(
-			'map_meta_cap',
-			static function ( $caps, $cap ) {
-				return 'unfiltered_html' === $cap ? array( 'do_not_allow' ) : $caps;
-			},
-			10,
-			2
-		);
+	public function test_migration_without_unfiltered_html_keeps_ampersands() {
+		$this->deny_unfiltered_html_to( radplapag_migration_resolve_author_user_id() );
+		wp_set_current_user( $this->admin );
 		$settings                                       = $this->legacy_settings();
 		$settings['stations'][0]['station_title']       = 'Rock & Roll';
 		$settings['stations'][0]['programs'][0]['name'] = 'Drum & Bass';
@@ -1136,8 +1149,49 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 		radplapag_run_legacy_migration_if_needed();
 
-		$this->assertSame( 'Rock &amp; Roll', get_posts( array( 'post_type' => 'radplapag_station' ) )[0]->post_title );
-		$this->assertSame( 'Drum &amp; Bass', get_posts( array( 'post_type' => 'radplapag_program' ) )[0]->post_title );
+		$this->assertSame( 'Rock & Roll', get_posts( array( 'post_type' => 'radplapag_station' ) )[0]->post_title );
+		$this->assertSame( 'Drum & Bass', get_posts( array( 'post_type' => 'radplapag_program' ) )[0]->post_title );
+	}
+
+	/**
+	 * After the migration, the kses filters are those of the user who triggered it, also
+	 * when that user is the first administrator (wp_set_current_user() then does nothing).
+	 *
+	 * @see docs/known-issues.md K21
+	 */
+	public function test_kses_filters_of_the_previous_user_are_restored() {
+		$first = radplapag_migration_resolve_author_user_id();
+		$this->deny_unfiltered_html_to( $first );
+		wp_set_current_user( $first );
+		kses_init();
+		$this->legacy_settings();
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertSame( $first, get_current_user_id() );
+		$this->assertSame( 10, has_filter( 'title_save_pre', 'wp_filter_kses' ) );
+
+		$migrated = get_posts(
+			array(
+				'post_type'   => array( 'radplapag_station', 'radplapag_program' ),
+				'post_status' => 'any',
+				'fields'      => 'ids',
+			)
+		);
+		foreach ( $migrated as $id ) {
+			wp_delete_post( $id, true );
+		}
+		delete_option( 'radplapag_db_version' );
+		wp_set_current_user( $this->admin );
+		kses_init();
+		$this->legacy_settings();
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertSame( $this->admin, get_current_user_id() );
+		$this->assertFalse( has_filter( 'title_save_pre', 'wp_filter_kses' ) );
 	}
 
 	/**

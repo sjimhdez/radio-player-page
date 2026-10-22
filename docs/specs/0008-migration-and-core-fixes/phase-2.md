@@ -83,6 +83,8 @@ Corregir K33 (con la variante de K21 en la migración), K21 y K43 en las globale
   - Test nuevo: `test_kses_filters_of_the_previous_user_are_restored`. Quien dispara no tiene `unfiltered_html`, así que al terminar `has_filter( 'title_save_pre', 'wp_filter_kses' )`. Y al revés: quien dispara sí lo tiene, así que no.
 - Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
 - Changelog: «Radio station and radio show titles migrated from the legacy settings keep their ampersands on sites where administrators cannot post unfiltered HTML.»
+- Rojo (2026-10-23): `test_migration_without_unfiltered_html_keeps_ampersands` falla con `'Rock &amp; Roll'`. `test_kses_filters_of_the_previous_user_are_restored` pasaba antes del arreglo (`wp_set_current_user()` reponía los filtros): se vio en rojo con el arreglo a medias, solo `kses_remove_filters()` y sin `kses_init()` (`false` en vez de `10` cuando quien dispara es el primer administrador).
+- Resultado (2026-10-23): `UpgradeFlowTest` y `MigrationGoldenTest`, 88 tests en verde. El `map_meta_cap` de los tests niega `unfiltered_html` a un usuario y lo concede (`exist`) a los demás, para que el caso valga también en multisite (`UpgradeFlowTest` no está en el grupo `ms-required`).
 - [ ] hecha · commit: —
 
 ### 2.4 K21 y K43: entidades decodificadas en las globales del player (D10) (≤ 1 h)
