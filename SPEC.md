@@ -105,6 +105,8 @@ Plugin de WordPress, publicado en el directorio de wordpress.org, que da a cada 
 | `window.RADPLAPAG_PROGRAMS` | `[ { id, name, description, extendedDescription, logoUrl } ]` (`id` como cadena; los opcionales, `null`). Solo los programas que aparecen en el horario, **en el orden de su primera aparición** (lunes → domingo). |
 | `window.RADPLAPAG_SCHEDULE` | `{ <día>: [ { program_id, start, end, is_rerun } ] }`. `program_id` como cadena; se omiten las franjas incompletas y los días vacíos. |
 
+Desde la 0008, `siteTitle` (también el nombre del sitio de reserva) y `name`, `description` y `extendedDescription` van **decodificados una vez** (`html_entity_decode`): `Rock & Roll`, no el `Rock &amp; Roll` guardado por kses. El player los pinta como texto; el JSON sigue escapado con `JSON_HEX_*`.
+
 ### 3.4 API PHP
 
 **Funciones documentadas** en `README.md`:
@@ -174,6 +176,8 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - los posts de los dos CPT en todos los estados registrados (`get_post_stati()`: `trash`, `auto-draft` e `inherit` incluidos), con su meta;
 - la meta interna `_radplapag_migration_pending` (`delete_post_meta_by_key()`).
 
+Lo hace `radplapag_uninstall_delete_site_data()` (nueva en la 0008) junto a `radplapag_uninstall_delete_stations()` y `…_programs()`, llamadas desde `radplapag_uninstall_plugin()`. Sus firmas son contrato (invariante 2).
+
 Después vacía la caché de objetos. Lo que se añada a §3.1 se añade también aquí. Desactivar el plugin no borra nada.
 
 ### 3.8 Reproductor (comportamiento)
@@ -241,4 +245,4 @@ Después vacía la caché de objetos. Lo que se añada a §3.1 se añade tambié
 | 0006 | Sin cambios en el contrato. §3.8: la validación de las globales vive en `src/core/config/` y `use-config.tsx` las lee; `player/src/core/` (audio, reloj, configuración, Media Session, horario y sueño) es interno. Corregidos K9, K14, K70 y K80 (sin cambio de contrato). | 0029, 0030 |
 | 0007 | §3.8 y §3.9: fuentes directas con `crossOrigin` y un reintento sin él; el núcleo decide la visualización (`canVisualize`); Play tras una pausa recarga el directo; DASH sin fuente de hora de terceros; protocolo por el sufijo del `pathname`; estados del audio fieles (`loading` hasta `playing`, la pausa cancela la carga, el error no se borra); la bienvenida nunca bloquea el reproductor; temporizador de sueño contra una hora límite y deshabilitado durante la bienvenida; volumen por capacidad y HLS nativo también en iPadOS. Corregidos C1, C2, C7, K1, K11, K12, K13, K63–K67, K81 y K82; K18 era del *fixture*. | 0031, 0032, 0033, 0034, 0035, 0036 |
 | 0008 (fase 1) | §3.1 y §3.2: el bloqueo `radplapag_migrating` pasa a ser una opción atómica (120 s; 900 s tras un fallo) y el transient queda heredado; meta interna `_radplapag_migration_pending` para reintentar sin duplicados; la bandera de conflicto admite `'dismissed'` y el aviso es descartable; las franjas que no validan se descartan una a una y el resto migra; el aviso de éxito es un resumen y el de error dura 900 s. `is_rerun` no se lee de la franja heredada (ADR 0039). El bloqueo se renueva antes de cada post y se vuelve a comprobar todo tras tomarlo (ADR 0040). §3.4: `Radplapag_Migrator_Settings_To_Cpt` es interna. | 0037, 0038, 0039, 0040 |
-| 0008 (fase 2) | §3.2 y §3.4: la migración se engancha también en `init` 100 y corre en cualquier petición, sin un administrador delante, como el primer administrador y sin kses, con el usuario y kses restaurados; en el front, con la bandera de conflicto, no cuenta emisoras. §3.1: el aviso de éxito no caduca. §3.7: la desinstalación borra todo lo de §3.1 en cada sitio (opciones, transients globales y por emisora, posts en cualquier estado y la meta interna). | 0041, 0042 |
+| 0008 (fase 2) | §3.2 y §3.4: la migración se engancha también en `init` 100 y corre en cualquier petición, sin un administrador delante, como el primer administrador y sin kses, con el usuario y kses restaurados; en el front, con la bandera de conflicto, no cuenta emisoras. §3.1: el aviso de éxito no caduca. §3.7: la desinstalación borra todo lo de §3.1 en cada sitio (opciones, transients globales y por emisora, posts en cualquier estado y la meta interna). §3.3: los textos de `RADPLAPAG_CONFIG` y `RADPLAPAG_PROGRAMS` van decodificados (spec 0008, D10). | 0041, 0042 |

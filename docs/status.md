@@ -1,13 +1,13 @@
 # Estado
-Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 2 en curso · Plan: [`phase-2.md`](specs/0008-migration-and-core-fixes/phase-2.md) · Actualizado: 2026-10-23
+Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 3 por empezar · Plan: — (anterior: [`phase-2.md`](specs/0008-migration-and-core-fixes/phase-2.md)) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)). Fase 1 (migración) cerrada el 2026-10-22: K29, K30, K31, K32, K84 y K85 corregidos (ADR 0037, 0038, 0039 y 0040; K79 retirado). Fase 2 (actualización, entidades y desinstalación: K33, K21, K43, C11, K7) en curso desde el 2026-10-23, con 7 tareas; nuevos ADR 0041 (migración sin admin; el aviso de éxito ya no caduca) y 0042 (desinstalación). Queda la 3, página limpia y API (K23 con RTL, K26, K24, K25).
+- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)). Fases 1 (migración) y 2 (actualización, entidades y desinstalación) cerradas el 2026-10-22 y el 2026-10-23. Queda la 3, página limpia y API (K23 con RTL, K26, K24, K25), que suma lo que dejó la revisión de la 2: K86, K87 y dos huecos de test (kses tras la pasada con el usuario 0; un post en `inherit` al desinstalar).
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 2 (sus 7 tareas hechas: K33, K21, K43, el ADR 0042, K7 y C11).
-2. La fase 1 se cerró con revisión mínima (decisión del usuario): solo `spec-conformance-reviewer` y `backcompat-reviewer`. Al cerrar la fase 2, pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente).
+1. `start-phase` de la fase 3 de la 0008, en una sesión nueva. El plan incluye K86 y K87 (decisión del usuario del 2026-10-23) y los dos huecos de test de la revisión de la fase 2 (ver «Cierre» en `phase-2.md`).
+2. Al cerrar la fase 3 (última de la spec), pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). Las fases 1 y 2 se cerraron solo con `spec-conformance-reviewer` y `backcompat-reviewer` (decisión del usuario).
 3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano

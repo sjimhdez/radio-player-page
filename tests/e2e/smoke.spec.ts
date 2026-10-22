@@ -29,7 +29,10 @@ test.describe( 'e2e seed (smoke)', () => {
 	} );
 
 	test( 'the admin session lists the seeded stations', async ( { page } ) => {
-		await page.goto( '/wp-admin/edit.php?post_type=radplapag_station' );
+		// Searched: with the entities station the seed has more stations than one list page.
+		await page.goto(
+			'/wp-admin/edit.php?post_type=radplapag_station&s=E2E'
+		);
 
 		const titles = page.locator( '#the-list .row-title' );
 

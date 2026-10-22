@@ -1,10 +1,10 @@
 # Spec 0008 · Fase 2 — Actualización, entidades y desinstalación
-Estado: en curso · Inicio: 2026-10-23 · ADRs: 0005, 0010, 0017, 0021, 0028, 0037, 0040; nuevos 0041 (migración sin admin) y 0042 (desinstalación)
+Estado: cerrada (2026-10-23) · Inicio: 2026-10-23 · ADRs: 0005, 0010, 0017, 0021, 0028, 0037, 0040; nuevos 0041 (migración sin admin) y 0042 (desinstalación)
 
 ## Contexto
 Lo medido al planificar:
 - `radplapag_run_legacy_migration_if_needed()` (`includes/radplapag-upgrade.php`) sale si `! is_admin() || ! is_user_logged_in() || ! current_user_can( 'manage_options' )`. Solo está enganchada en `admin_init` 20. `init` 100 solo la engancha `radplapag_schedule_legacy_migration()` tras el *upgrader*. Los CPT se registran en `init` 10 y la meta en 20, así que en `init` 100 ya existen.
-- **D1 con el mismo callback:** `add_action( 'init', 'radplapag_run_legacy_migration_if_needed', 100 )` y sin la guarda. `add_action()` descarta el duplicado (mismo callback y prioridad), así que la rama del *upgrader* sigue valiendo. `admin_init` 20 se queda: es contrato, y es donde migra un sitio con conflicto justo después de que `admin_init` 5 borre la bandera.
+- **D1 con el mismo callback:** `add_action( 'init', 'radplapag_run_legacy_migration_if_needed', 100 )` y sin la guarda. `add_action()` descarta el duplicado (mismo callback y prioridad), así que la rama del *upgrader* sigue valiendo. `admin_init` 20 se queda: es contrato (en el admin, `init` 100 ya habrá migrado).
 - **Conflicto en el front (D2):** hoy la pasada llama a `radplapag_maybe_clear_migration_conflict_flag()`, que cuenta las emisoras (`wp_count_posts`) cuando la bandera está puesta. Ese recuento sería una consulta en cada visita de un sitio con conflicto. La pasada solo llama a la limpieza si `is_admin()`. En el front, con la bandera puesta, sale sin contar.
 - **kses (D9):** `wp_set_current_user()` dispara `set_current_user` y, con él, `kses_init`, que pone los filtros si el autor no tiene `unfiltered_html`. Pero `wp_set_current_user()` no hace nada si el ID ya es el actual (un administrador que dispara la migración), así que no basta con restaurar el usuario. Plan: `kses_remove_filters()` tras cambiar de usuario y, después de restaurarlo, `kses_init()`, que vuelve a dejar los filtros de quien estaba.
 - **Aviso de éxito:** hoy caduca a los 60 s. Si la migración corre en el front, el administrador casi nunca lo vería. **Decisión del usuario (2026-10-23):** pasa a no caducar (caducidad 0). Se borra al pintarlo, como hoy, y al desinstalar. Va en el ADR 0041 y en `SPEC.md` §3.1. El de error se queda en 900 s: cada reintento lo vuelve a poner, y una petición del admin reintenta en `init` antes de `admin_notices`.
@@ -149,6 +149,12 @@ Corregir K33 (con la variante de K21 en la migración), K21 y K43 en las globale
 - Rojo (2026-10-23): `test_deletes_the_legacy_settings_and_the_transients` y `…_on_a_subsite` fallan en la primera aserción: `radplapag_settings` sigue siendo `array( 'stations' => array() )`. Las otras partes (transients por emisora, opción `radplapag_migrating` y meta pendiente) se vieron en rojo con mutaciones temporales del arreglo, quitando cada línea (revertidas).
 - Resultado (2026-10-23): la meta pendiente se siembra en una entrada normal (que no es de los CPT), y el test comprueba que esa clave ya no está, no que la entrada se quede sin meta: WordPress le añade `_pingme` y `_encloseme`. `PublicApiTest::UNINSTALL_FUNCTIONS` añade `radplapag_uninstall_delete_site_data` (`(): void`), función nueva que permite el ADR 0042. `Uninstall` y `PublicApi` en verde (14 tests); `Uninstall` en multisite, 4 tests en verde.
 - [x] hecha · commit: f82a326
+
+## Cierre (2026-10-23)
+- Revisores: `spec-conformance-reviewer` y `backcompat-reviewer` sobre el diff de la fase. `wp-security-reviewer` y `wporg-reviewer` se pasan al cerrar la fase 3, sobre el diff completo de la spec (decisión del usuario).
+- Lo de los revisores que era documentación entra en el commit de cierre: §3.3 de `SPEC.md` (textos decodificados) y su historial, §3.7 (las funciones `radplapag_uninstall_*`), las consecuencias del ADR 0041 (quien desenganchaba `admin_init` 20, `test_upgrader_ignores_other_runs`, K86) y la justificación de `admin_init` 20.
+- **A la fase 3 (decisión del usuario):** K86 (coste en el front con una migración fallida), K87 (sin `try/finally` al cambiar de usuario), la aserción de kses tras la pasada con el usuario 0 y un post en `inherit` en los tests de desinstalación.
+- `smoke.spec.ts` «lists the seeded stations» fallaba en las dos puntas: la emisora `entities` de la 2.4 es la 21 y la lista del admin pagina a 20. Ahora busca «E2E».
 
 ## Decisiones abiertas → ADR
 - Si la medida de la 2.2 pasa de unos segundos, se pregunta (riesgo 1 de la spec).
