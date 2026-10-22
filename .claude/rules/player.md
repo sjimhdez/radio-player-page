@@ -23,7 +23,7 @@ paths:
 
 ## Reproducción
 
-- Protocolo por la extensión de la URL: MP3/OGG directo; HLS nativo en iOS y con `hls.js` en el resto (nativo como alternativa); DASH con `dashjs`. `hls.js` y `dashjs` se cargan con `import()` dinámico.
+- Protocolo por la extensión del `pathname` de la URL, sin distinguir mayúsculas (`detectProtocol()`, ADR 0034): MP3/OGG directo; HLS nativo en iOS y con `hls.js` en el resto (nativo como alternativa); DASH con `dashjs`. `hls.js` y `dashjs` se cargan con `import()` dinámico.
 - `crossOrigin = 'anonymous'` en toda fuente asignada a `audio.src` (MP3/OGG, HLS nativo, intro) en el primer intento; no en las rutas MSE (ADR 0004). Si `play()` se rechaza con `NotSupportedError`, un solo reintento sin él en el mismo elemento, salvo que ya pase por Web Audio (`graph.isConnected()`): entonces, error. Tras el reintento la fuente no es limpia (`isCorsClean()`) y no se visualiza (ADR 0033).
 - Play tras una pausa, un error o un cambio de emisora recarga el directo en todos los protocolos (vuelve al borde en vivo); si ya suena, no hace nada (ADR 0032). `dashjs` sin fuente de hora de terceros (`clearDefaultUTCTimingSources()` tras `initialize()`).
 - El audio de bienvenida suena una vez antes del directo, no se puede pausar y, si falla, pasa al directo sin error.

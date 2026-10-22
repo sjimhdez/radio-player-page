@@ -413,20 +413,38 @@ describe('DASH', () => {
   })
 })
 
-// docs/known-issues.md C2: detection is endsWith() on the whole URL.
+// docs/known-issues.md C2, fixed in spec 0007: the suffix of the pathname, case-insensitive.
 describe('protocol detection (C2)', () => {
   it.each([
     'https://radio.test/live.m3u8?token=x',
     'https://radio.test/LIVE.M3U8',
-    'https://radio.test/live.mpd?token=x',
-    'https://radio.test/LIVE.MPD',
-  ])('currently treats %s as a direct stream', async (url) => {
+    'https://radio.test/live.m3u8#t',
+  ])('detects %s as HLS by the suffix of its pathname (C2)', async (url) => {
+    const { api } = mount(url)
+    await act(() => api.current.play())
+    expect(hls.instances).toHaveLength(1)
+    expect(hls.instances[0].loadSource).toHaveBeenCalledWith(url)
+    expect(dash.players).toHaveLength(0)
+  })
+
+  it.each(['https://radio.test/live.mpd?token=x', 'https://radio.test/LIVE.MPD'])(
+    'detects %s as DASH by the suffix of its pathname (C2)',
+    async (url) => {
+      const { api, audio } = mount(url)
+      await act(() => api.current.play())
+      expect(dash.players).toHaveLength(1)
+      expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, url, true)
+      expect(hls.instances).toHaveLength(0)
+    },
+  )
+
+  it('plays a URL that cannot be parsed as a direct stream (C2)', async () => {
+    const url = 'http://[/live.m3u8'
     const { api, audio } = mount(url)
     await act(() => api.current.play())
     expect(hls.instances).toHaveLength(0)
     expect(dash.players).toHaveLength(0)
     expect(audio.src).toBe(url)
-    expect(audio.crossOrigin).toBe('anonymous')
     expect(media.play).toHaveBeenCalledWith(url)
   })
 })

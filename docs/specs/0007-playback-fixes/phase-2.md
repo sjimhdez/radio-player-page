@@ -35,7 +35,9 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - Archivos: `player/src/core/audio/{protocol.ts,protocol.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`, `docs/adr/0034-*.md`, `docs/adr/README.md`, `SPEC.md`, `docs/specs/0007-playback-fixes/spec.md`, `.claude/rules/player.md`, `docs/known-issues.md`.
 - Test: regresión primero (rojo): `protocol.test.ts` y `use-audio-player.test.tsx`.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: los dos `currently` de C2 pasan a regresión (núcleo: 7 casos + la URL que no se puede analizar; hook: 3 de HLS, 2 de DASH y la URL que no se puede analizar). Rojo antes del arreglo: 14 (`expected 'direct' to be 'hls'`/`'dash'`; `…/stream?format=.m3u8` y `http://[/live.m3u8` daban `hls`; en el hook, ninguna instancia de `Hls`/`dashjs`). `npm run check` en verde. Cambio de comportamiento apuntado en el ADR 0034: `…/stream?format=.m3u8` pasa a ser directo (antes HLS por accidente).
+- Changelog: las URL de HLS y DASH con *query string* (por ejemplo, un *token*), con fragmento o con la extensión en mayúsculas se reconocen y suenan; antes se trataban como audio directo y no sonaban.
+- [x] hecha · commit: (este)
 
 ### 2.2 K1: un `pause` no pisa `error` (≤ 1 h)
 - Qué (`fix-bug`): en `transition()`, `pause` con `status: 'error'` devuelve el mismo estado (`user-paused` no cambia). Regresión en las tres capas:
