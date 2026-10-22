@@ -48,7 +48,7 @@ Corregir K33 (con la variante de K21 en la migración), K21 y K43 en las globale
 - Archivos: `docs/adr/0041-*.md`, `docs/adr/README.md`, `docs/adr/0037-*.md` (nota de enmienda), `SPEC.md`, `.claude/rules/data-and-migrations.md`
 - Test: — (docs)
 - Verificación: `npm run check`
-- [x] hecha · commit: (este)
+- [x] hecha · commit: fca23ee
 
 ### 2.2 K33: migrar en `init` en cualquier petición (D1) (≤ 1 h)
 - Qué: `fix-bug`.
