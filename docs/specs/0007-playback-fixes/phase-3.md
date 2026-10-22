@@ -68,7 +68,7 @@ Corregir K66, K65 y K13 con su regresión en las capas que cita `known-issues.md
 - Verificación: `npm --prefix player run check && ! grep -rn "eslint-disable" player/src && npm run test:e2e -- tests/e2e/hls-dash.spec.ts`
 - Rojo (antes del arreglo): `platform.test.ts` no encuentra `src/core/audio/platform`; controlador «takes the platform when it is created» y «plays HLS natively on iPadOS with the desktop user agent (K13)» `expected "vi.fn()" to not be called at all` (se cargaba `hls.js`). `createAudioController()` recibe `platform: { userAgent, maxTouchPoints }` aparte de `webAudio` (son dos decisiones distintas). En el *hook*, «plays HLS natively on %s, from the first play()» (iPhone e iPadOS de escritorio), validado con una mutación (`maxTouchPoints: 0` lo pone en rojo).
 - Changelog: en el iPad con la web de escritorio (iPadOS 13+), los streams HLS van por el reproductor nativo de Safari, como en el iPhone.
-- [x] hecha · commit: —
+- [x] hecha · commit: `07aa744`
 
 ### 3.6 Contrato y hoja de ruta al cierre de la spec (≤ 1 h)
 - Qué (`docs`): `SPEC.md` §3.8 «Errores» sin la excepción de K1 (vuelve al contrato, sin ADR) y §6 con la fila 0007 (crossOrigin con reintento, visualización por el núcleo, Play recarga el directo, DASH sin hora de terceros, protocolo por el `pathname`, estados del audio, bienvenida y sueño; ADR 0031–0036). `docs/specs/README.md`: notas de la 0011 con los estados del audio que pinta (`status`, `loading`, `introLocked`, `canVisualize`; el error visible = `error` y sin `loading`; «Sleep mode» deshabilitado durante la bienvenida) y K83 pendiente de asignar. `docs/known-issues.md`: repaso de todas las filas de la spec en «corregido (spec 0007)».
