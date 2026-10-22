@@ -30,8 +30,8 @@ final class Legacy_Plan {
 	 * Builds the migration plan from the raw option.
 	 *
 	 * Empty titles and names are '' (the writer gives the translated default). A stations
-	 * list without any array station gives a plan without stations (K32 in
-	 * docs/known-issues.md). Slots carry no is_rerun: the legacy formats never had it (ADR 0039).
+	 * list without any array station gives a plan without stations, and the notice says
+	 * none was found (K32 in docs/known-issues.md). Slots carry no is_rerun: the legacy formats never had it (ADR 0039).
 	 *
 	 * @since 3.5.0
 	 *

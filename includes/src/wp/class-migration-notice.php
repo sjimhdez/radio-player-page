@@ -15,8 +15,9 @@ defined( 'ABSPATH' ) || exit;
  * escaped HTML of the success notice (ADR 0037).
  *
  * The value is the summary that Radplapag_Migrator_Settings_To_Cpt::run() returns:
- * the number of stations, then a list of the dropped slots. Any other truthy value
- * ('1' from an earlier version) prints the text of 3.4.2.
+ * the number of stations, then a list of the dropped slots. With 0 stations the notice
+ * says none was found (K32). Any other truthy value ('1' from an earlier version)
+ * prints the text of 3.4.2.
  *
  * @since 3.5.0
  */
@@ -36,7 +37,11 @@ final class Migration_Notice {
 		}
 
 		$stations = (int) $value['stations'];
-		$html     = '<p>' . esc_html(
+		if ( 0 === $stations ) {
+			return self::wrap( '<p>' . esc_html__( 'Radio Player Page: No radio station was found to migrate; the old settings entry was removed.', 'radio-player-page' ) . '</p>' );
+		}
+
+		$html = '<p>' . esc_html(
 			sprintf(
 				/* translators: %s: Number of radio stations */
 				_n(

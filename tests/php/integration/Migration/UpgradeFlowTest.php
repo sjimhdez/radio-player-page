@@ -1018,12 +1018,13 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A legacy option whose `stations` holds no array migrates nothing, but the option
-	 * is deleted, the version recorded and the success notice shown.
+	 * A legacy option whose `stations` holds no array migrates nothing: the option is
+	 * deleted and the version recorded (ADR 0010), and the notice says no station was
+	 * found.
 	 *
 	 * @see docs/known-issues.md K32
 	 */
-	public function test_currently_stations_without_any_station_report_success() {
+	public function test_stations_without_any_station_report_none_migrated() {
 		update_option( 'radplapag_settings', array( 'stations' => array( 'x' ) ) );
 
 		radplapag_run_legacy_migration_if_needed();
@@ -1037,6 +1038,10 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 				'dropped'  => array(),
 			),
 			get_transient( 'radplapag_migration_success_notice' )
+		);
+		$this->assertSame(
+			'<div class="notice notice-success is-dismissible"><p>Radio Player Page: No radio station was found to migrate; the old settings entry was removed.</p></div>',
+			$this->notices()
 		);
 	}
 

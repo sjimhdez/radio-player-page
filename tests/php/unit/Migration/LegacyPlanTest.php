@@ -304,11 +304,12 @@ final class LegacyPlanTest extends TestCase {
 	}
 
 	/**
-	 * A stations list without any array station gives a plan with no stations, not no_data.
+	 * A stations list without any array station gives a plan with no stations, not no_data:
+	 * the option is still deleted and the notice says no station was found.
 	 *
 	 * @see docs/known-issues.md K32
 	 */
-	public function test_currently_stations_without_any_station_give_an_empty_plan() {
+	public function test_stations_without_any_station_give_an_empty_plan() {
 		$this->assertSame(
 			array(
 				'programs'   => array(),

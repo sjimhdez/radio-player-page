@@ -24,8 +24,9 @@ final class Upgrade_Policy {
 	/**
 	 * Whether the legacy option has a non-empty stations list.
 	 *
-	 * Any list counts, even one without array stations (K32 in docs/known-issues.md);
-	 * the flat 1.0.x–1.1.x option has no stations key (K4).
+	 * Any list counts, even one without array stations: it migrates none, the option is
+	 * deleted and the notice says so (K32 in docs/known-issues.md, ADR 0037); the flat
+	 * 1.0.x–1.1.x option has no stations key (K4).
 	 *
 	 * @since 3.5.0
 	 *
