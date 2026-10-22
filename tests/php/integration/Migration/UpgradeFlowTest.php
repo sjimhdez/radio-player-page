@@ -503,6 +503,103 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Runs the migration and cuts it as a fatal error or max_execution_time would: the
+	 * hook throws and nothing after it runs, so there is no rollback and the lock is
+	 * not released. Then the lock expires and the original user is back.
+	 *
+	 * @param string   $hook          Hook that cuts the migration.
+	 * @param int      $accepted_args Arguments of the hook.
+	 * @param callable $when          Receives the hook arguments; true cuts the migration.
+	 */
+	private function interrupt_migration( $hook, $accepted_args, callable $when ) {
+		$cut = static function ( ...$args ) use ( $when ) {
+			if ( $when( ...$args ) ) {
+				throw new RuntimeException( 'Migration interrupted.' );
+			}
+			return $args[0];
+		};
+		add_filter( $hook, $cut, 10, $accepted_args );
+
+		$interrupted = false;
+		try {
+			radplapag_run_legacy_migration_if_needed();
+		} catch ( RuntimeException $e ) {
+			$interrupted = 'Migration interrupted.' === $e->getMessage();
+		}
+
+		remove_filter( $hook, $cut, 10 );
+		wp_set_current_user( $this->admin );
+		$this->assertTrue( $interrupted, 'Precondition: the migration is interrupted.' );
+		$this->assertSame( '1', get_transient( 'radplapag_migrating' ), 'Precondition: the lock is left behind.' );
+		delete_transient( 'radplapag_migrating' );
+	}
+
+	/**
+	 * A migration cut after creating the programs and before any station leaves them
+	 * behind; once the lock expires, the retry creates them again.
+	 *
+	 * @see docs/known-issues.md K84
+	 */
+	public function test_currently_interrupted_migration_duplicates_programs() {
+		$this->legacy_settings();
+		$this->interrupt_migration(
+			'wp_insert_post_empty_content',
+			2,
+			static function ( $maybe_empty, $postarr ) {
+				return 'radplapag_station' === $postarr['post_type'];
+			}
+		);
+		$this->assertSame( 1, $this->count_posts( 'radplapag_program' ), 'Precondition: the program was created.' );
+		$this->assertSame( 0, $this->count_posts( 'radplapag_station' ), 'Precondition: no station was created.' );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
+		$this->assertSame(
+			array( 'Morning', 'Morning' ),
+			wp_list_pluck(
+				get_posts(
+					array(
+						'post_type'   => 'radplapag_program',
+						'numberposts' => -1,
+					)
+				),
+				'post_title'
+			)
+		);
+	}
+
+	/**
+	 * A migration cut after publishing a station leaves it behind; once the lock
+	 * expires, the retry counts it as a conflict and never migrates.
+	 *
+	 * @see docs/known-issues.md K84
+	 */
+	public function test_currently_interrupted_migration_with_a_station_is_a_conflict() {
+		$settings = $this->legacy_settings();
+		$this->interrupt_migration(
+			'added_post_meta',
+			3,
+			static function ( $meta_id, $post_id, $meta_key ) {
+				return 'radplapag_station_stream_url' === $meta_key;
+			}
+		);
+		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ), 'Precondition: the station was published.' );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( $settings, get_option( 'radplapag_settings' ) );
+		$this->assertFalse( get_option( 'radplapag_db_version' ) );
+		$this->assertSame( '1', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertFalse( get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
+		$this->assertSame( 1, $this->count_posts( 'radplapag_program' ) );
+		$this->assertStringContainsString( 'Automatic migration was skipped', $this->notices() );
+	}
+
+	/**
 	 * K4: a 1.0.x–1.1.x flat option has no `stations`, so the schema version is recorded,
 	 * nothing is migrated, the option is orphaned and no notice is shown.
 	 *

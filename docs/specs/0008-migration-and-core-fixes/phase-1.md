@@ -49,7 +49,8 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - Archivos: `tests/php/integration/Migration/UpgradeFlowTest.php`, `docs/known-issues.md`
 - Test: caracterización
 - Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
-- [ ] hecha · commit: —
+- Resultado (2026-10-22): el corte se simula con una excepción lanzada desde un hook (`wp_insert_post_empty_content` de la emisora; `added_post_meta` de `radplapag_station_stream_url`), sin costura. Mutaciones temporales en `radplapag-upgrade.php`, revertidas: `> 1` en vez de `> 0` al contar las emisoras publicadas (falla el del conflicto) y el bloqueo siempre puesto (fallan los dos). Fila nueva K84 en `known-issues.md`.
+- [x] hecha · commit: —
 
 ### 1.4 Bloqueo atómico como opción (D4, primera parte) (≤ 1 h)
 - Qué: adaptador nuevo `WP\Migration_Lock` (`acquire( int $now, int $ttl ): bool`, `hold_until( int $until )`, `release()`). `add_option( 'radplapag_migrating', $until, '', 'no' )`. Si ha caducado, se toma con `$wpdb->query( $wpdb->prepare( 'UPDATE … WHERE option_name = %s AND option_value = %s' ) )` y solo gana si cambia 1 fila; después, `wp_cache_delete()` de la opción, `alloptions` y `notoptions`. La excepción de PHPCS va en su línea con el motivo. En `Upgrade_Policy`, el predicado `is_lock_held( $stored, int $now )`. El transient heredado se ignora. Orden de la pasada: versión, datos heredados, bandera, tomar el bloqueo, contar las emisoras publicadas (si hay conflicto se suelta el bloqueo) y migrar.

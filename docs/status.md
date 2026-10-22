@@ -6,7 +6,7 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.3 de la fase 1 de la 0008 (`characterize`: el bloqueo y la migración cortada), y después de la 1.4 a la 1.11 en orden. La 1.2 corrigió K29 (descarte `'dismissed'`, aviso `is-dismissible`).
+1. Tarea 1.4 de la fase 1 de la 0008 (bloqueo atómico como opción, D4), y después de la 1.5 a la 1.11 en orden. La 1.3 fijó la migración cortada (K84: duplica los programas o se queda en conflicto para siempre); la 1.6 la corrige.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano
