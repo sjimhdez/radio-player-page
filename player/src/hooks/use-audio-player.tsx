@@ -1,5 +1,4 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { useIsIOS } from 'src/hooks/use-is-ios'
 import { createAudioController } from 'src/core/audio/audio-controller'
 
 /**
@@ -12,7 +11,8 @@ import { createAudioController } from 'src/core/audio/audio-controller'
  * goes through useState, not useSyncExternalStore, so React renders it with the
  * priority of the event that changed it, as in 3.4.2: the transient error of the C1
  * retry without crossOrigin is never painted (ADR 0030, reviewed in spec 0007). It injects
- * window.AudioContext and navigator.userAgent for the Web Audio graph (ADR 0031), and
+ * window.AudioContext and navigator.userAgent for the Web Audio graph (ADR 0031), the
+ * user agent and touch points to tell iOS for native HLS (K13, ADR 0036), and
  * an audio element of its own to probe whether the volume can be changed (ADR 0036).
  *
  * Features:
@@ -47,12 +47,12 @@ function useAudioPlayer(streamUrl: string, introUrl?: string | null) {
           typeof window.AudioContext === 'function' ? () => new window.AudioContext() : undefined,
         userAgent: navigator.userAgent,
       },
+      platform: { userAgent: navigator.userAgent, maxTouchPoints: navigator.maxTouchPoints },
       volumeProbe: () => document.createElement('audio'),
     }),
   )
   const [snapshot, setSnapshot] = useState(controller.getSnapshot)
   const { status, loading, introLocked, volume, volumeControllable, canVisualize } = snapshot
-  const isIOS = useIsIOS()
 
   useEffect(() => controller.subscribe(() => setSnapshot(controller.getSnapshot())), [controller])
 
@@ -69,8 +69,8 @@ function useAudioPlayer(streamUrl: string, introUrl?: string | null) {
   }, [controller])
 
   const play = useCallback(
-    () => controller.play({ streamUrl, introUrl, isIOS }),
-    [controller, streamUrl, introUrl, isIOS],
+    () => controller.play({ streamUrl, introUrl }),
+    [controller, streamUrl, introUrl],
   )
 
   const pause = useCallback(() => controller.pause(), [controller])

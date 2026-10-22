@@ -37,8 +37,15 @@ const readOnlyProbe = () => {
   return probe
 }
 
-const live = (streamUrl = MP3, isIOS = false) => ({ streamUrl, introUrl: null, isIOS })
-const withIntro = (streamUrl = MP3) => ({ streamUrl, introUrl: INTRO, isIOS: false })
+const IPHONE = {
+  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)',
+  maxTouchPoints: 5,
+}
+/** iPadOS 13+ Safari: the desktop user agent of a Mac, with touch (K13, ADR 0036). */
+const IPAD_DESKTOP = { userAgent: SAFARI, maxTouchPoints: 5 }
+
+const live = (streamUrl = MP3) => ({ streamUrl, introUrl: null })
+const withIntro = (streamUrl = MP3) => ({ streamUrl, introUrl: INTRO })
 
 let restore: () => void
 beforeEach(() => {
@@ -316,15 +323,39 @@ describe('sources', () => {
     expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
   })
 
-  it('reads isIOS on each play(), not when it is created', async () => {
+  it('takes the platform when it is created', async () => {
     const hls = createFakeHls()
-    const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
-    await controller.play(live(HLS, true))
+    const { controller, audio } = setup({
+      loaders: { loadHls: hls.loadHls },
+      platform: IPHONE,
+    })
+    await controller.play(live(HLS))
     expect(hls.loadHls).not.toHaveBeenCalled()
     expect(audio.src).toBe(HLS)
     controller.pause()
     await controller.play(live(MP3))
-    await controller.play(live(HLS, false))
+    await controller.play(live(HLS))
+    expect(hls.loadHls).not.toHaveBeenCalled()
+  })
+
+  it('plays HLS natively on iPadOS with the desktop user agent (K13)', async () => {
+    const hls = createFakeHls()
+    const { controller, audio } = setup({
+      loaders: { loadHls: hls.loadHls },
+      platform: IPAD_DESKTOP,
+    })
+    await controller.play(live(HLS))
+    expect(hls.loadHls).not.toHaveBeenCalled()
+    expect(audio.src).toBe(HLS)
+  })
+
+  it('uses hls.js on a Mac without touch', async () => {
+    const hls = createFakeHls()
+    const { controller } = setup({
+      loaders: { loadHls: hls.loadHls },
+      platform: { userAgent: SAFARI, maxTouchPoints: 0 },
+    })
+    await controller.play(live(HLS))
     expect(hls.instances).toHaveLength(1)
   })
 })
@@ -619,7 +650,7 @@ describe('welcome audio (intro)', () => {
 
   it('plays nothing but the live stream without an intro URL', async () => {
     const { controller, audio } = setup()
-    await controller.play({ streamUrl: MP3, introUrl: '', isIOS: false })
+    await controller.play({ streamUrl: MP3, introUrl: '' })
     expect(audio.src).toBe(MP3)
     expect(controller.getSnapshot().introConsumed).toBe(false)
   })
@@ -662,8 +693,8 @@ describe('streams without CORS (C1)', () => {
 
   it('plays native HLS without CORS by retrying without crossOrigin', async () => {
     media.corsBlocked.add(HLS)
-    const { controller, audio } = setup()
-    await controller.play(live(HLS, true))
+    const { controller, audio } = setup({ platform: IPHONE })
+    await controller.play(live(HLS))
     expect(media.play).toHaveBeenCalledTimes(2)
     expect(audio.hasAttribute('crossorigin')).toBe(false)
     expect(controller.getSnapshot().status).toBe('playing')

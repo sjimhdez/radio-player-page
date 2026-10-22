@@ -4,6 +4,7 @@ import {
   type PlayerEvent,
   type PlayerState,
 } from 'src/core/audio/player-machine'
+import { isIOSDevice, type Platform } from 'src/core/audio/platform'
 import { detectProtocol } from 'src/core/audio/protocol'
 import { createDashSource } from 'src/core/audio/sources/dash'
 import { createDirectSource } from 'src/core/audio/sources/direct'
@@ -24,7 +25,6 @@ export interface PlayOptions {
   streamUrl: string
   /** Welcome audio URL, played once per controller before the live stream. */
   introUrl?: string | null
-  isIOS: boolean
 }
 
 export interface AudioController {
@@ -62,9 +62,9 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  * Creates the audio controller: runs the effects of useAudioPlayer() (src, play(),
  * hls.js, dashjs, volume) and publishes the state of player-machine as a snapshot.
  *
- * isIOS is read on each play(), never when the controller is created (it turns true
- * after the first render, docs/known-issues.md K13). When the welcome audio ends, the
- * live stream is loaded with the options of the play() that started it.
+ * Whether the device is iOS, for native HLS, is decided once, when it is created, from
+ * the platform it is given (docs/known-issues.md K13, ADR 0036). When the welcome
+ * audio ends, the live stream is loaded with the options of the play() that started it.
  *
  * Whether the volume can be changed is probed once, when it is created, on an element
  * of its own, and published in the first snapshot (K13, ADR 0036).
@@ -79,6 +79,7 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  *
  * @param options.loaders - Loaders of hls.js and dashjs (dynamic imports by default)
  * @param options.webAudio - Context factory and user agent (no Web Audio by default)
+ * @param options.platform - User agent and touch points (not iOS by default)
  * @param options.volumeProbe - Creates the element that probes the volume (controllable
  *   without it)
  * @returns AudioController
@@ -86,13 +87,16 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
 export function createAudioController({
   loaders = {},
   webAudio = { userAgent: '' },
+  platform = { userAgent: '', maxTouchPoints: 0 },
   volumeProbe,
 }: {
   loaders?: StreamingLoaders
   webAudio?: VisualizerGraphOptions
+  platform?: Platform
   volumeProbe?: () => HTMLMediaElement
 } = {}): AudioController {
   const graph = createVisualizerGraph(webAudio)
+  const isIOS = isIOSDevice(platform.userAgent, platform.maxTouchPoints)
   const listeners = new Set<() => void>()
   let state =
     volumeProbe === undefined || isVolumeControllable(volumeProbe())
@@ -118,7 +122,7 @@ export function createAudioController({
     listeners.forEach((listener) => listener())
   }
 
-  const createSource = (url: string, isIOS: boolean): AudioSource => {
+  const createSource = (url: string): AudioSource => {
     const retryWithoutCors = !graph.isConnected()
     switch (detectProtocol(url)) {
       case 'hls':
@@ -134,13 +138,13 @@ export function createAudioController({
    * Destroys the current source and loads the live stream. Rejects if its play() rejects.
    * Once a pause() has cancelled it, it reports nothing.
    */
-  const playLive = async (element: HTMLAudioElement, url: string, isIOS: boolean) => {
+  const playLive = async (element: HTMLAudioElement, url: string) => {
     const current = generation
     const report = (event: PlayerEvent) => {
       if (generation === current) dispatch(event)
     }
     source?.destroy()
-    source = createSource(url, isIOS)
+    source = createSource(url)
     liveUrl = url
     await source.start(element, url, {
       onError: () => report({ type: 'stream-error' }),
@@ -173,7 +177,7 @@ export function createAudioController({
     const current = generation
     try {
       dispatch({ type: 'load-start' })
-      await playLive(element, options.streamUrl, options.isIOS)
+      await playLive(element, options.streamUrl)
     } catch {
       if (generation !== current) return
       dispatch({ type: 'play-failed' })
@@ -230,7 +234,7 @@ export function createAudioController({
    * Runs one play(): the welcome audio or the load of the live stream.
    */
   const startPlay = async (options: PlayOptions) => {
-    const { streamUrl, introUrl, isIOS } = options
+    const { streamUrl, introUrl } = options
     const element = audio
     if (element === null) return
 
@@ -283,7 +287,7 @@ export function createAudioController({
     const current = generation
     try {
       dispatch({ type: 'load-start' })
-      await playLive(element, streamUrl, isIOS)
+      await playLive(element, streamUrl)
     } catch {
       // A pause() rejects the pending play() with AbortError (K81).
       if (generation !== current) return

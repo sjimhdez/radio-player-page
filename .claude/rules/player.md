@@ -23,13 +23,13 @@ paths:
 
 ## Reproducción
 
-- Protocolo por la extensión del `pathname` de la URL, sin distinguir mayúsculas (`detectProtocol()`, ADR 0034): MP3/OGG directo; HLS nativo en iOS y con `hls.js` en el resto (nativo como alternativa); DASH con `dashjs`. `hls.js` y `dashjs` se cargan con `import()` dinámico.
+- Protocolo por la extensión del `pathname` de la URL, sin distinguir mayúsculas (`detectProtocol()`, ADR 0034): MP3/OGG directo; HLS nativo en iOS (también iPadOS con la web de escritorio: `isIOSDevice(userAgent, maxTouchPoints)` del núcleo, que el controlador recibe al crearse, ADR 0036) y con `hls.js` en el resto (nativo como alternativa); DASH con `dashjs`. `hls.js` y `dashjs` se cargan con `import()` dinámico.
 - `crossOrigin = 'anonymous'` en toda fuente asignada a `audio.src` (MP3/OGG, HLS nativo, intro) en el primer intento; no en las rutas MSE (ADR 0004). Si `play()` se rechaza con `NotSupportedError`, un solo reintento sin él en el mismo elemento, salvo que ya pase por Web Audio (`graph.isConnected()`): entonces, error. Tras el reintento la fuente no es limpia (`isCorsClean()`) y no se visualiza (ADR 0033).
 - Play tras una pausa, un error o un cambio de emisora recarga el directo en todos los protocolos (vuelve al borde en vivo); si ya suena, no hace nada (ADR 0032). `dashjs` sin fuente de hora de terceros (`clearDefaultUTCTimingSources()` tras `initialize()`).
 - Una pausa durante la carga la cancela (generación del controlador; el intento viejo no despacha nada) y `playing` sale solo del evento del elemento (ADR 0034).
 - El audio de bienvenida suena una vez antes del directo y no se puede pausar con el botón; si falla al arrancar o da un `error` mientras suena, pasa al directo sin error. Una pausa externa la libera (`paused`, Play carga el directo) y, si falla el directo que la sigue, queda el error: nunca bloquea el reproductor (ADR 0034).
 - **El horario no controla la reproducción:** solo informa (programa actual y siguiente, modales).
-- Volumen desactivado en iOS (`use-is-ios.tsx`).
+- Volumen por capacidad: el controlador sondea al crearse si escribir `volume` tiene efecto (`isVolumeControllable()`) y publica `volumeControllable`; donde no (iOS), ni deslizador ni escrituras (ADR 0036).
 - Visualizador o animación estática: desde la 0007 lo decide el controlador del audio según la fuente en curso, y solo entonces se conecta Web Audio (ADR 0031). Nada de decidirlo por el *user agent*, salvo la excepción medida de WebKit (`isWebKitBrowser()`: nunca visualiza, ADR 0033).
 
 ## Núcleo, hooks y componentes (ADR 0029)
@@ -39,7 +39,7 @@ paths:
 - **Inyección de dependencias:** lo que no es del núcleo entra como parámetro: el `HTMLAudioElement`, `navigator.mediaSession`, el *user agent*, el constructor de `AudioContext` (`webAudio`), el reloj (`now`, `setTimeout`/`setInterval` y sus `clear*`, con los globales por defecto), los cargadores de `hls.js`/`dashjs` (los `import()` por defecto viven en el núcleo, para que sigan siendo *chunks* aparte) y los textos ya traducidos. Los tests usan *fakes* (`src/test/fake-audio.ts`, `src/test/fake-web-audio.ts`, un reloj *fake*), no `vi.mock` de módulos.
 - **Estado:** transición pura `(estado, evento) → estado` + un controlador que ejecuta los efectos y publica una instantánea inmutable con `subscribe()`/`getSnapshot()`. `getSnapshot()` devuelve la misma referencia hasta que algo cambia; los temporizadores arrancan con el primer suscriptor y paran con el último; `attach`/`detach` son idempotentes (`StrictMode`).
 - **Hooks** (`src/hooks/`): adaptadores finos con `useSyncExternalStore` (o `useMemo` si no hay suscripción); conservan su firma (salvo `useAudioVisualizer()`, que desde la 0007 dibuja con `getAnalyser()`, ADR 0031). Excepción: `useAudioPlayer()` usa `useState` + `subscribe()` en un efecto, con el `setState` en el *callback*, para que no se pinte el `error` intermedio del reintento de C1 (ADR 0030, revisado en la 0007). Sin `setState` dentro de efectos ni temporizadores propios. **Componentes** (`src/components/dashboard/`): solo pintan.
-- Única excepción de `react-hooks` que se queda: `use-is-ios.tsx` («K13, spec 0007»). Sin `process.env` en el código publicado: `import.meta.env.DEV`.
+- Sin excepciones de `react-hooks` en `src/` (`grep -rn "eslint-disable" player/src` vacío desde la 0007). Sin `process.env` en el código publicado: `import.meta.env.DEV`.
 - Los visualizadores son zona congelada (`visualizers.md`).
 
 ## i18n

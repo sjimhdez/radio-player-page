@@ -111,8 +111,9 @@ function mount(streamUrl: string, introUrl?: string) {
   return { api, audio, rerender, unmount: view.unmount }
 }
 
-function setUserAgent(value: string) {
+function setUserAgent(value: string, maxTouchPoints = 0) {
   Object.defineProperty(navigator, 'userAgent', { configurable: true, value })
+  Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: maxTouchPoints })
 }
 
 let restoreAudio: () => void
@@ -314,6 +315,19 @@ describe('HLS', () => {
     await act(async () => instance.handlers.hlsManifestParsed())
     expect(media.play).toHaveBeenCalledTimes(1)
     expect(audio.crossOrigin).toBeNull()
+  })
+
+  // K13 (spec 0007, ADR 0036): the controller tells iOS when it is created, from
+  // navigator.userAgent and navigator.maxTouchPoints, so the first play() is right.
+  it.each([
+    ['an iPhone', IPHONE, 5],
+    ['iPadOS with the desktop user agent (K13)', SAFARI, 5],
+  ])('plays HLS natively on %s, from the first play()', async (_name, userAgent, touch) => {
+    setUserAgent(userAgent, touch)
+    const { api, audio } = mount(HLS)
+    await act(() => api.current.play())
+    expect(hls.instances).toHaveLength(0)
+    expect(audio.src).toBe(HLS)
   })
 
   // hls.js 1.7 turned preferManagedMediaSource off by default; 3.4.2 shipped

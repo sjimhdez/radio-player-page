@@ -18,7 +18,8 @@ export async function loadHlsModule(): Promise<HlsClass> {
  * HLS retries without it as the direct source does (C1, ADR 0033).
  *
  * @param options.loadHls - Loader of the Hls class (hls.js by default)
- * @param options.isIOS - Whether the device is iOS, read when the source is created
+ * @param options.isIOS - Whether the device is iOS (iPadOS included), decided by the
+ *   controller when it is created (ADR 0036)
  * @param options.retryWithoutCors - Passed to the direct source of native HLS
  * @returns AudioSource whose start() resolves before playback on the hls.js path:
  *   play() runs on MANIFEST_PARSED and its rejection goes to onPlayRejected. After
