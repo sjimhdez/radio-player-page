@@ -1,5 +1,5 @@
 # Spec 0007 · Fase 2 — Prioridad media: estados del audio
-Estado: en curso · Inicio: 2026-10-22 · ADRs: 0029, 0030, 0032, 0033 (nuevo: 0034)
+Estado: cerrada (2026-10-22) · Inicio: 2026-10-22 · ADRs: 0029, 0030, 0032, 0033 (nuevo: 0034)
 
 ## Contexto
 Lo leído al planificar, contrastado con la spec, los ADR y el código. Nada es falso; hay dos decisiones nuevas del usuario (2026-10-22) que cambian la spec:
@@ -123,6 +123,13 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - Verificación: `npm --prefix player run check && npm run test:e2e -- --project=chromium tests/e2e/cross-origin.spec.ts tests/e2e/intro.spec.ts` (el nombre del proyecto, según `playwright.config.ts`)
 - Resultado: con `useSyncExternalStore`, `npm --prefix player run check` en verde (641 tests), pero en Chromium fallan dos e2e de C1 de `cross-origin.spec.ts`: `plays an MP3 without CORS by retrying without crossOrigin (C1)` y `plays the welcome audio and the live stream without CORS (C1)` (sale la alerta «Unable to play the stream», tres veces en el segundo). Con el `dist/` de HEAD (`useState`) los dos pasan. La causa ya no es K1, sino el reintento del ADR 0033: el `error` del primer intento y el `canplay` del reintento dejan `status: 'error'` con `loading: false` hasta `playing`, y `useSyncExternalStore` lo pinta. Se revierte el hook. El ADR 0030 se queda, con la sección «Revisión en la 0007» (el motivo medido y lo que haría falta para volver). Al día: el JSDoc del hook, la rule `player.md`, el índice de ADRs. La spec 0006 no cambia (cita el ADR 0030, sin plazo). `intro.spec.ts` en verde.
 - [x] hecha · commit: 6178242
+- K83 (tras la 2.7, commit `4c084f1`, sin número de tarea por descuido): el estado intermedio del reintento de C1 que impide `useSyncExternalStore` se fija con `currently publishes an error without loading while the C1 retry loads (K83)` (controlador) y su fila en `known-issues.md`, pendiente de spec. Es caracterización del código vigente, no cambia nada.
+
+## Cierre (revisión de conformidad)
+- Un solo revisor (`spec-conformance-reviewer`) por decisión del usuario; la compatibilidad se revisó sin subagente (el diff no toca PHP, globales, bloques ni markup; `src/core` es interno, ADR 0029).
+- Añadidos en el hook: «keeps loading until the element plays with DASH (K11)» (A6 en el hook con DASH) y el Play que carga el directo en «releases the welcome audio when both … fail (K63)» (A9). Los dos se vieron fallar con `player-machine.ts` de antes de la fase.
+- `SPEC.md` §3.8 recoge la pausa durante la carga y `playing` del evento (ADR 0034 D3/D4); la rule `player.md`, la bienvenida y D3/D4; el índice de ADRs, en orden.
+- Queda como está: el `describe('currently (docs/known-issues.md)')` de `audio-controller.test.ts` agrupa ya regresiones; se renombra cuando K83 se corrija. El ajuste de C8 en WebKitGTK se mira en la CI de Linux.
 
 ## Decisiones abiertas → ADR
 - ADR 0034 (2.1): C2, D3, D4 y D5, este con la decisión del usuario sobre el error a mitad de la bienvenida (cambia D5 y A9 de la spec en el mismo commit).

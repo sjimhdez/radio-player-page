@@ -407,6 +407,18 @@ describe('DASH', () => {
     expect(media.play).not.toHaveBeenCalled()
   })
 
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until the element plays with DASH (K11)', async () => {
+    const { api, audio } = mount(DASH)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'idle', loading: true })
+    // The dashjs autoplay.
+    act(() => {
+      audio.dispatchEvent(new Event('playing'))
+    })
+    expect(api.current).toMatchObject({ status: 'playing', loading: false })
+  })
+
   it('sets error on a dashjs error', async () => {
     const { api } = mount(DASH)
     await act(() => api.current.play())
@@ -684,6 +696,10 @@ describe('audit (spec 0002, 4.6)', () => {
 
     expect(api.current.status).toBe('error')
     expect(api.current.introLocked).toBe(false)
+    media.failing.clear()
+    await act(() => api.current.play())
+    expect(media.play).toHaveBeenLastCalledWith(MP3)
+    expect(api.current.status).toBe('playing')
   })
 
   it('releases the welcome audio when something else pauses it (K63)', async () => {
