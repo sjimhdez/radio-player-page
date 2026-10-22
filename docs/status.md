@@ -7,7 +7,7 @@ Spec activa: 0007 — Correcciones: reproducción · Fase: 3 por empezar · Plan
 - Spec 0006 (Refactor del player) cerrada y fusionada en `trunk` (PR #40, 2026-10-21).
 
 ## Siguiente (máx. 5)
-1. Fase 3 de la 0007 (`start-phase`, sesión nueva): sueño e iOS (K65, K66, K13) y cierre de la spec. El ajuste de C8 en WebKitGTK (2.2) solo corre en la CI de Linux: confirmarlo en la CI del PR.
+1. Fase 3 de la 0007 (`start-phase`, sesión nueva): sueño e iOS (K65, K66, K13) y cierre de la spec.
 2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree.
 
 ## Bloqueos / preguntas para el humano
