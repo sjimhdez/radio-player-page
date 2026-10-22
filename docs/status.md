@@ -1,15 +1,16 @@
 # Estado
-Spec activa: 0007 — Correcciones: reproducción · Fase: cerrada (0–3, el 2026-10-22; PR #41 listo, pendiente de merge en `trunk`) · Plan: [`phase-3.md`](specs/0007-playback-fixes/phase-3.md) · Actualizado: 2026-10-22
+Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 1 por planificar · Plan: — · Actualizado: 2026-10-22
 
 ## En curso
-- Spec 0007 (Correcciones: reproducción, [`spec.md`](specs/0007-playback-fixes/spec.md)) cerrada el 2026-10-22, con los ADR 0031–0036. PR #41 (`spec/0007-playback-fixes` → `trunk`) listo: **el merge lo decide el usuario** (merge commit, título `Spec 0007: Correcciones: reproducción`); antes puede lanzar `/code-review`.
+- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)) escrita el 2026-10-22 en la rama `spec/0008-migration-and-core-fixes`, sin push (el primer push y el PR en borrador los hace `start-phase`). Fusiona la 0008 y la 0012 de la hoja de ruta (decisión del usuario): comparten `uninstall.php` y `SPEC.md` §3.7. Tres fases: migración (K29, K30 con el bloqueo atómico, K79, K31, K32), actualización, entidades y desinstalación (K33, K21, K43, C11, K7) y página limpia y API (K23 con RTL, K26, K24, K25).
+- Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tras el merge del PR #41, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad del player; notas en la hoja de ruta).
-2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree.
+1. Sesión nueva → `start-phase` de la fase 1 de la 0008.
+2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano
-- Decidir si se corrigen y en qué spec dos rarezas bajas: K76 (`completeTimeFields` sin uso; propuesta: 0010 admin) y K79 (la migración heredada pierde `is_rerun` de las franjas, que el refactor conserva; propuesta: 0008 migración).
+- Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` sin uso; propuesta: 0010 admin). K79 ya va en la 0008.
 - Decidir si se corrige y en qué spec K83 (baja, 2026-10-22): durante el reintento de C1 el controlador publica `error` sin `loading`; no se ve con `useState`, pero impide volver a `useSyncExternalStore` (ADR 0030).
 
 ## Verificación manual pendiente
