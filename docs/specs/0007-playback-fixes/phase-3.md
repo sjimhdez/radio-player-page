@@ -30,7 +30,7 @@ Corregir K66, K65 y K13 con su regresión en las capas que cita `known-issues.md
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/sleep.spec.ts`
 - Rojo (antes del arreglo): las tres capas `expected 1799 to be 59`; «ends on the first tick past the deadline» `expected 1799 to be null`; «catches up … comes back» `expected 1800 to be 1200`. El test espera **59**, no 60: 29 min retenidos más el *tick* de 1 s dejan 30:00 − 29:01. Se añade «catches up with the deadline when the first subscriber comes back (K66)» para el recálculo al volver el primer suscriptor.
 - Changelog: el temporizador de sueño pausa a su hora aunque el navegador retrase los temporizadores (pestaña en segundo plano).
-- [ ] hecha · commit: —
+- [x] hecha · commit: `a50f418`
 
 ### 3.2 K65: «Sleep mode» deshabilitado durante la bienvenida (≤ 1 h)
 - Qué (`fix-bug`): en `Dashboard`, `SleepMode` recibe `isPlaying={status === 'playing' && !introLocked}`; `useSleepTimer()` sigue con `status === 'playing'`. Regresión:
