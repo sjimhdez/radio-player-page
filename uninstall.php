@@ -19,6 +19,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  * Deletes all radplapag_program posts (and their meta) for the current blog.
  *
  * @since 3.3.0
+ * @since 3.5.0 Deletes posts in every registered status, trash and auto-draft included.
  *
  * @return void
  */
@@ -26,7 +27,7 @@ function radplapag_uninstall_delete_programs(): void {
 	$posts = get_posts(
 		array(
 			'post_type'      => 'radplapag_program',
-			'post_status'    => 'any',
+			'post_status'    => array_keys( get_post_stati() ),
 			'posts_per_page' => -1,
 			'fields'         => 'ids',
 		)
@@ -40,6 +41,7 @@ function radplapag_uninstall_delete_programs(): void {
  * Deletes all radplapag_station posts (and their meta) for the current blog.
  *
  * @since 3.3.0
+ * @since 3.5.0 Deletes posts in every registered status, trash and auto-draft included.
  *
  * @return void
  */
@@ -47,7 +49,7 @@ function radplapag_uninstall_delete_stations(): void {
 	$posts = get_posts(
 		array(
 			'post_type'      => 'radplapag_station',
-			'post_status'    => 'any',
+			'post_status'    => array_keys( get_post_stati() ),
 			'posts_per_page' => -1,
 			'fields'         => 'ids',
 		)

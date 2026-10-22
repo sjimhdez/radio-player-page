@@ -58,10 +58,10 @@ final class UninstallTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K7 (docs/known-issues.md): `post_status => 'any'` leaves out the statuses
-	 * excluded from search, so trashed and auto-draft posts survive with their meta.
+	 * K7 (docs/known-issues.md, fixed in spec 0008): trashed and auto-draft posts go
+	 * too, with their meta.
 	 */
-	public function test_currently_keeps_trashed_and_auto_draft_posts() {
+	public function test_deletes_trashed_and_auto_draft_posts() {
 		$ids = array(
 			$this->factory_rpp->station(
 				'Trashed',
@@ -78,9 +78,9 @@ final class UninstallTest extends WP_UnitTestCase {
 		self::uninstall();
 
 		foreach ( $ids as $id ) {
-			$this->assertNotNull( get_post( $id ), "Post $id" );
+			$this->assertNull( get_post( $id ), "Post $id" );
+			$this->assertSame( array(), self::meta_rows( $id ), "Meta of post $id" );
 		}
-		$this->assertSame( 'https://example.com/a.mp3', get_post_meta( $ids[0], 'radplapag_station_stream_url', true ) );
 	}
 
 	/**

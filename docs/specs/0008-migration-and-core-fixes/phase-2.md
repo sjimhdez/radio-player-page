@@ -129,7 +129,9 @@ Corregir K33 (con la variante de K21 en la migración), K21 y K43 en las globale
   - El mismo caso en un sitio de la red.
 - Verificación: `npm run test:php:integration -- --filter Uninstall && npm run test:php:integration:ms -- --filter Uninstall`
 - Changelog: «Uninstalling the plugin also deletes radio stations and radio shows in the trash and auto-drafts.»
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): `test_deletes_trashed_and_auto_draft_posts` y `test_deletes_trashed_and_auto_draft_posts_on_a_subsite` fallan en `assertNull( get_post( $id ) )`: la emisora en la papelera sigue en la base de datos.
+- Resultado (2026-10-23): `Uninstall` en verde, 9 tests en sitio único y 4 en multisite. Los docblocks de las dos funciones llevan `@since 3.5.0`; su firma no cambia.
+- [x] hecha · commit: —
 
 ### 2.7 C11: borrar opciones y transients (D11) (≤ 1 h)
 - Qué: `fix-bug`. Función nueva `radplapag_uninstall_delete_site_data()`, que borra todo lo de un sitio:

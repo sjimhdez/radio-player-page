@@ -7,7 +7,7 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 2.6 de la fase 2 (K7, `fix-bug`; de la 2.1 a la 2.5, K33, K21, K43 y el ADR 0042, hechas) y después la 2.7 (C11).
+1. Tarea 2.7 de la fase 2 (C11, `fix-bug`; de la 2.1 a la 2.6, K33, K21, K43, el ADR 0042 y K7, hechas) y después `close-phase`.
 2. La fase 1 se cerró con revisión mínima (decisión del usuario): solo `spec-conformance-reviewer` y `backcompat-reviewer`. Al cerrar la fase 2, pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente).
 3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 

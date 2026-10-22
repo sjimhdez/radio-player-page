@@ -61,6 +61,38 @@ final class UninstallMultisiteTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * K7 (docs/known-issues.md, fixed in spec 0008): trashed and auto-draft posts of a
+	 * subsite go too, with their meta.
+	 */
+	public function test_deletes_trashed_and_auto_draft_posts_on_a_subsite() {
+		$site = self::factory()->blog->create();
+		switch_to_blog( $site );
+		$factory = new Factory();
+		$ids     = array(
+			$factory->station(
+				'Trashed',
+				array(
+					'status'     => 'trash',
+					'stream_url' => 'https://example.com/a.mp3',
+				)
+			),
+			$factory->station( 'Auto draft', array( 'status' => 'auto-draft' ) ),
+			$factory->program( 'Trashed', array( 'description' => 'Text' ), 'trash' ),
+			$factory->program( 'Auto draft', array(), 'auto-draft' ),
+		);
+		restore_current_blog();
+
+		UninstallTest::uninstall();
+
+		switch_to_blog( $site );
+		foreach ( $ids as $id ) {
+			$this->assertNull( get_post( $id ), "Post $id" );
+			$this->assertSame( array(), UninstallTest::meta_rows( $id ), "Meta of post $id" );
+		}
+		restore_current_blog();
+	}
+
+	/**
 	 * Other post types of a subsite stay.
 	 */
 	public function test_does_not_touch_other_posts_on_a_subsite() {
