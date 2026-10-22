@@ -107,8 +107,10 @@ export function transition(state: PlayerState, event: PlayerEvent): PlayerState 
       // Chromium fires a pause after the error of a failing source (K1).
       if (state.status === 'error') return state
       return patch(state, { status: 'paused' })
-    case 'play-failed':
     case 'stream-error':
+      // A fatal error of hls.js or dashjs comes after the load, which keeps loading (K11).
+      return patch(state, { status: 'error', loading: false })
+    case 'play-failed':
     case 'error':
       return patch(state, { status: 'error' })
     case 'canplay':

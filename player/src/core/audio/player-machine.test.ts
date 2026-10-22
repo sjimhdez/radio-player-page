@@ -77,6 +77,13 @@ describe('transition', () => {
     expect(transition(liveState, { type: 'stream-error' }).status).toBe('error')
   })
 
+  // Since K11 the load does not clear loading on success; a fatal error of hls.js or
+  // dashjs arrives afterwards (spec 0007, task 2.4).
+  it('clears loading on stream-error', () => {
+    const state = run([{ type: 'load-start' }, { type: 'live-started' }, { type: 'stream-error' }])
+    expect(state).toMatchObject({ status: 'error', loading: false })
+  })
+
   it('pauses the live stream with user-paused', () => {
     expect(transition(liveState, { type: 'user-paused' }).status).toBe('paused')
   })

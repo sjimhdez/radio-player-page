@@ -380,6 +380,16 @@ describe('HLS', () => {
     expect(controller.getSnapshot().status).toBe('error')
   })
 
+  // A fatal error arrives after the load, which no longer clears loading (spec 0007, 2.4).
+  it('clears loading on a fatal hls.js error while it loads', async () => {
+    const hls = createFakeHls()
+    const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(live(HLS))
+    hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    // The alert shows: error and not loading.
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+  })
+
   it('falls back to native HLS with crossOrigin when hls.js is not supported', async () => {
     const hls = createFakeHls()
     hls.setSupported(false)
@@ -446,6 +456,14 @@ describe('DASH', () => {
     await controller.play(live(DASH))
     dash.players[0].handlers.error({ error: { code: 17 } })
     expect(controller.getSnapshot().status).toBe('error')
+  })
+
+  it('clears loading on a dashjs error while it loads', async () => {
+    const dash = createFakeDash()
+    const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    dash.players[0].handlers.error({ error: { code: 17 } })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
   })
 
   // docs/known-issues.md C7 (spec 0007, ADR 0032).

@@ -356,6 +356,15 @@ describe('HLS', () => {
     expect(api.current.status).toBe('error')
   })
 
+  // A fatal error arrives after the load, which no longer clears loading (spec 0007, 2.4).
+  it('clears loading on a fatal hls.js error while it loads', async () => {
+    const { api } = mount(HLS)
+    await act(() => api.current.play())
+    act(() => hls.instances[0].handlers.hlsError(undefined, { fatal: true }))
+    expect(api.current.status).toBe('error')
+    expect(api.current.loading).toBe(false)
+  })
+
   it('falls back to native HLS with crossOrigin when hls.js is not supported', async () => {
     hls.supported = false
     const { api, audio } = mount(HLS)
