@@ -4,19 +4,31 @@
 // the K70 regression cases (task 2.9). Spec 0007 fixed C7 and K12: Play after a pause
 // reloads the live stream (ADR 0032). The concurrency suspicions of §4.5 come
 // last (task 2.10). C1 (spec 0007, ADR 0033): one retry without crossOrigin on the
-// direct sources, never with the element in the Web Audio graph.
+// direct sources, never with the element in the Web Audio graph. canVisualize and
+// the Web Audio graph (spec 0007, task 1.7; K82, ADR 0031) close the file.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAudioController } from 'src/core/audio/audio-controller'
 import { initialPlayerState } from 'src/core/audio/player-machine'
-import { createVisualizerGraph } from 'src/core/audio/web-audio'
 import { installFakeAudio, media } from 'src/test/fake-audio'
 import { createFakeDash, createFakeHls } from 'src/test/fake-streaming'
+import { FakeAudioContext, webAudio } from 'src/test/fake-web-audio'
 
 const MP3 = 'https://radio.test/live.mp3'
 const OGG = 'https://radio.test/other.ogg'
 const HLS = 'https://radio.test/live.m3u8'
 const DASH = 'https://radio.test/live.mpd'
 const INTRO = 'https://radio.test/intro.mp3'
+
+const CHROME =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
+const SAFARI =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0.1 Safari/605.1.15'
+
+/** The Web Audio options of a browser with a (fake) AudioContext. */
+const withWebAudio = (userAgent = CHROME) => ({
+  createContext: vi.fn(() => new FakeAudioContext() as unknown as AudioContext),
+  userAgent,
+})
 
 const desktop = { isIOS: false }
 const live = (streamUrl = MP3, isIOS = false) => ({ streamUrl, introUrl: null, isIOS })
@@ -25,6 +37,7 @@ const withIntro = (streamUrl = MP3) => ({ streamUrl, introUrl: INTRO, isIOS: fal
 let restore: () => void
 beforeEach(() => {
   restore = installFakeAudio()
+  webAudio.contexts = []
 })
 afterEach(() => restore())
 
@@ -552,12 +565,6 @@ describe('welcome audio (intro)', () => {
 })
 
 describe('streams without CORS (C1)', () => {
-  /** A graph that reports the element as connected. */
-  const connectedGraph = () => ({
-    ...createVisualizerGraph({ userAgent: '' }),
-    isConnected: () => true,
-  })
-
   it('plays an MP3 without CORS by retrying without crossOrigin', async () => {
     media.corsBlocked.add(MP3)
     const { controller, audio } = setup()
@@ -604,9 +611,15 @@ describe('streams without CORS (C1)', () => {
   })
 
   it('does not retry when the element is in the Web Audio graph, and sets error (D1)', async () => {
-    media.corsBlocked.add(MP3)
-    const { controller, audio } = setup({ graph: connectedGraph() })
+    media.corsBlocked.add(OGG)
+    const { controller, audio } = setup({ webAudio: withWebAudio() })
     await controller.play(live())
+    expect(controller.getSnapshot().canVisualize).toBe(true)
+    controller.pause()
+    media.play.mockClear()
+
+    await controller.play(live(OGG))
+
     expect(media.play).toHaveBeenCalledTimes(1)
     expect(audio.crossOrigin).toBe('anonymous')
     expect(controller.getSnapshot().status).toBe('error')
@@ -776,5 +789,137 @@ describe('concurrency (spec 0006, 2.10)', () => {
 
     // The UI shows "Unable to play the stream" instead of Play.
     expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+  })
+})
+
+describe('visualization (K82, ADR 0031)', () => {
+  it('starts without a visualizer and creates nothing until play()', () => {
+    const options = withWebAudio()
+    const { controller, audio } = setup({ webAudio: options })
+    audio.dispatchEvent(new Event('playing'))
+
+    expect(options.createContext).not.toHaveBeenCalled()
+    expect(controller.getSnapshot().canVisualize).toBe(false)
+    expect(controller.getAnalyser()).toBeNull()
+  })
+
+  it('creates the context synchronously in play(), inside the gesture', () => {
+    media.hold = true
+    const options = withWebAudio()
+    const { controller } = setup({ webAudio: options })
+
+    void controller.play(live())
+
+    expect(options.createContext).toHaveBeenCalledTimes(1)
+  })
+
+  it('visualizes a direct stream with CORS and connects the element once', async () => {
+    const { controller, audio } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: true })
+    const [context] = webAudio.contexts
+    expect(context.createMediaElementSource).toHaveBeenCalledWith(audio)
+    expect(controller.getAnalyser()).toBe(context.analysers[0])
+
+    controller.pause()
+    await controller.play(live())
+    expect(context.createMediaElementSource).toHaveBeenCalledTimes(1)
+    expect(webAudio.contexts).toHaveLength(1)
+  })
+
+  it('visualizes hls.js (MSE)', async () => {
+    const hls = createFakeHls()
+    const { controller, audio } = setup({
+      loaders: { loadHls: hls.loadHls },
+      webAudio: withWebAudio(),
+    })
+    await controller.play(live(HLS))
+    hls.instances[0].handlers[hls.Hls.Events.MANIFEST_PARSED]('', { fatal: false })
+    await vi.waitFor(() => expect(controller.getSnapshot().canVisualize).toBe(true))
+    expect(webAudio.contexts[0].createMediaElementSource).toHaveBeenCalledWith(audio)
+  })
+
+  it('visualizes dashjs (MSE)', async () => {
+    const dash = createFakeDash()
+    const { controller, audio } = setup({
+      loaders: { loadDash: dash.loadDash },
+      webAudio: withWebAudio(),
+    })
+    await controller.play(live(DASH))
+    audio.dispatchEvent(new Event('playing'))
+    expect(controller.getSnapshot().canVisualize).toBe(true)
+  })
+
+  it('does not visualize after the retry without crossOrigin, nor connect the element', async () => {
+    media.corsBlocked.add(MP3)
+    const { controller } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: false })
+    expect(webAudio.contexts[0].createMediaElementSource).not.toHaveBeenCalled()
+    expect(controller.getAnalyser()).toBeNull()
+  })
+
+  it('never visualizes the welcome audio, and visualizes the live stream after it', async () => {
+    const { controller, audio } = setup({ webAudio: withWebAudio() })
+    await controller.play(withIntro())
+
+    expect(controller.getSnapshot()).toMatchObject({ activeSource: 'intro', canVisualize: false })
+    expect(webAudio.contexts[0].createMediaElementSource).not.toHaveBeenCalled()
+
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(controller.getSnapshot().canVisualize).toBe(true))
+  })
+
+  it('never creates the context in WebKit, nor visualizes', async () => {
+    const options = withWebAudio(SAFARI)
+    const { controller } = setup({ webAudio: options })
+    await controller.play(live())
+
+    expect(options.createContext).not.toHaveBeenCalled()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  it('does not visualize without the Web Audio API', async () => {
+    const { controller } = setup({ webAudio: { userAgent: CHROME } })
+    await controller.play(live())
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  it('does not visualize when the element cannot be connected', async () => {
+    const createContext = () => {
+      const context = new FakeAudioContext()
+      context.createMediaElementSource.mockImplementation(() => {
+        throw new Error('InvalidStateError')
+      })
+      return context as unknown as AudioContext
+    }
+    const { controller } = setup({ webAudio: { createContext, userAgent: CHROME } })
+    await controller.play(live())
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  it('resumes a suspended context in play()', async () => {
+    const { controller } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+    controller.pause()
+    const [context] = webAudio.contexts
+    context.state = 'suspended'
+
+    void controller.play(live())
+
+    expect(context.resume).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears canVisualize while the next attempt loads', async () => {
+    const { controller } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+    controller.pause()
+    media.hold = true
+
+    void controller.play(live(OGG))
+
+    expect(controller.getSnapshot()).toMatchObject({ loading: true, canVisualize: false })
   })
 })

@@ -5,6 +5,7 @@ import { StrictMode, useEffect } from 'react'
 import { act, render } from '@testing-library/react'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import { installFakeAudio, media } from 'src/test/fake-audio'
+import { installFakeWebAudio, webAudio } from 'src/test/fake-web-audio'
 
 type Handler = (event?: unknown, data?: { fatal: boolean }) => void
 
@@ -75,6 +76,8 @@ const DASH = 'https://radio.test/live.mpd'
 const INTRO = 'https://site.test/intro.mp3'
 const DESKTOP = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'
+const SAFARI =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0.1 Safari/605.1.15'
 
 type Api = ReturnType<typeof useAudioPlayer>
 
@@ -203,6 +206,47 @@ describe('direct streams', () => {
     expect(media.play).toHaveBeenCalledTimes(2)
     expect(audio.hasAttribute('crossorigin')).toBe(false)
     expect(api.current.status).toBe('playing')
+  })
+})
+
+// spec 0007, task 1.7 (K82, ADR 0031): the hook injects window.AudioContext and
+// navigator.userAgent; the controller decides (src/core/audio/audio-controller.test.ts).
+describe('visualization (K82)', () => {
+  let restoreWebAudio: () => void
+  beforeEach(() => {
+    restoreWebAudio = installFakeWebAudio()
+  })
+  afterEach(() => restoreWebAudio())
+
+  it('starts without a visualizer nor an analyser', () => {
+    const { api } = mount(MP3)
+    expect(api.current.canVisualize).toBe(false)
+    expect(api.current.getAnalyser()).toBeNull()
+    expect(webAudio.contexts).toHaveLength(0)
+  })
+
+  it('visualizes a direct stream with CORS through window.AudioContext', async () => {
+    const { api, audio } = mount(MP3)
+    await act(() => api.current.play())
+    expect(api.current.canVisualize).toBe(true)
+    const [context] = webAudio.contexts
+    expect(context.createMediaElementSource).toHaveBeenCalledWith(audio)
+    expect(api.current.getAnalyser()).toBe(context.analysers[0])
+  })
+
+  it('never creates the context in WebKit, read from navigator.userAgent', async () => {
+    setUserAgent(SAFARI)
+    const { api } = mount(MP3)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
+    expect(webAudio.contexts).toHaveLength(0)
+  })
+
+  it('does not visualize without window.AudioContext', async () => {
+    vi.stubGlobal('AudioContext', undefined)
+    const { api } = mount(MP3)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
   })
 })
 

@@ -1,6 +1,7 @@
 // Pure transition of the audio player (spec 0006, task 2.5). The currently cases
 // replicate docs/known-issues.md K1, K11, K63 and K64, as fixed in
 // src/hooks/use-audio-player.test.tsx and tests/e2e/cross-origin.spec.ts.
+// canVisualize (spec 0007, task 1.7): false on each attempt, set by the playing event.
 import { describe, expect, it } from 'vitest'
 import {
   initialPlayerState,
@@ -22,7 +23,7 @@ const introState = run([
 ])
 
 describe('initialPlayerState', () => {
-  it('starts idle, not loading, unlocked, with nothing loaded and full volume', () => {
+  it('starts idle, not loading, unlocked, with nothing loaded, full volume and no visualizer', () => {
     expect(initialPlayerState).toEqual({
       status: 'idle',
       loading: false,
@@ -30,6 +31,7 @@ describe('initialPlayerState', () => {
       activeSource: null,
       introConsumed: false,
       volume: 1,
+      canVisualize: false,
     })
   })
 })
@@ -79,8 +81,25 @@ describe('transition', () => {
   })
 
   it('reports playing and clears loading on the playing event', () => {
-    const state = run([{ type: 'load-start' }, { type: 'playing' }])
+    const state = run([{ type: 'load-start' }, { type: 'playing', visualizable: false }])
     expect(state).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  it.each([true, false])('sets canVisualize to %s on the playing event', (visualizable) => {
+    const state = run([{ type: 'load-start' }, { type: 'playing', visualizable }])
+    expect(state.canVisualize).toBe(visualizable)
+  })
+
+  it('clears canVisualize on each attempt (load-start)', () => {
+    const visualizing = run([{ type: 'playing', visualizable: true }], liveState)
+    expect(transition(visualizing, { type: 'load-start' }).canVisualize).toBe(false)
+  })
+
+  it('keeps canVisualize on waiting, pause and error', () => {
+    const visualizing = run([{ type: 'playing', visualizable: true }], liveState)
+    for (const type of ['waiting', 'pause', 'error'] as const) {
+      expect(transition(visualizing, { type }).canVisualize).toBe(true)
+    }
   })
 
   it('reports paused on the pause event and error on the error event', () => {
@@ -116,7 +135,7 @@ describe('transition', () => {
     it.each<[string, PlayerState, PlayerEvent]>([
       ['load-end while not loading', initialPlayerState, { type: 'load-end' }],
       ['load-start while loading', { ...liveState, loading: true }, { type: 'load-start' }],
-      ['playing while playing', liveState, { type: 'playing' }],
+      ['playing while playing', liveState, { type: 'playing', visualizable: false }],
       ['pause while paused', { ...liveState, status: 'paused' }, { type: 'pause' }],
       ['volume-changed to the same volume', liveState, { type: 'volume-changed', volume: 1 }],
       ['canplay while playing and not loading', liveState, { type: 'canplay' }],

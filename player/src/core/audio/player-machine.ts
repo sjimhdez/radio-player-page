@@ -16,11 +16,18 @@ export interface PlayerState {
   introConsumed: boolean
   /** Volume level (0-1). */
   volume: number
+  /**
+   * Whether the source in the element goes through the Web Audio graph: false on each
+   * attempt, set by the playing event of the element (K82, ADR 0031).
+   */
+  canVisualize: boolean
 }
 
 /**
  * What the controller reports: its own steps (load-start to volume-changed) and
- * the events of the audio element (playing, pause, error, canplay, waiting).
+ * the events of the audio element (playing, pause, error, canplay, waiting). The
+ * controller adds to playing whether the source is visualizable: the live stream,
+ * clean of CORS and connected to the Web Audio graph.
  */
 export type PlayerEvent =
   | { type: 'load-start' }
@@ -31,7 +38,7 @@ export type PlayerEvent =
   | { type: 'play-failed' }
   | { type: 'resumed' }
   | { type: 'user-paused' }
-  | { type: 'playing' }
+  | { type: 'playing'; visualizable: boolean }
   | { type: 'pause' }
   | { type: 'error' }
   | { type: 'canplay' }
@@ -46,6 +53,7 @@ export const initialPlayerState: PlayerState = {
   activeSource: null,
   introConsumed: false,
   volume: 1,
+  canVisualize: false,
 }
 
 /**
@@ -72,6 +80,7 @@ function patch(state: PlayerState, changes: Partial<PlayerState>): PlayerState {
 export function transition(state: PlayerState, event: PlayerEvent): PlayerState {
   switch (event.type) {
     case 'load-start':
+      return patch(state, { loading: true, canVisualize: false })
     case 'waiting':
       return patch(state, { loading: true })
     case 'load-end':
@@ -85,7 +94,7 @@ export function transition(state: PlayerState, event: PlayerEvent): PlayerState 
     case 'resumed':
       return patch(state, { status: 'playing' })
     case 'playing':
-      return patch(state, { status: 'playing', loading: false })
+      return patch(state, { status: 'playing', loading: false, canVisualize: event.visualizable })
     case 'user-paused':
       // The welcome audio cannot be paused.
       if (state.activeSource === 'intro') return state

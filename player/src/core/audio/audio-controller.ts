@@ -9,7 +9,7 @@ import { createDashSource } from 'src/core/audio/sources/dash'
 import { createDirectSource } from 'src/core/audio/sources/direct'
 import { createHlsSource } from 'src/core/audio/sources/hls'
 import type { AudioSource, DashMediaPlayer, HlsClass } from 'src/core/audio/sources/types'
-import { createVisualizerGraph, type VisualizerGraph } from 'src/core/audio/web-audio'
+import { createVisualizerGraph, type VisualizerGraphOptions } from 'src/core/audio/web-audio'
 
 /**
  * Loaders of the streaming libraries; the dynamic imports of the sources by default.
@@ -46,6 +46,8 @@ export interface AudioController {
   pause: () => void
   /** Sets the volume (0-1); ignored on iOS. */
   setVolume: (volume: number, options: { isIOS: boolean }) => void
+  /** The analyser of the Web Audio graph; null until the element is connected. */
+  getAnalyser: () => AnalyserNode | null
 }
 
 // The 3.4.2 hook had seven listeners; its two on 'playing' are one machine event here.
@@ -62,14 +64,20 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  * A direct source that fails is retried once without crossOrigin, unless the element
  * goes through the Web Audio graph: then it is an error (C1, ADR 0033).
  *
+ * The Web Audio context is created or resumed synchronously in play(), inside the
+ * gesture. When the element starts playing the live stream from a source clean of
+ * CORS, it is connected to the graph (only the first time) and canVisualize turns
+ * true; the welcome audio never is (K82, ADR 0031).
+ *
  * @param options.loaders - Loaders of hls.js and dashjs (dynamic imports by default)
- * @param options.graph - The Web Audio graph (none by default: never connected)
+ * @param options.webAudio - Context factory and user agent (no Web Audio by default)
  * @returns AudioController
  */
 export function createAudioController({
   loaders = {},
-  graph = createVisualizerGraph({ userAgent: '' }),
-}: { loaders?: StreamingLoaders; graph?: VisualizerGraph } = {}): AudioController {
+  webAudio = { userAgent: '' },
+}: { loaders?: StreamingLoaders; webAudio?: VisualizerGraphOptions } = {}): AudioController {
+  const graph = createVisualizerGraph(webAudio)
   const listeners = new Set<() => void>()
   let state = initialPlayerState
   let audio: HTMLAudioElement | null = null
@@ -131,7 +139,24 @@ export function createAudioController({
     }
   }
 
+  /**
+   * Whether the element can be visualized now; connects it to the graph if so. source
+   * is only ever the live stream's: the welcome audio, which plays before the first
+   * live stream, never sets it, so it is never visualized.
+   */
+  const connectIfVisualizable = (): boolean => {
+    if (audio === null || !graph.supported || !source?.isCorsClean()) {
+      return false
+    }
+    graph.connect(audio)
+    return graph.isConnected()
+  }
+
   const onAudioEvent = (event: Event) => {
+    if (event.type === 'playing') {
+      dispatch({ type: 'playing', visualizable: connectIfVisualizable() })
+      return
+    }
     if (event.type === 'ended') {
       // Only the end of the welcome audio matters.
       if (state.activeSource === 'intro' && audio !== null && introOptions !== null) {
@@ -139,7 +164,7 @@ export function createAudioController({
       }
       return
     }
-    dispatch({ type: event.type as Exclude<(typeof AUDIO_EVENTS)[number], 'ended'> })
+    dispatch({ type: event.type as Exclude<(typeof AUDIO_EVENTS)[number], 'ended' | 'playing'> })
   }
 
   /**
@@ -223,6 +248,8 @@ export function createAudioController({
       source = null
     },
     play(options) {
+      // Synchronous, inside the gesture: WebKit keeps a context made outside it silent.
+      graph.prepare()
       if (pendingPlay === null) {
         pendingPlay = startPlay(options).finally(() => {
           pendingPlay = null
@@ -241,5 +268,6 @@ export function createAudioController({
       audio.volume = volume
       dispatch({ type: 'volume-changed', volume })
     },
+    getAnalyser: () => graph.getAnalyser(),
   }
 }

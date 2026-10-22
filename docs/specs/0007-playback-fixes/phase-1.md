@@ -109,7 +109,8 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Archivos: `player/src/core/audio/{player-machine.ts,audio-controller.ts}` (+ tests), `player/src/hooks/use-audio-player.tsx` (+ test).
 - Test: primero (TDD).
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Resultado: 20 tests nuevos (player `check`: 620). Rojo antes del arreglo: 18 (máquina y controlador) y 4 del hook. El controlador recibe `webAudio` en lugar de `graph` y crea el grafo; el test de D1 de la 1.6 conecta ahora el elemento con un MP3 con CORS y prueba después un OGG sin CORS. El evento `playing` lleva `visualizable`, que calcula el controlador: grafo soportado, fuente del directo (`source` nunca es la bienvenida) con `isCorsClean()`, y el elemento conectado de verdad (si `createMediaElementSource()` lanza, `false`). Mutaciones: sin `prepare()` en `play()` fallan 8; sin `isCorsClean()`, 1; «conectado siempre», 1; sin reiniciar en `load-start`, 2. Estado intermedio hasta la 1.8: en Chromium con CORS el controlador conecta el elemento en el `playing`, antes que el efecto del hook viejo, cuyo `createMediaElementSource()` lanza `InvalidStateError` (lo captura con un `console.warn`): el audio suena por el grafo del controlador, pero el canvas no dibuja.
+- [x] hecha · commit: —
 
 ### 1.8 Hooks rehechos y un solo valor en el `Dashboard` (≤ 1 h)
 - Qué (`fix-bug` de K82, capa de hooks y e2e):

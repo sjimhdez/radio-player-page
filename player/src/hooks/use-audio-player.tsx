@@ -10,7 +10,8 @@ import { createAudioController } from 'src/core/audio/audio-controller'
  * Adapter of the audio controller (src/core/audio/audio-controller): creates one per
  * mount, attaches it to the audio element and publishes its snapshot. The snapshot
  * goes through useState, not useSyncExternalStore, so React renders it with the
- * priority of the event that changed it, as in 3.4.2 (ADR 0030, K1).
+ * priority of the event that changed it, as in 3.4.2 (ADR 0030, K1). It injects
+ * window.AudioContext and navigator.userAgent for the Web Audio graph (ADR 0031).
  *
  * Features:
  * - Automatic protocol detection and library loading
@@ -31,12 +32,22 @@ import { createAudioController } from 'src/core/audio/audio-controller'
  * @returns pause - Function to pause playback (no-op while introLocked)
  * @returns volume - Current volume level (0-1)
  * @returns handleVolumeChange - Function to change volume (ignored on iOS)
+ * @returns canVisualize - Whether the live stream goes through the visualizer's analyser
+ * @returns getAnalyser - The analyser of the Web Audio graph, or null
  */
 function useAudioPlayer(streamUrl: string, introUrl?: string | null) {
   const audioRef = useRef<HTMLAudioElement>(null!)
-  const [controller] = useState(() => createAudioController())
+  const [controller] = useState(() =>
+    createAudioController({
+      webAudio: {
+        createContext:
+          typeof window.AudioContext === 'function' ? () => new window.AudioContext() : undefined,
+        userAgent: navigator.userAgent,
+      },
+    }),
+  )
   const [snapshot, setSnapshot] = useState(controller.getSnapshot)
-  const { status, loading, introLocked, volume } = snapshot
+  const { status, loading, introLocked, volume, canVisualize } = snapshot
   const isIOS = useIsIOS()
 
   useEffect(() => controller.subscribe(() => setSnapshot(controller.getSnapshot())), [controller])
@@ -74,6 +85,8 @@ function useAudioPlayer(streamUrl: string, introUrl?: string | null) {
     pause,
     volume,
     handleVolumeChange,
+    canVisualize,
+    getAnalyser: controller.getAnalyser,
   }
 }
 
