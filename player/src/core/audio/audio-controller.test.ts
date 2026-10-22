@@ -1,6 +1,6 @@
 // The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
 // of the audio element, the volume, HLS/DASH and the welcome audio, as in
-// src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K63) and
+// src/hooks/use-audio-player.test.tsx, with its currently cases (K63) and
 // the K70 regression cases (task 2.9). Spec 0007 fixed C7 and K12: Play after a pause
 // reloads the live stream (ADR 0032). The concurrency suspicions of §4.5 come
 // last (task 2.10). C1 (spec 0007, ADR 0033): one retry without crossOrigin on the
@@ -287,6 +287,9 @@ describe('sources', () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
+    // Playing: a pause during the load would destroy it (ADR 0034 D3).
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await Promise.resolve()
     controller.pause()
     expect(hls.instances[0].destroy).not.toHaveBeenCalled()
     await controller.play(live(MP3))
@@ -341,6 +344,20 @@ describe('HLS', () => {
     hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
     await Promise.resolve()
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  it('respects a pause pressed while HLS loads (K11)', async () => {
+    const hls = createFakeHls()
+    const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(live(HLS))
+    controller.pause()
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    await Promise.resolve()
+    expect(media.play).not.toHaveBeenCalled()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
 
   it('sets error when play() after MANIFEST_PARSED rejects', async () => {
@@ -409,6 +426,18 @@ describe('DASH', () => {
     // The dashjs autoplay.
     audio.dispatchEvent(new Event('playing'))
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  it('respects a pause pressed while DASH loads (K11)', async () => {
+    const dash = createFakeDash()
+    const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    controller.pause()
+    // reset() stops the dashjs autoplay.
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
+    dash.players[0].handlers.error({ error: { code: 17 } })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
 
   it('sets error on a dashjs error', async () => {
@@ -702,18 +731,6 @@ describe('currently (docs/known-issues.md)', () => {
     // Play replaces the spinner.
     expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
-
-  it('currently plays HLS on MANIFEST_PARSED after a pause pressed while it loads (K11)', async () => {
-    const hls = createFakeHls()
-    const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
-    await controller.play(live(HLS))
-    controller.pause()
-    expect(controller.getSnapshot().status).toBe('paused')
-    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
-    await Promise.resolve()
-    expect(media.play).toHaveBeenCalledTimes(1)
-    expect(controller.getSnapshot().status).toBe('playing')
-  })
 })
 
 describe('volume', () => {
@@ -803,8 +820,8 @@ describe('concurrency (spec 0006, 2.10)', () => {
   })
 
   // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
-  // when pause() interrupts it. Fixed in spec 0007.
-  it('currently reports an error when a pause interrupts the loading MP3 (K81)', async () => {
+  // when pause() interrupts it; the pause cancels the load (spec 0007, ADR 0034 D3).
+  it('stays paused, without an error, when a pause interrupts the loading MP3 (K81)', async () => {
     media.hold = true
     const { controller } = setup()
     const playing = controller.play(live())
@@ -814,8 +831,30 @@ describe('concurrency (spec 0006, 2.10)', () => {
     media.fail('AbortError')
     await playing
 
-    // The UI shows "Unable to play the stream" instead of Play.
-    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
+  })
+
+  // Risk 5 of spec 0007: the pause releases the pending play() (K80), so the next
+  // one loads again, and the cancelled load creates no hls.js of its own.
+  it('reloads on play() after a pause that cancelled the load', async () => {
+    const hls = createFakeHls()
+    const releases: (() => void)[] = []
+    const loadHls = vi.fn(
+      () => new Promise<typeof hls.Hls>((resolve) => releases.push(() => resolve(hls.Hls))),
+    )
+    const { controller } = setup({ loaders: { loadHls } })
+    const first = controller.play(live(HLS))
+    controller.pause()
+    const second = controller.play(live(HLS))
+    expect(second).not.toBe(first)
+    releases.forEach((release) => release())
+    await Promise.all([first, second])
+
+    expect(loadHls).toHaveBeenCalledTimes(2)
+    expect(hls.instances).toHaveLength(1)
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await Promise.resolve()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
   })
 })
 

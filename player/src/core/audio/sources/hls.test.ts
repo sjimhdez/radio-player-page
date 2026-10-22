@@ -114,6 +114,30 @@ describe('createHlsSource', () => {
     expect(fake.instances[0].destroy).toHaveBeenCalledTimes(1)
   })
 
+  // docs/known-issues.md K11 with a pause (spec 0007, ADR 0034 D3): the fake keeps its
+  // handlers after destroy(), so the source must ignore them.
+  it('ignores MANIFEST_PARSED and errors after destroy()', async () => {
+    const fake = createFakeHls()
+    const cbs = callbacks()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false })
+    await source.start(new Audio(), HLS, cbs)
+    source.destroy()
+    fake.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    fake.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    await Promise.resolve()
+    expect(media.play).not.toHaveBeenCalled()
+    expect(cbs.onError).not.toHaveBeenCalled()
+  })
+
+  it('creates no hls.js when destroyed while hls.js loads', async () => {
+    const fake = createFakeHls()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false })
+    const started = source.start(new Audio(), HLS, callbacks())
+    source.destroy()
+    await started
+    expect(fake.instances).toHaveLength(0)
+  })
+
   it('destroy() does nothing before start() or on the native path', async () => {
     const fake = createFakeHls()
     fake.setSupported(false)

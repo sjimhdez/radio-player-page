@@ -720,18 +720,31 @@ describe('audit (spec 0002, 4.6)', () => {
     expect(api.current.loading).toBe(false)
   })
 
-  it('currently plays HLS on MANIFEST_PARSED after a pause pressed while it loads (K11)', async () => {
+  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  it('respects a pause pressed while HLS loads (K11)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     act(() => api.current.pause())
-    expect(api.current.status).toBe('paused')
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
 
     await act(async () => {
       hls.instances[0].handlers.hlsManifestParsed()
     })
 
-    expect(media.play).toHaveBeenCalledTimes(1)
-    expect(api.current.status).toBe('playing')
+    expect(media.play).not.toHaveBeenCalled()
+    expect(api.current.status).toBe('paused')
+    expect(api.current.loading).toBe(false)
+  })
+
+  it('respects a pause pressed while DASH loads (K11)', async () => {
+    const { api } = mount(DASH)
+    await act(() => api.current.play())
+    act(() => api.current.pause())
+
+    // reset() stops the dashjs autoplay.
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
+    expect(api.current.status).toBe('paused')
+    expect(api.current.loading).toBe(false)
   })
 
   it('clears crossOrigin on the hls.js path after the welcome audio (K70)', async () => {
@@ -904,8 +917,8 @@ describe('concurrency (spec 0006, 2.2)', () => {
   })
 
   // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
-  // when pause() interrupts it.
-  it('currently reports an error when a pause interrupts the loading MP3 (K81)', async () => {
+  // when pause() interrupts it; the pause cancels the load (spec 0007, ADR 0034 D3).
+  it('stays paused, without an error, when a pause interrupts the loading MP3 (K81)', async () => {
     media.hold = true
     const { api } = mount(MP3)
     let done!: Promise<void>
@@ -920,8 +933,7 @@ describe('concurrency (spec 0006, 2.2)', () => {
       await done
     })
 
-    // The UI shows "Unable to play the stream" instead of Play.
-    expect(api.current.status).toBe('error')
+    expect(api.current.status).toBe('paused')
     expect(api.current.loading).toBe(false)
   })
 })

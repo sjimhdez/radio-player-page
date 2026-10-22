@@ -85,7 +85,11 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - Archivos: `player/src/core/audio/{audio-controller.ts,audio-controller.test.ts,player-machine.test.ts}`, `player/src/core/audio/sources/{hls.ts,hls.test.ts,dash.ts,dash.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`, `tests/e2e/mp3.spec.ts`, `docs/known-issues.md`.
 - Test: regresión primero (rojo) en el núcleo, el hook y el e2e (con el `dist/` anterior).
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/mp3.spec.ts tests/e2e/hls-dash.spec.ts tests/e2e/media-session.spec.ts tests/e2e/sleep.spec.ts`
-- [ ] hecha · commit: —
+- Hecho: `pause()` sube la generación, suelta `pendingPlay` y, con `loading`, destruye la fuente; `playLive()` y el `catch` de `startPlay()` no despachan nada de una generación vieja, y el `finally` de un intento solo borra su propio `pendingPlay`. `hls.ts` y `dash.ts` no crean nada si se destruyen mientras cargan la librería e ignoran sus avisos tras `destroy()` (tests nuevos en `hls.test.ts` y `dash.test.ts`). El caso de DASH con pausa, también en el hook.
+- Ajuste aprobado (decisión del usuario, 2026-10-22): `destroys the previous source on the next play()` (controlador) pausaba HLS mientras cargaba y esperaba que la pausa no lo destruyera, lo contrario de D3. Ahora dispara `MANIFEST_PARSED` antes del `pause()`: con el directo sonando, la pausa no destruye y el Play siguiente sí.
+- Resultado: rojo antes del arreglo en el núcleo (8: el controlador seguía en `error`, no destruía `hls.js` ni hacía `reset()`, devolvía la promesa vieja; las fuentes llamaban a `play()`/`onError` tras `destroy()` y creaban la instancia tras destruirse), en el hook (3: `expected 'error' to be 'paused'`, sin `destroy`/`reset`) y en `mp3.spec.ts` con el `dist/` anterior (Chromium y WebKit: la alerta seguía). Tras el arreglo, `npm --prefix player run check` (632 tests) y los cuatro e2e en verde (39 pasan, 3 se saltan). K80 sigue en verde en el núcleo y en el hook.
+- Changelog: pausar mientras el directo carga (desde la pantalla de bloqueo, los auriculares o el temporizador de sueño) deja el botón Play sin mostrar «Unable to play the stream», y con HLS o DASH el directo ya no empieza a sonar tras la pausa.
+- [x] hecha · commit: —
 
 ### 2.6 K63 (D5): la bienvenida no bloquea el reproductor (≤ 1 h)
 - Qué (`fix-bug`): `intro-finished` pone `introConsumed: true`, `introLocked: false` y `activeSource: null`, así que Play pasa por la carga del directo. En el controlador:

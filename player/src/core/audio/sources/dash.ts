@@ -21,16 +21,21 @@ export async function loadDashModule(): Promise<DashMediaPlayer> {
  * local clock, and its time sync error is ignored (K67).
  *
  * @param options.loadDash - Loader of the MediaPlayer factory (dashjs by default)
- * @returns AudioSource whose destroy() resets the dashjs player
+ * @returns AudioSource whose destroy() resets the dashjs player, which stops its
+ *   autoplay; after it, even while dashjs loads, nothing is created or reported
  */
 export function createDashSource({
   loadDash = loadDashModule,
 }: { loadDash?: () => Promise<DashMediaPlayer> } = {}): AudioSource {
   let player: DashPlayer | null = null
+  // Set by destroy(): a pause while dashjs loads cancels the load (ADR 0034 D3).
+  let destroyed = false
 
   return {
     async start(audio, url, callbacks) {
+      destroyed = false
       const MediaPlayer = await loadDash()
+      if (destroyed) return
       const instance = MediaPlayer().create()
       player = instance
       // MSE path: no crossOrigin, even after a direct source such as the intro.
@@ -40,12 +45,14 @@ export function createDashSource({
       instance.initialize(audio, url, true)
       // After initialize(): it restores the defaults (spike 0007, R2).
       instance.clearDefaultUTCTimingSources()
+      // dashjs may still report after reset(): those reports are ignored.
       instance.on('error', (event) => {
-        if (event.error.code !== TIME_SYNC_FAILED) callbacks.onError()
+        if (player === instance && event.error.code !== TIME_SYNC_FAILED) callbacks.onError()
       })
     },
     isCorsClean: () => true,
     destroy() {
+      destroyed = true
       player?.reset()
       player = null
     },

@@ -102,8 +102,9 @@ test( 'applies the volume slider to the audio element, before and after Play', a
 
 // Spec 0006, task 2.2 (K81): the system pause (lock screen, headphones) while the
 // live MP3 loads. Playwright cannot reach the lock screen: the player's Media
-// Session handlers are kept on `window` and the test calls the `pause` one.
-test( 'currently shows the play error when the system pauses the loading MP3 (K81)', async ( {
+// Session handlers are kept on `window` and the test calls the `pause` one. Spec
+// 0007 (ADR 0034 D3): the pause cancels the load and its AbortError is ignored.
+test( 'stays paused without an error when the system pauses the loading MP3 (K81)', async ( {
 	page,
 } ) => {
 	await page.addInitScript( () => {
@@ -139,11 +140,9 @@ test( 'currently shows the play error when the system pauses the loading MP3 (K8
 	} );
 	respond();
 
-	// play() rejects with AbortError and the player reports it as a failure.
-	await expect( page.getByRole( 'alert' ) ).toHaveText(
-		'Unable to play the stream. Try again later.'
-	);
+	// pause() rejects the pending play() with AbortError; nothing reports it.
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
 	expect( ( await audioState( page ) ).paused ).toBe( true );
 } );
 

@@ -21,7 +21,8 @@ export async function loadHlsModule(): Promise<HlsClass> {
  * @param options.isIOS - Whether the device is iOS, read when the source is created
  * @param options.retryWithoutCors - Passed to the direct source of native HLS
  * @returns AudioSource whose start() resolves before playback on the hls.js path:
- *   play() runs on MANIFEST_PARSED and its rejection goes to onPlayRejected
+ *   play() runs on MANIFEST_PARSED and its rejection goes to onPlayRejected. After
+ *   destroy(), even while hls.js loads, nothing plays and nothing is reported
  */
 export function createHlsSource({
   loadHls = loadHlsModule,
@@ -35,14 +36,18 @@ export function createHlsSource({
   let hls: HlsInstance | null = null
   const native = createDirectSource({ retryWithoutCors })
   let usesNative = false
+  // Set by destroy(): a pause while hls.js loads cancels the load (ADR 0034 D3).
+  let destroyed = false
 
   return {
     async start(audio, url, callbacks) {
       usesNative = isIOS
+      destroyed = false
       if (isIOS) {
         return native.start(audio, url, callbacks)
       }
       const Hls = await loadHls()
+      if (destroyed) return
       if (!Hls.isSupported()) {
         usesNative = true
         return native.start(audio, url, callbacks)
@@ -55,15 +60,17 @@ export function createHlsSource({
       audio.removeAttribute('crossorigin')
       instance.loadSource(url)
       instance.attachMedia(audio)
+      // hls.js may still report after destroy(): those reports are ignored.
       instance.on(Hls.Events.MANIFEST_PARSED, () => {
-        audio.play().catch(callbacks.onPlayRejected)
+        if (hls === instance) audio.play().catch(callbacks.onPlayRejected)
       })
       instance.on(Hls.Events.ERROR, (_, data) => {
-        if (data.fatal) callbacks.onError()
+        if (hls === instance && data.fatal) callbacks.onError()
       })
     },
     isCorsClean: () => !usesNative || native.isCorsClean(),
     destroy() {
+      destroyed = true
       hls?.destroy()
       hls = null
     },
