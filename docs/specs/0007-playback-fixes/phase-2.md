@@ -114,7 +114,7 @@ Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos cap
 - Tests nuevos: «clears loading on stream-error» (máquina), «clears loading on a fatal hls.js error while it loads» (controlador y hook) y «clears loading on a dashjs error while it loads» (controlador).
 - Resultado: rojo antes del arreglo (4: `loading` en `true`). Tras el arreglo, `npm --prefix player run check` (641 tests) y los e2e de `cross-origin`, `hls-dash` e `intro` en verde (30 pasan).
 - Changelog: sin nota propia (la regresión no llegó a publicarse).
-- [x] hecha · commit: —
+- [x] hecha · commit: 70fcaf1
 
 ### 2.7 A13: revisión del ADR 0030 (≤ 1 h)
 - Qué: `useAudioPlayer()` vuelve a `useSyncExternalStore(controller.subscribe, controller.getSnapshot)`. Se queda si pasan todos los tests del hook y los e2e de `cross-origin` e `intro` en Chromium (con el player reconstruido). Si es así, el ADR 0030 pasa a «sustituido» (por una nota en el 0034 o su propia sección). Si no, se revierte y el ADR 0030 se actualiza con el motivo medido. En los dos casos: JSDoc del hook, rule `player.md` (excepción de `useAudioPlayer()`) y spec 0006 si la cita.
