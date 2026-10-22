@@ -17,6 +17,11 @@ export interface AudioSource {
    * later failures go through callbacks.
    */
   start: (audio: HTMLAudioElement, url: string, callbacks: SourceCallbacks) => Promise<void>
+  /**
+   * The audio of the last start() can go through Web Audio: false after the retry
+   * without crossOrigin of a direct source (C1, ADR 0033).
+   */
+  isCorsClean: () => boolean
   /** Releases what start() created. Does not touch the audio element. */
   destroy: () => void
 }
@@ -44,11 +49,19 @@ export interface HlsClass {
 }
 
 /**
+ * The part of a dashjs error event the dash source reads.
+ */
+export interface DashErrorEvent {
+  error: { code: number }
+}
+
+/**
  * The part of a dashjs MediaPlayer instance the dash source uses.
  */
 export interface DashPlayer {
   initialize(view: HTMLMediaElement, url: string, autoPlay: boolean): void
-  on(type: string, listener: () => void): void
+  clearDefaultUTCTimingSources(): void
+  on(type: string, listener: (event: DashErrorEvent) => void): void
   reset(): void
 }
 

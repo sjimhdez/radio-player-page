@@ -1,6 +1,6 @@
 // The sleep countdown behind useSleepTimer (spec 0006, task 3.6). The cases mirror what
-// src/components/dashboard/SleepMode.test.tsx and tests/e2e/sleep.spec.ts pin today,
-// K65 and K66 included.
+// src/components/dashboard/SleepMode.test.tsx and tests/e2e/sleep.spec.ts pin, K65
+// included; the countdown runs against a deadline (K66, spec 0007).
 import { describe, expect, it, vi } from 'vitest'
 import { createSleepTimer } from 'src/core/sleep/sleep-timer'
 import type { Clock } from 'src/core/clock/minute-ticker'
@@ -122,9 +122,10 @@ describe('createSleepTimer', () => {
     expect(listener).not.toHaveBeenCalled()
   })
 
-  it('currently cancels on any setPlaying(false), also the welcome handing over to the live stream (K65)', () => {
+  it('cancels on any setPlaying(false); sleep mode is off during the welcome audio, so its handover never finds a timer (K65)', () => {
     // The welcome audio ends with pause before ended: the status goes through paused
-    // while the live stream loads, and that counts as a pause.
+    // while the live stream loads, and that counts as a pause. The Dashboard disables
+    // sleep mode while introLocked (ADR 0035), so no timer is running then.
     const { onEnd, timer } = setup()
     timer.subscribe(() => {})
 
@@ -136,7 +137,7 @@ describe('createSleepTimer', () => {
     expect(onEnd).not.toHaveBeenCalled()
   })
 
-  it('currently counts interval ticks, not elapsed time (K66)', () => {
+  it('counts against a deadline when the ticks are held back (K66)', () => {
     // 29 minutes go by with the timers held back (a suspended page), then one tick.
     const fake = createFakeClock(START)
     let skipped = 0
@@ -147,7 +148,43 @@ describe('createSleepTimer', () => {
     timer.start(30 * 60)
     skipped = 29 * MINUTE
     fake.advance(SECOND)
-    expect(timer.getSnapshot()).toBe(1799)
+    expect(timer.getSnapshot()).toBe(59)
+  })
+
+  it('ends on the first tick past the deadline (K66)', () => {
+    const fake = createFakeClock(START)
+    let skipped = 0
+    const clock: Clock = { ...fake.clock, now: () => fake.clock.now() + skipped }
+    const onEnd = vi.fn()
+    const timer = createSleepTimer({ onEnd, clock })
+    timer.subscribe(() => {})
+
+    timer.start(30 * 60)
+    skipped = 31 * MINUTE
+    fake.advance(SECOND)
+    expect(timer.getSnapshot()).toBeNull()
+    expect(onEnd).toHaveBeenCalledTimes(1)
+    expect(fake.timerCount()).toBe(0)
+
+    fake.advance(5 * SECOND)
+    expect(onEnd).toHaveBeenCalledTimes(1)
+  })
+
+  it('catches up with the deadline when the first subscriber comes back (K66)', () => {
+    const { fake, onEnd, timer } = setup()
+    timer.start(30 * 60)
+    timer.subscribe(() => {})()
+
+    fake.advance(10 * MINUTE)
+    timer.subscribe(() => {})()
+    expect(timer.getSnapshot()).toBe(1200)
+
+    fake.advance(20 * MINUTE)
+    const listener = vi.fn()
+    timer.subscribe(listener)
+    expect(timer.getSnapshot()).toBeNull()
+    expect(onEnd).toHaveBeenCalledTimes(1)
+    expect(fake.timerCount()).toBe(0)
   })
 
   it('keeps the same snapshot between ticks', () => {

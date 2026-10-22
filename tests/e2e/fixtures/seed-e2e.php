@@ -309,6 +309,7 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 	$artwork_id = radplapag_e2e_sideload( $plugin_dir . '/scripts/fixtures/assets/station-artwork.jpg', 'attachment-artwork' );
 	$intro_id   = radplapag_e2e_sideload( $plugin_dir . '/tests/fixtures/audio/intro.mp3', 'attachment-intro' );
 	$broken_id  = radplapag_e2e_remote_audio( "{$media}/broken-intro.mp3", 'attachment-broken-intro' );
+	$nocors_id  = radplapag_e2e_remote_audio( "{$media_nocors}/intro.mp3", 'attachment-nocors-intro' );
 	$programs   = radplapag_e2e_programs( $artwork_id );
 
 	$variants = array(
@@ -354,6 +355,17 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 		'nocors-dash'  => array(
 			'title' => 'E2E No CORS DASH',
 			'meta'  => array( 'stream_url' => "{$media_nocors}/dash/manifest.mpd" ),
+		),
+		'nocors-intro' => array(
+			'title' => 'E2E No CORS Intro',
+			'meta'  => array(
+				'stream_url'     => "{$media_nocors}/live.mp3",
+				'intro_audio_id' => $nocors_id,
+			),
+		),
+		'broken-mp3'   => array(
+			'title' => 'E2E Broken MP3',
+			'meta'  => array( 'stream_url' => "{$media}/missing.mp3" ),
 		),
 		'intro'        => array(
 			'title' => 'E2E Intro',

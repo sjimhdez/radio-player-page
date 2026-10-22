@@ -24,7 +24,7 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-it('currently counts interval ticks, not elapsed time (K66)', () => {
+it('counts against a deadline when the ticks are held back (K66)', () => {
   render(<Host />)
   fireEvent.click(screen.getByRole('button', { name: 'Sleep mode' }))
   fireEvent.click(screen.getByRole('menuitem', { name: '30 mins' }))
@@ -35,5 +35,5 @@ it('currently counts interval ticks, not elapsed time (K66)', () => {
     vi.advanceTimersByTime(1000)
   })
 
-  expect(screen.getByRole('status').textContent).toBe('1799')
+  expect(screen.getByRole('status').textContent).toBe('59')
 })

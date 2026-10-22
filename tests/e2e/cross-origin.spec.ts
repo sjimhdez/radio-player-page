@@ -6,7 +6,6 @@ import {
 	mediaRequests,
 	resetMediaRequests,
 	startPlayback,
-	waitForAudioEvent,
 	waitForPlayback,
 } from './support/player';
 
@@ -17,8 +16,10 @@ import {
  * 'anonymous'` and the MSE paths (`hls.js`, `dashjs`) do not (ADR 0004). No
  * browser here takes native HLS: desktop WebKit goes through `hls.js` too
  * (see hls-dash.spec.ts), so that branch is only covered by the player's unit
- * tests. The price of `crossOrigin` is C1: a stream from an origin without
- * CORS does not play. K1 is how that failure is (not) reported.
+ * tests. C1 (spec 0007, ADR 0033): a direct source that fails with
+ * `crossOrigin` is retried once without it, so an MP3 without CORS plays; the
+ * MSE paths have no retry and show the error. A source that fails on both
+ * attempts (a 404) shows the error too (K1, spec 0007).
  */
 
 const PLAY_ERROR = 'Unable to play the stream. Try again later.';
@@ -118,49 +119,91 @@ for ( const key of [ 'hls', 'dash' ] as const ) {
 	} );
 }
 
-test( 'currently does not play an MP3 without CORS, with no error shown in Chromium (C1, K1)', async ( {
+test( 'plays an MP3 without CORS by retrying without crossOrigin (C1)', async ( {
 	page,
-	browserName,
 } ) => {
 	await resetMediaRequests( 'nocors' );
 	await page.goto( readSeed().urls[ 'nocors-mp3' ] );
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
 	await recordFailure( page );
 
-	const failed = waitForAudioEvent( page, 'error' );
-	await page.getByRole( 'button', { name: 'Play' } ).click();
-	await failed;
+	await startPlayback( page );
 
-	// The request reaches the server: it is CORS, not the network, that fails.
+	// The first attempt, with crossOrigin, fails; the retry without it plays.
 	expect(
 		( await mediaRequests( 'nocors' ) )[ '/tone.mp3' ]
-	).toBeGreaterThan( 0 );
-	expect( await crossOrigin( page ) ).toBe( 'anonymous' );
+	).toBeGreaterThan( 1 );
+	expect( await crossOrigin( page ) ).toBeNull();
+	expect( ( await audioState( page ) ).errorCode ).toBeNull();
+	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
+	expect( await page.evaluate( () => window.e2eAlerts ) ).toEqual( [] );
+} );
+
+test( 'plays the welcome audio and the live stream without CORS (C1)', async ( {
+	page,
+} ) => {
+	await resetMediaRequests( 'nocors' );
+	await page.goto( readSeed().urls[ 'nocors-intro' ] );
+	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+	await recordFailure( page );
+
+	const introPlaying = waitForPlayback( page, 0.5 );
+	await page.getByRole( 'button', { name: 'Play' } ).click();
+	await introPlaying;
+	expect( ( await audioState( page ) ).src ).toMatch( /\/intro\.mp3$/ );
+	expect( await crossOrigin( page ) ).toBeNull();
+
+	await expect
+		.poll( async () => ( await audioState( page ) ).src, {
+			timeout: 15_000,
+		} )
+		.toMatch( /\/live\.mp3$/ );
+	await waitForPlayback( page, 1 );
+	expect( await crossOrigin( page ) ).toBeNull();
+	const requests = await mediaRequests( 'nocors' );
+	expect( requests[ '/intro.mp3' ] ).toBeGreaterThan( 1 );
+	expect( requests[ '/live.mp3' ] ).toBeGreaterThan( 1 );
+	expect( await page.evaluate( () => window.e2eAlerts ) ).toEqual( [] );
+} );
+
+test( 'shows the error for a broken MP3 (K1)', async ( {
+	page,
+	browserName,
+} ) => {
+	await resetMediaRequests();
+	await page.goto( readSeed().urls[ 'broken-mp3' ] );
+	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+	await recordFailure( page );
+
+	await page.getByRole( 'button', { name: 'Play' } ).click();
+
+	// A 404 cannot be told apart from a stream without CORS: both attempts fail.
+	await expect
+		.poll( async () => ( await mediaRequests() )[ '/missing.mp3' ] )
+		.toBeGreaterThan( 1 );
+	await expect( page.getByRole( 'alert' ) ).toHaveText( PLAY_ERROR );
+	expect( await crossOrigin( page ) ).toBeNull();
 
 	if ( browserName === 'chromium' ) {
-		// K1: Chromium fires `pause` right after `error`, and the player's
-		// `pause` handler overwrites the `error` status with `paused`, so the
-		// alert never shows: silence and a Play button.
+		// Each attempt fires `error`, and a `pause` follows the second. Since
+		// spec 0007 the `pause` keeps the `error` status (K1): the alert stays.
 		await expect
 			.poll( () => page.evaluate( () => window.e2eAudioEvents ) )
-			.toEqual( [ 'error', 'pause' ] );
-		await expect(
-			page.getByRole( 'button', { name: 'Play' } )
-		).toBeEnabled();
+			.toEqual( [ 'error', 'error', 'pause' ] );
+		await expect( page.getByRole( 'alert' ) ).toHaveText( PLAY_ERROR );
 		expect( await audioState( page ) ).toMatchObject( {
 			currentTime: 0,
 			paused: true,
 			errorCode: 4,
 			buffered: [],
 		} );
-		expect( await page.evaluate( () => window.e2eAlerts ) ).toEqual( [] );
 	} else {
-		// WebKit fires no `pause` (the element is not even paused), so the
-		// `error` status stays and the alert shows.
-		await expect( page.getByRole( 'alert' ) ).toHaveText( PLAY_ERROR );
-		expect( await page.evaluate( () => window.e2eAudioEvents ) ).toEqual( [
-			'error',
-		] );
+		// WebKit fires no `pause` (the element is not even paused). On macOS
+		// the `load()` of the retry drops the `error` of the first attempt;
+		// WebKitGTK on Linux (the CI) fires both.
+		const events = await page.evaluate( () => window.e2eAudioEvents );
+		expect( events.length === 1 || events.length === 2 ).toBe( true );
+		expect( events.every( ( event ) => event === 'error' ) ).toBe( true );
 		expect( await audioState( page ) ).toMatchObject( {
 			currentTime: 0,
 			paused: false,
@@ -168,9 +211,12 @@ test( 'currently does not play an MP3 without CORS, with no error shown in Chrom
 			buffered: [],
 		} );
 	}
+	expect( await page.evaluate( () => window.e2eAlerts ) ).toContain(
+		PLAY_ERROR
+	);
 } );
 
-test( 'currently does not play HLS without CORS and shows the error (C1, K1)', async ( {
+test( 'does not play HLS without CORS and shows the error (C1)', async ( {
 	page,
 } ) => {
 	await resetMediaRequests( 'nocors' );
@@ -198,7 +244,7 @@ test( 'currently does not play HLS without CORS and shows the error (C1, K1)', a
 	expect( Object.keys( requests ) ).toEqual( [ '/hls/index.m3u8' ] );
 } );
 
-test( 'currently does not play DASH without CORS and shows the error (C1, K1)', async ( {
+test( 'does not play DASH without CORS and shows the error (C1)', async ( {
 	page,
 } ) => {
 	await resetMediaRequests( 'nocors' );

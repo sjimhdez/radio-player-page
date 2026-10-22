@@ -114,6 +114,30 @@ describe('createHlsSource', () => {
     expect(fake.instances[0].destroy).toHaveBeenCalledTimes(1)
   })
 
+  // docs/known-issues.md K11 with a pause (spec 0007, ADR 0034 D3): the fake keeps its
+  // handlers after destroy(), so the source must ignore them.
+  it('ignores MANIFEST_PARSED and errors after destroy()', async () => {
+    const fake = createFakeHls()
+    const cbs = callbacks()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false })
+    await source.start(new Audio(), HLS, cbs)
+    source.destroy()
+    fake.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    fake.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    await Promise.resolve()
+    expect(media.play).not.toHaveBeenCalled()
+    expect(cbs.onError).not.toHaveBeenCalled()
+  })
+
+  it('creates no hls.js when destroyed while hls.js loads', async () => {
+    const fake = createFakeHls()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false })
+    const started = source.start(new Audio(), HLS, callbacks())
+    source.destroy()
+    await started
+    expect(fake.instances).toHaveLength(0)
+  })
+
   it('destroy() does nothing before start() or on the native path', async () => {
     const fake = createFakeHls()
     fake.setSupported(false)
@@ -127,5 +151,35 @@ describe('createHlsSource', () => {
   it('loads the hls.js default export by default', async () => {
     const { default: Hls } = await import('hls.js')
     await expect(loadHlsModule()).resolves.toBe(Hls)
+  })
+
+  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  it('is CORS clean on the hls.js path', async () => {
+    const fake = createFakeHls()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false, retryWithoutCors: true })
+    await source.start(new Audio(), HLS, callbacks())
+    expect(source.isCorsClean()).toBe(true)
+  })
+
+  it('does not retry a rejected play() on the hls.js path (C1)', async () => {
+    const fake = createFakeHls()
+    media.failing.add('')
+    const cbs = callbacks()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false, retryWithoutCors: true })
+    await source.start(new Audio(), HLS, cbs)
+    fake.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await vi.waitFor(() => expect(cbs.onPlayRejected).toHaveBeenCalledTimes(1))
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(source.isCorsClean()).toBe(true)
+  })
+
+  it('retries native HLS without crossOrigin and reports it (C1)', async () => {
+    media.corsBlocked.add(HLS)
+    const audio = new Audio()
+    const source = createHlsSource({ isIOS: true, retryWithoutCors: true })
+    await source.start(audio, HLS, callbacks())
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(source.isCorsClean()).toBe(false)
   })
 })

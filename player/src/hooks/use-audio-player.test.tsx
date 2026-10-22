@@ -5,6 +5,7 @@ import { StrictMode, useEffect } from 'react'
 import { act, render } from '@testing-library/react'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import { installFakeAudio, media } from 'src/test/fake-audio'
+import { installFakeWebAudio, webAudio } from 'src/test/fake-web-audio'
 
 type Handler = (event?: unknown, data?: { fatal: boolean }) => void
 
@@ -46,7 +47,7 @@ vi.mock('hls.js', () => {
 
 const dash = vi.hoisted(() => ({
   players: [] as Array<{
-    handlers: Record<string, () => void>
+    handlers: Record<string, (event: { error: { code: number } }) => void>
     initialize: ReturnType<typeof vi.fn>
     reset: ReturnType<typeof vi.fn>
   }>,
@@ -55,10 +56,11 @@ vi.mock('dashjs', () => ({
   MediaPlayer: () => ({
     create: () => {
       const player = {
-        handlers: {} as Record<string, () => void>,
+        handlers: {} as Record<string, (event: { error: { code: number } }) => void>,
         initialize: vi.fn(),
+        clearDefaultUTCTimingSources: vi.fn(),
         reset: vi.fn(),
-        on: (event: string, cb: () => void) => {
+        on: (event: string, cb: (event: { error: { code: number } }) => void) => {
           player.handlers[event] = cb
         },
       }
@@ -74,6 +76,16 @@ const DASH = 'https://radio.test/live.mpd'
 const INTRO = 'https://site.test/intro.mp3'
 const DESKTOP = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'
+const SAFARI =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0.1 Safari/605.1.15'
+const IPHONE_SAFARI =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
+const CHROME =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+const EDGE =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0'
+const FIREFOX =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14.0; rv:131.0) Gecko/20100101 Firefox/131.0'
 
 type Api = ReturnType<typeof useAudioPlayer>
 
@@ -99,8 +111,9 @@ function mount(streamUrl: string, introUrl?: string) {
   return { api, audio, rerender, unmount: view.unmount }
 }
 
-function setUserAgent(value: string) {
+function setUserAgent(value: string, maxTouchPoints = 0) {
   Object.defineProperty(navigator, 'userAgent', { configurable: true, value })
+  Object.defineProperty(navigator, 'maxTouchPoints', { configurable: true, value: maxTouchPoints })
 }
 
 let restoreAudio: () => void
@@ -161,14 +174,15 @@ describe('direct streams', () => {
     expect(api.current.status).toBe('playing')
   })
 
-  it('pauses and resumes the loaded source without reloading it', async () => {
+  // docs/known-issues.md C7 (spec 0007, ADR 0032).
+  it('reloads the live stream on play() after a pause (C7)', async () => {
     const { api, audio } = mount(MP3)
     await act(() => api.current.play())
     act(() => api.current.pause())
     expect(media.pause).toHaveBeenCalledTimes(1)
     expect(api.current.status).toBe('paused')
     await act(() => api.current.play())
-    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(media.load).toHaveBeenCalledTimes(2)
     expect(media.play).toHaveBeenCalledTimes(2)
     expect(audio.src).toBe(MP3)
     expect(api.current.status).toBe('playing')
@@ -188,8 +202,104 @@ describe('direct streams', () => {
     await act(() => api.current.play())
     media.failing.clear()
     await act(() => api.current.play())
-    expect(media.load).toHaveBeenCalledTimes(2)
+    // Two loads for the failed attempt and its retry without crossOrigin (C1, ADR 0033).
+    expect(media.load).toHaveBeenCalledTimes(3)
     expect(api.current.status).toBe('playing')
+  })
+
+  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  it('plays an MP3 without CORS by retrying without crossOrigin (C1)', async () => {
+    media.corsBlocked.add(MP3)
+    const { api, audio } = mount(MP3)
+    await act(() => api.current.play())
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(api.current.status).toBe('playing')
+  })
+})
+
+// spec 0007, task 1.7 (K82, ADR 0031): the hook injects window.AudioContext and
+// navigator.userAgent; the controller decides (src/core/audio/audio-controller.test.ts).
+describe('visualization (K82)', () => {
+  let restoreWebAudio: () => void
+  beforeEach(() => {
+    restoreWebAudio = installFakeWebAudio()
+  })
+  afterEach(() => restoreWebAudio())
+
+  it('starts without a visualizer nor an analyser', () => {
+    const { api } = mount(MP3)
+    expect(api.current.canVisualize).toBe(false)
+    expect(api.current.getAnalyser()).toBeNull()
+    expect(webAudio.contexts).toHaveLength(0)
+  })
+
+  it('visualizes a direct stream with CORS through window.AudioContext', async () => {
+    const { api, audio } = mount(MP3)
+    await act(() => api.current.play())
+    expect(api.current.canVisualize).toBe(true)
+    const [context] = webAudio.contexts
+    expect(context.createMediaElementSource).toHaveBeenCalledWith(audio)
+    expect(api.current.getAnalyser()).toBe(context.analysers[0])
+  })
+
+  it('never creates the context in WebKit, read from navigator.userAgent', async () => {
+    setUserAgent(SAFARI)
+    const { api } = mount(MP3)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
+    expect(webAudio.contexts).toHaveLength(0)
+  })
+
+  it('does not visualize without window.AudioContext', async () => {
+    vi.stubGlobal('AudioContext', undefined)
+    const { api } = mount(MP3)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  // Moved from use-can-visualize.test.tsx (spec 0007, task 1.8): the decision
+  // follows the source, not the user agent on mount.
+  it.each([
+    ['chrome', CHROME],
+    ['edge', EDGE],
+    ['firefox', FIREFOX],
+  ])('waits for a stream with CORS to visualize on %s', async (_name, userAgent) => {
+    setUserAgent(userAgent)
+    const { api } = mount(MP3)
+    expect(api.current.canVisualize).toBe(false)
+    await act(() => api.current.play())
+    expect(api.current.canVisualize).toBe(true)
+  })
+
+  it.each([
+    ['safari', SAFARI],
+    ['iphone', IPHONE_SAFARI],
+  ])('never visualizes on %s, also a same-origin stream', async (_name, userAgent) => {
+    setUserAgent(userAgent)
+    const { api } = mount(`${window.location.origin}/live.mp3`)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
+    expect(webAudio.contexts).toHaveLength(0)
+  })
+
+  it('does not visualize a stream without CORS on Chrome', async () => {
+    setUserAgent(CHROME)
+    media.corsBlocked.add(MP3)
+    const { api } = mount(MP3)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  it('does not visualize the welcome audio, then visualizes the live stream', async () => {
+    setUserAgent(CHROME)
+    const { api, audio } = mount(MP3, INTRO)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ introLocked: true, canVisualize: false })
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+    expect(api.current).toMatchObject({ introLocked: false, canVisualize: true })
   })
 })
 
@@ -207,6 +317,19 @@ describe('HLS', () => {
     expect(audio.crossOrigin).toBeNull()
   })
 
+  // K13 (spec 0007, ADR 0036): the controller tells iOS when it is created, from
+  // navigator.userAgent and navigator.maxTouchPoints, so the first play() is right.
+  it.each([
+    ['an iPhone', IPHONE, 5],
+    ['iPadOS with the desktop user agent (K13)', SAFARI, 5],
+  ])('plays HLS natively on %s, from the first play()', async (_name, userAgent, touch) => {
+    setUserAgent(userAgent, touch)
+    const { api, audio } = mount(HLS)
+    await act(() => api.current.play())
+    expect(hls.instances).toHaveLength(0)
+    expect(audio.src).toBe(HLS)
+  })
+
   // hls.js 1.7 turned preferManagedMediaSource off by default; 3.4.2 shipped
   // with it on (spec 0003, task 1.1).
   it('creates hls.js preferring ManagedMediaSource', async () => {
@@ -215,12 +338,16 @@ describe('HLS', () => {
     expect(hls.instances[0].config).toEqual({ preferManagedMediaSource: true })
   })
 
-  // docs/known-issues.md K11
-  it('currently reports playing before MANIFEST_PARSED', async () => {
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until the element plays (K11)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     expect(media.play).not.toHaveBeenCalled()
-    expect(api.current.status).toBe('playing')
+    expect(api.current).toMatchObject({ status: 'idle', loading: true })
+    await act(async () => {
+      hls.instances[0].handlers.hlsManifestParsed()
+    })
+    expect(api.current).toMatchObject({ status: 'playing', loading: false })
   })
 
   it('sets error when play() after MANIFEST_PARSED rejects', async () => {
@@ -238,9 +365,18 @@ describe('HLS', () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     act(() => hls.instances[0].handlers.hlsError(undefined, { fatal: false }))
-    expect(api.current.status).toBe('playing')
+    expect(api.current.status).toBe('idle')
     act(() => hls.instances[0].handlers.hlsError(undefined, { fatal: true }))
     expect(api.current.status).toBe('error')
+  })
+
+  // A fatal error arrives after the load, which no longer clears loading (spec 0007, 2.4).
+  it('clears loading on a fatal hls.js error while it loads', async () => {
+    const { api } = mount(HLS)
+    await act(() => api.current.play())
+    act(() => hls.instances[0].handlers.hlsError(undefined, { fatal: true }))
+    expect(api.current.status).toBe('error')
+    expect(api.current.loading).toBe(false)
   })
 
   it('falls back to native HLS with crossOrigin when hls.js is not supported', async () => {
@@ -264,8 +400,8 @@ describe('HLS', () => {
     expect(media.play).toHaveBeenCalledWith(HLS)
   })
 
-  // docs/known-issues.md K12
-  it('currently recreates hls.js when resuming after a pause', async () => {
+  // docs/known-issues.md C7 and K12 (spec 0007, ADR 0032).
+  it('recreates hls.js to return to the live edge (C7)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     act(() => api.current.pause())
@@ -283,31 +419,70 @@ describe('DASH', () => {
     expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, DASH, true)
     expect(audio.crossOrigin).toBeNull()
     expect(media.play).not.toHaveBeenCalled()
-    expect(api.current.status).toBe('playing')
+  })
+
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until the element plays with DASH (K11)', async () => {
+    const { api, audio } = mount(DASH)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'idle', loading: true })
+    // The dashjs autoplay.
+    act(() => {
+      audio.dispatchEvent(new Event('playing'))
+    })
+    expect(api.current).toMatchObject({ status: 'playing', loading: false })
   })
 
   it('sets error on a dashjs error', async () => {
     const { api } = mount(DASH)
     await act(() => api.current.play())
-    act(() => dash.players[0].handlers.error())
+    act(() => dash.players[0].handlers.error({ error: { code: 17 } }))
     expect(api.current.status).toBe('error')
+  })
+
+  // docs/known-issues.md C7 and K12 (spec 0007, ADR 0032).
+  it('recreates dashjs to return to the live edge (C7)', async () => {
+    const { api } = mount(DASH)
+    await act(() => api.current.play())
+    act(() => api.current.pause())
+    await act(() => api.current.play())
+    expect(dash.players).toHaveLength(2)
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
   })
 })
 
-// docs/known-issues.md C2: detection is endsWith() on the whole URL.
+// docs/known-issues.md C2, fixed in spec 0007: the suffix of the pathname, case-insensitive.
 describe('protocol detection (C2)', () => {
   it.each([
     'https://radio.test/live.m3u8?token=x',
     'https://radio.test/LIVE.M3U8',
-    'https://radio.test/live.mpd?token=x',
-    'https://radio.test/LIVE.MPD',
-  ])('currently treats %s as a direct stream', async (url) => {
+    'https://radio.test/live.m3u8#t',
+  ])('detects %s as HLS by the suffix of its pathname (C2)', async (url) => {
+    const { api } = mount(url)
+    await act(() => api.current.play())
+    expect(hls.instances).toHaveLength(1)
+    expect(hls.instances[0].loadSource).toHaveBeenCalledWith(url)
+    expect(dash.players).toHaveLength(0)
+  })
+
+  it.each(['https://radio.test/live.mpd?token=x', 'https://radio.test/LIVE.MPD'])(
+    'detects %s as DASH by the suffix of its pathname (C2)',
+    async (url) => {
+      const { api, audio } = mount(url)
+      await act(() => api.current.play())
+      expect(dash.players).toHaveLength(1)
+      expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, url, true)
+      expect(hls.instances).toHaveLength(0)
+    },
+  )
+
+  it('plays a URL that cannot be parsed as a direct stream (C2)', async () => {
+    const url = 'http://[/live.m3u8'
     const { api, audio } = mount(url)
     await act(() => api.current.play())
     expect(hls.instances).toHaveLength(0)
     expect(dash.players).toHaveLength(0)
     expect(audio.src).toBe(url)
-    expect(audio.crossOrigin).toBe('anonymous')
     expect(media.play).toHaveBeenCalledWith(url)
   })
 })
@@ -453,12 +628,28 @@ describe('volume', () => {
     expect(audio.volume).toBe(0.4)
   })
 
-  it('ignores changes on iOS', () => {
+  it('is controllable where the element applies volume writes, whatever the user agent', () => {
     setUserAgent(IPHONE)
-    const { api, audio } = mount(MP3)
+    const { api } = mount(MP3)
+    expect(api.current.volumeControllable).toBe(true)
+  })
+
+  it('is not controllable, from the first render, where volume writes are ignored (K13)', () => {
+    media.readOnlyVolume = true
+    const seen: boolean[] = []
+    const record = (result: Api) => {
+      seen.push(result.volumeControllable)
+    }
+    render(<Harness streamUrl={MP3} onResult={record} />)
+    expect(seen[0]).toBe(false)
+    expect(seen).not.toContain(true)
+  })
+
+  it('ignores changes where volume writes are ignored (K13)', () => {
+    media.readOnlyVolume = true
+    const { api } = mount(MP3)
     act(() => api.current.handleVolumeChange(0.4))
     expect(api.current.volume).toBe(1)
-    expect(audio.volume).toBe(1)
   })
 })
 
@@ -507,7 +698,7 @@ describe('cleanup', () => {
 
 // Audit of zone 5 (spec 0002, task 4.6): rows of docs/known-issues.md.
 describe('audit (spec 0002, 4.6)', () => {
-  it('currently stays locked in the welcome audio when the live stream fails after it (K63)', async () => {
+  it('releases the welcome audio when the live stream fails after it (K63)', async () => {
     media.failing.add(MP3)
     const { api, audio } = mount(MP3, INTRO)
     await act(() => api.current.play())
@@ -517,15 +708,16 @@ describe('audit (spec 0002, 4.6)', () => {
     })
 
     expect(api.current.status).toBe('error')
-    // Play stays disabled and play() returns early: no retry is possible.
-    expect(api.current.introLocked).toBe(true)
+    // Play is enabled and loads the live stream, without the welcome audio.
+    expect(api.current.introLocked).toBe(false)
     media.failing.clear()
     await act(() => api.current.play())
-    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
-    expect(api.current.status).toBe('error')
+    // The live stream fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3, MP3])
+    expect(api.current.status).toBe('playing')
   })
 
-  it('currently stays locked when both the welcome audio and the live stream fail (K63)', async () => {
+  it('releases the welcome audio when both the welcome audio and the live stream fail (K63)', async () => {
     media.failing.add(INTRO)
     media.failing.add(MP3)
     const { api } = mount(MP3, INTRO)
@@ -533,36 +725,43 @@ describe('audit (spec 0002, 4.6)', () => {
     await act(() => api.current.play())
 
     expect(api.current.status).toBe('error')
-    expect(api.current.introLocked).toBe(true)
+    expect(api.current.introLocked).toBe(false)
+    media.failing.clear()
+    await act(() => api.current.play())
+    expect(media.play).toHaveBeenLastCalledWith(MP3)
+    expect(api.current.status).toBe('playing')
   })
 
-  it('currently cannot resume when something else pauses the welcome audio (K63)', async () => {
+  it('releases the welcome audio when something else pauses it (K63)', async () => {
     const { api, audio } = mount(MP3, INTRO)
     await act(() => api.current.play())
 
     act(() => {
       audio.pause()
     })
+    expect(api.current.status).toBe('paused')
+    expect(api.current.introLocked).toBe(false)
     await act(() => api.current.play())
 
-    expect(api.current.status).toBe('paused')
-    expect(api.current.introLocked).toBe(true)
-    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    expect(api.current.status).toBe('playing')
   })
 
-  it('currently stays locked in error when the welcome audio errors while playing (K63)', async () => {
+  it('releases the welcome audio when it errors while playing (K63)', async () => {
     const { api, audio } = mount(MP3, INTRO)
     await act(() => api.current.play())
 
-    act(() => {
+    await act(async () => {
       audio.dispatchEvent(new Event('error'))
     })
 
-    expect(api.current.status).toBe('error')
-    expect(api.current.introLocked).toBe(true)
+    // The live stream follows, without the error.
+    expect(audio.src).toBe(MP3)
+    expect(api.current.status).toBe('playing')
+    expect(api.current.introLocked).toBe(false)
   })
 
-  it('currently keeps loading after a pause while buffering (K64)', async () => {
+  it('clears loading on a pause while buffering (K64)', async () => {
     const { api, audio } = mount(MP3)
     await act(() => api.current.play())
     act(() => {
@@ -574,23 +773,36 @@ describe('audit (spec 0002, 4.6)', () => {
       audio.dispatchEvent(new Event('canplay'))
     })
 
-    // The spinner replaces Play while paused.
+    // Play replaces the spinner.
     expect(api.current.status).toBe('paused')
-    expect(api.current.loading).toBe(true)
+    expect(api.current.loading).toBe(false)
   })
 
-  it('currently plays HLS on MANIFEST_PARSED after a pause pressed while it loads (K11)', async () => {
+  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  it('respects a pause pressed while HLS loads (K11)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     act(() => api.current.pause())
-    expect(api.current.status).toBe('paused')
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
 
     await act(async () => {
       hls.instances[0].handlers.hlsManifestParsed()
     })
 
-    expect(media.play).toHaveBeenCalledTimes(1)
-    expect(api.current.status).toBe('playing')
+    expect(media.play).not.toHaveBeenCalled()
+    expect(api.current.status).toBe('paused')
+    expect(api.current.loading).toBe(false)
+  })
+
+  it('respects a pause pressed while DASH loads (K11)', async () => {
+    const { api } = mount(DASH)
+    await act(() => api.current.play())
+    act(() => api.current.pause())
+
+    // reset() stops the dashjs autoplay.
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
+    expect(api.current.status).toBe('paused')
+    expect(api.current.loading).toBe(false)
   })
 
   it('clears crossOrigin on the hls.js path after the welcome audio (K70)', async () => {
@@ -753,6 +965,9 @@ describe('concurrency (spec 0006, 2.2)', () => {
     expect(hls.instances).toHaveLength(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledTimes(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    await act(async () => {
+      hls.instances[0].handlers.hlsManifestParsed()
+    })
     expect(api.current.status).toBe('playing')
 
     unmount()
@@ -760,8 +975,8 @@ describe('concurrency (spec 0006, 2.2)', () => {
   })
 
   // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
-  // when pause() interrupts it.
-  it('currently reports an error when a pause interrupts the loading MP3 (K81)', async () => {
+  // when pause() interrupts it; the pause cancels the load (spec 0007, ADR 0034 D3).
+  it('stays paused, without an error, when a pause interrupts the loading MP3 (K81)', async () => {
     media.hold = true
     const { api } = mount(MP3)
     let done!: Promise<void>
@@ -776,16 +991,15 @@ describe('concurrency (spec 0006, 2.2)', () => {
       await done
     })
 
-    // The UI shows "Unable to play the stream" instead of Play.
-    expect(api.current.status).toBe('error')
+    expect(api.current.status).toBe('paused')
     expect(api.current.loading).toBe(false)
   })
 })
 
-// ADR 0030 (spec 0006, task 2.11): the render order of 3.4.2. In Chromium a failing
-// MP3 fires 'error' (and play() rejects) in one task and 'pause' in a later one
-// (docs/known-issues.md K1). The 'error' state must not reach a render before the
-// 'pause': the alert would flash. Here the microtasks stand for the end of the task.
+// ADR 0030 (spec 0006, task 2.11): the render order. In Chromium a failing MP3 fires
+// 'error' (and play() rejects, also on its retry) in one task and 'pause' in a later one.
+// Since spec 0007 the 'pause' keeps the 'error' state (docs/known-issues.md K1): the alert
+// shows and stays. Here the microtasks stand for the end of the task.
 describe('render order (spec 0006, 2.11)', () => {
   const globals = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
   let actEnvironment: boolean | undefined
@@ -798,7 +1012,7 @@ describe('render order (spec 0006, 2.11)', () => {
     globals.IS_REACT_ACT_ENVIRONMENT = actEnvironment
   })
 
-  it('does not render the error of a failing MP3 before the pause that follows it (K1)', async () => {
+  it('renders the error of a failing MP3 and keeps it after the pause (K1)', async () => {
     media.hold = true
     const api = {} as { current: Api }
     const rendered: string[] = []
@@ -816,11 +1030,19 @@ describe('render order (spec 0006, 2.11)', () => {
 
     audio.dispatchEvent(new Event('error'))
     media.fail()
+    // The retry without crossOrigin fails too, as with a 404 (C1, ADR 0033).
+    for (let i = 0; i < 10; i++) await Promise.resolve()
+    expect(media.pending).toHaveLength(1)
+    audio.dispatchEvent(new Event('error'))
+    media.fail()
     await done
     for (let i = 0; i < 10; i++) await Promise.resolve()
+    await vi.waitFor(() => expect(rendered).toContain('error'))
     audio.dispatchEvent(new Event('pause'))
+    // A real task, so that React renders whatever the pause changed.
+    await new Promise((resolve) => setTimeout(resolve, 20))
 
-    await vi.waitFor(() => expect(api.current).toMatchObject({ status: 'paused', loading: false }))
-    expect(rendered).not.toContain('error')
+    expect(api.current).toMatchObject({ status: 'error', loading: false })
+    expect(rendered).not.toContain('paused')
   })
 })

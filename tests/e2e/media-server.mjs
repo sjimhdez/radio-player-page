@@ -5,7 +5,9 @@
  * Two origins serve tests/fixtures/audio/, one with CORS headers and one
  * without. Besides the files there are three special routes:
  *
- * - `/live.mp3`: endless, Icecast-like (tone.mp3 in a loop, no length, no Range);
+ * - `/live.mp3`: endless, Icecast-like (tone.mp3's audio frames in a loop, no
+ *   length, no Range). No ID3 tag and no Info frame: macOS WebKit trusts the
+ *   Info frame's duration and stops there (K18);
  * - `/cut.mp3`: like `/live.mp3`, but the connection is cut after ~2 s (C8);
  * - `/broken-intro.mp3`: 404.
  *
@@ -45,6 +47,12 @@ const CORS_HEADERS = {
 // keeps the player's buffer ahead.
 const LIVE_CHUNK = 8 * 1024;
 const LIVE_INTERVAL_MS = 500;
+
+// Bitrates (kbps) and sample rates of an MPEG-1 Layer III frame header.
+const MP3_BITRATES = [
+	0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320,
+];
+const MP3_SAMPLE_RATES = [ 44100, 48000, 32000 ];
 
 /**
  * File under AUDIO_DIR for a request path, or null if it escapes the
@@ -124,7 +132,41 @@ function sendFile( req, res, file, headers ) {
 }
 
 /**
- * Sends tone.mp3 in a loop, with no length, until the client leaves or, with
+ * The audio frames of an MPEG-1 Layer III file: without its ID3v2 tag and its
+ * Xing/Info frame, as an Icecast server sends them. The Info frame declares
+ * the file's frame count and duration.
+ *
+ * @param {Buffer} data Whole file.
+ * @return {Buffer} The frames alone.
+ */
+function mp3Frames( data ) {
+	// The ID3v2 size is synchsafe: four 7-bit bytes after the 10-byte header.
+	let at =
+		data.toString( 'latin1', 0, 3 ) === 'ID3'
+			? 10 +
+				data[ 6 ] * 2 ** 21 +
+				data[ 7 ] * 2 ** 14 +
+				data[ 8 ] * 2 ** 7 +
+				data[ 9 ]
+			: 0;
+	// Third header byte: bitrate index (4 bits), sample rate index (2 bits),
+	// padding (1 bit).
+	const header = data[ at + 2 ];
+	const size =
+		Math.floor(
+			( 144 * MP3_BITRATES[ Math.floor( header / 16 ) ] * 1000 ) /
+				MP3_SAMPLE_RATES[ Math.floor( header / 4 ) % 4 ]
+		) +
+		( Math.floor( header / 2 ) % 2 );
+	const first = data.toString( 'latin1', at, at + size );
+	if ( first.includes( 'Xing' ) || first.includes( 'Info' ) ) {
+		at += size;
+	}
+	return data.subarray( at );
+}
+
+/**
+ * Sends tone.mp3's audio frames in a loop, with no length, until the client leaves or, with
  * `cutAfterMs`, until the server cuts the connection.
  *
  * @param {Object}      res        Response.
@@ -132,7 +174,7 @@ function sendFile( req, res, file, headers ) {
  * @param {number|null} cutAfterMs Milliseconds before the cut, or null.
  */
 function sendLive( res, headers, cutAfterMs ) {
-	const data = readFileSync( join( AUDIO_DIR, 'tone.mp3' ) );
+	const data = mp3Frames( readFileSync( join( AUDIO_DIR, 'tone.mp3' ) ) );
 	res.writeHead( 200, {
 		...headers,
 		'Content-Type': 'audio/mpeg',

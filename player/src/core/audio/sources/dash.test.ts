@@ -1,5 +1,6 @@
 // The dash source (spec 0006, task 2.4), as in src/hooks/use-audio-player.test.tsx:
 // dashjs with autoplay. K70 (fixed in task 2.9): crossOrigin is left unset (ADR 0004).
+// K67 (fixed in spec 0007): no default third-party time source, and its error 16 is ignored.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDashSource, loadDashModule } from 'src/core/audio/sources/dash'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -32,9 +33,28 @@ describe('createDashSource', () => {
     const cbs = callbacks()
     await createDashSource({ loadDash: fake.loadDash }).start(new Audio(), DASH, cbs)
     expect(cbs.onError).not.toHaveBeenCalled()
-    fake.players[0].handlers.error()
+    fake.players[0].handlers.error({ error: { code: 17 } })
     expect(cbs.onError).toHaveBeenCalledTimes(1)
     expect(cbs.onPlayRejected).not.toHaveBeenCalled()
+  })
+
+  it('clears the default time sources right after initialize() (K67)', async () => {
+    const fake = createFakeDash()
+    await createDashSource({ loadDash: fake.loadDash }).start(new Audio(), DASH, callbacks())
+    const [player] = fake.players
+    expect(player.clearDefaultUTCTimingSources).toHaveBeenCalledTimes(1)
+    // initialize() restores the defaults, so clearing them before it does nothing (spike R2).
+    expect(player.clearDefaultUTCTimingSources.mock.invocationCallOrder[0]).toBeGreaterThan(
+      player.initialize.mock.invocationCallOrder[0],
+    )
+  })
+
+  it('ignores the time sync error (code 16) it gets without a time source (K67)', async () => {
+    const fake = createFakeDash()
+    const cbs = callbacks()
+    await createDashSource({ loadDash: fake.loadDash }).start(new Audio(), DASH, cbs)
+    fake.players[0].handlers.error({ error: { code: 16 } })
+    expect(cbs.onError).not.toHaveBeenCalled()
   })
 
   it('clears crossOrigin after a direct source (K70)', async () => {
@@ -55,8 +75,37 @@ describe('createDashSource', () => {
     expect(fake.players[0].reset).toHaveBeenCalledTimes(1)
   })
 
+  // docs/known-issues.md K11 with a pause (spec 0007, ADR 0034 D3): the fake keeps its
+  // handlers after reset(), so the source must ignore them.
+  it('ignores errors after destroy()', async () => {
+    const fake = createFakeDash()
+    const cbs = callbacks()
+    const source = createDashSource({ loadDash: fake.loadDash })
+    await source.start(new Audio(), DASH, cbs)
+    source.destroy()
+    fake.players[0].handlers.error({ error: { code: 17 } })
+    expect(cbs.onError).not.toHaveBeenCalled()
+  })
+
+  it('creates no dashjs player when destroyed while dashjs loads', async () => {
+    const fake = createFakeDash()
+    const source = createDashSource({ loadDash: fake.loadDash })
+    const started = source.start(new Audio(), DASH, callbacks())
+    source.destroy()
+    await started
+    expect(fake.players).toHaveLength(0)
+  })
+
   it('loads the dashjs MediaPlayer by default', async () => {
     const { MediaPlayer } = await import('dashjs')
     await expect(loadDashModule()).resolves.toBe(MediaPlayer)
+  })
+
+  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  it('is CORS clean', async () => {
+    const fake = createFakeDash()
+    const source = createDashSource({ loadDash: fake.loadDash })
+    await source.start(new Audio(), DASH, callbacks())
+    expect(source.isCorsClean()).toBe(true)
   })
 })

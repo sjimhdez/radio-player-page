@@ -1,6 +1,7 @@
-// Pure transition of the audio player (spec 0006, task 2.5). The currently cases
-// replicate docs/known-issues.md K1, K11, K63 and K64, as fixed in
+// Pure transition of the audio player (spec 0006, task 2.5). The K1, K11, K63 and K64
+// cases of docs/known-issues.md are fixed in spec 0007 (ADR 0034), as in
 // src/hooks/use-audio-player.test.tsx and tests/e2e/cross-origin.spec.ts.
+// canVisualize (spec 0007, task 1.7): false on each attempt, set by the playing event.
 import { describe, expect, it } from 'vitest'
 import {
   initialPlayerState,
@@ -12,7 +13,12 @@ import {
 const run = (events: PlayerEvent[], from: PlayerState = initialPlayerState) =>
   events.reduce(transition, from)
 
-const liveState = run([{ type: 'load-start' }, { type: 'live-started' }, { type: 'load-end' }])
+// The live stream playing: since K11, playing comes from the element (spec 0007, ADR 0034).
+const liveState = run([
+  { type: 'load-start' },
+  { type: 'live-started' },
+  { type: 'playing', visualizable: false },
+])
 
 const introState = run([
   { type: 'intro-started' },
@@ -22,7 +28,7 @@ const introState = run([
 ])
 
 describe('initialPlayerState', () => {
-  it('starts idle, not loading, unlocked, with nothing loaded and full volume', () => {
+  it('starts idle, not loading, unlocked, with nothing loaded, full controllable volume and no visualizer', () => {
     expect(initialPlayerState).toEqual({
       status: 'idle',
       loading: false,
@@ -30,6 +36,8 @@ describe('initialPlayerState', () => {
       activeSource: null,
       introConsumed: false,
       volume: 1,
+      volumeControllable: true,
+      canVisualize: false,
     })
   })
 })
@@ -46,9 +54,9 @@ describe('transition', () => {
     expect(state).toMatchObject({ activeSource: 'intro', introLocked: true, status: 'idle' })
   })
 
-  it('marks the welcome audio as consumed with intro-finished', () => {
+  it('marks the welcome audio as consumed and releases it with intro-finished (K63)', () => {
     const state = run([{ type: 'intro-started' }, { type: 'intro-finished' }])
-    expect(state).toMatchObject({ introConsumed: true, activeSource: 'intro', introLocked: true })
+    expect(state).toMatchObject({ introConsumed: true, activeSource: null, introLocked: false })
   })
 
   it('switches to the live stream and unlocks with live-started', () => {
@@ -57,7 +65,7 @@ describe('transition', () => {
       { type: 'intro-finished' },
       { type: 'live-started' },
     ])
-    expect(state).toMatchObject({ activeSource: 'live', introLocked: false, status: 'playing' })
+    expect(state).toMatchObject({ activeSource: 'live', introLocked: false, status: 'idle' })
   })
 
   it('reports playing with resumed', () => {
@@ -70,6 +78,13 @@ describe('transition', () => {
     expect(transition(liveState, { type: 'stream-error' }).status).toBe('error')
   })
 
+  // Since K11 the load does not clear loading on success; a fatal error of hls.js or
+  // dashjs arrives afterwards (spec 0007, task 2.4).
+  it('clears loading on stream-error', () => {
+    const state = run([{ type: 'load-start' }, { type: 'live-started' }, { type: 'stream-error' }])
+    expect(state).toMatchObject({ status: 'error', loading: false })
+  })
+
   it('pauses the live stream with user-paused', () => {
     expect(transition(liveState, { type: 'user-paused' }).status).toBe('paused')
   })
@@ -79,8 +94,25 @@ describe('transition', () => {
   })
 
   it('reports playing and clears loading on the playing event', () => {
-    const state = run([{ type: 'load-start' }, { type: 'playing' }])
+    const state = run([{ type: 'load-start' }, { type: 'playing', visualizable: false }])
     expect(state).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  it.each([true, false])('sets canVisualize to %s on the playing event', (visualizable) => {
+    const state = run([{ type: 'load-start' }, { type: 'playing', visualizable }])
+    expect(state.canVisualize).toBe(visualizable)
+  })
+
+  it('clears canVisualize on each attempt (load-start)', () => {
+    const visualizing = run([{ type: 'playing', visualizable: true }], liveState)
+    expect(transition(visualizing, { type: 'load-start' }).canVisualize).toBe(false)
+  })
+
+  it('keeps canVisualize on waiting, pause and error', () => {
+    const visualizing = run([{ type: 'playing', visualizable: true }], liveState)
+    for (const type of ['waiting', 'pause', 'error'] as const) {
+      expect(transition(visualizing, { type }).canVisualize).toBe(true)
+    }
   })
 
   it('reports paused on the pause event and error on the error event', () => {
@@ -116,7 +148,7 @@ describe('transition', () => {
     it.each<[string, PlayerState, PlayerEvent]>([
       ['load-end while not loading', initialPlayerState, { type: 'load-end' }],
       ['load-start while loading', { ...liveState, loading: true }, { type: 'load-start' }],
-      ['playing while playing', liveState, { type: 'playing' }],
+      ['playing while playing', liveState, { type: 'playing', visualizable: false }],
       ['pause while paused', { ...liveState, status: 'paused' }, { type: 'pause' }],
       ['volume-changed to the same volume', liveState, { type: 'volume-changed', volume: 1 }],
       ['canplay while playing and not loading', liveState, { type: 'canplay' }],
@@ -126,26 +158,27 @@ describe('transition', () => {
     })
   })
 
-  it('currently lets a pause after an error overwrite the error (K1)', () => {
-    const state = run([{ type: 'error' }, { type: 'pause' }], liveState)
-    expect(state.status).toBe('paused')
+  it('keeps the error when a pause follows it (K1)', () => {
+    const failed = run([{ type: 'error' }], liveState)
+    expect(transition(failed, { type: 'pause' })).toBe(failed)
+    expect(failed.status).toBe('error')
   })
 
-  it('currently reports playing on live-started before the HLS manifest is parsed (K11)', () => {
+  it('keeps loading until the element plays (K11)', () => {
     const state = run([{ type: 'load-start' }, { type: 'live-started' }])
-    expect(state).toMatchObject({ status: 'playing', loading: true })
-    expect(transition(state, { type: 'load-end' })).toMatchObject({
+    expect(state).toMatchObject({ status: 'idle', loading: true, activeSource: 'live' })
+    expect(transition(state, { type: 'playing', visualizable: false })).toMatchObject({
       status: 'playing',
       loading: false,
     })
   })
 
-  it('currently reports playing on live-started after a pause pressed while it loads (K11)', () => {
+  it('respects a pause pressed while it loads (K11)', () => {
     const state = run([{ type: 'load-start' }, { type: 'user-paused' }, { type: 'live-started' }])
-    expect(state.status).toBe('playing')
+    expect(state).toMatchObject({ status: 'paused', loading: false })
   })
 
-  it('currently stays locked in the welcome audio when the live stream fails after it (K63)', () => {
+  it('releases the welcome audio when the live stream fails after it (K63)', () => {
     const state = run(
       [
         { type: 'intro-finished' },
@@ -155,10 +188,10 @@ describe('transition', () => {
       ],
       introState,
     )
-    expect(state).toMatchObject({ status: 'error', introLocked: true, activeSource: 'intro' })
+    expect(state).toMatchObject({ status: 'error', introLocked: false, activeSource: null })
   })
 
-  it('currently stays locked when both the welcome audio and the live stream fail (K63)', () => {
+  it('releases the welcome audio when both the welcome audio and the live stream fail (K63)', () => {
     const state = run([
       { type: 'intro-started' },
       { type: 'load-start' },
@@ -166,25 +199,35 @@ describe('transition', () => {
       { type: 'play-failed' },
       { type: 'load-end' },
     ])
-    expect(state).toMatchObject({ status: 'error', introLocked: true, activeSource: 'intro' })
+    expect(state).toMatchObject({ status: 'error', introLocked: false, activeSource: null })
   })
 
-  it('currently cannot resume when something else pauses the welcome audio (K63)', () => {
-    const paused = transition(introState, { type: 'pause' })
-    expect(paused).toMatchObject({ status: 'paused', introLocked: true, activeSource: 'intro' })
+  it('releases the welcome audio when something else pauses it (K63)', () => {
+    // The controller marks it as consumed before the pause of the element.
+    const paused = run([{ type: 'intro-finished' }, { type: 'pause' }], introState)
+    expect(paused).toMatchObject({ status: 'paused', introLocked: false, activeSource: null })
     expect(transition(paused, { type: 'user-paused' })).toBe(paused)
   })
 
-  it('currently stays locked in error when the welcome audio errors while playing (K63)', () => {
-    const state = transition(introState, { type: 'error' })
-    expect(state).toMatchObject({ status: 'error', introLocked: true, activeSource: 'intro' })
+  it('releases the welcome audio when it errors while playing (K63)', () => {
+    // The controller follows with the live stream instead of reporting the error.
+    const state = run(
+      [
+        { type: 'intro-finished' },
+        { type: 'load-start' },
+        { type: 'live-started' },
+        { type: 'playing', visualizable: false },
+      ],
+      introState,
+    )
+    expect(state).toMatchObject({ status: 'playing', introLocked: false, activeSource: 'live' })
   })
 
-  it('currently keeps loading after a pause while buffering (K64)', () => {
+  it('clears loading on a pause while buffering (K64)', () => {
     const state = run(
       [{ type: 'waiting' }, { type: 'user-paused' }, { type: 'pause' }, { type: 'canplay' }],
       liveState,
     )
-    expect(state).toMatchObject({ status: 'paused', loading: true })
+    expect(state).toMatchObject({ status: 'paused', loading: false })
   })
 })

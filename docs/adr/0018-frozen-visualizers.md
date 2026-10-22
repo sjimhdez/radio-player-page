@@ -1,6 +1,6 @@
 # ADR 0018 — Visualizadores congelados
 
-- Estado: aceptado · Fecha: 2026-10-16 · Spec: 0001 (fase 1)
+- Estado: aceptado · Fecha: 2026-10-16 · Spec: 0001 (fase 1) · Alcance reducido por el [ADR 0031](0031-visualization-decided-by-the-core.md): `use-can-visualize.tsx` y `use-audio-visualizer.tsx` salen de la zona. Contrato con el reproductor enmendado por el [ADR 0033](0033-retry-direct-sources-without-crossorigin.md) (spec 0007): `use-can-visualize.tsx` ya no existe y el dibujo usa el analizador del controlador (`getAnalyser()`) en lugar de `audioRef`, con `canVisualize` de la instantánea
 
 ## Contexto
 

@@ -13,8 +13,12 @@ export const media = {
   pause: vi.fn<(src: string) => void>(),
   /** Sources whose play() rejects with NotSupportedError. */
   failing: new Set<string>(),
+  /** Sources without CORS: play() rejects with NotSupportedError while crossOrigin is 'anonymous'. */
+  corsBlocked: new Set<string>(),
   /** When true, play() stays pending until release() or fail(). */
   hold: false,
+  /** When true, writes to volume are ignored, as on iOS (ADR 0036). */
+  readOnlyVolume: false,
   pending: [] as Deferred[],
   /** Settles the oldest pending play() successfully. */
   release() {
@@ -36,7 +40,9 @@ export function installFakeAudio(): () => void {
   media.play.mockReset()
   media.pause.mockReset()
   media.failing.clear()
+  media.corsBlocked.clear()
   media.hold = false
+  media.readOnlyVolume = false
   media.pending = []
 
   const proto = window.HTMLMediaElement.prototype
@@ -46,6 +52,7 @@ export function installFakeAudio(): () => void {
     pause: proto.pause,
     paused: Object.getOwnPropertyDescriptor(proto, 'paused'),
     src: Object.getOwnPropertyDescriptor(proto, 'src')!,
+    volume: Object.getOwnPropertyDescriptor(proto, 'volume')!,
   }
 
   Object.defineProperty(proto, 'src', {
@@ -67,6 +74,16 @@ export function installFakeAudio(): () => void {
     },
   })
 
+  Object.defineProperty(proto, 'volume', {
+    configurable: true,
+    get(this: HTMLMediaElement) {
+      return original.volume.get!.call(this)
+    },
+    set(this: HTMLMediaElement, value: number) {
+      if (!media.readOnlyVolume) original.volume.set!.call(this, value)
+    },
+  })
+
   Object.defineProperty(proto, 'paused', {
     configurable: true,
     get(this: HTMLMediaElement) {
@@ -83,7 +100,10 @@ export function installFakeAudio(): () => void {
       playing.add(this)
       this.dispatchEvent(new Event('playing'))
     }
-    if (media.failing.has(this.src)) {
+    if (
+      media.failing.has(this.src) ||
+      (media.corsBlocked.has(this.src) && this.crossOrigin === 'anonymous')
+    ) {
       return Promise.reject(new DOMException('fail', 'NotSupportedError'))
     }
     if (media.hold) {
@@ -111,6 +131,7 @@ export function installFakeAudio(): () => void {
     proto.play = original.play
     proto.pause = original.pause
     Object.defineProperty(proto, 'src', original.src)
+    Object.defineProperty(proto, 'volume', original.volume)
     if (original.paused) {
       Object.defineProperty(proto, 'paused', original.paused)
     } else {

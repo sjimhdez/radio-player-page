@@ -1,13 +1,17 @@
 // The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
 // of the audio element, the volume, HLS/DASH and the welcome audio, as in
-// src/hooks/use-audio-player.test.tsx, with its currently cases (C7, K11, K12, K63, K64)
-// and the K70 regression cases (task 2.9). The concurrency suspicions of §4.5 come
-// last (task 2.10).
+// src/hooks/use-audio-player.test.tsx, with the K63 cases (fixed in spec 0007) and
+// the K70 regression cases (task 2.9). Spec 0007 fixed C7 and K12: Play after a pause
+// reloads the live stream (ADR 0032). The concurrency suspicions of §4.5 come
+// last (task 2.10). C1 (spec 0007, ADR 0033): one retry without crossOrigin on the
+// direct sources, never with the element in the Web Audio graph. canVisualize and
+// the Web Audio graph (spec 0007, task 1.7; K82, ADR 0031) close the file.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAudioController } from 'src/core/audio/audio-controller'
 import { initialPlayerState } from 'src/core/audio/player-machine'
 import { installFakeAudio, media } from 'src/test/fake-audio'
 import { createFakeDash, createFakeHls } from 'src/test/fake-streaming'
+import { FakeAudioContext, webAudio } from 'src/test/fake-web-audio'
 
 const MP3 = 'https://radio.test/live.mp3'
 const OGG = 'https://radio.test/other.ogg'
@@ -15,13 +19,38 @@ const HLS = 'https://radio.test/live.m3u8'
 const DASH = 'https://radio.test/live.mpd'
 const INTRO = 'https://radio.test/intro.mp3'
 
-const desktop = { isIOS: false }
-const live = (streamUrl = MP3, isIOS = false) => ({ streamUrl, introUrl: null, isIOS })
-const withIntro = (streamUrl = MP3) => ({ streamUrl, introUrl: INTRO, isIOS: false })
+const CHROME =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36'
+const SAFARI =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0.1 Safari/605.1.15'
+
+/** The Web Audio options of a browser with a (fake) AudioContext. */
+const withWebAudio = (userAgent = CHROME) => ({
+  createContext: vi.fn(() => new FakeAudioContext() as unknown as AudioContext),
+  userAgent,
+})
+
+/** A volume probe that ignores writes, as on iOS (ADR 0036). */
+const readOnlyProbe = () => {
+  const probe = new Audio()
+  Object.defineProperty(probe, 'volume', { get: () => 1, set: () => {} })
+  return probe
+}
+
+const IPHONE = {
+  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)',
+  maxTouchPoints: 5,
+}
+/** iPadOS 13+ Safari: the desktop user agent of a Mac, with touch (K13, ADR 0036). */
+const IPAD_DESKTOP = { userAgent: SAFARI, maxTouchPoints: 5 }
+
+const live = (streamUrl = MP3) => ({ streamUrl, introUrl: null })
+const withIntro = (streamUrl = MP3) => ({ streamUrl, introUrl: INTRO })
 
 let restore: () => void
 beforeEach(() => {
   restore = installFakeAudio()
+  webAudio.contexts = []
 })
 afterEach(() => restore())
 
@@ -31,7 +60,7 @@ afterEach(() => restore())
 function setup(options: Parameters<typeof createAudioController>[0] = {}) {
   const controller = createAudioController(options)
   const audio = new Audio()
-  controller.attach(audio, desktop)
+  controller.attach(audio)
   return { controller, audio }
 }
 
@@ -125,8 +154,8 @@ describe('attach and detach', () => {
     const controller = createAudioController()
     const audio = new Audio()
     const listeners = countListeners(audio)
-    controller.attach(audio, desktop)
-    controller.attach(audio, desktop)
+    controller.attach(audio)
+    controller.attach(audio)
     expect(listeners()).toEqual({
       playing: 1,
       pause: 1,
@@ -144,33 +173,37 @@ describe('attach and detach', () => {
     const controller = createAudioController()
     const audio = new Audio()
     const listeners = countListeners(audio)
-    controller.attach(audio, desktop)
+    controller.attach(audio)
     controller.detach()
-    controller.attach(audio, desktop)
+    controller.attach(audio)
     expect(Object.values(listeners())).toEqual([1, 1, 1, 1, 1, 1])
   })
 
   it('moves its listeners when attached to another element', () => {
     const { controller, audio } = setup()
     const other = new Audio()
-    controller.attach(other, desktop)
+    controller.attach(other)
     audio.dispatchEvent(new Event('playing'))
     expect(controller.getSnapshot().status).toBe('idle')
     other.dispatchEvent(new Event('playing'))
     expect(controller.getSnapshot().status).toBe('playing')
   })
 
-  it('applies the volume to the element it attaches to, except on iOS', () => {
+  it('applies the volume to the element it attaches to', () => {
     const { controller } = setup()
-    controller.setVolume(0.3, desktop)
-    controller.detach()
-    const ios = new Audio()
-    controller.attach(ios, { isIOS: true })
-    expect(ios.volume).toBe(1)
+    controller.setVolume(0.3)
     controller.detach()
     const other = new Audio()
-    controller.attach(other, desktop)
+    controller.attach(other)
     expect(other.volume).toBe(0.3)
+  })
+
+  it('leaves the volume of the element alone when it cannot be changed (K13)', () => {
+    const controller = createAudioController({ volumeProbe: readOnlyProbe })
+    const audio = new Audio()
+    audio.volume = 0.6
+    controller.attach(audio)
+    expect(audio.volume).toBe(0.6)
   })
 })
 
@@ -214,9 +247,9 @@ describe('direct streams', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
   })
 
-  // docs/known-issues.md C7: Play after a pause resumes from the buffer, behind the
-  // live stream. Fixed in spec 0007.
-  it('currently resumes the loaded live stream from the buffer after a pause (C7)', async () => {
+  // docs/known-issues.md C7: Play after a pause reloads the live stream, so it plays
+  // from the live edge instead of the buffer (spec 0007, ADR 0032).
+  it('reloads the live stream on play() after a pause (C7)', async () => {
     const { controller, audio } = setup()
     await controller.play(live())
     controller.pause()
@@ -224,8 +257,9 @@ describe('direct streams', () => {
     expect(audio.paused).toBe(true)
     await controller.play(live())
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
-    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(media.load).toHaveBeenCalledTimes(2)
     expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.src).toBe(MP3)
   })
 
   it('does nothing on play() when the loaded source is already playing', async () => {
@@ -270,6 +304,9 @@ describe('sources', () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
+    // Playing: a pause during the load would destroy it (ADR 0034 D3).
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await Promise.resolve()
     controller.pause()
     expect(hls.instances[0].destroy).not.toHaveBeenCalled()
     await controller.play(live(MP3))
@@ -286,15 +323,39 @@ describe('sources', () => {
     expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
   })
 
-  it('reads isIOS on each play(), not when it is created', async () => {
+  it('takes the platform when it is created', async () => {
     const hls = createFakeHls()
-    const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
-    await controller.play(live(HLS, true))
+    const { controller, audio } = setup({
+      loaders: { loadHls: hls.loadHls },
+      platform: IPHONE,
+    })
+    await controller.play(live(HLS))
     expect(hls.loadHls).not.toHaveBeenCalled()
     expect(audio.src).toBe(HLS)
     controller.pause()
     await controller.play(live(MP3))
-    await controller.play(live(HLS, false))
+    await controller.play(live(HLS))
+    expect(hls.loadHls).not.toHaveBeenCalled()
+  })
+
+  it('plays HLS natively on iPadOS with the desktop user agent (K13)', async () => {
+    const hls = createFakeHls()
+    const { controller, audio } = setup({
+      loaders: { loadHls: hls.loadHls },
+      platform: IPAD_DESKTOP,
+    })
+    await controller.play(live(HLS))
+    expect(hls.loadHls).not.toHaveBeenCalled()
+    expect(audio.src).toBe(HLS)
+  })
+
+  it('uses hls.js on a Mac without touch', async () => {
+    const hls = createFakeHls()
+    const { controller } = setup({
+      loaders: { loadHls: hls.loadHls },
+      platform: { userAgent: SAFARI, maxTouchPoints: 0 },
+    })
+    await controller.play(live(HLS))
     expect(hls.instances).toHaveLength(1)
   })
 })
@@ -314,13 +375,30 @@ describe('HLS', () => {
     expect(audio.crossOrigin).toBeNull()
   })
 
-  // docs/known-issues.md K11
-  it('currently reports playing before MANIFEST_PARSED', async () => {
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until the element plays (K11)', async () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
     expect(media.play).not.toHaveBeenCalled()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: true })
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await Promise.resolve()
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  it('respects a pause pressed while HLS loads (K11)', async () => {
+    const hls = createFakeHls()
+    const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(live(HLS))
+    controller.pause()
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    await Promise.resolve()
+    expect(media.play).not.toHaveBeenCalled()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
 
   it('sets error when play() after MANIFEST_PARSED rejects', async () => {
@@ -338,9 +416,19 @@ describe('HLS', () => {
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
     hls.instances[0].handlers.hlsError('hlsError', { fatal: false })
-    expect(controller.getSnapshot().status).toBe('playing')
+    expect(controller.getSnapshot().status).toBe('idle')
     hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
     expect(controller.getSnapshot().status).toBe('error')
+  })
+
+  // A fatal error arrives after the load, which no longer clears loading (spec 0007, 2.4).
+  it('clears loading on a fatal hls.js error while it loads', async () => {
+    const hls = createFakeHls()
+    const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(live(HLS))
+    hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    // The alert shows: error and not loading.
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
   })
 
   it('falls back to native HLS with crossOrigin when hls.js is not supported', async () => {
@@ -355,8 +443,9 @@ describe('HLS', () => {
     expect(controller.getSnapshot().status).toBe('playing')
   })
 
-  // docs/known-issues.md K12
-  it('currently recreates hls.js when resuming after a pause', async () => {
+  // docs/known-issues.md C7 and K12: the reload no longer depends on comparing
+  // audio.src with a blob: URL (spec 0007, ADR 0032).
+  it('recreates hls.js to return to the live edge (C7)', async () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
@@ -364,6 +453,7 @@ describe('HLS', () => {
     await controller.play(live(HLS))
     expect(hls.instances).toHaveLength(2)
     expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+    expect(hls.instances[1].loadSource).toHaveBeenCalledWith(HLS)
   })
 })
 
@@ -376,15 +466,57 @@ describe('DASH', () => {
     expect(dash.players[0].initialize).toHaveBeenCalledWith(audio, DASH, true)
     expect(audio.crossOrigin).toBeNull()
     expect(media.play).not.toHaveBeenCalled()
-    expect(controller.getSnapshot().status).toBe('playing')
+  })
+
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until the element plays with DASH (K11)', async () => {
+    const dash = createFakeDash()
+    const { controller, audio } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: true })
+    // The dashjs autoplay.
+    audio.dispatchEvent(new Event('playing'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  it('respects a pause pressed while DASH loads (K11)', async () => {
+    const dash = createFakeDash()
+    const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    controller.pause()
+    // reset() stops the dashjs autoplay.
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
+    dash.players[0].handlers.error({ error: { code: 17 } })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
 
   it('sets error on a dashjs error', async () => {
     const dash = createFakeDash()
     const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
     await controller.play(live(DASH))
-    dash.players[0].handlers.error()
+    dash.players[0].handlers.error({ error: { code: 17 } })
     expect(controller.getSnapshot().status).toBe('error')
+  })
+
+  it('clears loading on a dashjs error while it loads', async () => {
+    const dash = createFakeDash()
+    const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    dash.players[0].handlers.error({ error: { code: 17 } })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+  })
+
+  // docs/known-issues.md C7 (spec 0007, ADR 0032).
+  it('recreates dashjs to return to the live edge after a pause (C7)', async () => {
+    const dash = createFakeDash()
+    const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    controller.pause()
+    await controller.play(live(DASH))
+    expect(dash.players).toHaveLength(2)
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
+    expect(dash.players[1].initialize).toHaveBeenCalledWith(expect.anything(), DASH, true)
   })
 })
 
@@ -407,7 +539,7 @@ describe('welcome audio (intro)', () => {
     const audio = new Audio()
     // Registered first, so the controller never hears 'playing'.
     audio.addEventListener('playing', (event) => event.stopImmediatePropagation())
-    controller.attach(audio, desktop)
+    controller.attach(audio)
     await controller.play(withIntro())
     expect(controller.getSnapshot().status).toBe('playing')
   })
@@ -486,6 +618,18 @@ describe('welcome audio (intro)', () => {
     })
   })
 
+  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  it('keeps loading until HLS plays when it fails (K11)', async () => {
+    media.failing.add(INTRO)
+    const hls = createFakeHls()
+    const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(withIntro(HLS))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: true })
+    // What the element fires once hls.js plays on MANIFEST_PARSED.
+    audio.dispatchEvent(new Event('playing'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+
   it('sets error when it fails and the live stream fails too', async () => {
     media.failing.add(INTRO)
     media.failing.add(MP3)
@@ -506,7 +650,7 @@ describe('welcome audio (intro)', () => {
 
   it('plays nothing but the live stream without an intro URL', async () => {
     const { controller, audio } = setup()
-    await controller.play({ streamUrl: MP3, introUrl: '', isIOS: false })
+    await controller.play({ streamUrl: MP3, introUrl: '' })
     expect(audio.src).toBe(MP3)
     expect(controller.getSnapshot().introConsumed).toBe(false)
   })
@@ -533,8 +677,70 @@ describe('welcome audio (intro)', () => {
   })
 })
 
+describe('streams without CORS (C1)', () => {
+  it('plays an MP3 without CORS by retrying without crossOrigin', async () => {
+    media.corsBlocked.add(MP3)
+    const { controller, audio } = setup()
+    await controller.play(live())
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'playing',
+      loading: false,
+      activeSource: 'live',
+    })
+  })
+
+  it('plays native HLS without CORS by retrying without crossOrigin', async () => {
+    media.corsBlocked.add(HLS)
+    const { controller, audio } = setup({ platform: IPHONE })
+    await controller.play(live(HLS))
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(controller.getSnapshot().status).toBe('playing')
+  })
+
+  it('plays the welcome audio and then the live stream without CORS', async () => {
+    media.corsBlocked.add(INTRO)
+    media.corsBlocked.add(MP3)
+    const { controller, audio } = setup()
+    await controller.play(withIntro())
+    expect(audio.src).toBe(INTRO)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'intro' })
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(controller.getSnapshot().activeSource).toBe('live'))
+    expect(audio.src).toBe(MP3)
+    expect(media.play).toHaveBeenCalledTimes(4)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', introLocked: false })
+  })
+
+  it('sets error when the retry fails too', async () => {
+    media.failing.add(MP3)
+    const { controller } = setup()
+    await controller.play(live())
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(controller.getSnapshot().status).toBe('error')
+  })
+
+  it('does not retry when the element is in the Web Audio graph, and sets error (D1)', async () => {
+    media.corsBlocked.add(OGG)
+    const { controller, audio } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+    expect(controller.getSnapshot().canVisualize).toBe(true)
+    controller.pause()
+    media.play.mockClear()
+
+    await controller.play(live(OGG))
+
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(audio.crossOrigin).toBe('anonymous')
+    expect(controller.getSnapshot().status).toBe('error')
+  })
+})
+
 describe('currently (docs/known-issues.md)', () => {
-  it('currently stays locked in the welcome audio when the live stream fails after it (K63)', async () => {
+  it('releases the welcome audio when the live stream fails after it (K63)', async () => {
     media.failing.add(MP3)
     const { controller, audio } = setup()
     await controller.play(withIntro())
@@ -542,58 +748,157 @@ describe('currently (docs/known-issues.md)', () => {
     await vi.waitFor(() => expect(controller.getSnapshot().status).toBe('error'))
     await vi.waitFor(() => expect(controller.getSnapshot().loading).toBe(false))
 
-    // Play stays disabled and play() returns early: no retry is possible.
-    expect(controller.getSnapshot().introLocked).toBe(true)
+    // Play is enabled and loads the live stream, without the welcome audio.
+    expect(controller.getSnapshot().introLocked).toBe(false)
     media.failing.clear()
     await controller.play(withIntro())
-    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
-    expect(controller.getSnapshot().status).toBe('error')
+    // The live stream fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3, MP3])
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
 
-  it('currently stays locked when both the welcome audio and the live stream fail (K63)', async () => {
+  it('releases the welcome audio when both the welcome audio and the live stream fail (K63)', async () => {
     media.failing.add(INTRO)
     media.failing.add(MP3)
     const { controller } = setup()
     await controller.play(withIntro())
-    expect(controller.getSnapshot()).toMatchObject({ status: 'error', introLocked: true })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', introLocked: false })
+    media.failing.clear()
+    await controller.play(withIntro())
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
 
-  it('currently cannot resume when something else pauses the welcome audio (K63)', async () => {
+  it('releases the welcome audio when something else pauses it (K63)', async () => {
     const { controller, audio } = setup()
     await controller.play(withIntro())
     audio.pause()
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'paused',
+      introLocked: false,
+      introConsumed: true,
+    })
     await controller.play(withIntro())
-    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', introLocked: true })
-    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
 
-  it('currently stays locked in error when the welcome audio errors while playing (K63)', async () => {
+  it('releases the welcome audio when something else pauses it while it starts (K63)', async () => {
+    media.hold = true
+    const { controller, audio } = setup()
+    const playing = controller.play(withIntro())
+    audio.pause()
+    media.fail('AbortError')
+    await playing
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'paused',
+      loading: false,
+      introLocked: false,
+    })
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO])
+  })
+
+  it('releases the welcome audio when it errors while playing (K63)', async () => {
     const { controller, audio } = setup()
     await controller.play(withIntro())
     audio.dispatchEvent(new Event('error'))
-    expect(controller.getSnapshot()).toMatchObject({ status: 'error', introLocked: true })
+    await vi.waitFor(() => expect(controller.getSnapshot().activeSource).toBe('live'))
+    expect(audio.src).toBe(MP3)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', introLocked: false })
   })
 
-  it('currently keeps loading after a pause while buffering (K64)', async () => {
+  it('does not release the welcome audio on the pause before its end (K63)', async () => {
+    const { controller, audio } = setup()
+    await controller.play(withIntro())
+    // What the browser fires when the welcome audio ends: pause, with ended true.
+    Object.defineProperty(audio, 'ended', { configurable: true, value: true })
+    audio.dispatchEvent(new Event('pause'))
+    expect(controller.getSnapshot()).toMatchObject({ introLocked: true, activeSource: 'intro' })
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(controller.getSnapshot().activeSource).toBe('live'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', introLocked: false })
+  })
+
+  it('errors in the welcome audio fall through to the live stream once (K63)', async () => {
+    media.failing.add(INTRO)
+    const { controller, audio } = setup()
+    const playing = controller.play(withIntro())
+    // The error of the element comes before the rejection of its play().
+    audio.dispatchEvent(new Event('error'))
+    await playing
+    // The welcome audio fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, INTRO, MP3])
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
+  })
+
+  it('cancels the live stream that follows the welcome audio on pause() (K63)', async () => {
+    media.hold = true
+    const { controller, audio } = setup()
+    const intro = controller.play(withIntro())
+    media.release()
+    await intro
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenLastCalledWith(MP3))
+    controller.pause()
+    media.fail('AbortError')
+    await vi.waitFor(() => expect(media.pending).toHaveLength(0))
+    await Promise.resolve()
+    expect(media.pause).toHaveBeenCalledWith(MP3)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
+  })
+
+  it('keeps a single load of the live stream that follows the welcome audio on play() (K63)', async () => {
+    media.hold = true
+    const { controller, audio } = setup()
+    const intro = controller.play(withIntro())
+    media.release()
+    await intro
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenLastCalledWith(MP3))
+    const again = controller.play(withIntro())
+    media.release()
+    await again
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
+  })
+
+  it('clears loading on a pause while buffering (K64)', async () => {
     const { controller, audio } = setup()
     await controller.play(live())
     audio.dispatchEvent(new Event('waiting'))
     controller.pause()
     audio.dispatchEvent(new Event('canplay'))
-    // The spinner replaces Play while paused.
-    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: true })
+    // Play replaces the spinner.
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
 
-  it('currently plays HLS on MANIFEST_PARSED after a pause pressed while it loads (K11)', async () => {
-    const hls = createFakeHls()
-    const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
-    await controller.play(live(HLS))
-    controller.pause()
-    expect(controller.getSnapshot().status).toBe('paused')
-    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
-    await Promise.resolve()
-    expect(media.play).toHaveBeenCalledTimes(1)
-    expect(controller.getSnapshot().status).toBe('playing')
+  it('currently publishes an error without loading while the C1 retry loads (K83)', async () => {
+    media.corsBlocked.add(MP3)
+    media.hold = true
+    const { controller, audio } = setup()
+    const published: Array<{ status: string; loading: boolean }> = []
+    controller.subscribe(() => {
+      const { status, loading } = controller.getSnapshot()
+      const last = published[published.length - 1]
+      if (last?.status !== status || last.loading !== loading) published.push({ status, loading })
+    })
+
+    const playing = controller.play(live())
+    // The browser fires the error of the attempt with crossOrigin before play() rejects.
+    audio.dispatchEvent(new Event('error'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenCalledTimes(2))
+    // The retry without crossOrigin loads and can play.
+    audio.dispatchEvent(new Event('canplay'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+    media.release()
+    await playing
+
+    // The Dashboard opens its alert on status 'error' with loading false.
+    expect(published).toEqual([
+      { status: 'idle', loading: true },
+      { status: 'error', loading: true },
+      { status: 'error', loading: false },
+      { status: 'playing', loading: false },
+    ])
   })
 })
 
@@ -601,23 +906,39 @@ describe('volume', () => {
   it('starts at 1 and applies changes to the element and the snapshot', () => {
     const { controller, audio } = setup()
     expect(controller.getSnapshot().volume).toBe(1)
-    controller.setVolume(0.5, desktop)
+    controller.setVolume(0.5)
     expect(audio.volume).toBe(0.5)
     expect(controller.getSnapshot().volume).toBe(0.5)
   })
 
-  it('ignores changes on iOS, reading isIOS on each call', () => {
-    const { controller, audio } = setup()
-    controller.setVolume(0.5, { isIOS: true })
+  it('is controllable without a probe', () => {
+    expect(createAudioController().getSnapshot().volumeControllable).toBe(true)
+  })
+
+  it('probes once, when it is created, so the first snapshot is right (K13)', () => {
+    const volumeProbe = vi.fn(readOnlyProbe)
+    const controller = createAudioController({ volumeProbe })
+    expect(controller.getSnapshot().volumeControllable).toBe(false)
+    controller.attach(new Audio())
+    controller.setVolume(0.5)
+    expect(volumeProbe).toHaveBeenCalledTimes(1)
+  })
+
+  it('is controllable when the probe applies the write', () => {
+    const controller = createAudioController({ volumeProbe: () => new Audio() })
+    expect(controller.getSnapshot().volumeControllable).toBe(true)
+  })
+
+  it('ignores changes when the volume cannot be changed (K13)', () => {
+    const { controller, audio } = setup({ volumeProbe: readOnlyProbe })
+    controller.setVolume(0.5)
     expect(audio.volume).toBe(1)
     expect(controller.getSnapshot().volume).toBe(1)
-    controller.setVolume(0.4, desktop)
-    expect(audio.volume).toBe(0.4)
   })
 
   it('ignores changes while detached', () => {
     const controller = createAudioController()
-    controller.setVolume(0.5, desktop)
+    controller.setVolume(0.5)
     expect(controller.getSnapshot().volume).toBe(1)
   })
 })
@@ -648,6 +969,8 @@ describe('concurrency (spec 0006, 2.10)', () => {
     expect(hls.instances).toHaveLength(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledTimes(1)
     expect(hls.instances[0].attachMedia).toHaveBeenCalledWith(audio)
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await Promise.resolve()
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
 
     controller.dispose()
@@ -676,13 +999,14 @@ describe('concurrency (spec 0006, 2.10)', () => {
     await controller.play(live(HLS))
     controller.pause()
     await controller.play(live(HLS))
-    // K12: the resume recreates hls.js, so the second play() was not deduplicated.
+    // Play after a pause reloads the live stream (C7), so the second play() was not
+    // deduplicated.
     expect(hls.instances).toHaveLength(2)
   })
 
   // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
-  // when pause() interrupts it. Fixed in spec 0007.
-  it('currently reports an error when a pause interrupts the loading MP3 (K81)', async () => {
+  // when pause() interrupts it; the pause cancels the load (spec 0007, ADR 0034 D3).
+  it('stays paused, without an error, when a pause interrupts the loading MP3 (K81)', async () => {
     media.hold = true
     const { controller } = setup()
     const playing = controller.play(live())
@@ -692,7 +1016,161 @@ describe('concurrency (spec 0006, 2.10)', () => {
     media.fail('AbortError')
     await playing
 
-    // The UI shows "Unable to play the stream" instead of Play.
-    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
+  })
+
+  // Risk 5 of spec 0007: the pause releases the pending play() (K80), so the next
+  // one loads again, and the cancelled load creates no hls.js of its own.
+  it('reloads on play() after a pause that cancelled the load', async () => {
+    const hls = createFakeHls()
+    const releases: (() => void)[] = []
+    const loadHls = vi.fn(
+      () => new Promise<typeof hls.Hls>((resolve) => releases.push(() => resolve(hls.Hls))),
+    )
+    const { controller } = setup({ loaders: { loadHls } })
+    const first = controller.play(live(HLS))
+    controller.pause()
+    const second = controller.play(live(HLS))
+    expect(second).not.toBe(first)
+    releases.forEach((release) => release())
+    await Promise.all([first, second])
+
+    expect(loadHls).toHaveBeenCalledTimes(2)
+    expect(hls.instances).toHaveLength(1)
+    hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    await Promise.resolve()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+})
+
+describe('visualization (K82, ADR 0031)', () => {
+  it('starts without a visualizer and creates nothing until play()', () => {
+    const options = withWebAudio()
+    const { controller, audio } = setup({ webAudio: options })
+    audio.dispatchEvent(new Event('playing'))
+
+    expect(options.createContext).not.toHaveBeenCalled()
+    expect(controller.getSnapshot().canVisualize).toBe(false)
+    expect(controller.getAnalyser()).toBeNull()
+  })
+
+  it('creates the context synchronously in play(), inside the gesture', () => {
+    media.hold = true
+    const options = withWebAudio()
+    const { controller } = setup({ webAudio: options })
+
+    void controller.play(live())
+
+    expect(options.createContext).toHaveBeenCalledTimes(1)
+  })
+
+  it('visualizes a direct stream with CORS and connects the element once', async () => {
+    const { controller, audio } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: true })
+    const [context] = webAudio.contexts
+    expect(context.createMediaElementSource).toHaveBeenCalledWith(audio)
+    expect(controller.getAnalyser()).toBe(context.analysers[0])
+
+    controller.pause()
+    await controller.play(live())
+    expect(context.createMediaElementSource).toHaveBeenCalledTimes(1)
+    expect(webAudio.contexts).toHaveLength(1)
+  })
+
+  it('visualizes hls.js (MSE)', async () => {
+    const hls = createFakeHls()
+    const { controller, audio } = setup({
+      loaders: { loadHls: hls.loadHls },
+      webAudio: withWebAudio(),
+    })
+    await controller.play(live(HLS))
+    hls.instances[0].handlers[hls.Hls.Events.MANIFEST_PARSED]('', { fatal: false })
+    await vi.waitFor(() => expect(controller.getSnapshot().canVisualize).toBe(true))
+    expect(webAudio.contexts[0].createMediaElementSource).toHaveBeenCalledWith(audio)
+  })
+
+  it('visualizes dashjs (MSE)', async () => {
+    const dash = createFakeDash()
+    const { controller, audio } = setup({
+      loaders: { loadDash: dash.loadDash },
+      webAudio: withWebAudio(),
+    })
+    await controller.play(live(DASH))
+    audio.dispatchEvent(new Event('playing'))
+    expect(controller.getSnapshot().canVisualize).toBe(true)
+  })
+
+  it('does not visualize after the retry without crossOrigin, nor connect the element', async () => {
+    media.corsBlocked.add(MP3)
+    const { controller } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: false })
+    expect(webAudio.contexts[0].createMediaElementSource).not.toHaveBeenCalled()
+    expect(controller.getAnalyser()).toBeNull()
+  })
+
+  it('never visualizes the welcome audio, and visualizes the live stream after it', async () => {
+    const { controller, audio } = setup({ webAudio: withWebAudio() })
+    await controller.play(withIntro())
+
+    expect(controller.getSnapshot()).toMatchObject({ activeSource: 'intro', canVisualize: false })
+    expect(webAudio.contexts[0].createMediaElementSource).not.toHaveBeenCalled()
+
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(controller.getSnapshot().canVisualize).toBe(true))
+  })
+
+  it('never creates the context in WebKit, nor visualizes', async () => {
+    const options = withWebAudio(SAFARI)
+    const { controller } = setup({ webAudio: options })
+    await controller.play(live())
+
+    expect(options.createContext).not.toHaveBeenCalled()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  it('does not visualize without the Web Audio API', async () => {
+    const { controller } = setup({ webAudio: { userAgent: CHROME } })
+    await controller.play(live())
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  it('does not visualize when the element cannot be connected', async () => {
+    const createContext = () => {
+      const context = new FakeAudioContext()
+      context.createMediaElementSource.mockImplementation(() => {
+        throw new Error('InvalidStateError')
+      })
+      return context as unknown as AudioContext
+    }
+    const { controller } = setup({ webAudio: { createContext, userAgent: CHROME } })
+    await controller.play(live())
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  it('resumes a suspended context in play()', async () => {
+    const { controller } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+    controller.pause()
+    const [context] = webAudio.contexts
+    context.state = 'suspended'
+
+    void controller.play(live())
+
+    expect(context.resume).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears canVisualize while the next attempt loads', async () => {
+    const { controller } = setup({ webAudio: withWebAudio() })
+    await controller.play(live())
+    controller.pause()
+    media.hold = true
+
+    void controller.play(live(OGG))
+
+    expect(controller.getSnapshot()).toMatchObject({ loading: true, canVisualize: false })
   })
 })

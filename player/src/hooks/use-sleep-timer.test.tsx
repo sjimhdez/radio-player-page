@@ -110,7 +110,7 @@ describe('useSleepTimer', () => {
     expect(vi.getTimerCount()).toBe(0)
   })
 
-  it('currently counts interval ticks, not elapsed time (K66)', () => {
+  it('counts against a deadline when the ticks are held back (K66)', () => {
     // 29 minutes go by with the timers held back (a suspended page), then one tick.
     const { result } = mount(true, vi.fn())
 
@@ -118,6 +118,6 @@ describe('useSleepTimer', () => {
     vi.setSystemTime(Date.now() + 29 * MINUTE)
     act(() => vi.advanceTimersByTime(SECOND))
 
-    expect(result.current.remainingSeconds).toBe(1799)
+    expect(result.current.remainingSeconds).toBe(59)
   })
 })

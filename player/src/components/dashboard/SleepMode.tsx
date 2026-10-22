@@ -8,7 +8,7 @@ import Stack from '@mui/material/Stack'
 import Tooltip from '@mui/material/Tooltip'
 
 interface SleepModeProps {
-  /** Whether the stream is currently playing */
+  /** Whether the live stream is playing (false during the welcome audio, K65) */
   isPlaying: boolean
   /** Called with the chosen duration in minutes */
   onSelect: (minutes: number) => void
@@ -20,7 +20,9 @@ const SLEEP_OPTIONS = [30, 60, 120]
 /**
  * Sleep mode component
  * Provides a button that opens a menu of sleep timer durations. The button is always
- * visible and disabled when playback is not active. The countdown itself lives in
+ * visible and disabled when playback is not active or the welcome audio plays: its
+ * handover to the live stream goes through paused, which would cancel the timer
+ * (known-issues.md K65, ADR 0035). The countdown itself lives in
  * useSleepTimer(); this component only reports the chosen duration.
  *
  * @param props - Component props

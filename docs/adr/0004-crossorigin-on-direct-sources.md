@@ -1,6 +1,6 @@
 # ADR 0004 — `crossOrigin` en las fuentes directas, no en las rutas MSE
 
-- Estado: aceptado · Fecha: 2026-10-16 · Spec: 0001 (fase 0, R3) · Afecta a: decisión 5 de la hoja de ruta, spec 0001 §4.8 y §7.2
+- Estado: aceptado; enmendado por [ADR 0033](0033-retry-direct-sources-without-crossorigin.md) (reintento sin `crossOrigin`) · Fecha: 2026-10-16 · Spec: 0001 (fase 0, R3) · Afecta a: decisión 5 de la hoja de ruta, spec 0001 §4.8 y §7.2
 
 ## Contexto
 

@@ -102,8 +102,9 @@ test( 'applies the volume slider to the audio element, before and after Play', a
 
 // Spec 0006, task 2.2 (K81): the system pause (lock screen, headphones) while the
 // live MP3 loads. Playwright cannot reach the lock screen: the player's Media
-// Session handlers are kept on `window` and the test calls the `pause` one.
-test( 'currently shows the play error when the system pauses the loading MP3 (K81)', async ( {
+// Session handlers are kept on `window` and the test calls the `pause` one. Spec
+// 0007 (ADR 0034 D3): the pause cancels the load and its AbortError is ignored.
+test( 'stays paused without an error when the system pauses the loading MP3 (K81)', async ( {
 	page,
 } ) => {
 	await page.addInitScript( () => {
@@ -139,73 +140,61 @@ test( 'currently shows the play error when the system pauses the loading MP3 (K8
 	} );
 	respond();
 
-	// play() rejects with AbortError and the player reports it as a failure.
-	await expect( page.getByRole( 'alert' ) ).toHaveText(
-		'Unable to play the stream. Try again later.'
-	);
+	// pause() rejects the pending play() with AbortError; nothing reports it.
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
 	expect( ( await audioState( page ) ).paused ).toBe( true );
 } );
 
-test( 'currently resumes the live MP3 from the buffer after Pause and Play (C7)', async ( {
+// C7 (spec 0007, ADR 0032): Play after a pause reloads the live stream, so it
+// plays from the live edge instead of the buffer.
+test( 'reloads the live MP3 after Pause and Play (C7)', async ( { page } ) => {
+	await page.goto( readSeed().urls.live );
+	await startPlayback( page );
+	await waitForPlayback( page, 3 );
+	const requests = await mediaRequests();
+
+	await page.getByRole( 'button', { name: 'Pause' } ).click();
+	const paused = await audioState( page );
+	const reloaded = waitForAudioEvent( page, 'playing' );
+	await page.getByRole( 'button', { name: 'Play' } ).click();
+	await reloaded;
+	await waitForPlayback( page, 0.5 );
+
+	// New requests (WebKit makes two per load), and the position starts again
+	// near 0 (the live edge).
+	expect( ( await mediaRequests() )[ '/live.mp3' ] ).toBeGreaterThan(
+		requests[ '/live.mp3' ]
+	);
+	const state = await audioState( page );
+	expect( state.src ).toBe( paused.src );
+	expect( state.currentTime ).toBeLessThan( paused.currentTime );
+	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
+} );
+
+test( "does not freeze the live MP3 after Pause and Play in Safari's WebKit (K18)", async ( {
 	page,
 	browserName,
 } ) => {
 	test.skip(
-		browserName === 'webkit' && ! GSTREAMER,
-		"Safari's WebKit freezes instead (K18)"
+		browserName !== 'webkit' || GSTREAMER,
+		"Only Safari's WebKit froze, on the fixture's Info frame (K18)"
 	);
 	await page.goto( readSeed().urls.live );
 	await startPlayback( page );
-	const requests = await mediaRequests();
 
 	await page.getByRole( 'button', { name: 'Pause' } ).click();
 	const paused = await audioState( page );
 	const resumed = waitForPlayback( page, paused.currentTime + 1 );
 	await page.getByRole( 'button', { name: 'Play' } ).click();
 	await resumed;
-
-	// No new request: the same connection keeps feeding the buffer, and the
-	// position goes on from where it paused (behind the live edge).
-	expect( await mediaRequests() ).toEqual( requests );
-	const state = await audioState( page );
-	expect( state.src ).toBe( paused.src );
-	expect( state.currentTime ).toBeGreaterThan( paused.currentTime );
-	// GStreamer reports no buffered ranges for a live stream.
-	if ( browserName === 'chromium' ) {
-		expect( state.buffered[ 0 ]?.[ 0 ] ).toBe( 0 );
-	}
-} );
-
-test( "currently freezes the live MP3 after Pause and Play in Safari's WebKit (K18)", async ( {
-	page,
-	browserName,
-} ) => {
-	test.skip(
-		browserName !== 'webkit' || GSTREAMER,
-		'Chromium and WebKitGTK resume from the buffer (C7)'
-	);
-	await page.goto( readSeed().urls.live );
-	await startPlayback( page );
-	const requests = await mediaRequests();
-
-	await page.getByRole( 'button', { name: 'Pause' } ).click();
-	const paused = await audioState( page );
-	await page.getByRole( 'button', { name: 'Play' } ).click();
 	await page.waitForTimeout( QUIET_MS );
 
-	// Not paused, no error and no new request, but the buffer is gone: after a
-	// fraction of a second the position stops (less than 1 s in QUIET_MS),
-	// silence while the UI shows Pause.
-	expect( await mediaRequests() ).toEqual( requests );
+	// The position keeps going: past the 1.76 s that the Info frame of a
+	// whole tone.mp3 declared, where this WebKit used to stop.
 	const state = await audioState( page );
-	expect( state ).toMatchObject( {
-		src: paused.src,
-		paused: false,
-		errorCode: null,
-		buffered: [],
-	} );
-	expect( state.currentTime ).toBeLessThan( paused.currentTime + 1 );
+	expect( state ).toMatchObject( { paused: false, errorCode: null } );
+	expect( state.currentTime ).toBeGreaterThan( paused.currentTime + 2 );
 	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
 	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
 } );
@@ -265,7 +254,7 @@ test( 'currently stays stalled without reconnecting when the stream is cut (C8)'
 	}
 } );
 
-test( 'currently stops with a network error and no message when the stream is cut in WebKitGTK (C8)', async ( {
+test( 'currently stops with a network error and the play error, without reconnecting, when the stream is cut in WebKitGTK (C8)', async ( {
 	page,
 	browserName,
 } ) => {
@@ -282,9 +271,9 @@ test( 'currently stops with a network error and no message when the stream is cu
 	await page.waitForTimeout( QUIET_MS );
 
 	// No reconnection, neither from the player nor from the media stack. The
-	// element ends (`pause` + `ended`) back at 0 and the player shows Play,
-	// with no "Unable to play the stream" (the `pause` replaces the error
-	// state, as in K1).
+	// element ends (`pause` + `ended`) back at 0 and the player shows Play
+	// with "Unable to play the stream" (the `pause` keeps the error state,
+	// as in K1).
 	expect( ranges.slice( requestsAtError ) ).toEqual( [] );
 	expect( await audioState( page ) ).toMatchObject( {
 		paused: true,
@@ -292,5 +281,7 @@ test( 'currently stops with a network error and no message when the stream is cu
 		currentTime: 0,
 	} );
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
-	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
+	await expect( page.getByRole( 'alert' ) ).toHaveText(
+		'Unable to play the stream. Try again later.'
+	);
 } );

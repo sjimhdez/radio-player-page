@@ -161,27 +161,29 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 ### 3.8 Reproductor (comportamiento)
 
 - **Configuración:** `hooks/use-config.tsx` lee las tres globales (una vez por montaje), las valida con `src/core/config/` y las expone; es la única puerta de entrada de datos. `src/core/` es **interno**, no es contrato (ADR 0029).
-- **Protocolo por la extensión de la URL:** termina en `.m3u8` → HLS; termina en `.mpd` → DASH; cualquier otra → audio directo (MP3/OGG, Icecast, Shoutcast).
-  - HLS: nativo en iOS; con `hls.js` en el resto si lo soporta (empieza al recibir el manifiesto); si no, nativo como alternativa.
-  - DASH: `dashjs` con autoplay.
+- **Protocolo por la extensión del `pathname` de la URL**, sin distinguir mayúsculas y sin contar la *query string* ni el fragmento: termina en `.m3u8` → HLS; termina en `.mpd` → DASH; cualquier otra, o una URL que no se puede analizar → audio directo (MP3/OGG, Icecast, Shoutcast) (ADR 0034).
+  - HLS: nativo en iOS (también iPadOS con la web de escritorio, ADR 0036); con `hls.js` en el resto si lo soporta (empieza al recibir el manifiesto); si no, nativo como alternativa.
+  - DASH: `dashjs` con autoplay, sin fuente de hora de terceros: usa `<UTCTiming>` del MPD o la cabecera `Date`; si no, el reloj del cliente (ADR 0032).
   - `hls.js` y `dashjs` se cargan con `import()` dinámico, solo cuando hacen falta.
-- **`crossOrigin = 'anonymous'`** en toda fuente asignada directamente a `audio.src` (audio directo, HLS nativo y audio de bienvenida). Las rutas MSE (`hls.js`, `dashjs`) cargan por XHR/fetch con CORS y dejan el atributo en `null` (ADR 0004). Consecuencia conocida: un stream sin cabeceras CORS no suena (C1 en `docs/known-issues.md`).
-- **Audio de bienvenida:** si `introAudioUrl` existe, suena una vez, en la primera reproducción, antes del directo; mientras suena no se puede pausar; al terminar, o si falla, pasa al directo sin mostrar error.
-- **Volumen:** control deslizante; oculto en iOS.
+- **`crossOrigin = 'anonymous'`** en toda fuente asignada directamente a `audio.src` (audio directo, HLS nativo y audio de bienvenida). Las rutas MSE (`hls.js`, `dashjs`) cargan por XHR/fetch con CORS y dejan el atributo en `null` (ADR 0004). Si una fuente directa falla con `crossOrigin` (`play()` rechazado con `NotSupportedError`), un solo reintento en el mismo elemento sin él, salvo que el elemento ya pase por Web Audio (entonces, error). Así un stream directo sin cabeceras CORS suena, sin visualizador; HLS/DASH sin CORS siguen sin sonar y muestran el error (ADR 0033).
+- **Pausa y Play:** Play tras una pausa (o un error, o un cambio de emisora) recarga el directo, en todos los protocolos, y vuelve al borde en vivo; si el directo ya suena, o durante la bienvenida, no hace nada (ADR 0032). Una pausa mientras el directo carga cancela la carga: queda en pausa, sin error, y con HLS/DASH no empieza a sonar después. El indicador de carga sigue hasta que el elemento suena de verdad (evento `playing`), en todos los protocolos (ADR 0034).
+- **Audio de bienvenida:** si `introAudioUrl` existe, suena una vez, en la primera reproducción, antes del directo; mientras suena no se puede pausar; al terminar, si falla al arrancar o si da un error mientras suena, pasa al directo sin mostrar error. Si algo externo la pausa (una llamada, unos auriculares que se desconectan), queda en pausa y Play carga el directo. Si falla el directo que la sigue, se muestra el error y Play lo vuelve a cargar: la bienvenida nunca bloquea el reproductor (ADR 0034).
+- **Volumen:** control deslizante; oculto donde el sistema no deja cambiarlo (iOS), según una sonda del núcleo y no el *user agent* (ADR 0036).
 - **Media Session:** título de la emisora y logo en la pantalla de bloqueo; acciones de reproducir y pausar.
-- **Temporizador de sueño:** 30, 60 o 120 minutos con cuenta atrás; al llegar a cero pausa; se cancela si se pausa a mano.
+- **Temporizador de sueño:** 30, 60 o 120 minutos con cuenta atrás contra una hora límite (el tiempo real, aunque los temporizadores del navegador se retrasen); al llegar a cero pausa; cualquier pausa lo cancela; deshabilitado mientras suena la bienvenida (ADR 0035).
 - **Programa actual y siguiente:** según el horario y `timezoneOffset`, incluidas las reposiciones y las franjas que cruzan la medianoche. El siguiente se anuncia si empieza en 10 minutos o menos.
 - **Reloj de la emisora:** si la zona horaria de la emisora difiere de la del oyente, muestra la hora de la emisora y la diferencia.
 - **Modales** del horario semanal y de todos los programas.
 - **El horario es solo informativo:** nunca inicia, detiene ni cambia la reproducción.
-- **Errores:** si el stream falla, se muestra «Unable to play the stream. Try again later.» (traducido) (con las excepciones de K1 en `docs/known-issues.md`).
+- **Errores:** si el stream falla, se muestra «Unable to play the stream. Try again later.» (traducido), en Chromium y en WebKit; una pausa no lo borra (spec 0007, K1).
 - **i18n:** 14 locales en `player/src/locales/` (`cs`, `da-DK`, `de-DE`, `en-US`, `es`, `es-MX`, `gl-ES`, `hr`, `it-IT`, `nl-NL`, `pt-BR`, `ro-RO`, `ru-RU`, `sv-SE`). Idioma: el del sitio, por el `lang` del `<html>`; si no tiene traducción, reserva `en-US`. El idioma del navegador no se usa (ADR 0025).
 
-### 3.9 Visualizadores (zona congelada, ADR 0018)
+### 3.9 Visualizadores (zona congelada, ADR 0018 y 0031)
 
 - Cuatro: osciloscopio (por defecto), barras, cascada y partículas, según `visualizer`. Se cargan de forma diferida (`getVisualizer()`) y solo se activan con el audio sonando.
-- Archivos: `player/src/components/visualizers/**`, `player/src/config/visualizers.ts`, `player/src/types/visualizers.tsx`, `player/src/hooks/use-audio-visualizer.tsx`, `player/src/hooks/use-can-visualize.tsx`.
-- Contrato con el reproductor: leen el `<audio>` compartido (`audioRef`) con Web Audio API (`AnalyserNode`), y por eso dependen del `crossOrigin` de §3.8.
+- Zona congelada: `player/src/components/visualizers/**`, `player/src/config/visualizers.ts`, `player/src/types/visualizers.tsx` (el dibujo y el catálogo).
+- Visualizador o animación estática: lo decide el controlador del audio según la fuente en curso (`canVisualize`, ADR 0031 y 0033). Se pinta el visualizador solo con el directo sonando con datos limpios (CORS sin reintento, o rutas MSE); si no, la animación estática, y el audio no pasa por Web Audio. La bienvenida nunca se visualiza y WebKit (`isWebKitBrowser()`) nunca visualiza.
+- Contrato con el reproductor: el controlador del audio crea el `AudioContext` dentro del gesto de Play y conecta el `<audio>` a un `AnalyserNode` (`fftSize` 256) la primera vez que `canVisualize` pasa a verdadero; `useAudioVisualizer()` solo dibuja con ese analizador (`getAnalyser()`) mientras suena y `canVisualize` es verdadero. Por eso dependen del `crossOrigin` de §3.8.
 - Fuera del refactor y de los mínimos de cobertura. Las actualizaciones de dependencias no los tocan; si una lo obliga, el cambio es mínimo y lleva un ADR.
 
 ### 3.10 Release
@@ -196,8 +198,8 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 2. Nada de §3 cambia sin un ADR.
 3. La migración es unidireccional e idempotente.
 4. El horario es informativo: nunca controla la reproducción.
-5. Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'`; las rutas MSE no (ADR 0004).
-6. Los visualizadores no se editan sin un ADR (ADR 0018).
+5. Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'` en el primer intento; si falla, un reintento sin él (ADR 0033). Las rutas MSE no lo llevan (ADR 0004).
+6. Los visualizadores (su dibujo y su catálogo) no se editan sin un ADR (ADR 0018, alcance del ADR 0031).
 7. El núcleo del reproductor (spec 0006) no importa React ni MUI.
 8. `player/dist/` y `blocks/*/build/` se regeneran; nunca se editan a mano.
 9. El zip solo contiene lo que lista `build-release-zip.sh`.
@@ -219,3 +221,4 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 | 0002 | §3.8: el idioma del reproductor es el del sitio (reserva `en-US`); el navegador y `localStorage` no son contrato. | 0025 |
 | 0005 | Sin cambios en el contrato. §3.4: el namespace `RadioPlayerPage\` (`includes/src/`) es interno. §3.6: script nuevo `radplapag-schedule-rules` (`admin/js/schedule-rules.js`), dependencia de `radplapag-station-admin`, con `window.radplapagScheduleRules` interno; los handles existentes no cambian. | 0028 |
 | 0006 | Sin cambios en el contrato. §3.8: la validación de las globales vive en `src/core/config/` y `use-config.tsx` las lee; `player/src/core/` (audio, reloj, configuración, Media Session, horario y sueño) es interno. Corregidos K9, K14, K70 y K80 (sin cambio de contrato). | 0029, 0030 |
+| 0007 | §3.8 y §3.9: fuentes directas con `crossOrigin` y un reintento sin él; el núcleo decide la visualización (`canVisualize`); Play tras una pausa recarga el directo; DASH sin fuente de hora de terceros; protocolo por el sufijo del `pathname`; estados del audio fieles (`loading` hasta `playing`, la pausa cancela la carga, el error no se borra); la bienvenida nunca bloquea el reproductor; temporizador de sueño contra una hora límite y deshabilitado durante la bienvenida; volumen por capacidad y HLS nativo también en iPadOS. Corregidos C1, C2, C7, K1, K11, K12, K13, K63–K67, K81 y K82; K18 era del *fixture*. | 0031, 0032, 0033, 0034, 0035, 0036 |

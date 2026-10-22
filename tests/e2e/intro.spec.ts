@@ -100,17 +100,18 @@ test( 'plays the welcome audio once, unpausable, then the live stream', async ( 
 	await waitForPlayback( page, 1 );
 	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeEnabled();
 
-	// Pause + Play resumes the live stream; the welcome audio does not return.
-	// (WebKit then freezes, K18, so this waits for `play`, not for playback.)
+	// Pause + Play reloads the live stream (C7, ADR 0032); the welcome audio
+	// does not return.
 	await page.getByRole( 'button', { name: 'Pause' } ).click();
-	const resumed = waitForAudioEvent( page, 'play' );
+	const reloaded = waitForAudioEvent( page, 'playing' );
 	await page.getByRole( 'button', { name: 'Play' } ).click();
-	await resumed;
+	await reloaded;
 
 	expect( ( await audioState( page ) ).src ).toMatch( LIVE );
 	expect( await mediaLog( page ) ).toEqual( [
 		'loadstart intro',
 		'ended intro',
+		'loadstart live',
 		'loadstart live',
 	] );
 	expect( await page.evaluate( () => window.e2eAlerts ) ).toEqual( [] );
@@ -132,7 +133,10 @@ test( 'falls through to the live stream without an error when the welcome audio 
 	const state = await audioState( page );
 	expect( state ).toMatchObject( { paused: false, errorCode: null } );
 	expect( state.src ).toMatch( LIVE );
+	// The welcome audio is retried once without crossOrigin, as any direct
+	// source (C1, ADR 0033): a 404 cannot be told apart from a missing CORS.
 	expect( await mediaLog( page ) ).toEqual( [
+		'loadstart broken-intro',
 		'loadstart broken-intro',
 		'loadstart live',
 	] );

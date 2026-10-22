@@ -2,7 +2,7 @@
 // receive their loaders as parameters, so no vi.mock is needed: each test creates its
 // own fake and passes its loader.
 import { vi } from 'vitest'
-import type { DashMediaPlayer, HlsClass } from 'src/core/audio/sources/types'
+import type { DashErrorEvent, DashMediaPlayer, HlsClass } from 'src/core/audio/sources/types'
 
 type HlsHandler = (event: string, data: { fatal: boolean }) => void
 
@@ -50,10 +50,11 @@ export function createFakeHls() {
 }
 
 export interface FakeDashPlayer {
-  handlers: Record<string, () => void>
+  handlers: Record<string, (event: DashErrorEvent) => void>
   initialize: ReturnType<
     typeof vi.fn<(view: HTMLMediaElement, url: string, autoPlay: boolean) => void>
   >
+  clearDefaultUTCTimingSources: ReturnType<typeof vi.fn<() => void>>
   reset: ReturnType<typeof vi.fn<() => void>>
 }
 
@@ -67,10 +68,11 @@ export function createFakeDash() {
   const MediaPlayer: DashMediaPlayer = () => ({
     create: () => {
       const player = {
-        handlers: {} as Record<string, () => void>,
+        handlers: {} as Record<string, (event: DashErrorEvent) => void>,
         initialize: vi.fn<(view: HTMLMediaElement, url: string, autoPlay: boolean) => void>(),
+        clearDefaultUTCTimingSources: vi.fn<() => void>(),
         reset: vi.fn<() => void>(),
-        on(event: string, handler: () => void) {
+        on(event: string, handler: (event: DashErrorEvent) => void) {
           player.handlers[event] = handler
         },
       }

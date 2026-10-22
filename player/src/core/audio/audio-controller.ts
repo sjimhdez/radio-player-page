@@ -4,11 +4,14 @@ import {
   type PlayerEvent,
   type PlayerState,
 } from 'src/core/audio/player-machine'
+import { isIOSDevice, type Platform } from 'src/core/audio/platform'
 import { detectProtocol } from 'src/core/audio/protocol'
 import { createDashSource } from 'src/core/audio/sources/dash'
 import { createDirectSource } from 'src/core/audio/sources/direct'
 import { createHlsSource } from 'src/core/audio/sources/hls'
 import type { AudioSource, DashMediaPlayer, HlsClass } from 'src/core/audio/sources/types'
+import { isVolumeControllable } from 'src/core/audio/volume'
+import { createVisualizerGraph, type VisualizerGraphOptions } from 'src/core/audio/web-audio'
 
 /**
  * Loaders of the streaming libraries; the dynamic imports of the sources by default.
@@ -22,27 +25,34 @@ export interface PlayOptions {
   streamUrl: string
   /** Welcome audio URL, played once per controller before the live stream. */
   introUrl?: string | null
-  isIOS: boolean
 }
 
 export interface AudioController {
   subscribe: (listener: () => void) => () => void
   getSnapshot: () => PlayerState
-  /** Listens to audio and applies the volume, except on iOS. Idempotent. */
-  attach: (audio: HTMLAudioElement, options: { isIOS: boolean }) => void
+  /** Listens to audio and applies the volume, if it can be changed. Idempotent. */
+  attach: (audio: HTMLAudioElement) => void
   /** Stops listening to the attached element. Idempotent. */
   detach: () => void
   /** Destroys the current source. */
   dispose: () => void
   /**
-   * Starts the welcome audio or the live stream, or resumes the live stream. While a
-   * play() is pending, the next one returns its promise (docs/known-issues.md K80).
+   * Starts the welcome audio or loads the live stream. After a pause, an error or a
+   * stream change it reloads the live stream, back to the live edge (ADR 0032); while
+   * that stream plays, it does nothing. While a play() is pending, the next one
+   * returns its promise (docs/known-issues.md K80), until a pause().
    */
   play: (options: PlayOptions) => Promise<void>
-  /** Pauses playback. */
+  /**
+   * Pauses playback, except the welcome audio. It cancels a pending play(): the load
+   * in progress is destroyed and its outcome, an AbortError included, is ignored, so
+   * the next play() starts anew (docs/known-issues.md K81 and K11, ADR 0034 D3).
+   */
   pause: () => void
-  /** Sets the volume (0-1); ignored on iOS. */
-  setVolume: (volume: number, options: { isIOS: boolean }) => void
+  /** Sets the volume (0-1); ignored if it cannot be changed. */
+  setVolume: (volume: number) => void
+  /** The analyser of the Web Audio graph; null until the element is connected. */
+  getAnalyser: () => AnalyserNode | null
 }
 
 // The 3.4.2 hook had seven listeners; its two on 'playing' are one machine event here.
@@ -52,24 +62,58 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  * Creates the audio controller: runs the effects of useAudioPlayer() (src, play(),
  * hls.js, dashjs, volume) and publishes the state of player-machine as a snapshot.
  *
- * isIOS is read on each call, never when the controller is created (it turns true
- * after the first render, docs/known-issues.md K13). When the welcome audio ends, the
- * live stream is loaded with the options of the play() that started it.
+ * Whether the device is iOS, for native HLS, is decided once, when it is created, from
+ * the platform it is given (docs/known-issues.md K13, ADR 0036). When the welcome
+ * audio ends, the live stream is loaded with the options of the play() that started it.
+ *
+ * Whether the volume can be changed is probed once, when it is created, on an element
+ * of its own, and published in the first snapshot (K13, ADR 0036).
+ *
+ * A direct source that fails is retried once without crossOrigin, unless the element
+ * goes through the Web Audio graph: then it is an error (C1, ADR 0033).
+ *
+ * The Web Audio context is created or resumed synchronously in play(), inside the
+ * gesture. When the element starts playing the live stream from a source clean of
+ * CORS, it is connected to the graph (only the first time) and canVisualize turns
+ * true; the welcome audio never is (K82, ADR 0031).
  *
  * @param options.loaders - Loaders of hls.js and dashjs (dynamic imports by default)
+ * @param options.webAudio - Context factory and user agent (no Web Audio by default)
+ * @param options.platform - User agent and touch points (not iOS by default)
+ * @param options.volumeProbe - Creates the element that probes the volume (controllable
+ *   without it)
  * @returns AudioController
  */
 export function createAudioController({
   loaders = {},
-}: { loaders?: StreamingLoaders } = {}): AudioController {
+  webAudio = { userAgent: '' },
+  platform = { userAgent: '', maxTouchPoints: 0 },
+  volumeProbe,
+}: {
+  loaders?: StreamingLoaders
+  webAudio?: VisualizerGraphOptions
+  platform?: Platform
+  volumeProbe?: () => HTMLMediaElement
+} = {}): AudioController {
+  const graph = createVisualizerGraph(webAudio)
+  const isIOS = isIOSDevice(platform.userAgent, platform.maxTouchPoints)
   const listeners = new Set<() => void>()
-  let state = initialPlayerState
+  let state =
+    volumeProbe === undefined || isVolumeControllable(volumeProbe())
+      ? initialPlayerState
+      : { ...initialPlayerState, volumeControllable: false }
   let audio: HTMLAudioElement | null = null
   let source: AudioSource | null = null
   // The options of the play() that started the welcome audio, for 'ended'.
   let introOptions: PlayOptions | null = null
   // The pending play(), returned to the calls made before it settles (D7).
   let pendingPlay: Promise<void> | null = null
+  // Whether the play() of the welcome audio is pending: its catch handles an error.
+  let introStarting = false
+  // Bumped by pause(): what an earlier play() reports afterwards is ignored (D3).
+  let generation = 0
+  // The URL of the loaded live stream; with hls.js and dashjs audio.src is a blob:.
+  let liveUrl: string | null = null
 
   const dispatch = (event: PlayerEvent) => {
     const next = transition(state, event)
@@ -78,105 +122,176 @@ export function createAudioController({
     listeners.forEach((listener) => listener())
   }
 
-  const createSource = (url: string, isIOS: boolean): AudioSource => {
+  const createSource = (url: string): AudioSource => {
+    const retryWithoutCors = !graph.isConnected()
     switch (detectProtocol(url)) {
       case 'hls':
-        return createHlsSource({ loadHls: loaders.loadHls, isIOS })
+        return createHlsSource({ loadHls: loaders.loadHls, isIOS, retryWithoutCors })
       case 'dash':
         return createDashSource({ loadDash: loaders.loadDash })
       case 'direct':
-        return createDirectSource()
+        return createDirectSource({ retryWithoutCors })
     }
   }
 
   /**
    * Destroys the current source and loads the live stream. Rejects if its play() rejects.
+   * Once a pause() has cancelled it, it reports nothing.
    */
-  const playLive = async (element: HTMLAudioElement, url: string, isIOS: boolean) => {
+  const playLive = async (element: HTMLAudioElement, url: string) => {
+    const current = generation
+    const report = (event: PlayerEvent) => {
+      if (generation === current) dispatch(event)
+    }
     source?.destroy()
-    source = createSource(url, isIOS)
+    source = createSource(url)
+    liveUrl = url
     await source.start(element, url, {
-      onError: () => dispatch({ type: 'stream-error' }),
-      onPlayRejected: () => dispatch({ type: 'play-failed' }),
+      onError: () => report({ type: 'stream-error' }),
+      onPlayRejected: () => report({ type: 'play-failed' }),
     })
-    dispatch({ type: 'live-started' })
+    report({ type: 'live-started' })
   }
 
   /**
-   * Marks the welcome audio as consumed and loads the live stream. Used when it ends
-   * and when it fails: either way the live stream follows silently. A failure of the
-   * live stream leaves the welcome audio locked (docs/known-issues.md K63).
+   * Makes promise the pending play() until it settles (D7), so a play() meanwhile
+   * returns it.
+   */
+  const track = (promise: Promise<void>): Promise<void> => {
+    const attempt: Promise<void> = promise.finally(() => {
+      // A pause() may have released it, and a later play() taken its place.
+      if (pendingPlay === attempt) pendingPlay = null
+    })
+    pendingPlay = attempt
+    return attempt
+  }
+
+  /**
+   * Releases the welcome audio and loads the live stream. Used when it ends, fails to
+   * start or errors while it plays: the live stream follows silently. If the live
+   * stream fails, the error stays and Play loads it again (docs/known-issues.md K63,
+   * ADR 0034 D5); a pause() cancels it.
    */
   const advanceToLive = async (element: HTMLAudioElement, options: PlayOptions) => {
     dispatch({ type: 'intro-finished' })
+    const current = generation
     try {
       dispatch({ type: 'load-start' })
-      await playLive(element, options.streamUrl, options.isIOS)
+      await playLive(element, options.streamUrl)
     } catch {
+      if (generation !== current) return
       dispatch({ type: 'play-failed' })
-    } finally {
       dispatch({ type: 'load-end' })
     }
   }
 
-  const onAudioEvent = (event: Event) => {
-    if (event.type === 'ended') {
-      // Only the end of the welcome audio matters.
-      if (state.activeSource === 'intro' && audio !== null && introOptions !== null) {
-        void advanceToLive(audio, introOptions)
-      }
-      return
-    }
-    dispatch({ type: event.type as Exclude<(typeof AUDIO_EVENTS)[number], 'ended'> })
+  /**
+   * Follows the welcome audio with the live stream, as a pending play().
+   */
+  const followWithLive = () => {
+    if (audio !== null && introOptions !== null) void track(advanceToLive(audio, introOptions))
   }
 
   /**
-   * Runs one play(): the welcome audio, the resume or the load of the live stream.
+   * Whether the element can be visualized now; connects it to the graph if so. source
+   * is only ever the live stream's: the welcome audio, which plays before the first
+   * live stream, never sets it, so it is never visualized.
+   */
+  const connectIfVisualizable = (): boolean => {
+    if (audio === null || !graph.supported || !source?.isCorsClean()) {
+      return false
+    }
+    graph.connect(audio)
+    return graph.isConnected()
+  }
+
+  const onAudioEvent = (event: Event) => {
+    if (event.type === 'playing') {
+      dispatch({ type: 'playing', visualizable: connectIfVisualizable() })
+      return
+    }
+    if (event.type === 'ended') {
+      // Only the end of the welcome audio matters.
+      if (state.activeSource === 'intro') followWithLive()
+      return
+    }
+    if (state.activeSource === 'intro') {
+      // An error while it starts is handled by the catch of its play() (K63).
+      if (event.type === 'error') {
+        if (!introStarting) followWithLive()
+        return
+      }
+      // A pause from outside (not the one before ended) releases it: Play loads the
+      // live stream (K63).
+      if (event.type === 'pause' && audio !== null && !audio.ended) {
+        dispatch({ type: 'intro-finished' })
+      }
+    }
+    dispatch({ type: event.type as Exclude<(typeof AUDIO_EVENTS)[number], 'ended' | 'playing'> })
+  }
+
+  /**
+   * Runs one play(): the welcome audio or the load of the live stream.
    */
   const startPlay = async (options: PlayOptions) => {
-    const { streamUrl, introUrl, isIOS } = options
+    const { streamUrl, introUrl } = options
     const element = audio
     if (element === null) return
 
     if (state.activeSource === null && introUrl && !state.introConsumed) {
       introOptions = options
       dispatch({ type: 'intro-started' })
+      introStarting = true
       try {
         dispatch({ type: 'load-start' })
-        await createDirectSource().start(element, introUrl, {
-          onError: () => {},
-          onPlayRejected: () => {},
-        })
-        dispatch({ type: 'resumed' })
+        await createDirectSource({ retryWithoutCors: !graph.isConnected() }).start(
+          element,
+          introUrl,
+          {
+            onError: () => {},
+            onPlayRejected: () => {},
+          },
+        )
       } catch {
+        introStarting = false
+        // Paused from outside while it started: it stays paused (K63).
+        if (state.activeSource !== 'intro') {
+          dispatch({ type: 'load-end' })
+          return
+        }
         // The welcome audio failed: the live stream follows, as if it had ended.
         await advanceToLive(element, options)
-      } finally {
-        dispatch({ type: 'load-end' })
+        return
       }
+      introStarting = false
+      dispatch({ type: 'resumed' })
+      dispatch({ type: 'load-end' })
       return
     }
 
     // The welcome audio is playing: pause() is blocked, so there is nothing to do.
     if (state.activeSource === 'intro') return
 
-    // Resume the loaded live stream if it is the same and did not fail; otherwise
-    // (first play, after an error, after a stream change) load it.
-    const resume =
-      state.activeSource !== null && element.src === streamUrl && state.status !== 'error'
+    // The same live stream is playing: nothing to do. Otherwise (first play, after a
+    // pause, an error or a stream change) load it, so it plays from the live edge
+    // instead of the buffer (docs/known-issues.md C7, ADR 0032).
+    if (
+      state.activeSource === 'live' &&
+      liveUrl === streamUrl &&
+      state.status === 'playing' &&
+      !element.paused
+    ) {
+      return
+    }
+    // loading stays on until the playing event of the element (K11).
+    const current = generation
     try {
       dispatch({ type: 'load-start' })
-      if (resume) {
-        if (element.paused) {
-          await element.play()
-          dispatch({ type: 'resumed' })
-        }
-        return
-      }
-      await playLive(element, streamUrl, isIOS)
+      await playLive(element, streamUrl)
     } catch {
+      // A pause() rejects the pending play() with AbortError (K81).
+      if (generation !== current) return
       dispatch({ type: 'play-failed' })
-    } finally {
       dispatch({ type: 'load-end' })
     }
   }
@@ -195,10 +310,10 @@ export function createAudioController({
       }
     },
     getSnapshot: () => state,
-    attach(element, { isIOS }) {
+    attach(element) {
       detach()
       audio = element
-      if (!isIOS) element.volume = state.volume
+      if (state.volumeControllable) element.volume = state.volume
       for (const type of AUDIO_EVENTS) element.addEventListener(type, onAudioEvent)
     },
     detach,
@@ -207,23 +322,29 @@ export function createAudioController({
       source = null
     },
     play(options) {
-      if (pendingPlay === null) {
-        pendingPlay = startPlay(options).finally(() => {
-          pendingPlay = null
-        })
-      }
-      return pendingPlay
+      // Synchronous, inside the gesture: WebKit keeps a context made outside it silent.
+      graph.prepare()
+      return pendingPlay ?? track(startPlay(options))
     },
     pause() {
       // The welcome audio cannot be paused.
       if (state.activeSource === 'intro') return
+      generation += 1
+      pendingPlay = null
+      // A load in progress is cancelled: hls.js would play on MANIFEST_PARSED and
+      // dashjs on its own (K11).
+      if (state.loading) {
+        source?.destroy()
+        source = null
+      }
       audio?.pause()
       dispatch({ type: 'user-paused' })
     },
-    setVolume(volume, { isIOS }) {
-      if (isIOS || audio === null) return
+    setVolume(volume) {
+      if (!state.volumeControllable || audio === null) return
       audio.volume = volume
       dispatch({ type: 'volume-changed', volume })
     },
+    getAnalyser: () => graph.getAnalyser(),
   }
 }
