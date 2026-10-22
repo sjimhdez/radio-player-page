@@ -10,7 +10,7 @@ El contrato completo está en `SPEC.md` (datos, migración y desinstalación). E
 
 ## Nunca se renombra nada
 
-- CPT `radplapag_station` / `radplapag_program`, sus meta keys (`radplapag_station_*`, `radplapag_program_*`), las opciones (`radplapag_settings`, `radplapag_db_version`, `radplapag_migration_skipped_cpt_conflict`) y los transients (`radplapag_station_schedule_errors_*`, `radplapag_station_field_errors_*`, `radplapag_migrating`, `radplapag_migration_success_notice`, `radplapag_migration_error_notice`) son contrato: hay sitios en producción con esos datos.
+- CPT `radplapag_station` / `radplapag_program`, sus meta keys (`radplapag_station_*`, `radplapag_program_*`), las opciones (`radplapag_settings`, `radplapag_db_version`, `radplapag_migration_skipped_cpt_conflict`, `radplapag_migrating`), la meta interna `_radplapag_migration_pending` y los transients (`radplapag_station_schedule_errors_*`, `radplapag_station_field_errors_*`, `radplapag_migration_success_notice`, `radplapag_migration_error_notice` y el heredado `radplapag_migrating`, que ya no se usa) son contrato: hay sitios en producción con esos datos.
 - El formato del horario (`{ monday: [{ program_id, start: "HH:MM", end: "HH:MM", is_rerun? }], … }`) también, incluidas las franjas que cruzan la medianoche.
 
 ## Cambiar el esquema
@@ -26,7 +26,12 @@ Desde la 0005, el plan es `Migration\Legacy_Plan`, la escritura `WP\Migration_Wr
 
 - Unidireccional: de `radplapag_settings` a los CPT; nunca al revés (ADR 0010).
 - Cubre los formatos de 2.0.x a 3.2.x; los de 1.x quedan fuera del contrato (ADR 0005; K4 en `docs/known-issues.md`).
-- Tiene bloqueo (`radplapag_migrating`), avisos de éxito y error, y detecta conflictos con CPT ya existentes (`radplapag_migration_skipped_cpt_conflict`).
+- Contrato en el ADR 0037:
+  - Bloqueo atómico: la opción `radplapag_migrating` guarda cuándo caduca. Se toma antes de contar las emisoras. Dura 120 s mientras corre y se retiene 900 s tras un fallo. El transient heredado se ignora.
+  - Los posts creados llevan `_radplapag_migration_pending` hasta terminar bien. Al reintentar, los que la llevan se borran.
+  - La bandera de conflicto vale `'1'` o `'dismissed'`. El aviso solo sale con `'1'`.
+  - Las franjas que no validan se descartan una a una (gana la anterior) y `is_rerun` se conserva.
+  - El aviso de éxito es un resumen; `'1'` se sigue leyendo.
 - Los fixtures de los formatos reales están en `tests/fixtures/legacy-settings/` y sus *goldens* en `golden/` (`MigrationGoldenTest`); `v1.1-flat` solo fija K4.
 
 ## Desinstalación

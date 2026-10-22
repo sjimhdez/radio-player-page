@@ -6,7 +6,7 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.1 de la fase 1 de la 0008: ADR 0037 (`write-adr`), y después de la 1.2 a la 1.11 en orden.
+1. Tarea 1.2 de la fase 1 de la 0008 (K29, `fix-bug`), y después de la 1.3 a la 1.11 en orden. La 1.1 dejó el ADR 0037 (contrato de la migración) con `SPEC.md` §3.1 y §3.2 y la rule de datos al día.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano

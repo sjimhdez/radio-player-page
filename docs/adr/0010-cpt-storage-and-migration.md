@@ -1,6 +1,6 @@
 # ADR 0010 — Emisoras y programas como CPT, con migración desde `radplapag_settings`
 
-- Estado: aceptado (retroactivo: rige desde la 3.3.0) · Fecha: 2026-10-16 · Spec: 0001 (fase 1)
+- Estado: aceptado (retroactivo: rige desde la 3.3.0); enmendado por [ADR 0037](0037-migration-contract.md) (bloqueo atómico, descarte de franjas, conflicto descartable) · Fecha: 2026-10-16 · Spec: 0001 (fase 1)
 
 ## Contexto
 

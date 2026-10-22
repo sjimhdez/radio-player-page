@@ -40,6 +40,8 @@ Plugin de WordPress, publicado en el directorio de wordpress.org, que da a cada 
 
 **Meta de programa** (`radplapag_program_*`): `description`, `extended_description`, `logo_id`.
 
+**Meta interna** (no es parte del formato de datos): `_radplapag_migration_pending` = `'1'` en los posts que crea una migración en curso; se borra al terminar bien, y los posts que aún la llevan se borran al reintentar (ADR 0037).
+
 **Valores cerrados** (listas blancas; un valor desconocido pasa al primero):
 
 - `theme_color`: `neutral`, `blue`, `green`, `red`, `orange`, `yellow`, `purple`, `pink`.
@@ -51,7 +53,8 @@ Plugin de WordPress, publicado en el directorio de wordpress.org, que da a cada 
 |---|---|
 | `radplapag_settings` | Formato de antes de la 3.3.0. Origen de la migración; se borra al migrar. |
 | `radplapag_db_version` | Versión del esquema. Hoy `'330'` (`RADPLAPAG_DB_VERSION`). |
-| `radplapag_migration_skipped_cpt_conflict` | `'1'` si la migración se saltó porque ya había emisoras publicadas. |
+| `radplapag_migration_skipped_cpt_conflict` | `'1'` si la migración se saltó porque ya había emisoras publicadas; `'dismissed'` cuando se descarta el aviso (ADR 0037). |
+| `radplapag_migrating` | Bloqueo de la migración, sin autoload. Valor: la marca de tiempo Unix en que caduca (120 s mientras corre, 900 s tras un fallo). Se toma con `add_option()` y, si ha caducado, con un `UPDATE` condicional (ADR 0037). |
 
 **Transients:**
 
@@ -59,9 +62,9 @@ Plugin de WordPress, publicado en el directorio de wordpress.org, que da a cada 
 |---|---|---|
 | `radplapag_station_schedule_errors_<post_id>` | 45 s | Error de validación del horario tras guardar. |
 | `radplapag_station_field_errors_<post_id>` | 45 s | Errores de los campos de la emisora tras guardar. |
-| `radplapag_migrating` | 120 s | Bloqueo mientras corre la migración. |
-| `radplapag_migration_success_notice` | 60 s | Aviso de migración correcta. |
-| `radplapag_migration_error_notice` | 120 s | Mensaje de error de la migración. |
+| `radplapag_migrating` | 120 s | **Heredado** (antes de la spec 0008): ya no se lee ni se escribe; el bloqueo es la opción del mismo nombre (ADR 0037). |
+| `radplapag_migration_success_notice` | 60 s | Resumen de la migración: `{ stations, dropped: [ { station, day, start, end, program } ] }`. `'1'` (versiones anteriores) se lee como éxito sin detalle (ADR 0037). |
+| `radplapag_migration_error_notice` | 900 s | Mensaje de error de la migración (dura lo mismo que la espera tras un fallo, ADR 0037). |
 
 **Formato del horario** (`radplapag_station_schedule`):
 
@@ -78,10 +81,15 @@ Plugin de WordPress, publicado en el directorio de wordpress.org, que da a cada 
 - **Idempotente.** Admite los formatos de **2.0.x a 3.2.x**; los de 1.x quedan fuera del contrato (ADR 0005).
 - Flujo:
   1. `plugins_loaded` (prioridad 5), `radplapag_ensure_schema_version_option()`: si la versión no es `'330'` y no hay emisoras que migrar, fija `'330'`.
-  2. `admin_init` (prioridad 20), `radplapag_run_legacy_migration_if_needed()`: solo en el admin, con `manage_options`, si la versión no es `'330'` y `radplapag_settings` tiene `stations`. Si ya hay emisoras publicadas, no migra y marca `radplapag_migration_skipped_cpt_conflict`. Si no, toma el bloqueo, migra como el primer administrador y deja el aviso de éxito o de error.
+  2. `admin_init` (prioridad 20), `radplapag_run_legacy_migration_if_needed()`: solo en el admin, con `manage_options`, si la versión no es `'330'` y `radplapag_settings` tiene `stations`. Orden (ADR 0037):
+     1. Si la bandera de conflicto está puesta (`'1'` o `'dismissed'`), sale sin contar emisoras (antes, `radplapag_maybe_clear_migration_conflict_flag()` la borra con cualquier valor si hay 0 emisoras publicadas).
+     2. Toma el bloqueo (opción `radplapag_migrating`, atómica). Si no puede, sale.
+     3. Borra los posts que aún llevan `_radplapag_migration_pending` (una migración cortada).
+     4. Si ya hay emisoras publicadas, pone la bandera a `'1'` (solo si no existía), suelta el bloqueo y no migra.
+     5. Si no, migra como el primer administrador. Bien: suelta el bloqueo y deja el resumen. Mal: *rollback*, retiene el bloqueo 900 s y deja el aviso de error.
   3. `upgrader_process_complete`: al actualizar este plugin, la misma comprobación (en `init` con prioridad 100 si los CPT aún no existen).
-- Avisos en `admin_notices` (`radplapag_migration_admin_notices`), descartables con `?radplapag_dismiss=migration_conflict` y nonce `radplapag_dismiss_migration_conflict`.
-- Al migrar: se borra `radplapag_settings`, `radplapag_db_version` pasa a `'330'`, un mismo `id` de programa en dos emisoras se crea una sola vez y se comparte, una franja con un programa desconocido se descarta, el título vacío pasa a «Radio Station» y las franjas migradas llevan `is_rerun: false`. El detalle está fijado por el golden master del spike (`spike/php/`; tests en la spec 0002).
+- Avisos en `admin_notices` (`radplapag_migration_admin_notices`). El de conflicto sale solo con la bandera a `'1'`, lleva `is-dismissible` y se descarta con `?radplapag_dismiss=migration_conflict` y nonce `radplapag_dismiss_migration_conflict`, que pone la bandera a `'dismissed'` (ADR 0037). El de éxito nombra las emisoras migradas y las franjas descartadas, o dice que no había ninguna emisora que migrar.
+- Al migrar: se borra `radplapag_settings`, `radplapag_db_version` pasa a `'330'`, un mismo `id` de programa en dos emisoras se crea una sola vez y se comparte, una franja con un programa desconocido se descarta, el título vacío pasa a «Radio Station» y las franjas conservan `is_rerun` (`true` solo si la heredada trae `true`). Las franjas se aceptan de una en una, de lunes a domingo y en su orden dentro del día; la que no valida con las ya aceptadas (formato, horas o solape, también entre días) se descarta y el resto migra (gana la anterior; ADR 0037, enmienda el 0010). El detalle está fijado por el golden master del spike (`spike/php/`; tests en la spec 0002).
 
 ### 3.3 Página del reproductor
 
@@ -222,3 +230,4 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 | 0005 | Sin cambios en el contrato. §3.4: el namespace `RadioPlayerPage\` (`includes/src/`) es interno. §3.6: script nuevo `radplapag-schedule-rules` (`admin/js/schedule-rules.js`), dependencia de `radplapag-station-admin`, con `window.radplapagScheduleRules` interno; los handles existentes no cambian. | 0028 |
 | 0006 | Sin cambios en el contrato. §3.8: la validación de las globales vive en `src/core/config/` y `use-config.tsx` las lee; `player/src/core/` (audio, reloj, configuración, Media Session, horario y sueño) es interno. Corregidos K9, K14, K70 y K80 (sin cambio de contrato). | 0029, 0030 |
 | 0007 | §3.8 y §3.9: fuentes directas con `crossOrigin` y un reintento sin él; el núcleo decide la visualización (`canVisualize`); Play tras una pausa recarga el directo; DASH sin fuente de hora de terceros; protocolo por el sufijo del `pathname`; estados del audio fieles (`loading` hasta `playing`, la pausa cancela la carga, el error no se borra); la bienvenida nunca bloquea el reproductor; temporizador de sueño contra una hora límite y deshabilitado durante la bienvenida; volumen por capacidad y HLS nativo también en iPadOS. Corregidos C1, C2, C7, K1, K11, K12, K13, K63–K67, K81 y K82; K18 era del *fixture*. | 0031, 0032, 0033, 0034, 0035, 0036 |
+| 0008 (fase 1) | §3.1 y §3.2: el bloqueo `radplapag_migrating` pasa a ser una opción atómica (120 s; 900 s tras un fallo) y el transient queda heredado; meta interna `_radplapag_migration_pending` para reintentar sin duplicados; la bandera de conflicto admite `'dismissed'` y el aviso es descartable; las franjas que no validan se descartan una a una y el resto migra; `is_rerun` se conserva; el aviso de éxito es un resumen y el de error dura 900 s. | 0037 |
