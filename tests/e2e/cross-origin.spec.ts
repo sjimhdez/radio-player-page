@@ -200,12 +200,13 @@ test( 'currently shows no error for a broken MP3 in Chromium (K1)', async ( {
 		expect( await page.evaluate( () => window.e2eAlerts ) ).toEqual( [] );
 	} else {
 		// WebKit fires no `pause` (the element is not even paused), so the
-		// `error` status stays and the alert shows. The `load()` of the retry
-		// drops the `error` of the first attempt.
+		// `error` status stays and the alert shows. On macOS the `load()` of the
+		// retry drops the `error` of the first attempt; WebKitGTK on Linux (the
+		// CI) fires both.
 		await expect( page.getByRole( 'alert' ) ).toHaveText( PLAY_ERROR );
-		expect( await page.evaluate( () => window.e2eAudioEvents ) ).toEqual( [
-			'error',
-		] );
+		const events = await page.evaluate( () => window.e2eAudioEvents );
+		expect( events.length === 1 || events.length === 2 ).toBe( true );
+		expect( events.every( ( event ) => event === 'error' ) ).toBe( true );
 		expect( await audioState( page ) ).toMatchObject( {
 			currentTime: 0,
 			paused: false,
