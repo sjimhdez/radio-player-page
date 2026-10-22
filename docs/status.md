@@ -1,12 +1,12 @@
 # Estado
-Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 1 por planificar · Plan: — · Actualizado: 2026-10-22
+Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0008-migration-and-core-fixes/phase-1.md) · Actualizado: 2026-10-22
 
 ## En curso
-- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)) escrita el 2026-10-22 en la rama `spec/0008-migration-and-core-fixes`, sin push (el primer push y el PR en borrador los hace `start-phase`). Fusiona la 0008 y la 0012 de la hoja de ruta (decisión del usuario): comparten `uninstall.php` y `SPEC.md` §3.7. Tres fases: migración (K29, K30 con el bloqueo atómico, K79, K31, K32), actualización, entidades y desinstalación (K33, K21, K43, C11, K7) y página limpia y API (K23 con RTL, K26, K24, K25).
+- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)), fase 1 (migración) planificada el 2026-10-22: 11 tareas, de K29 a K32, con el ADR 0037. §4.3 amplía las excepciones a los tests de caracterización que cambian por diseño (decisión del usuario). Fusiona la 0008 y la 0012 de la hoja de ruta (decisión del usuario): comparten `uninstall.php` y `SPEC.md` §3.7. Tres fases: migración (K29, K30 con el bloqueo atómico, K79, K31, K32), actualización, entidades y desinstalación (K33, K21, K43, C11, K7) y página limpia y API (K23 con RTL, K26, K24, K25).
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Sesión nueva → `start-phase` de la fase 1 de la 0008.
+1. Tarea 1.1 de la fase 1 de la 0008: ADR 0037 (`write-adr`), y después de la 1.2 a la 1.11 en orden.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano

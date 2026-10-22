@@ -11,7 +11,7 @@ Esta spec se escribió en una sesión de diseño y **se ejecuta en una sesión n
 1. Lee `docs/status.md`, esta spec, los ADRs 0001, 0005, 0008, 0010, 0017, 0021 y 0028, `SPEC.md` §3.1–§3.4 y §3.7, `.claude/rules/data-and-migrations.md` y `php.md`, y las filas K29, K30, K31, K32, K33, K79, C11, K7, K21, K43, K23, K24, K25 y K26 de `docs/known-issues.md`. Su columna «Decisión del usuario» es el mandato.
 2. Cada fase empieza con `start-phase` (plan en `docs/specs/0008-migration-and-core-fixes/phase-N.md`, aprobado en plan mode) y termina con `close-phase`.
 3. Si algo de esta spec resulta falso al contrastarlo con el código, o una decisión la contradice: **para y pregunta**. Si se confirma el cambio, `write-adr` y esta spec se actualiza en el mismo commit.
-4. **Es una spec de correcciones:** cada fila se corrige con `fix-bug`. Su test `currently` pasa a test de regresión en rojo y luego a verde, en las dos capas que cite la fila (núcleo e integración). La fila pasa a «corregido (spec 0008)». Ningún otro test de caracterización se edita para que pase. Las únicas excepciones las nombra §4.3: los *goldens* `corrupt-times` y `corrupt` y el test del ID 0 de K24. Si cae otro test que no es de una fila de esta spec, se para y se pregunta.
+4. **Es una spec de correcciones:** cada fila se corrige con `fix-bug`. Su test `currently` pasa a test de regresión en rojo y luego a verde, en las dos capas que cite la fila (núcleo e integración). La fila pasa a «corregido (spec 0008)». Ningún otro test de caracterización se edita para que pase. Las únicas excepciones las nombra §4.3: los *goldens* `corrupt-times` y `corrupt`, el test del ID 0 de K24 y los tests que cambian por diseño D2, D3, D4 y D6. Si cae otro test que no es de una fila de esta spec, se para y se pregunta.
 5. Esta spec **fusiona la 0008 y la 0012** de la hoja de ruta (decisión del usuario, 2026-10-22). Las dos tocan `uninstall.php` y `SPEC.md` §3.7, y la 0008 añade lo que la desinstalación tiene que borrar. No hay número 0012.
 6. La lógica pura va en `includes/src/<zona>/` (ADR 0028, sin funciones de WordPress). Los adaptadores van en `includes/src/wp/`. Las funciones `radplapag_*` y los callbacks enganchados conservan su firma.
 
@@ -128,7 +128,14 @@ Cada clase nueva de `includes/src/` va en `tests/zip/expected-additions.txt` en 
   - `corrupt-times`: con D3 se descarta la franja malformada y migran las dos emisoras (antes, *rollback* total).
   - `corrupt`: con D7, `is_rerun: true` se conserva.
 
+  - Con D6, `transients.radplapag_migration_success_notice` en los 8 *goldens* que migran (solo esa clave).
+
   Se regeneran con `RADPLAPAG_UPDATE_SNAPSHOTS=1` **en el commit de su fila** y el diff se revisa en el plan. Los demás *goldens* no cambian; si cambia otro, se para.
+- **Tests de caracterización que cambian por diseño** (decisión del usuario, 2026-10-22, al planificar la fase 1). Pasan a regresión en el commit de su tarea, con la aserción nueva:
+  - D2: `test_dismiss_with_valid_nonce_deletes_flag_and_redirects`, `test_conflict_notice_links_to_nonced_dismiss_url`.
+  - D3: `test_skipped_slots_of_stations_after_a_failing_one_are_not_logged`.
+  - D4: `test_migration_does_not_run_while_locked`, `test_migration_lock_expires_in_120_seconds`, `test_failed_migration_rolls_back_and_records_error`, `test_failed_migration_is_retried_on_next_request`, `test_migration_writes_programs_then_stations_then_options`.
+  - D6: `test_successful_migration_records_outcome_and_releases_lock`, `test_conflict_flag_is_cleared_and_migration_runs_without_published_stations`.
 - **K24:** `ConfigTest::test_station_for_current_page_matches_station_without_page_when_nothing_is_queried` no tiene el prefijo `currently`, pero la fila K24 lo cita. Pasa a regresión («… returns false when nothing is queried») junto al `currently` del núcleo.
 - **RTL sin paquete de idioma** (no se sale a internet): en integración, con `$GLOBALS['wp_locale']->text_direction = 'rtl'` y la salida de la página capturada. Si el `exit` lo impide (ADR 0001), en e2e con un *mu-plugin* de los tests, fuera del zip, que fija la dirección por una cabecera o una opción del entorno. Lo decide el plan de la fase 3.
 - La migración se prueba en integración (`UpgradeFlowTest`, `MigrationGoldenTest` con dos pasadas). La concurrencia del bloqueo se prueba con el estado de la base de datos (bloqueo puesto, caducado, valor cambiado entre la lectura y la toma), no con procesos en paralelo.
