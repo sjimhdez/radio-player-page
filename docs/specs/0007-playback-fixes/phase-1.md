@@ -1,5 +1,5 @@
 # Spec 0007 · Fase 1 — Prioridad alta: K67, C7 (K18, K12) y C1 con la visualización
-Estado: en curso · Inicio: 2026-10-22 · ADRs: 0004, 0013, 0018, 0029, 0030, 0031 (nuevos: 0032, 0033)
+Estado: cerrada (2026-10-22) · Inicio: 2026-10-22 · ADRs: 0004, 0013, 0018, 0029, 0030, 0031 (nuevos: 0032, 0033)
 
 ## Contexto
 Lo leído al planificar, contrastado con la spec y el informe del spike. No hay nada falso que obligue a parar. La rama `spec/0007-playback-fixes` y el PR #41 en borrador ya existen; `trunk` no ha avanzado.
@@ -134,3 +134,13 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 
 ## Verificación de la fase
 `npm run check` en cada tarea. Al cerrar (`close-phase`): e2e completos con `env:start:min` y `env:start:latest`, `npm run check:zip`, el *chunk* de `dashjs` en `player/dist/` (la URL de Akamai puede seguir en el código, pero no se usa) y la pasada de Safari (A15) anotada en `docs/status.md`.
+
+## Cierre (2026-10-22)
+- **Verificación:** `npm run check` en verde (player: 617 tests); builds sin diferencias en `player/dist/` ni `blocks/*/build/`; `npm run check:zip` en verde. Integración: 839 tests en las dos puntas. E2E con la última WP + PHP 8.4: 222 pasan y 24 se saltan por plataforma. E2E con WP 6.6 + PHP 7.4: Chromium y la mayor parte de WebKit pasan; 27 tests de WebKit agotaron los 30 s porque el Mac entró en reposo a mitad de la pasada (duró 7,8 h; incluso `page.goto` agotaba el tiempo en suites que no tocan la reproducción). Repetidos con `caffeinate`, las 10 suites afectadas en WebKit: 52 pasan y 1 se salta (3,3 min).
+- **Chunk de `dashjs`:** la URL de Akamai sigue en `player/dist/…-dash-all-min.min.js`, pero el bundle principal llama a `clearDefaultUTCTimingSources()`: no se usa.
+- **A15:** el usuario hizo la pasada en Safari de macOS con el player corregido, con el servidor del spike y cinco emisoras temporales en el sitio de desarrollo: MP3 con CORS (Pausa y Play vuelve al directo, sin congelarse), MP3 sin CORS (suena con el reintento), bienvenida con directo sin CORS, DASH en directo sin peticiones a `time.akamai.com` y HLS con `hls.js`. Los cinco, bien, con la animación estática. iOS queda cubierto por el spike (`localhost` no se abre desde el iPhone).
+- **Revisores** (el usuario eligió solo los dos obligatorios: `spec-conformance-reviewer` y `backcompat-reviewer`): nada bloqueante. Corregido:
+  - Dos tests que faltaban, vistos en rojo con una mutación: «recreates dashjs to return to the live edge (C7)» en el hook (A2) y «does not retry a rejected play() on the hls.js path (C1)» en `hls.test.ts` (A3). Commit 3817730.
+  - ADR 0033: las decisiones 3 y 4 se pusieron al día con la 1.7 (el controlador crea el grafo desde `webAudio`; el elemento tiene que quedar conectado de verdad). También nombra los tres tests de caracterización que cambió la 1.6 y añade tres consecuencias: con el ADR 0032, una emisora sin CORS paga el intento fallido y el reintento en cada Play tras una pausa; el reintento está sin medir en Firefox; y en Chromium y Firefox el `AudioContext` se crea aunque no haya nada que visualizar.
+  - `SPEC.md` §3.8 (la bienvenida en «Pausa y Play»), A3 de la spec (el reintento solo con `NotSupportedError`), la rule `player.md` (ADR 0032, `webAudio`, `fake-web-audio.ts` y la firma de `useAudioVisualizer()`), las filas C1, C7, K18 y K82, el ADR 0018 y la decisión 5 de la hoja de ruta (el contrato ya no es `audioRef`).
+  - Sin aplicar: `event.error?.code` en `dash.ts`. Los tipos de `dashjs` 5 garantizan `error`, así que sería un endurecimiento fuera de plan.

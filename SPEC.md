@@ -166,7 +166,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
   - DASH: `dashjs` con autoplay, sin fuente de hora de terceros: usa `<UTCTiming>` del MPD o la cabecera `Date`; si no, el reloj del cliente (ADR 0032).
   - `hls.js` y `dashjs` se cargan con `import()` dinámico, solo cuando hacen falta.
 - **`crossOrigin = 'anonymous'`** en toda fuente asignada directamente a `audio.src` (audio directo, HLS nativo y audio de bienvenida). Las rutas MSE (`hls.js`, `dashjs`) cargan por XHR/fetch con CORS y dejan el atributo en `null` (ADR 0004). Si una fuente directa falla con `crossOrigin` (`play()` rechazado con `NotSupportedError`), un solo reintento en el mismo elemento sin él, salvo que el elemento ya pase por Web Audio (entonces, error). Así un stream directo sin cabeceras CORS suena, sin visualizador; HLS/DASH sin CORS siguen sin sonar y muestran el error (ADR 0033).
-- **Pausa y Play:** Play tras una pausa (o un error, o un cambio de emisora) recarga el directo, en todos los protocolos, y vuelve al borde en vivo; si el directo ya suena, no hace nada (ADR 0032).
+- **Pausa y Play:** Play tras una pausa (o un error, o un cambio de emisora) recarga el directo, en todos los protocolos, y vuelve al borde en vivo; si el directo ya suena, o durante la bienvenida, no hace nada (ADR 0032).
 - **Audio de bienvenida:** si `introAudioUrl` existe, suena una vez, en la primera reproducción, antes del directo; mientras suena no se puede pausar; al terminar, o si falla, pasa al directo sin mostrar error.
 - **Volumen:** control deslizante; oculto en iOS.
 - **Media Session:** título de la emisora y logo en la pantalla de bloqueo; acciones de reproducir y pausar.
