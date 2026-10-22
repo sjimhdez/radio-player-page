@@ -10,6 +10,7 @@ const player = vi.hoisted(() => ({
   status: 'idle' as PlayerStatus,
   loading: false,
   introLocked: false,
+  volumeControllable: true,
   play: () => {},
   pause: () => {},
   audioRef: { current: null },
@@ -24,6 +25,7 @@ vi.mock('src/hooks/use-audio-player', () => ({
     play: player.play,
     pause: player.pause,
     volume: 1,
+    volumeControllable: player.volumeControllable,
     handleVolumeChange: () => {},
     canVisualize: false,
     getAnalyser: () => null,
@@ -37,6 +39,7 @@ function setPlayer(status: PlayerStatus, loading = false) {
   player.status = status
   player.loading = loading
   player.introLocked = false
+  player.volumeControllable = true
 }
 
 beforeEach(() => {
@@ -174,22 +177,23 @@ describe('Dashboard sleep mode', () => {
   })
 })
 
-// Characterization before K13 (spec 0007, task 3.3): today VolumeControl hides the
-// slider by the user agent, through useIsIOS(). ADR 0036 moves it to a capability.
+// K13 (spec 0007, ADR 0036): the slider shows where the volume can be changed, as
+// the controller decides by capability, whatever the user agent.
 describe('Dashboard volume', () => {
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15'
   const WINDOWS =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/129.0 Safari/537.36'
 
-  it('shows the volume slider outside iOS', () => {
-    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(WINDOWS)
+  it('shows the volume slider when the volume can be changed', () => {
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(IPHONE)
     render(<Dashboard />)
 
     expect(screen.getByRole('slider', { name: 'Volume' })).toBeTruthy()
   })
 
-  it('hides the volume slider on iOS', () => {
-    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(IPHONE)
+  it('hides the volume slider when the volume cannot be changed (K13)', () => {
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(WINDOWS)
+    player.volumeControllable = false
     render(<Dashboard />)
 
     expect(screen.queryByRole('slider', { name: 'Volume' })).toBeNull()

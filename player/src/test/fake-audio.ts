@@ -17,6 +17,8 @@ export const media = {
   corsBlocked: new Set<string>(),
   /** When true, play() stays pending until release() or fail(). */
   hold: false,
+  /** When true, writes to volume are ignored, as on iOS (ADR 0036). */
+  readOnlyVolume: false,
   pending: [] as Deferred[],
   /** Settles the oldest pending play() successfully. */
   release() {
@@ -40,6 +42,7 @@ export function installFakeAudio(): () => void {
   media.failing.clear()
   media.corsBlocked.clear()
   media.hold = false
+  media.readOnlyVolume = false
   media.pending = []
 
   const proto = window.HTMLMediaElement.prototype
@@ -49,6 +52,7 @@ export function installFakeAudio(): () => void {
     pause: proto.pause,
     paused: Object.getOwnPropertyDescriptor(proto, 'paused'),
     src: Object.getOwnPropertyDescriptor(proto, 'src')!,
+    volume: Object.getOwnPropertyDescriptor(proto, 'volume')!,
   }
 
   Object.defineProperty(proto, 'src', {
@@ -67,6 +71,16 @@ export function installFakeAudio(): () => void {
       } finally {
         delete (this as { dispatchEvent?: unknown }).dispatchEvent
       }
+    },
+  })
+
+  Object.defineProperty(proto, 'volume', {
+    configurable: true,
+    get(this: HTMLMediaElement) {
+      return original.volume.get!.call(this)
+    },
+    set(this: HTMLMediaElement, value: number) {
+      if (!media.readOnlyVolume) original.volume.set!.call(this, value)
     },
   })
 
@@ -117,6 +131,7 @@ export function installFakeAudio(): () => void {
     proto.play = original.play
     proto.pause = original.pause
     Object.defineProperty(proto, 'src', original.src)
+    Object.defineProperty(proto, 'volume', original.volume)
     if (original.paused) {
       Object.defineProperty(proto, 'paused', original.paused)
     } else {

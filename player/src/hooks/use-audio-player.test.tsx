@@ -614,12 +614,28 @@ describe('volume', () => {
     expect(audio.volume).toBe(0.4)
   })
 
-  it('ignores changes on iOS', () => {
+  it('is controllable where the element applies volume writes, whatever the user agent', () => {
     setUserAgent(IPHONE)
-    const { api, audio } = mount(MP3)
+    const { api } = mount(MP3)
+    expect(api.current.volumeControllable).toBe(true)
+  })
+
+  it('is not controllable, from the first render, where volume writes are ignored (K13)', () => {
+    media.readOnlyVolume = true
+    const seen: boolean[] = []
+    const record = (result: Api) => {
+      seen.push(result.volumeControllable)
+    }
+    render(<Harness streamUrl={MP3} onResult={record} />)
+    expect(seen[0]).toBe(false)
+    expect(seen).not.toContain(true)
+  })
+
+  it('ignores changes where volume writes are ignored (K13)', () => {
+    media.readOnlyVolume = true
+    const { api } = mount(MP3)
     act(() => api.current.handleVolumeChange(0.4))
     expect(api.current.volume).toBe(1)
-    expect(audio.volume).toBe(1)
   })
 })
 

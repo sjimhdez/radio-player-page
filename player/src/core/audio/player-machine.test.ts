@@ -28,7 +28,7 @@ const introState = run([
 ])
 
 describe('initialPlayerState', () => {
-  it('starts idle, not loading, unlocked, with nothing loaded, full volume and no visualizer', () => {
+  it('starts idle, not loading, unlocked, with nothing loaded, full controllable volume and no visualizer', () => {
     expect(initialPlayerState).toEqual({
       status: 'idle',
       loading: false,
@@ -36,6 +36,7 @@ describe('initialPlayerState', () => {
       activeSource: null,
       introConsumed: false,
       volume: 1,
+      volumeControllable: true,
       canVisualize: false,
     })
   })

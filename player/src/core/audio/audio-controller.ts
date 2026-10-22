@@ -9,6 +9,7 @@ import { createDashSource } from 'src/core/audio/sources/dash'
 import { createDirectSource } from 'src/core/audio/sources/direct'
 import { createHlsSource } from 'src/core/audio/sources/hls'
 import type { AudioSource, DashMediaPlayer, HlsClass } from 'src/core/audio/sources/types'
+import { isVolumeControllable } from 'src/core/audio/volume'
 import { createVisualizerGraph, type VisualizerGraphOptions } from 'src/core/audio/web-audio'
 
 /**
@@ -29,8 +30,8 @@ export interface PlayOptions {
 export interface AudioController {
   subscribe: (listener: () => void) => () => void
   getSnapshot: () => PlayerState
-  /** Listens to audio and applies the volume, except on iOS. Idempotent. */
-  attach: (audio: HTMLAudioElement, options: { isIOS: boolean }) => void
+  /** Listens to audio and applies the volume, if it can be changed. Idempotent. */
+  attach: (audio: HTMLAudioElement) => void
   /** Stops listening to the attached element. Idempotent. */
   detach: () => void
   /** Destroys the current source. */
@@ -48,8 +49,8 @@ export interface AudioController {
    * the next play() starts anew (docs/known-issues.md K81 and K11, ADR 0034 D3).
    */
   pause: () => void
-  /** Sets the volume (0-1); ignored on iOS. */
-  setVolume: (volume: number, options: { isIOS: boolean }) => void
+  /** Sets the volume (0-1); ignored if it cannot be changed. */
+  setVolume: (volume: number) => void
   /** The analyser of the Web Audio graph; null until the element is connected. */
   getAnalyser: () => AnalyserNode | null
 }
@@ -61,9 +62,12 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  * Creates the audio controller: runs the effects of useAudioPlayer() (src, play(),
  * hls.js, dashjs, volume) and publishes the state of player-machine as a snapshot.
  *
- * isIOS is read on each call, never when the controller is created (it turns true
+ * isIOS is read on each play(), never when the controller is created (it turns true
  * after the first render, docs/known-issues.md K13). When the welcome audio ends, the
  * live stream is loaded with the options of the play() that started it.
+ *
+ * Whether the volume can be changed is probed once, when it is created, on an element
+ * of its own, and published in the first snapshot (K13, ADR 0036).
  *
  * A direct source that fails is retried once without crossOrigin, unless the element
  * goes through the Web Audio graph: then it is an error (C1, ADR 0033).
@@ -75,15 +79,25 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  *
  * @param options.loaders - Loaders of hls.js and dashjs (dynamic imports by default)
  * @param options.webAudio - Context factory and user agent (no Web Audio by default)
+ * @param options.volumeProbe - Creates the element that probes the volume (controllable
+ *   without it)
  * @returns AudioController
  */
 export function createAudioController({
   loaders = {},
   webAudio = { userAgent: '' },
-}: { loaders?: StreamingLoaders; webAudio?: VisualizerGraphOptions } = {}): AudioController {
+  volumeProbe,
+}: {
+  loaders?: StreamingLoaders
+  webAudio?: VisualizerGraphOptions
+  volumeProbe?: () => HTMLMediaElement
+} = {}): AudioController {
   const graph = createVisualizerGraph(webAudio)
   const listeners = new Set<() => void>()
-  let state = initialPlayerState
+  let state =
+    volumeProbe === undefined || isVolumeControllable(volumeProbe())
+      ? initialPlayerState
+      : { ...initialPlayerState, volumeControllable: false }
   let audio: HTMLAudioElement | null = null
   let source: AudioSource | null = null
   // The options of the play() that started the welcome audio, for 'ended'.
@@ -292,10 +306,10 @@ export function createAudioController({
       }
     },
     getSnapshot: () => state,
-    attach(element, { isIOS }) {
+    attach(element) {
       detach()
       audio = element
-      if (!isIOS) element.volume = state.volume
+      if (state.volumeControllable) element.volume = state.volume
       for (const type of AUDIO_EVENTS) element.addEventListener(type, onAudioEvent)
     },
     detach,
@@ -322,8 +336,8 @@ export function createAudioController({
       audio?.pause()
       dispatch({ type: 'user-paused' })
     },
-    setVolume(volume, { isIOS }) {
-      if (isIOS || audio === null) return
+    setVolume(volume) {
+      if (!state.volumeControllable || audio === null) return
       audio.volume = volume
       dispatch({ type: 'volume-changed', volume })
     },

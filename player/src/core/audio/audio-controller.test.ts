@@ -30,7 +30,13 @@ const withWebAudio = (userAgent = CHROME) => ({
   userAgent,
 })
 
-const desktop = { isIOS: false }
+/** A volume probe that ignores writes, as on iOS (ADR 0036). */
+const readOnlyProbe = () => {
+  const probe = new Audio()
+  Object.defineProperty(probe, 'volume', { get: () => 1, set: () => {} })
+  return probe
+}
+
 const live = (streamUrl = MP3, isIOS = false) => ({ streamUrl, introUrl: null, isIOS })
 const withIntro = (streamUrl = MP3) => ({ streamUrl, introUrl: INTRO, isIOS: false })
 
@@ -47,7 +53,7 @@ afterEach(() => restore())
 function setup(options: Parameters<typeof createAudioController>[0] = {}) {
   const controller = createAudioController(options)
   const audio = new Audio()
-  controller.attach(audio, desktop)
+  controller.attach(audio)
   return { controller, audio }
 }
 
@@ -141,8 +147,8 @@ describe('attach and detach', () => {
     const controller = createAudioController()
     const audio = new Audio()
     const listeners = countListeners(audio)
-    controller.attach(audio, desktop)
-    controller.attach(audio, desktop)
+    controller.attach(audio)
+    controller.attach(audio)
     expect(listeners()).toEqual({
       playing: 1,
       pause: 1,
@@ -160,33 +166,37 @@ describe('attach and detach', () => {
     const controller = createAudioController()
     const audio = new Audio()
     const listeners = countListeners(audio)
-    controller.attach(audio, desktop)
+    controller.attach(audio)
     controller.detach()
-    controller.attach(audio, desktop)
+    controller.attach(audio)
     expect(Object.values(listeners())).toEqual([1, 1, 1, 1, 1, 1])
   })
 
   it('moves its listeners when attached to another element', () => {
     const { controller, audio } = setup()
     const other = new Audio()
-    controller.attach(other, desktop)
+    controller.attach(other)
     audio.dispatchEvent(new Event('playing'))
     expect(controller.getSnapshot().status).toBe('idle')
     other.dispatchEvent(new Event('playing'))
     expect(controller.getSnapshot().status).toBe('playing')
   })
 
-  it('applies the volume to the element it attaches to, except on iOS', () => {
+  it('applies the volume to the element it attaches to', () => {
     const { controller } = setup()
-    controller.setVolume(0.3, desktop)
-    controller.detach()
-    const ios = new Audio()
-    controller.attach(ios, { isIOS: true })
-    expect(ios.volume).toBe(1)
+    controller.setVolume(0.3)
     controller.detach()
     const other = new Audio()
-    controller.attach(other, desktop)
+    controller.attach(other)
     expect(other.volume).toBe(0.3)
+  })
+
+  it('leaves the volume of the element alone when it cannot be changed (K13)', () => {
+    const controller = createAudioController({ volumeProbe: readOnlyProbe })
+    const audio = new Audio()
+    audio.volume = 0.6
+    controller.attach(audio)
+    expect(audio.volume).toBe(0.6)
   })
 })
 
@@ -498,7 +508,7 @@ describe('welcome audio (intro)', () => {
     const audio = new Audio()
     // Registered first, so the controller never hears 'playing'.
     audio.addEventListener('playing', (event) => event.stopImmediatePropagation())
-    controller.attach(audio, desktop)
+    controller.attach(audio)
     await controller.play(withIntro())
     expect(controller.getSnapshot().status).toBe('playing')
   })
@@ -865,23 +875,39 @@ describe('volume', () => {
   it('starts at 1 and applies changes to the element and the snapshot', () => {
     const { controller, audio } = setup()
     expect(controller.getSnapshot().volume).toBe(1)
-    controller.setVolume(0.5, desktop)
+    controller.setVolume(0.5)
     expect(audio.volume).toBe(0.5)
     expect(controller.getSnapshot().volume).toBe(0.5)
   })
 
-  it('ignores changes on iOS, reading isIOS on each call', () => {
-    const { controller, audio } = setup()
-    controller.setVolume(0.5, { isIOS: true })
+  it('is controllable without a probe', () => {
+    expect(createAudioController().getSnapshot().volumeControllable).toBe(true)
+  })
+
+  it('probes once, when it is created, so the first snapshot is right (K13)', () => {
+    const volumeProbe = vi.fn(readOnlyProbe)
+    const controller = createAudioController({ volumeProbe })
+    expect(controller.getSnapshot().volumeControllable).toBe(false)
+    controller.attach(new Audio())
+    controller.setVolume(0.5)
+    expect(volumeProbe).toHaveBeenCalledTimes(1)
+  })
+
+  it('is controllable when the probe applies the write', () => {
+    const controller = createAudioController({ volumeProbe: () => new Audio() })
+    expect(controller.getSnapshot().volumeControllable).toBe(true)
+  })
+
+  it('ignores changes when the volume cannot be changed (K13)', () => {
+    const { controller, audio } = setup({ volumeProbe: readOnlyProbe })
+    controller.setVolume(0.5)
     expect(audio.volume).toBe(1)
     expect(controller.getSnapshot().volume).toBe(1)
-    controller.setVolume(0.4, desktop)
-    expect(audio.volume).toBe(0.4)
   })
 
   it('ignores changes while detached', () => {
     const controller = createAudioController()
-    controller.setVolume(0.5, desktop)
+    controller.setVolume(0.5)
     expect(controller.getSnapshot().volume).toBe(1)
   })
 })

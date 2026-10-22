@@ -17,6 +17,11 @@ export interface PlayerState {
   /** Volume level (0-1). */
   volume: number
   /**
+   * Whether the volume can be changed; set by the controller when it is created
+   * (docs/known-issues.md K13, ADR 0036). No event changes it.
+   */
+  volumeControllable: boolean
+  /**
    * Whether the source in the element goes through the Web Audio graph: false on each
    * attempt, set by the playing event of the element (K82, ADR 0031).
    */
@@ -53,6 +58,7 @@ export const initialPlayerState: PlayerState = {
   activeSource: null,
   introConsumed: false,
   volume: 1,
+  volumeControllable: true,
   canVisualize: false,
 }
 

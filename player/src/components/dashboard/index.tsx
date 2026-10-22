@@ -89,6 +89,7 @@ const Dashboard = () => {
     play,
     pause,
     volume,
+    volumeControllable,
     handleVolumeChange,
     canVisualize,
     getAnalyser,
@@ -292,7 +293,11 @@ const Dashboard = () => {
           />
         </Box>
 
-        <VolumeControl volume={volume} onVolumeChange={handleVolumeChange} />
+        <VolumeControl
+          volume={volume}
+          controllable={volumeControllable}
+          onVolumeChange={handleVolumeChange}
+        />
       </Stack>
 
       {hasSchedule && (
