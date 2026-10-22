@@ -99,7 +99,7 @@ function radplapag_maybe_clear_migration_conflict_flag(): void {
  * Runs legacy migration if needed (idempotent; uses an atomic lock).
  *
  * @since 3.3.0
- * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). After a failed write the lock is held for 900 s and the error notice lasts as long.
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). Once taken, the posts left pending by a cut migration are deleted. After a failed write the lock is held for 900 s and the error notice lasts as long.
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed(): void {
@@ -123,6 +123,8 @@ function radplapag_run_legacy_migration_if_needed(): void {
 	if ( ! \RadioPlayerPage\WP\Migration_Lock::acquire( time(), 120 ) ) {
 		return;
 	}
+
+	\RadioPlayerPage\WP\Migration_Writer::purge_pending();
 
 	if ( radplapag_count_published_stations() > 0 ) {
 		update_option( 'radplapag_migration_skipped_cpt_conflict', '1' );

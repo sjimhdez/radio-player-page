@@ -691,11 +691,12 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 	/**
 	 * A migration cut after creating the programs and before any station leaves them
-	 * behind; once the lock expires, the retry creates them again.
+	 * marked as pending; once the lock expires, the retry deletes them before creating
+	 * them again, so nothing is duplicated.
 	 *
 	 * @see docs/known-issues.md K84
 	 */
-	public function test_currently_interrupted_migration_duplicates_programs() {
+	public function test_interrupted_migration_is_retried_without_duplicates() {
 		$this->legacy_settings();
 		$this->interrupt_migration(
 			'wp_insert_post_empty_content',
@@ -713,7 +714,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertFalse( get_option( 'radplapag_settings' ) );
 		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
 		$this->assertSame(
-			array( 'Morning', 'Morning' ),
+			array( 'Morning' ),
 			wp_list_pluck(
 				get_posts(
 					array(
@@ -727,13 +728,14 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A migration cut after publishing a station leaves it behind; once the lock
-	 * expires, the retry counts it as a conflict and never migrates.
+	 * A migration cut after publishing a station leaves it marked as pending; once the
+	 * lock expires, the retry deletes it and its programs before counting the published
+	 * stations, so there is no conflict and the migration completes.
 	 *
 	 * @see docs/known-issues.md K84
 	 */
-	public function test_currently_interrupted_migration_with_a_station_is_a_conflict() {
-		$settings = $this->legacy_settings();
+	public function test_interrupted_migration_with_a_station_is_purged_and_migrated() {
+		$this->legacy_settings();
 		$this->interrupt_migration(
 			'added_post_meta',
 			3,
@@ -745,13 +747,77 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 		radplapag_run_legacy_migration_if_needed();
 
-		$this->assertSame( $settings, get_option( 'radplapag_settings' ) );
-		$this->assertFalse( get_option( 'radplapag_db_version' ) );
-		$this->assertSame( '1', get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
-		$this->assertFalse( get_transient( 'radplapag_migration_success_notice' ) );
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+		$this->assertSame( '1', get_transient( 'radplapag_migration_success_notice' ) );
 		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
 		$this->assertSame( 1, $this->count_posts( 'radplapag_program' ) );
-		$this->assertStringContainsString( 'Automatic migration was skipped', $this->notices() );
+		$station = get_posts( array( 'post_type' => 'radplapag_station' ) )[0];
+		$this->assertSame( 'https://stream.example.test/one.mp3', get_post_meta( $station->ID, 'radplapag_station_stream_url', true ) );
+	}
+
+	/**
+	 * The posts left pending by a cut migration are deleted in any status (trash and
+	 * auto-draft included) before migrating; posts without the meta are kept.
+	 */
+	public function test_pending_posts_in_any_status_are_purged_before_migrating() {
+		$this->legacy_settings();
+		$pending = array();
+		$posts   = array(
+			array( 'radplapag_program', 'trash' ),
+			array( 'radplapag_program', 'auto-draft' ),
+			array( 'radplapag_station', 'draft' ),
+			array( 'radplapag_station', 'publish' ),
+		);
+		foreach ( $posts as list( $type, $status ) ) {
+			$pending[] = self::factory()->post->create(
+				array(
+					'post_type'   => $type,
+					'post_status' => $status,
+					'meta_input'  => array( '_radplapag_migration_pending' => '1' ),
+				)
+			);
+		}
+		$kept = self::factory()->post->create(
+			array(
+				'post_type'   => 'radplapag_program',
+				'post_status' => 'draft',
+				'post_title'  => 'Kept',
+			)
+		);
+
+		radplapag_run_legacy_migration_if_needed();
+
+		foreach ( $pending as $post_id ) {
+			$this->assertNull( get_post( $post_id ) );
+		}
+		$this->assertNotNull( get_post( $kept ) );
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertFalse( get_option( 'radplapag_migration_skipped_cpt_conflict' ) );
+	}
+
+	/**
+	 * A successful migration removes the pending meta from every post it created.
+	 */
+	public function test_successful_migration_leaves_no_pending_meta() {
+		$this->legacy_settings();
+
+		radplapag_run_legacy_migration_if_needed();
+
+		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
+		$this->assertSame(
+			array(),
+			get_posts(
+				array(
+					'post_type'   => array( 'radplapag_station', 'radplapag_program' ),
+					'post_status' => 'any',
+					'numberposts' => -1,
+					'fields'      => 'ids',
+					'meta_key'    => '_radplapag_migration_pending', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Test query.
+				)
+			)
+		);
 	}
 
 	/**

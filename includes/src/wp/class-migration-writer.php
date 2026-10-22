@@ -20,13 +20,19 @@ defined( 'ABSPATH' ) || exit;
 final class Migration_Writer {
 
 	/**
+	 * Meta key on the posts a migration creates until it completes (ADR 0037).
+	 */
+	const PENDING_META = '_radplapag_migration_pending';
+
+	/**
 	 * Creates the programs and the stations of the plan, then retires the legacy option.
 	 *
 	 * Writes in the order of 3.4.2: the duplicate IDs are logged, every program is
 	 * created with its meta, and each station logs its skipped slots, validates its
 	 * schedule with radplapag_sanitize_station_schedule() and is created with its
-	 * meta. If anything fails, the created posts are deleted (newest first) and no
-	 * option is touched. Otherwise radplapag_settings is deleted and
+	 * meta. Every created post carries the pending meta. If anything fails, the
+	 * created posts are deleted (newest first) and no option is touched. Otherwise
+	 * the pending meta is removed, radplapag_settings is deleted and
 	 * radplapag_db_version saved.
 	 *
 	 * @since 3.5.0
@@ -62,10 +68,33 @@ final class Migration_Writer {
 			$created[] = $post_id;
 		}
 
+		delete_post_meta_by_key( self::PENDING_META );
 		delete_option( 'radplapag_settings' );
 		update_option( 'radplapag_db_version', defined( 'RADPLAPAG_DB_VERSION' ) ? RADPLAPAG_DB_VERSION : '330' );
 
 		return true;
+	}
+
+	/**
+	 * Deletes for good the posts left pending by a migration that was cut, in any status.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @return void
+	 */
+	public static function purge_pending(): void {
+		$post_ids = get_posts(
+			array(
+				'post_type'   => array( 'radplapag_station', 'radplapag_program' ),
+				'post_status' => array_keys( get_post_stati() ),
+				'numberposts' => -1,
+				'fields'      => 'ids',
+				'meta_key'    => self::PENDING_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Only runs while a legacy migration is pending.
+			)
+		);
+		foreach ( $post_ids as $post_id ) {
+			wp_delete_post( (int) $post_id, true );
+		}
 	}
 
 	/**
@@ -85,6 +114,7 @@ final class Migration_Writer {
 				'post_title'   => '' !== $program['name'] ? $program['name'] : __( 'Program', 'radio-player-page' ),
 				'post_author'  => $author,
 				'post_content' => '',
+				'meta_input'   => array( self::PENDING_META => '1' ),
 			),
 			true
 		);
@@ -144,6 +174,7 @@ final class Migration_Writer {
 				'post_author'  => $author,
 				'menu_order'   => $station['menu_order'],
 				'post_content' => '',
+				'meta_input'   => array( self::PENDING_META => '1' ),
 			),
 			true
 		);

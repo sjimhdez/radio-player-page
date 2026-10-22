@@ -6,7 +6,7 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.6 de la fase 1 de la 0008 (reintento sin duplicados, D5), y después de la 1.7 a la 1.11 en orden. En la 1.5, el `currently` de K30 caduca la espera entre sus dos pasadas (decisión del usuario, anotada en §4.3); en la 1.7 pasa a regresión. La 1.3 fijó la migración cortada (K84: duplica los programas o se queda en conflicto para siempre); la 1.6 la corrige.
+1. Tarea 1.7 de la fase 1 de la 0008 (K30, descarte voraz de franjas, D3), y después de la 1.8 a la 1.11 en orden. En la 1.5, el `currently` de K30 caduca la espera entre sus dos pasadas (decisión del usuario, anotada en §4.3); en la 1.7 pasa a regresión. La 1.6 corrigió K84 (la migración cortada se reintenta sin duplicados: purga de `_radplapag_migration_pending`).
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano
