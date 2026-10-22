@@ -1,5 +1,5 @@
 # Spec 0008 · Fase 1 — Migración
-Estado: en curso · Inicio: 2026-10-22 · ADRs: 0005, 0010, 0021, 0028; nuevos 0037 (migración) y 0038 (toma con `INSERT IGNORE`) y 0040 (renovación del bloqueo, tarea 1.12)
+Estado: cerrada (2026-10-22) · Inicio: 2026-10-22 · ADRs: 0005, 0010, 0021, 0028; nuevos 0037 (migración) y 0038 (toma con `INSERT IGNORE`) y 0040 (renovación del bloqueo, tarea 1.12)
 
 ## Contexto
 Lo medido al planificar:
@@ -129,7 +129,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K31 y K32 (K79 se retiró: A
 - Verificación: `npm run test:php:unit -- --filter UpgradePolicyTest && npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
 - Rojo (2026-10-22): `Call to undefined method Migration_Lock::renew()`; `test_migration_checks_again_after_taking_the_lock` falla con la bandera a `'1'` (conflicto falso) y `test_lost_lock_stops_the_migration` porque la migración termina (la opción heredada ya no está). `UpgradeFlowTest::set_up()` suelta el bloqueo para que el estado en memoria de `Migration_Lock` no pase de un test a otro.
 - Changelog: — (el bug no llegó a publicarse).
-- [x] hecha · commit: (este)
+- [x] hecha · commit: `17ec3e2`
 
 ## Decisiones abiertas → ADR
 - Los valores de la espera (120 s y 900 s) y la toma del bloqueo antes de contar las emisoras: se fijan en el ADR 0037 (1.1).
