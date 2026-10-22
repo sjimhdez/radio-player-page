@@ -173,3 +173,25 @@ describe('Dashboard sleep mode', () => {
     expect(player.pause).toHaveBeenCalledTimes(1)
   })
 })
+
+// Characterization before K13 (spec 0007, task 3.3): today VolumeControl hides the
+// slider by the user agent, through useIsIOS(). ADR 0036 moves it to a capability.
+describe('Dashboard volume', () => {
+  const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15'
+  const WINDOWS =
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/129.0 Safari/537.36'
+
+  it('shows the volume slider outside iOS', () => {
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(WINDOWS)
+    render(<Dashboard />)
+
+    expect(screen.getByRole('slider', { name: 'Volume' })).toBeTruthy()
+  })
+
+  it('hides the volume slider on iOS', () => {
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(IPHONE)
+    render(<Dashboard />)
+
+    expect(screen.queryByRole('slider', { name: 'Volume' })).toBeNull()
+  })
+})
