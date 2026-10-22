@@ -177,35 +177,29 @@ test( 'currently resumes the live MP3 from the buffer after Pause and Play (C7)'
 	}
 } );
 
-test( "currently freezes the live MP3 after Pause and Play in Safari's WebKit (K18)", async ( {
+test( "does not freeze the live MP3 after Pause and Play in Safari's WebKit (K18)", async ( {
 	page,
 	browserName,
 } ) => {
 	test.skip(
 		browserName !== 'webkit' || GSTREAMER,
-		'Chromium and WebKitGTK resume from the buffer (C7)'
+		"Only Safari's WebKit froze, on the fixture's Info frame (K18)"
 	);
 	await page.goto( readSeed().urls.live );
 	await startPlayback( page );
-	const requests = await mediaRequests();
 
 	await page.getByRole( 'button', { name: 'Pause' } ).click();
 	const paused = await audioState( page );
+	const resumed = waitForPlayback( page, paused.currentTime + 1 );
 	await page.getByRole( 'button', { name: 'Play' } ).click();
+	await resumed;
 	await page.waitForTimeout( QUIET_MS );
 
-	// Not paused, no error and no new request, but the buffer is gone: after a
-	// fraction of a second the position stops (less than 1 s in QUIET_MS),
-	// silence while the UI shows Pause.
-	expect( await mediaRequests() ).toEqual( requests );
+	// The position keeps going: past the 1.76 s that the Info frame of a
+	// whole tone.mp3 declared, where this WebKit used to stop.
 	const state = await audioState( page );
-	expect( state ).toMatchObject( {
-		src: paused.src,
-		paused: false,
-		errorCode: null,
-		buffered: [],
-	} );
-	expect( state.currentTime ).toBeLessThan( paused.currentTime + 1 );
+	expect( state ).toMatchObject( { paused: false, errorCode: null } );
+	expect( state.currentTime ).toBeGreaterThan( paused.currentTime + 2 );
 	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
 	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
 } );
