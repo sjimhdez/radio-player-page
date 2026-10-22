@@ -1,0 +1,106 @@
+# Spec 0007 · Fase 2 — Prioridad media: estados del audio
+Estado: en curso · Inicio: 2026-10-22 · ADRs: 0029, 0030, 0032, 0033 (nuevo: 0034)
+
+## Contexto
+Lo leído al planificar, contrastado con la spec, los ADR y el código. Nada es falso; hay dos decisiones nuevas del usuario (2026-10-22) que cambian la spec:
+- **C2:** `core/audio/protocol.ts` usa `endsWith()` sobre la URL entera. Hay `currently` en el núcleo (`protocol.test.ts`) y en el hook (`use-audio-player.test.tsx`, «protocol detection (C2)»). En el núcleo no hay `window.location`: se analiza con `new URL(url, base ficticia)` para que una URL relativa (`/live.m3u8`) siga funcionando, y una que no se puede analizar da `direct`.
+- **K1:** `transition()` pasa a `paused` con un `pause` en cualquier estado. Hay `currently` en la máquina, en el hook (el test de orden de renders del ADR 0030) y en el e2e (`cross-origin.spec.ts`, el MP3 con un 404). **Cae también** `mp3.spec.ts` «currently stops with a network error and no message when the stream is cut in WebKitGTK (C8)», fuera de las filas de la spec: el `pause` que sigue al `error` de red tapa hoy la alerta. **Decisión del usuario (2026-10-22):** se ajusta en el commit de K1. Sigue siendo el `currently` de C8 (no reconecta, `errorCode` 2), pero ahora con la alerta. Se apunta en la fila C8.
+- **K11 (D4):** `live-started` pone `playing` y el `finally` de `startPlay()`/`advanceToLive()` despacha `load-end`, que limpia `loading` antes de `MANIFEST_PARSED` o del *autoplay* de `dashjs`. El *fake* de audio despacha `playing` dentro de `play()`, como el navegador (el evento sale antes de que se resuelva la promesa). Así, con una fuente directa el evento `playing` ya basta, y `live-started` puede dejar de tocar `status` en todos los protocolos.
+- **K81 y K11 con pausa (D3):** `pause()` solo pausa el elemento. El `AbortError` del `play()` pendiente llega a `play-failed`, y `MANIFEST_PARSED` llama a `audio.play()` aunque se haya pausado. Los *fakes* de `hls.js`/`dashjs` no quitan los manejadores al destruirse: la fuente tiene que ignorar sus avisos tras `destroy()`. `pendingPlay` (K80, D7) seguiría devolviendo la promesa vieja al Play siguiente, así que la pausa tiene que soltarla (riesgo 5).
+- **K64:** `user-paused` no limpia `loading`, y `canplay` solo lo limpia en `idle`/`error`.
+- **K63 (D5):** `introLocked` y `activeSource: 'intro'` solo cambian con `live-started`. Ojo: al terminar, el navegador dispara `pause` antes de `ended` (con `audio.ended` verdadero). Una pausa externa se distingue por `!audio.ended`. Si no, el `ended` ya no pasaría al directo. **Decisión del usuario (2026-10-22), cambia D5:** si la bienvenida da `error` mientras suena, pasa al directo en silencio, como si terminara o fallara al arrancar (`SPEC.md` §3.8 tal como está). Solo la pausa externa deja Play, que carga el directo. El `error` que precede al rechazo del `play()` de arranque no puede lanzar un segundo `advanceToLive()`. D5 y A9 de la spec se corrigen en la 2.1, con el ADR.
+- **ADR 0030 (A13):** el test de orden de renders de K1 deja de tener sentido cuando `pause` no pisa `error`. La vuelta a `useSyncExternalStore` se decide al final (2.7) con los tests del hook y los e2e de `cross-origin` e `intro` en Chromium.
+
+## Objetivo
+Corregir C2, K1, K64, K11, K81 y K63, cada fila con su regresión en las dos capas que cita `known-issues.md`. Revisar el ADR 0030 (A13) y dejar `SPEC.md` §3.8 y el ADR 0034 al día.
+
+## Criterios de aceptación
+| Criterio | Cómo se verifica |
+|---|---|
+| A4 (C2) | `protocol.test.ts` y `use-audio-player.test.tsx`: `.m3u8?token=x`, `.M3U8`, `.mpd?token=x`, `.MPD` y `…/live.m3u8#t` por el sufijo del `pathname`, sin distinguir mayúsculas. Una URL relativa sigue detectándose y una que no se puede analizar da `direct` sin lanzar |
+| A5 (K1) | `player-machine.test.ts`: un `pause` en `error` no lo cambia. `use-audio-player.test.tsx`: el error de un MP3 roto se pinta y sigue tras el `pause`. `cross-origin.spec.ts`: el MP3 con un 404 muestra el error en Chromium y en WebKit. `mp3.spec.ts` (C8, WebKitGTK) ajustado con la alerta |
+| A6 (K11) | `player-machine.test.ts`, `audio-controller.test.ts` y `use-audio-player.test.tsx`: con HLS y DASH, `loading` en `true` y sin `playing` hasta el evento `playing`. Una pausa durante la carga se respeta: sin `play()` en `MANIFEST_PARSED` y `reset()` de `dashjs` |
+| A7 (K81) | `audio-controller.test.ts`, `use-audio-player.test.tsx` y `mp3.spec.ts` (Chromium y WebKit): pausar mientras carga el MP3 deja `paused`, sin error ni alerta |
+| A8 (K64) | `player-machine.test.ts`, `audio-controller.test.ts` y `use-audio-player.test.tsx`: `pause()` durante el *buffering* limpia `loading` |
+| A9 (K63) | Los cuatro `currently … (K63)` en la máquina, el controlador y el hook. Si falla el directo tras la bienvenida, o fallan los dos: `introLocked` libre, `error` y Play carga el directo. Pausa externa: `introLocked` libre, `paused` y Play carga el directo. `error` a mitad: pasa al directo sin error. El `pause` que precede a `ended` no libera nada (el directo sigue) |
+| A13 (ADR 0030) | `useSyncExternalStore` si pasan todos los tests del hook y los e2e de `cross-origin` e `intro` en Chromium; si no, se queda y el ADR 0030 recoge el motivo. La rule `player.md` lo refleja |
+| Riesgo 5 | `keeps a single hls.js alive after a second play() while it loads (K80)` sigue en verde, en el núcleo y en el hook |
+| ADR y contrato | ADR 0034 (C2, D3, D4 y D5 con la decisión nueva). `SPEC.md` §3.8 (protocolo, pausa durante la carga, bienvenida), spec D5/A9, filas de `known-issues.md` → «corregido (spec 0007)», JSDoc que cita «fixed in spec 0007» |
+| Global | `npm run check` en cada tarea; cobertura de `src/core/**` ≥ 90 % líneas · ≥ 85 % ramas y de `src/hooks/**` ≥ 85 %. Al cerrar: e2e de `mp3`, `hls-dash`, `intro`, `media-session`, `sleep`, `cross-origin`, `visualizers` y `visualization` en las dos puntas |
+
+## Tareas
+
+### 2.1 C2: protocolo por el sufijo del `pathname`, y ADR 0034 (≤ 1 h)
+- Qué (`fix-bug` + `write-adr`): `detectProtocol()` analiza la URL con `new URL(url, 'http://base.invalid')`, toma `pathname` en minúsculas y mira el sufijo. Si `new URL` lanza, devuelve `direct`. Los dos `currently` (núcleo y hook) pasan a regresión («detects %s by the suffix of its pathname (C2)»), más `…/live.m3u8#t`, una relativa y una que no se puede analizar. ADR 0034 «Estados del audio y protocolo»: C2, D3, D4 y D5 con la decisión del usuario sobre el error a mitad; se aplican en la 2.2–2.6. Spec D5 y A9 al día. `SPEC.md` §3.8 (protocolo). JSDoc, rule `player.md` (Reproducción: «por la extensión del `pathname`»), fila C2.
+- Archivos: `player/src/core/audio/{protocol.ts,protocol.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`, `docs/adr/0034-*.md`, `docs/adr/README.md`, `SPEC.md`, `docs/specs/0007-playback-fixes/spec.md`, `.claude/rules/player.md`, `docs/known-issues.md`.
+- Test: regresión primero (rojo): `protocol.test.ts` y `use-audio-player.test.tsx`.
+- Verificación: `npm --prefix player run check`
+- [ ] hecha · commit: —
+
+### 2.2 K1: un `pause` no pisa `error` (≤ 1 h)
+- Qué (`fix-bug`): en `transition()`, `pause` con `status: 'error'` devuelve el mismo estado (`user-paused` no cambia). Regresión en las tres capas:
+  - máquina: `currently lets a pause after an error overwrite the error (K1)` → «keeps the error when a pause follows it (K1)»;
+  - hook: `does not render the error … (K1)` → «renders the error of a failing MP3 and keeps it after the pause (K1)»;
+  - e2e: `currently shows no error for a broken MP3 in Chromium (K1)` → «shows the error for a broken MP3 (K1)». Chromium: `error`, `error`, `pause` y la alerta. WebKit no cambia.
+- Ajuste aprobado (decisión del usuario, 2026-10-22): `mp3.spec.ts` C8 WebKitGTK pasa a «currently stops with a network error and the play error, without reconnecting, when the stream is cut in WebKitGTK (C8)». Solo cambia la aserción de la alerta y el comentario «as in K1». Fila C8 al día.
+- JSDoc de `transition()` sin K1. Filas K1 y C8.
+- Archivos: `player/src/core/audio/{player-machine.ts,player-machine.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`, `tests/e2e/{cross-origin.spec.ts,mp3.spec.ts}`, `docs/known-issues.md`.
+- Test: regresión primero (rojo): máquina, hook y `cross-origin.spec.ts` en Chromium.
+- Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/cross-origin.spec.ts tests/e2e/mp3.spec.ts tests/e2e/intro.spec.ts`
+- [ ] hecha · commit: —
+
+### 2.3 K64: `pause()` limpia `loading` (≤ 1 h)
+- Qué (`fix-bug`): `user-paused` pone `status: 'paused'` y `loading: false`, salvo con la bienvenida. Los tres `currently keeps loading after a pause while buffering (K64)` pasan a «clears loading on a pause while buffering (K64)». JSDoc y fila K64.
+- Archivos: `player/src/core/audio/{player-machine.ts,player-machine.test.ts,audio-controller.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`, `docs/known-issues.md`.
+- Test: regresión primero (rojo) en las tres.
+- Verificación: `npm --prefix player run check`
+- [ ] hecha · commit: —
+
+### 2.4 K11 (D4): `playing` sale del evento del elemento (≤ 1 h)
+- Qué (`fix-bug`): `live-started` ya no pone `status` (solo `activeSource: 'live'` e `introLocked: false`). `playing` llega del evento del elemento, que ya limpia `loading`. Con una carga que sale bien, el controlador deja de limpiar `loading` en el `finally`. `load-end` solo se despacha tras un fallo, y los errores (`play-failed`, `stream-error`, `error`) limpian `loading`. Con el MP3 no cambia nada visible: el evento `playing` llega antes de que se resuelva `play()`. `resumed` de la bienvenida: se quita si el evento `playing` lo cubre. Regresión:
+  - núcleo: `currently reports playing before MANIFEST_PARSED` (controlador) y `currently reports playing on live-started before the HLS manifest is parsed (K11)` (máquina) → «keeps loading until the element plays (K11)», con HLS y con DASH;
+  - hook: el mismo `currently` del hook.
+- Si cae un test que no es de K11 (por ejemplo, uno que espera `playing` tras `live-started` sin evento), se para y se pregunta.
+- Archivos: `player/src/core/audio/{player-machine.ts,player-machine.test.ts,audio-controller.ts,audio-controller.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`.
+- Test: regresión primero (rojo).
+- Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/hls-dash.spec.ts tests/e2e/mp3.spec.ts tests/e2e/intro.spec.ts`
+- [ ] hecha · commit: —
+
+### 2.5 K81 y K11 con pausa (D3): una pausa durante la carga la cancela (≤ 1 h)
+- Qué (`fix-bug`): el controlador lleva un contador de generación. `pause()` lo incrementa, suelta `pendingPlay` (el Play siguiente empieza de cero) y, si hay una carga en curso (`loading`), destruye la fuente. Al resolverse o rechazarse un intento viejo, y con los `onError`/`onPlayRejected` de su fuente, no se despacha nada: el `AbortError` queda ignorado. `hls.ts` no llama a `play()` en un `MANIFEST_PARSED` tras `destroy()`. `dash.ts` hace `reset()` (corta el *autoplay*). El `finally` de un intento viejo no borra el `pendingPlay` de otro. Regresión:
+  - K81: los dos `currently reports an error when a pause interrupts the loading MP3 (K81)` (núcleo y hook) → «stays paused, without an error, when a pause interrupts the loading MP3 (K81)». E2E `mp3.spec.ts` → «stays paused without an error when the system pauses the loading MP3 (K81)» (Chromium y WebKit);
+  - K11 con pausa: los tres `currently … after a pause pressed while it loads (K11)` → «respects a pause pressed while HLS loads (K11)», más el caso de DASH (`reset()`, sin `playing`);
+  - riesgo 5: K80 en verde. Test nuevo: «reloads on play() after a pause that cancelled the load» (una sola instancia viva).
+- JSDoc de `play()`/`pause()`; filas K81 y K11.
+- Archivos: `player/src/core/audio/{audio-controller.ts,audio-controller.test.ts,player-machine.test.ts}`, `player/src/core/audio/sources/{hls.ts,hls.test.ts,dash.ts,dash.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`, `tests/e2e/mp3.spec.ts`, `docs/known-issues.md`.
+- Test: regresión primero (rojo) en el núcleo, el hook y el e2e (con el `dist/` anterior).
+- Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/mp3.spec.ts tests/e2e/hls-dash.spec.ts tests/e2e/media-session.spec.ts tests/e2e/sleep.spec.ts`
+- [ ] hecha · commit: —
+
+### 2.6 K63 (D5): la bienvenida no bloquea el reproductor (≤ 1 h)
+- Qué (`fix-bug`): `intro-finished` pone `introConsumed: true`, `introLocked: false` y `activeSource: null`, así que Play pasa por la carga del directo. En el controlador:
+  - `pause` del elemento con la bienvenida y `!audio.ended` (pausa externa): `paused` y la da por consumida;
+  - `error` del elemento con la bienvenida ya sonando: `advanceToLive()` en silencio, sin `error`. El `error` del arranque lo sigue llevando el `catch` de `startPlay()`, sin un segundo `advanceToLive()`;
+  - el `pause` previo a `ended` no libera nada.
+- Regresión: los cuatro `currently … (K63)` en la máquina, el controlador y el hook, con los nombres de A9 («releases the welcome audio when …»). Más «does not release the welcome audio on the pause before its end» (con `audio.ended` verdadero) y «errors in the welcome audio fall through to the live stream once».
+- `SPEC.md` §3.8 (bienvenida: pausada desde fuera, Play carga el directo). JSDoc de `advanceToLive()` y fila K63.
+- Archivos: `player/src/core/audio/{player-machine.ts,player-machine.test.ts,audio-controller.ts,audio-controller.test.ts}`, `player/src/hooks/use-audio-player.test.tsx`, `SPEC.md`, `docs/known-issues.md`.
+- Test: regresión primero (rojo).
+- Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/intro.spec.ts tests/e2e/cross-origin.spec.ts tests/e2e/sleep.spec.ts`
+- [ ] hecha · commit: —
+
+### 2.7 A13: revisión del ADR 0030 (≤ 1 h)
+- Qué: `useAudioPlayer()` vuelve a `useSyncExternalStore(controller.subscribe, controller.getSnapshot)`. Se queda si pasan todos los tests del hook y los e2e de `cross-origin` e `intro` en Chromium (con el player reconstruido). Si es así, el ADR 0030 pasa a «sustituido» (por una nota en el 0034 o su propia sección). Si no, se revierte y el ADR 0030 se actualiza con el motivo medido. En los dos casos: JSDoc del hook, rule `player.md` (excepción de `useAudioPlayer()`) y spec 0006 si la cita.
+- Archivos: `player/src/hooks/use-audio-player.tsx`, `docs/adr/0030-*.md` (y `0034`, `README.md`), `.claude/rules/player.md`.
+- Test: los existentes (no se editan); la mutación es el propio cambio.
+- Verificación: `npm --prefix player run check && npm run test:e2e -- --project=chromium tests/e2e/cross-origin.spec.ts tests/e2e/intro.spec.ts` (el nombre del proyecto, según `playwright.config.ts`)
+- [ ] hecha · commit: —
+
+## Decisiones abiertas → ADR
+- ADR 0034 (2.1): C2, D3, D4 y D5, este con la decisión del usuario sobre el error a mitad de la bienvenida (cambia D5 y A9 de la spec en el mismo commit).
+- ADR 0030 (2.7): sustituido o actualizado según A13.
+- Ajuste del `currently` de C8 en WebKitGTK por K1: aprobado por el usuario (2026-10-22), sin ADR.
+
+## Verificación de la fase
+`npm run check` en cada tarea. Al cerrar (`close-phase`): e2e completos con `env:start:min` y `env:start:latest` (las pasadas largas con `caffeinate -dims`), `npm run check:zip`, cobertura del núcleo y de los hooks.
+
