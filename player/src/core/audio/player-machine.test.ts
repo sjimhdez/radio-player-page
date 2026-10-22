@@ -1,5 +1,5 @@
 // Pure transition of the audio player (spec 0006, task 2.5). The currently cases
-// replicate docs/known-issues.md K1, K11, K63 and K64, as fixed in
+// replicate docs/known-issues.md K11, K63 and K64, as fixed in
 // src/hooks/use-audio-player.test.tsx and tests/e2e/cross-origin.spec.ts.
 // canVisualize (spec 0007, task 1.7): false on each attempt, set by the playing event.
 import { describe, expect, it } from 'vitest'
@@ -145,9 +145,10 @@ describe('transition', () => {
     })
   })
 
-  it('currently lets a pause after an error overwrite the error (K1)', () => {
-    const state = run([{ type: 'error' }, { type: 'pause' }], liveState)
-    expect(state.status).toBe('paused')
+  it('keeps the error when a pause follows it (K1)', () => {
+    const failed = run([{ type: 'error' }], liveState)
+    expect(transition(failed, { type: 'pause' })).toBe(failed)
+    expect(failed.status).toBe('error')
   })
 
   it('currently reports playing on live-started before the HLS manifest is parsed (K11)', () => {

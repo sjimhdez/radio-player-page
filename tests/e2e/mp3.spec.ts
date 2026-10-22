@@ -255,7 +255,7 @@ test( 'currently stays stalled without reconnecting when the stream is cut (C8)'
 	}
 } );
 
-test( 'currently stops with a network error and no message when the stream is cut in WebKitGTK (C8)', async ( {
+test( 'currently stops with a network error and the play error, without reconnecting, when the stream is cut in WebKitGTK (C8)', async ( {
 	page,
 	browserName,
 } ) => {
@@ -272,9 +272,9 @@ test( 'currently stops with a network error and no message when the stream is cu
 	await page.waitForTimeout( QUIET_MS );
 
 	// No reconnection, neither from the player nor from the media stack. The
-	// element ends (`pause` + `ended`) back at 0 and the player shows Play,
-	// with no "Unable to play the stream" (the `pause` replaces the error
-	// state, as in K1).
+	// element ends (`pause` + `ended`) back at 0 and the player shows Play
+	// with "Unable to play the stream" (the `pause` keeps the error state,
+	// as in K1).
 	expect( ranges.slice( requestsAtError ) ).toEqual( [] );
 	expect( await audioState( page ) ).toMatchObject( {
 		paused: true,
@@ -282,5 +282,7 @@ test( 'currently stops with a network error and no message when the stream is cu
 		currentTime: 0,
 	} );
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
-	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
+	await expect( page.getByRole( 'alert' ) ).toHaveText(
+		'Unable to play the stream. Try again later.'
+	);
 } );

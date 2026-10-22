@@ -18,8 +18,8 @@ import {
  * (see hls-dash.spec.ts), so that branch is only covered by the player's unit
  * tests. C1 (spec 0007, ADR 0033): a direct source that fails with
  * `crossOrigin` is retried once without it, so an MP3 without CORS plays; the
- * MSE paths have no retry and show the error. K1 is how a source that fails
- * on both attempts (a 404) is (not) reported.
+ * MSE paths have no retry and show the error. A source that fails on both
+ * attempts (a 404) shows the error too (K1, spec 0007).
  */
 
 const PLAY_ERROR = 'Unable to play the stream. Try again later.';
@@ -166,7 +166,7 @@ test( 'plays the welcome audio and the live stream without CORS (C1)', async ( {
 	expect( await page.evaluate( () => window.e2eAlerts ) ).toEqual( [] );
 } );
 
-test( 'currently shows no error for a broken MP3 in Chromium (K1)', async ( {
+test( 'shows the error for a broken MP3 (K1)', async ( {
 	page,
 	browserName,
 } ) => {
@@ -181,29 +181,26 @@ test( 'currently shows no error for a broken MP3 in Chromium (K1)', async ( {
 	await expect
 		.poll( async () => ( await mediaRequests() )[ '/missing.mp3' ] )
 		.toBeGreaterThan( 1 );
-	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeEnabled();
+	await expect( page.getByRole( 'alert' ) ).toHaveText( PLAY_ERROR );
 	expect( await crossOrigin( page ) ).toBeNull();
 
 	if ( browserName === 'chromium' ) {
-		// K1: each attempt fires `error`, and the `pause` that follows the
-		// second overwrites the `error` status with `paused`, so the alert
-		// never shows: silence and a Play button.
+		// Each attempt fires `error`, and a `pause` follows the second. Since
+		// spec 0007 the `pause` keeps the `error` status (K1): the alert stays.
 		await expect
 			.poll( () => page.evaluate( () => window.e2eAudioEvents ) )
 			.toEqual( [ 'error', 'error', 'pause' ] );
+		await expect( page.getByRole( 'alert' ) ).toHaveText( PLAY_ERROR );
 		expect( await audioState( page ) ).toMatchObject( {
 			currentTime: 0,
 			paused: true,
 			errorCode: 4,
 			buffered: [],
 		} );
-		expect( await page.evaluate( () => window.e2eAlerts ) ).toEqual( [] );
 	} else {
-		// WebKit fires no `pause` (the element is not even paused), so the
-		// `error` status stays and the alert shows. On macOS the `load()` of the
-		// retry drops the `error` of the first attempt; WebKitGTK on Linux (the
-		// CI) fires both.
-		await expect( page.getByRole( 'alert' ) ).toHaveText( PLAY_ERROR );
+		// WebKit fires no `pause` (the element is not even paused). On macOS
+		// the `load()` of the retry drops the `error` of the first attempt;
+		// WebKitGTK on Linux (the CI) fires both.
 		const events = await page.evaluate( () => window.e2eAudioEvents );
 		expect( events.length === 1 || events.length === 2 ).toBe( true );
 		expect( events.every( ( event ) => event === 'error' ) ).toBe( true );
@@ -214,6 +211,9 @@ test( 'currently shows no error for a broken MP3 in Chromium (K1)', async ( {
 			buffered: [],
 		} );
 	}
+	expect( await page.evaluate( () => window.e2eAlerts ) ).toContain(
+		PLAY_ERROR
+	);
 } );
 
 test( 'does not play HLS without CORS and shows the error (C1)', async ( {

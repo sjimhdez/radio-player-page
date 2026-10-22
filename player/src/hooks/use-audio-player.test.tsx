@@ -920,10 +920,10 @@ describe('concurrency (spec 0006, 2.2)', () => {
   })
 })
 
-// ADR 0030 (spec 0006, task 2.11): the render order of 3.4.2. In Chromium a failing
-// MP3 fires 'error' (and play() rejects, also on its retry) in one task and 'pause' in a later one
-// (docs/known-issues.md K1). The 'error' state must not reach a render before the
-// 'pause': the alert would flash. Here the microtasks stand for the end of the task.
+// ADR 0030 (spec 0006, task 2.11): the render order. In Chromium a failing MP3 fires
+// 'error' (and play() rejects, also on its retry) in one task and 'pause' in a later one.
+// Since spec 0007 the 'pause' keeps the 'error' state (docs/known-issues.md K1): the alert
+// shows and stays. Here the microtasks stand for the end of the task.
 describe('render order (spec 0006, 2.11)', () => {
   const globals = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
   let actEnvironment: boolean | undefined
@@ -936,7 +936,7 @@ describe('render order (spec 0006, 2.11)', () => {
     globals.IS_REACT_ACT_ENVIRONMENT = actEnvironment
   })
 
-  it('does not render the error of a failing MP3 before the pause that follows it (K1)', async () => {
+  it('renders the error of a failing MP3 and keeps it after the pause (K1)', async () => {
     media.hold = true
     const api = {} as { current: Api }
     const rendered: string[] = []
@@ -961,9 +961,12 @@ describe('render order (spec 0006, 2.11)', () => {
     media.fail()
     await done
     for (let i = 0; i < 10; i++) await Promise.resolve()
+    await vi.waitFor(() => expect(rendered).toContain('error'))
     audio.dispatchEvent(new Event('pause'))
+    // A real task, so that React renders whatever the pause changed.
+    await new Promise((resolve) => setTimeout(resolve, 20))
 
-    await vi.waitFor(() => expect(api.current).toMatchObject({ status: 'paused', loading: false }))
-    expect(rendered).not.toContain('error')
+    expect(api.current).toMatchObject({ status: 'error', loading: false })
+    expect(rendered).not.toContain('paused')
   })
 })

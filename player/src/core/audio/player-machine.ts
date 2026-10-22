@@ -69,9 +69,9 @@ function patch(state: PlayerState, changes: Partial<PlayerState>): PlayerState {
  * Pure transition of the audio player.
  *
  * Replicates the 3.4.2 hook, quirks included (docs/known-issues.md, fixed in spec 0007):
- * a pause after an error overwrites it (K1), live-started reports playing before the
- * HLS manifest is parsed (K11), the welcome audio stays locked after a failure, an
- * external pause or an error (K63), and canplay only clears loading in idle or error (K64).
+ * live-started reports playing before the HLS manifest is parsed (K11), the welcome
+ * audio stays locked after a failure, an external pause or an error (K63), and canplay
+ * only clears loading in idle or error (K64). A pause keeps the error status (K1).
  *
  * @param state - Current state
  * @param event - What happened
@@ -100,6 +100,8 @@ export function transition(state: PlayerState, event: PlayerEvent): PlayerState 
       if (state.activeSource === 'intro') return state
       return patch(state, { status: 'paused' })
     case 'pause':
+      // Chromium fires a pause after the error of a failing source (K1).
+      if (state.status === 'error') return state
       return patch(state, { status: 'paused' })
     case 'play-failed':
     case 'stream-error':
