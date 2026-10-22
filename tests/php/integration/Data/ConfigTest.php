@@ -688,11 +688,10 @@ final class ConfigTest extends WP_UnitTestCase {
 	/**
 	 * A user without unfiltered_html (a site administrator in a network, or with
 	 * DISALLOW_UNFILTERED_HTML) saves titles through kses, which stores `&` as
-	 * `&amp;`. The readers return the stored title as is, so the clean page passes
-	 * `Rock &amp; Roll` to the player, which shows it literally (the `<title>` does
-	 * not, because esc_html() does not encode twice). K21 of docs/known-issues.md.
+	 * `&amp;`. The readers of the PHP API return the stored title as is; only the
+	 * player globals decode it (Player\Globals_Builder). K21 of docs/known-issues.md.
 	 */
-	public function test_currently_titles_saved_through_kses_keep_their_entities() {
+	public function test_titles_saved_through_kses_keep_their_entities_in_the_api() {
 		add_filter(
 			'map_meta_cap',
 			static function ( $caps, $cap ) {

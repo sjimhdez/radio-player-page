@@ -26,6 +26,7 @@ export type SeedUrlKey =
 	| 'intro'
 	| 'broken-intro'
 	| 'minimal'
+	| 'entities'
 	| 'always'
 	| 'visualizer-oscilloscope'
 	| 'visualizer-bars'

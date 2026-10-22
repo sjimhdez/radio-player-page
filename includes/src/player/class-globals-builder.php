@@ -55,7 +55,8 @@ final class Globals_Builder {
 	/**
 	 * RADPLAPAG_CONFIG for a station.
 	 *
-	 * An empty station title falls back to the site title. Theme and visualizer go
+	 * An empty station title falls back to the site title, and the title is decoded
+	 * (K21: kses stores `&` as `&amp;`). Theme and visualizer go
 	 * through sanitize_key() and the whitelists; falsy media URLs are null. The offset
 	 * is the one of $now in hours, an integer when exact.
 	 *
@@ -81,7 +82,7 @@ final class Globals_Builder {
 
 		return array(
 			'streamUrl'       => $station['stream_url'],
-			'siteTitle'       => ! empty( $station['station_title'] ) ? $station['station_title'] : $site_title,
+			'siteTitle'       => self::decode( ! empty( $station['station_title'] ) ? $station['station_title'] : $site_title ),
 			'backgroundImage' => ! empty( $media['background_url'] ) ? $media['background_url'] : null,
 			'logoImage'       => ! empty( $media['logo_url'] ) ? $media['logo_url'] : null,
 			'introAudioUrl'   => ! empty( $media['intro_audio_url'] ) ? $media['intro_audio_url'] : null,
@@ -95,7 +96,8 @@ final class Globals_Builder {
 	 * RADPLAPAG_PROGRAMS, in the order given.
 	 *
 	 * Programs without data (missing or draft) are left out; empty descriptions and
-	 * logo URLs are null.
+	 * logo URLs are null. Names and descriptions are decoded (K21, K43: kses and the
+	 * sanitizers store `&` and a glued `<` as entities).
 	 *
 	 * @since 3.5.0
 	 *
@@ -110,9 +112,9 @@ final class Globals_Builder {
 			}
 			$programs[] = array(
 				'id'                  => (string) $post_id,
-				'name'                => $data['name'],
-				'description'         => '' !== $data['description'] ? $data['description'] : null,
-				'extendedDescription' => '' !== $data['extended_description'] ? $data['extended_description'] : null,
+				'name'                => self::decode( $data['name'] ),
+				'description'         => '' !== $data['description'] ? self::decode( $data['description'] ) : null,
+				'extendedDescription' => '' !== $data['extended_description'] ? self::decode( $data['extended_description'] ) : null,
 				'logoUrl'             => $data['logo_url'] ? $data['logo_url'] : null,
 			);
 		}
@@ -162,5 +164,17 @@ final class Globals_Builder {
 			}
 		}
 		return $result;
+	}
+
+	/**
+	 * Decodes the HTML entities of a string once; other values are returned as they are.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param mixed $value Value printed for the player.
+	 * @return mixed
+	 */
+	private static function decode( $value ) {
+		return is_string( $value ) ? html_entity_decode( $value, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) : $value;
 	}
 }

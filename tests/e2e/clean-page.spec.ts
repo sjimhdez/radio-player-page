@@ -270,6 +270,24 @@ test.describe( 'clean page (HTTP)', () => {
 		);
 	} );
 
+	test( 'decodes the entities of a title saved through kses (K21)', async ( {
+		request,
+		page,
+	} ) => {
+		const url = readSeed().urls.entities;
+		const html = await getHtml( request, url );
+
+		expect( html ).toContain( '<title>Rock &amp; Roll</title>' );
+		expect( rawGlobals( html ).RADPLAPAG_CONFIG ).toContain(
+			'"siteTitle":"Rock \\u0026 Roll"'
+		);
+
+		await page.goto( url );
+		await expect( page.getByRole( 'heading', { level: 1 } ) ).toHaveText(
+			'Rock & Roll'
+		);
+	} );
+
 	test( 'prints no social image without logo, background or favicon', async ( {
 		request,
 	} ) => {
