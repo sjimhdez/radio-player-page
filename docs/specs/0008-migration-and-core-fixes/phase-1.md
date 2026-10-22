@@ -60,7 +60,7 @@ Corregir K29, el bloqueo y el reintento (4.3), K30, K79, K31 y K32 con su test d
 - ADR 0038 (2026-10-22, decisión del usuario): al empezar se vio que `add_option()` hace `INSERT … ON DUPLICATE KEY UPDATE` y deja ganar a dos peticiones, así que la primera toma es un `INSERT IGNORE`. Se enmiendan el punto 2 del ADR 0037, la D4, §3 de la spec y `SPEC.md` §3.1.
 - Rojo (2026-10-22): en `UpgradePolicyTest`, 6 errores (`Call to undefined method Upgrade_Policy::is_lock_held()`). En `UpgradeFlowTest`, 2 errores (`Migration_Lock` no existe) y 9 fallos: el bloqueo vigente, caducado, cambiado entre la lectura y la toma, en la tabla con `notoptions`, el transient heredado, la toma antes de contar, el conflicto que suelta el bloqueo, los 120 s y los dos de K84 (su precondición del bloqueo). Mutación temporal (la primera toma con `add_option()`): solo falla `test_lock_in_the_table_is_not_taken_when_the_cache_says_it_is_missing`; revertida.
 - Ajustes de ayudantes por D4, sin cambiar aserciones de tests fuera de la lista: `migration_writes()` deja fuera la opción del bloqueo, como antes dejaba el transient (el test del orden de escrituras y el del *rollback* siguen sin cambios), e `interrupt_migration()` (K84) comprueba que queda la opción y la caduca moviendo su hora al pasado. `test_successful_…` y `test_failed_migration_rolls_back_…` comprueban la opción en vez del transient (en la 1.5 el segundo pasa a retenerla 900 s).
-- [x] hecha · commit: —
+- [x] hecha · commit: `dad4126`
 
 ### 1.5 Espera de 15 min tras un fallo (D4, segunda parte) (≤ 1 h)
 - Qué: si la escritura falla, `hold_until( now + 900 )` en lugar de soltar el bloqueo, y el aviso de error dura 900 s. Si termina bien, `release()`.
