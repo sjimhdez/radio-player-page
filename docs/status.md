@@ -1,14 +1,11 @@
 # Estado
-Spec activa: 0007 — Correcciones: reproducción · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0007-playback-fixes/phase-3.md) · Actualizado: 2026-10-22
+Spec activa: 0007 — Correcciones: reproducción · Fase: cerrada (0–3, el 2026-10-22; PR #41 listo, pendiente de merge en `trunk`) · Plan: [`phase-3.md`](specs/0007-playback-fixes/phase-3.md) · Actualizado: 2026-10-22
 
 ## En curso
-- Spec 0007 (Correcciones: reproducción, [`spec.md`](specs/0007-playback-fixes/spec.md)), rama `spec/0007-playback-fixes` con el PR #41 en borrador contra `trunk`. Fase 0 (spike) cerrada el 2026-10-22 ([informe](spikes/0007-phase-0.md)). Fase 1 cerrada el 2026-10-22 ([`phase-1.md`](specs/0007-playback-fixes/phase-1.md)): K67, C7 (con K12 y el *fixture* de K18), C1 y la visualización decidida por el núcleo (K82), con los ADR 0032 y 0033. A15 verificado en Safari de macOS con el player corregido.
-- Fase 2 cerrada el 2026-10-22 ([`phase-2.md`](specs/0007-playback-fixes/phase-2.md)): C2, K1, K64, K11, K81 y K63 con el ADR 0034; el ADR 0030 se queda (`useState`) por el estado intermedio del reintento de C1 (K83).
-- Fase 3 empezada el 2026-10-22 ([`phase-3.md`](specs/0007-playback-fixes/phase-3.md)): K66, K65 y K13. Tarea 3.1 hecha: K66 corregido con el ADR 0035 (la cuenta atrás va contra una hora límite). Tarea 3.2 hecha: K65 corregido («Sleep mode» deshabilitado durante la bienvenida). Tarea 3.3 hecha: ADR 0036 escrito (enmienda D8 y A12) y caracterizado el deslizador de volumen del `Dashboard`. Tarea 3.4 hecha: el volumen se decide por capacidad (sonda del núcleo, `volumeControllable` en la instantánea; K13 1/2, ADR 0036). Tarea 3.5 hecha: la detección de iOS para HLS pasa al núcleo (`isIOSDevice()`, con iPadOS) y se borra `useIsIOS()` (K13 corregido, ADR 0036). Tarea 3.6 hecha: `SPEC.md` §3.8 sin la excepción de K1 y §6 con la fila 0007, notas de la 0011 en la hoja de ruta y K65 en «corregido». Todas las tareas hechas: falta `close-phase` (cierre de la spec).
-- Spec 0006 (Refactor del player) cerrada y fusionada en `trunk` (PR #40, 2026-10-21).
+- Spec 0007 (Correcciones: reproducción, [`spec.md`](specs/0007-playback-fixes/spec.md)) cerrada el 2026-10-22, con los ADR 0031–0036. PR #41 (`spec/0007-playback-fixes` → `trunk`) listo: **el merge lo decide el usuario** (merge commit, título `Spec 0007: Correcciones: reproducción`); antes puede lanzar `/code-review`.
 
 ## Siguiente (máx. 5)
-1. Fase 3 de la 0007: `close-phase` (última fase: cierra la spec y deja el PR #41 listo).
+1. Tras el merge del PR #41, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad del player; notas en la hoja de ruta).
 2. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree.
 
 ## Bloqueos / preguntas para el humano
@@ -23,4 +20,4 @@ Spec activa: 0007 — Correcciones: reproducción · Fase: 3 en curso · Plan: [
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66), en iPhone y iPad reales (también iPad con la web de escritorio) sin deslizador de volumen y con HLS nativo (K13) y los controles con `100vh` bajo la barra de Safari de iOS.
 
 ## Desviaciones de la spec activa (→ ADR)
-Ninguna. Las de las specs cerradas están en [`deviations.md`](deviations.md).
+Ninguna (las de la 0007 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).

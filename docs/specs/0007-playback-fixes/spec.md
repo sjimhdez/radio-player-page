@@ -1,6 +1,6 @@
 # Spec 0007 — Correcciones: reproducción
 
-> Estado: **propuesta** · Fecha: 2026-10-21 · Rama: `spec/0007-playback-fixes` · Depende de: 0006
+> Estado: **cerrada** (2026-10-22) · Fecha: 2026-10-21 · Rama: `spec/0007-playback-fixes` · Depende de: 0006
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 
@@ -94,7 +94,7 @@ Los números los asigna `write-adr` (siguiente libre: 0032). Un ADR puede agrupa
 | K81, K11 (pausa), K63 | `audio-controller.ts` (D3, D5) y `player-machine.ts` | — |
 | K65 | — | `components/dashboard/index.tsx` (`isPlaying` de `SleepMode`) |
 | K66 | `core/sleep/sleep-timer.ts` (`clock.now()`) | — |
-| K13 | — | `hooks/use-is-ios.tsx` |
+| K13 | `core/audio/volume.ts`, `core/audio/platform.ts`, `audio-controller.ts` | `VolumeControl.tsx`, `components/dashboard/index.tsx` (ADR 0036) |
 
 Comentarios y JSDoc de `player-machine.ts`, `audio-controller.ts`, `protocol.ts`, `sleep-timer.ts` y `use-sleep-timer.tsx` que citan las filas como «fixed in spec 0007» se actualizan al corregirlas.
 

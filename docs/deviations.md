@@ -2,6 +2,15 @@
 
 Lo que cada spec hizo distinto de lo escrito, con su motivo y quién lo decidió. Las de la spec activa están en `status.md` y pasan aquí al cerrarla (`close-phase`). Las más recientes van primero.
 
+## Spec 0007
+Detalle en cada `phase-N.md`. Los cambios de contrato van con su ADR (0031–0036).
+
+- Fase 3 (cierre): un solo revisor (`spec-conformance-reviewer`, con la compatibilidad hacia atrás); la accesibilidad se revisó sin subagente. Decidido por el usuario (2026-10-22).
+- Fase 3 (3.3): D8 y A12 se enmiendan con el ADR 0036: el volumen se decide por capacidad y la detección de iOS para HLS pasa al núcleo, en lugar de parchear `useIsIOS()`. Decidido por el usuario (2026-10-22).
+- Fase 3 (3.1): A11 esperaba 60 s y el test espera 59 (29 min retenidos más el *tick* de 1 s); corregido en el plan.
+- Fase 2 (cierre): un solo revisor (`spec-conformance-reviewer`); la compatibilidad se revisó sin subagente. Decidido por el usuario (2026-10-22). K83 se caracterizó tras la 2.7 sin número de tarea.
+- Fase 1 (cierre): solo los dos revisores obligatorios (`spec-conformance-reviewer` y `backcompat-reviewer`). Decidido por el usuario (2026-10-22).
+
 ## Spec 0006
 Detalle en el «Resultado:» de cada tarea de `phase-1.md`, `phase-2.md` y `phase-3.md`; sin cambios de contrato (ADRs 0029 y 0030).
 

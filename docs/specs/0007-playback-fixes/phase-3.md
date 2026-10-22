@@ -1,5 +1,5 @@
 # Spec 0007 · Fase 3 — Prioridad baja: sueño e iOS, y cierre
-Estado: en curso · Inicio: 2026-10-22 · ADRs: 0004, 0029, 0030, 0034 (nuevos: 0035, 0036)
+Estado: cerrada (2026-10-22) · Inicio: 2026-10-22 · ADRs: 0004, 0029, 0030, 0034 (nuevos: 0035, 0036)
 
 ## Contexto
 Lo leído al planificar, contrastado con la spec, los ADR y el código. Nada es falso.
@@ -76,6 +76,12 @@ Corregir K66, K65 y K13 con su regresión en las capas que cita `known-issues.md
 - Test: — (documentación).
 - Verificación: `npm run check`
 - [x] hecha · commit: `e871e9e`
+
+## Cierre (revisión de conformidad)
+- Un solo revisor (`spec-conformance-reviewer`, que cubrió también la compatibilidad hacia atrás) por decisión del usuario; la accesibilidad se revisó sin subagente: el único cambio de UI es la condición de deshabilitado de «Sleep mode» (mismo patrón que antes) y ocultar el deslizador donde no tiene efecto. Nada bloqueante.
+- Corregido: `SPEC.md` §3.8 recoge «Sleep mode» deshabilitado durante la bienvenida y que cualquier pausa cancela el temporizador (ADR 0035); la fila K13 de §4.2 de la spec apunta al diseño del ADR 0036; JSDoc de `use-sleep-timer.tsx`.
+- Queda como está: la espera fija de 3 s de `sleep.spec.ts` (K65) solo comprueba que el temporizador del directo sigue; la regresión es la lectura en un solo `evaluate` (plan 3.2).
+- Gzip frente a `origin/trunk` (`gzip -9`): `radio-player-page-3.4.2.min.js` 187 196 → 187 823 B (+0,3 %); el resto, sin cambios.
 
 ## Decisiones abiertas → ADR
 - ADR 0035 (3.1): temporizador de sueño (hora límite; deshabilitado durante la bienvenida).
