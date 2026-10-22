@@ -79,4 +79,12 @@ describe('createDashSource', () => {
     const { MediaPlayer } = await import('dashjs')
     await expect(loadDashModule()).resolves.toBe(MediaPlayer)
   })
+
+  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  it('is CORS clean', async () => {
+    const fake = createFakeDash()
+    const source = createDashSource({ loadDash: fake.loadDash })
+    await source.start(new Audio(), DASH, callbacks())
+    expect(source.isCorsClean()).toBe(true)
+  })
 })

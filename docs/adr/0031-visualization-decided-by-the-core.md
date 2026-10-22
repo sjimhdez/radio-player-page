@@ -1,6 +1,6 @@
 # ADR 0031 — La visualización la decide el núcleo según la fuente; la zona congelada se reduce al dibujo
 
-- Estado: aceptado · Fecha: 2026-10-21 · Spec: 0007 (diseño; se aplica en la fase 1 con C1) · Enmienda el [ADR 0018](0018-frozen-visualizers.md) (alcance de la zona congelada)
+- Estado: aceptado; enmendado por [ADR 0033](0033-retry-direct-sources-without-crossorigin.md) (regla medida; WebKit nunca visualiza) · Fecha: 2026-10-21 · Spec: 0007 (diseño; se aplica en la fase 1 con C1) · Enmienda el [ADR 0018](0018-frozen-visualizers.md) (alcance de la zona congelada)
 
 ## Contexto
 

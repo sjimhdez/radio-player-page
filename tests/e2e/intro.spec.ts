@@ -133,7 +133,10 @@ test( 'falls through to the live stream without an error when the welcome audio 
 	const state = await audioState( page );
 	expect( state ).toMatchObject( { paused: false, errorCode: null } );
 	expect( state.src ).toMatch( LIVE );
+	// The welcome audio is retried once without crossOrigin, as any direct
+	// source (C1, ADR 0033): a 404 cannot be told apart from a missing CORS.
 	expect( await mediaLog( page ) ).toEqual( [
+		'loadstart broken-intro',
 		'loadstart broken-intro',
 		'loadstart live',
 	] );

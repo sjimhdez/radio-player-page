@@ -9,6 +9,7 @@ import { createDashSource } from 'src/core/audio/sources/dash'
 import { createDirectSource } from 'src/core/audio/sources/direct'
 import { createHlsSource } from 'src/core/audio/sources/hls'
 import type { AudioSource, DashMediaPlayer, HlsClass } from 'src/core/audio/sources/types'
+import { createVisualizerGraph, type VisualizerGraph } from 'src/core/audio/web-audio'
 
 /**
  * Loaders of the streaming libraries; the dynamic imports of the sources by default.
@@ -58,12 +59,17 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  * after the first render, docs/known-issues.md K13). When the welcome audio ends, the
  * live stream is loaded with the options of the play() that started it.
  *
+ * A direct source that fails is retried once without crossOrigin, unless the element
+ * goes through the Web Audio graph: then it is an error (C1, ADR 0033).
+ *
  * @param options.loaders - Loaders of hls.js and dashjs (dynamic imports by default)
+ * @param options.graph - The Web Audio graph (none by default: never connected)
  * @returns AudioController
  */
 export function createAudioController({
   loaders = {},
-}: { loaders?: StreamingLoaders } = {}): AudioController {
+  graph = createVisualizerGraph({ userAgent: '' }),
+}: { loaders?: StreamingLoaders; graph?: VisualizerGraph } = {}): AudioController {
   const listeners = new Set<() => void>()
   let state = initialPlayerState
   let audio: HTMLAudioElement | null = null
@@ -83,13 +89,14 @@ export function createAudioController({
   }
 
   const createSource = (url: string, isIOS: boolean): AudioSource => {
+    const retryWithoutCors = !graph.isConnected()
     switch (detectProtocol(url)) {
       case 'hls':
-        return createHlsSource({ loadHls: loaders.loadHls, isIOS })
+        return createHlsSource({ loadHls: loaders.loadHls, isIOS, retryWithoutCors })
       case 'dash':
         return createDashSource({ loadDash: loaders.loadDash })
       case 'direct':
-        return createDirectSource()
+        return createDirectSource({ retryWithoutCors })
     }
   }
 
@@ -148,10 +155,14 @@ export function createAudioController({
       dispatch({ type: 'intro-started' })
       try {
         dispatch({ type: 'load-start' })
-        await createDirectSource().start(element, introUrl, {
-          onError: () => {},
-          onPlayRejected: () => {},
-        })
+        await createDirectSource({ retryWithoutCors: !graph.isConnected() }).start(
+          element,
+          introUrl,
+          {
+            onError: () => {},
+            onPlayRejected: () => {},
+          },
+        )
         dispatch({ type: 'resumed' })
       } catch {
         // The welcome audio failed: the live stream follows, as if it had ended.

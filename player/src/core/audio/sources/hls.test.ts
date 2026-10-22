@@ -128,4 +128,22 @@ describe('createHlsSource', () => {
     const { default: Hls } = await import('hls.js')
     await expect(loadHlsModule()).resolves.toBe(Hls)
   })
+
+  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  it('is CORS clean on the hls.js path', async () => {
+    const fake = createFakeHls()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false, retryWithoutCors: true })
+    await source.start(new Audio(), HLS, callbacks())
+    expect(source.isCorsClean()).toBe(true)
+  })
+
+  it('retries native HLS without crossOrigin and reports it (C1)', async () => {
+    media.corsBlocked.add(HLS)
+    const audio = new Audio()
+    const source = createHlsSource({ isIOS: true, retryWithoutCors: true })
+    await source.start(audio, HLS, callbacks())
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(source.isCorsClean()).toBe(false)
+  })
 })

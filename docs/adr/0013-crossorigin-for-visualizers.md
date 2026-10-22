@@ -1,6 +1,6 @@
 # ADR 0013 — `crossOrigin = 'anonymous'` en el audio para los visualizadores
 
-- Estado: aceptado (retroactivo: rige desde la 1.0.1); su alcance lo precisa [ADR 0004](0004-crossorigin-on-direct-sources.md) · Fecha: 2026-10-16 · Spec: 0001 (fase 1)
+- Estado: aceptado (retroactivo: rige desde la 1.0.1); su alcance lo precisa [ADR 0004](0004-crossorigin-on-direct-sources.md); enmendado por [ADR 0033](0033-retry-direct-sources-without-crossorigin.md) (reintento sin `crossOrigin`) · Fecha: 2026-10-16 · Spec: 0001 (fase 1)
 
 ## Contexto
 

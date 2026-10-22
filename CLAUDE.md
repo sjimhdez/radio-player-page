@@ -41,7 +41,7 @@ Entornos (Docker, wp-env): desarrollo con `npm run env:start` → <http://localh
 2. Las meta keys, opciones, transients, globales `window.RADPLAPAG_*`, funciones `radplapag_*`, callbacks enganchados y el markup y los atributos de los bloques no cambian sin un ADR (`SPEC.md`).
 3. La migración desde `radplapag_settings` es unidireccional e idempotente (ADR 0005, 0010).
 4. El horario es informativo: **nunca** controla la reproducción.
-5. Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'`; las rutas MSE (`hls.js`, `dashjs`) no (ADR 0004).
+5. Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'` en el primer intento; si falla, un solo reintento sin él (ADR 0033). Las rutas MSE (`hls.js`, `dashjs`) no lo llevan (ADR 0004).
 6. Los visualizadores (dibujo y catálogo) no se editan sin un ADR (zona congelada, ADR 0018 y 0031).
 7. El núcleo del reproductor (`player/src/core/`, spec 0006) no importa React ni MUI.
 8. `player/dist/` y `blocks/*/build/` se regeneran y nunca se editan a mano (un hook lo bloquea; ADR 0014).

@@ -190,7 +190,18 @@ describe('direct streams', () => {
     await act(() => api.current.play())
     media.failing.clear()
     await act(() => api.current.play())
-    expect(media.load).toHaveBeenCalledTimes(2)
+    // Two loads for the failed attempt and its retry without crossOrigin (C1, ADR 0033).
+    expect(media.load).toHaveBeenCalledTimes(3)
+    expect(api.current.status).toBe('playing')
+  })
+
+  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  it('plays an MP3 without CORS by retrying without crossOrigin (C1)', async () => {
+    media.corsBlocked.add(MP3)
+    const { api, audio } = mount(MP3)
+    await act(() => api.current.play())
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
     expect(api.current.status).toBe('playing')
   })
 })
@@ -523,7 +534,8 @@ describe('audit (spec 0002, 4.6)', () => {
     expect(api.current.introLocked).toBe(true)
     media.failing.clear()
     await act(() => api.current.play())
-    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    // The live stream fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3])
     expect(api.current.status).toBe('error')
   })
 
@@ -785,7 +797,7 @@ describe('concurrency (spec 0006, 2.2)', () => {
 })
 
 // ADR 0030 (spec 0006, task 2.11): the render order of 3.4.2. In Chromium a failing
-// MP3 fires 'error' (and play() rejects) in one task and 'pause' in a later one
+// MP3 fires 'error' (and play() rejects, also on its retry) in one task and 'pause' in a later one
 // (docs/known-issues.md K1). The 'error' state must not reach a render before the
 // 'pause': the alert would flash. Here the microtasks stand for the end of the task.
 describe('render order (spec 0006, 2.11)', () => {
@@ -816,6 +828,11 @@ describe('render order (spec 0006, 2.11)', () => {
     const audio = view.container.querySelector('audio')!
     const done = api.current.play()
 
+    audio.dispatchEvent(new Event('error'))
+    media.fail()
+    // The retry without crossOrigin fails too, as with a 404 (C1, ADR 0033).
+    for (let i = 0; i < 10; i++) await Promise.resolve()
+    expect(media.pending).toHaveLength(1)
     audio.dispatchEvent(new Event('error'))
     media.fail()
     await done

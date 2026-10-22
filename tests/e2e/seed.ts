@@ -21,6 +21,8 @@ export type SeedUrlKey =
 	| 'nocors-mp3'
 	| 'nocors-hls'
 	| 'nocors-dash'
+	| 'nocors-intro'
+	| 'broken-mp3'
 	| 'intro'
 	| 'broken-intro'
 	| 'minimal'

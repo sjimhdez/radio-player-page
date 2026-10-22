@@ -1,10 +1,12 @@
 // The direct source (spec 0006, task 2.3): MP3/OGG, native HLS and the welcome audio.
 // ADR 0004: a source assigned to audio.src sets crossOrigin = 'anonymous'.
+// C1 (fixed in spec 0007, ADR 0033): one retry without crossOrigin when play() fails.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDirectSource } from 'src/core/audio/sources/direct'
 import { installFakeAudio, media } from 'src/test/fake-audio'
 
 const MP3 = 'https://radio.test/live.mp3'
+const OGG = 'https://radio.test/other.ogg'
 
 let restore: () => void
 beforeEach(() => {
@@ -87,5 +89,73 @@ describe('createDirectSource', () => {
     expect(audio.src).toBe(MP3)
     expect(audio.paused).toBe(false)
     expect(media.pause).not.toHaveBeenCalled()
+  })
+
+  it('is CORS clean when it plays with crossOrigin', async () => {
+    const source = createDirectSource({ retryWithoutCors: true })
+    expect(source.isCorsClean()).toBe(true)
+    await source.start(new Audio(), MP3, callbacks())
+    expect(source.isCorsClean()).toBe(true)
+  })
+})
+
+// docs/known-issues.md C1 (spec 0007, ADR 0033).
+describe('retry without crossOrigin (C1)', () => {
+  it('retries once without crossOrigin when play() fails, and plays', async () => {
+    media.corsBlocked.add(MP3)
+    const audio = new Audio()
+    const steps = recordSteps(audio)
+    const source = createDirectSource({ retryWithoutCors: true })
+    await source.start(audio, MP3, callbacks())
+    expect(steps).toEqual(['src', 'crossOrigin', 'load', 'play', 'load', 'play'])
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(audio.src).toBe(MP3)
+    expect(audio.paused).toBe(false)
+    expect(source.isCorsClean()).toBe(false)
+  })
+
+  it('rejects when the retry fails too, as with a 404', async () => {
+    media.failing.add(MP3)
+    const audio = new Audio()
+    const source = createDirectSource({ retryWithoutCors: true })
+    await expect(source.start(audio, MP3, callbacks())).rejects.toMatchObject({
+      name: 'NotSupportedError',
+    })
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(source.isCorsClean()).toBe(false)
+  })
+
+  it.each(['NotAllowedError', 'AbortError'])('does not retry on %s', async (name) => {
+    media.hold = true
+    const audio = new Audio()
+    const source = createDirectSource({ retryWithoutCors: true })
+    const start = source.start(audio, MP3, callbacks())
+    await Promise.resolve()
+    media.fail(name)
+    await expect(start).rejects.toMatchObject({ name })
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(audio.crossOrigin).toBe('anonymous')
+    expect(source.isCorsClean()).toBe(true)
+  })
+
+  it('does not retry without retryWithoutCors', async () => {
+    media.corsBlocked.add(MP3)
+    const audio = new Audio()
+    const source = createDirectSource({ retryWithoutCors: false })
+    await expect(source.start(audio, MP3, callbacks())).rejects.toMatchObject({
+      name: 'NotSupportedError',
+    })
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(audio.crossOrigin).toBe('anonymous')
+  })
+
+  it('sets crossOrigin again on the next start', async () => {
+    media.corsBlocked.add(MP3)
+    const audio = new Audio()
+    const source = createDirectSource({ retryWithoutCors: true })
+    await source.start(audio, MP3, callbacks())
+    await source.start(audio, OGG, callbacks())
+    expect(audio.crossOrigin).toBe('anonymous')
+    expect(source.isCorsClean()).toBe(true)
   })
 })

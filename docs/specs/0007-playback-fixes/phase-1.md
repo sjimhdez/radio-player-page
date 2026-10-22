@@ -82,7 +82,7 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Test: primero (TDD): `web-audio.test.ts`, con `fake-web-audio.ts`.
 - Verificación: `npm --prefix player run check`
 - Resultado: 29 tests nuevos (player `check`: 584), rojo con el módulo sin crear. `isWebKitBrowser()` queda en `AppleWebKit` sin `Chrome` ni `Chromium`: la cláusula de iOS y los tokens `Edg`/`OPR` del plan son código muerto (las mutaciones sobrevivían). Ningún navegador de iOS lleva `Chrome` (CriOS, FxiOS y EdgiOS tampoco) y Edge y Opera de escritorio llevan `Chrome`; la tabla del test cubre los casos de iOS. Un contexto que no se puede crear o un `createMediaElementSource()` que lanza dejan el grafo sin conectar sin cortar la reproducción; un `resume()` rechazado se captura. `connect()` antes de `prepare()` no hace nada (nunca crea el contexto fuera del gesto). Mutaciones (revertidas): sin `Chromium`, sin `AppleWebKit`, `fftSize` 512, `connect()` sin la guarda, `resume()` nunca, sin el `catch` y sin el `return` tras crear fallan en Vitest.
-- [x] hecha · commit: —
+- [x] hecha · commit: b390ad3
 
 ### 1.6 C1: un reintento sin `crossOrigin` en las fuentes directas, y ADR 0033 (≤ 1 h)
 - Qué (`fix-bug`):
@@ -96,7 +96,9 @@ Corregir K67, C7 (con K12 y el *fixture* de K18) y C1, y hacer que la decisión 
 - Archivos: `player/src/core/audio/sources/{direct.ts,types.ts,hls.ts,dash.ts}` (+ tests), `audio-controller.ts` (+ test), `player/src/test/fake-audio.ts`, `player/src/hooks/use-audio-player.test.tsx`, `tests/e2e/cross-origin.spec.ts`, `tests/e2e/fixtures/seed-e2e.php`, `docs/adr/0033-*.md`, `docs/adr/README.md`, `SPEC.md`, `CLAUDE.md`, `.claude/rules/player.md`, `docs/known-issues.md`.
 - Test: regresión primero (rojo): `direct.test.ts`, `audio-controller.test.ts`, `cross-origin.spec.ts`.
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/cross-origin.spec.ts tests/e2e/intro.spec.ts tests/e2e/mp3.spec.ts`
-- [ ] hecha · commit: —
+- Resultado: 16 tests nuevos (player `check`: 600). Rojo antes del arreglo: 13 en Vitest (`isCorsClean is not a function`; `play()` llamado 1 vez en vez de 2; el `NotSupportedError` sin reintento) y los dos e2e de C1 en los dos navegadores con el `dist/` anterior. El caso del grafo conectado pasaba antes (no había reintento): se vio fallar con la mutación «reintento siempre»; «`isCorsClean()` siempre verdadero» también falla. El controlador recibe el grafo (`graph`, por defecto uno sin contexto que nunca se conecta); la 1.7 lo crea a partir de `webAudio`. Cuatro tests existentes cambian por el reintento, con el ADR 0033 (su intención no cambia): los dos `currently … (K63)` del controlador y del hook cuentan `[INTRO, MP3, MP3]`, «reloads the stream on play() after an error» cuenta 3 `load()`, y el de orden de renders de K1 (ADR 0030) hace fallar también el reintento, como un 404. En el e2e, `intro.spec.ts` «falls through… broken» registra dos `loadstart` de la bienvenida rota. Medido en el e2e con un 404 (`broken-mp3`, nuevo en el seed, como `nocors-intro`): Chromium da `error`, `error`, `pause` y K1 sigue tapando el mensaje; en WebKit el `load()` del reintento descarta el primer `error` (dos `loadstart`, un `error`) y sale el mensaje.
+- Changelog: un stream MP3/OGG (o HLS nativo) de otro servidor sin cabeceras CORS ya suena, sin visualizador; antes no sonaba.
+- [x] hecha · commit: —
 
 ### 1.7 `canVisualize` en la instantánea del controlador (≤ 1 h)
 - Qué (TDD; corrige la parte del núcleo de K82):

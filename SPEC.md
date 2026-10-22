@@ -165,7 +165,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
   - HLS: nativo en iOS; con `hls.js` en el resto si lo soporta (empieza al recibir el manifiesto); si no, nativo como alternativa.
   - DASH: `dashjs` con autoplay, sin fuente de hora de terceros: usa `<UTCTiming>` del MPD o la cabecera `Date`; si no, el reloj del cliente (ADR 0032).
   - `hls.js` y `dashjs` se cargan con `import()` dinámico, solo cuando hacen falta.
-- **`crossOrigin = 'anonymous'`** en toda fuente asignada directamente a `audio.src` (audio directo, HLS nativo y audio de bienvenida). Las rutas MSE (`hls.js`, `dashjs`) cargan por XHR/fetch con CORS y dejan el atributo en `null` (ADR 0004). Consecuencia conocida: un stream sin cabeceras CORS no suena (C1 en `docs/known-issues.md`).
+- **`crossOrigin = 'anonymous'`** en toda fuente asignada directamente a `audio.src` (audio directo, HLS nativo y audio de bienvenida). Las rutas MSE (`hls.js`, `dashjs`) cargan por XHR/fetch con CORS y dejan el atributo en `null` (ADR 0004). Si una fuente directa falla con `crossOrigin` (`play()` rechazado con `NotSupportedError`), un solo reintento en el mismo elemento sin él, salvo que el elemento ya pase por Web Audio (entonces, error). Así un stream directo sin cabeceras CORS suena, sin visualizador; HLS/DASH sin CORS siguen sin sonar y muestran el error (ADR 0033).
 - **Pausa y Play:** Play tras una pausa (o un error, o un cambio de emisora) recarga el directo, en todos los protocolos, y vuelve al borde en vivo; si el directo ya suena, no hace nada (ADR 0032).
 - **Audio de bienvenida:** si `introAudioUrl` existe, suena una vez, en la primera reproducción, antes del directo; mientras suena no se puede pausar; al terminar, o si falla, pasa al directo sin mostrar error.
 - **Volumen:** control deslizante; oculto en iOS.
@@ -198,7 +198,7 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 2. Nada de §3 cambia sin un ADR.
 3. La migración es unidireccional e idempotente.
 4. El horario es informativo: nunca controla la reproducción.
-5. Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'`; las rutas MSE no (ADR 0004).
+5. Toda fuente asignada directamente a `audio.src` lleva `crossOrigin = 'anonymous'` en el primer intento; si falla, un reintento sin él (ADR 0033). Las rutas MSE no lo llevan (ADR 0004).
 6. Los visualizadores (su dibujo y su catálogo) no se editan sin un ADR (ADR 0018, alcance del ADR 0031).
 7. El núcleo del reproductor (spec 0006) no importa React ni MUI.
 8. `player/dist/` y `blocks/*/build/` se regeneran; nunca se editan a mano.

@@ -44,6 +44,7 @@ export function createDashSource({
         if (event.error.code !== TIME_SYNC_FAILED) callbacks.onError()
       })
     },
+    isCorsClean: () => true,
     destroy() {
       player?.reset()
       player = null

@@ -2,14 +2,14 @@
 Spec activa: 0007 — Correcciones: reproducción · Fase: 1 en curso · Plan: [`phase-1.md`](specs/0007-playback-fixes/phase-1.md) · Actualizado: 2026-10-22
 
 ## En curso
-- Fase 1 de la 0007 (plan aprobado el 2026-10-22, [`phase-1.md`](specs/0007-playback-fixes/phase-1.md)): K67 (1.1, hecha: `dashjs` ya no pide la hora a Akamai), el *fixture* de K18 (1.2, hecha: `/live.mp3` emite solo los marcos de audio), C7 y K12 con el ADR 0032 (1.3, hecha: Play tras una pausa recarga el directo en todos los protocolos), la caracterización de los hooks del visualizador (1.4, hecha: fila K82, la decisión por *user agent* al montar y el grafo conectado con el canvas oculto), el grafo de Web Audio en el núcleo (1.5, hecha: `core/audio/web-audio.ts`, sin uso todavía; WebKit es `AppleWebKit` sin `Chrome` ni `Chromium`), C1 con el ADR 0033 (1.6), `canVisualize` en la instantánea (1.7) y los hooks rehechos (1.8).
+- Fase 1 de la 0007 (plan aprobado el 2026-10-22, [`phase-1.md`](specs/0007-playback-fixes/phase-1.md)): K67 (1.1, hecha: `dashjs` ya no pide la hora a Akamai), el *fixture* de K18 (1.2, hecha: `/live.mp3` emite solo los marcos de audio), C7 y K12 con el ADR 0032 (1.3, hecha: Play tras una pausa recarga el directo en todos los protocolos), la caracterización de los hooks del visualizador (1.4, hecha: fila K82, la decisión por *user agent* al montar y el grafo conectado con el canvas oculto), el grafo de Web Audio en el núcleo (1.5, hecha: `core/audio/web-audio.ts`, sin uso todavía; WebKit es `AppleWebKit` sin `Chrome` ni `Chromium`), C1 con el ADR 0033 (1.6, hecha: las fuentes directas se reintentan una vez sin `crossOrigin`, salvo con el elemento en el grafo; `isCorsClean()` en las fuentes), `canVisualize` en la instantánea (1.7) y los hooks rehechos (1.8).
 - Spec 0007 (Correcciones: reproducción) escrita el 2026-10-21 ([`spec.md`](specs/0007-playback-fixes/spec.md)), rama `spec/0007-playback-fixes` con PR en borrador contra `trunk`. Fase 0 (spike) cerrada el 2026-10-22, propuesta aprobada por el usuario; informe en [`spikes/0007-phase-0.md`](spikes/0007-phase-0.md). Medido: K67 pide limpiar las fuentes de hora **después** de `initialize()`; K18 es del *fixture* e2e, no del player; WebKit solo da datos al analizador con un MP3 finito con longitud. Elegido por el usuario: la bienvenida no se visualiza y WebKit nunca visualiza. Spec corregida.
 - ADR 0031 (2026-10-21): la decisión visualizador / animación estática se rehace en la 0007. La decide el núcleo según la fuente; `use-can-visualize.tsx` y `use-audio-visualizer.tsx` salen de la zona congelada. El spike (R1) mide lo que falta.
 - Spec 0006 (Refactor del player) cerrada y fusionada en `trunk` (PR #40, 2026-10-21).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.6 de la fase 1: C1, un reintento sin `crossOrigin` en las fuentes directas, con el ADR 0033 (`fix-bug`).
-2. Seguir las tareas 1.7–1.8 en orden y cerrar la fase con `close-phase`, que incluye una pasada en Safari con el player corregido (A15).
+1. Tarea 1.7 de la fase 1: `canVisualize` en la instantánea del controlador (TDD); el controlador ya recibe `graph` y la 1.7 lo crea desde `webAudio`.
+2. Seguir con la 1.8 y cerrar la fase con `close-phase`, que incluye una pasada en Safari con el player corregido (A15).
 3. En la pista de WordPress, la 0008 (correcciones de migración y actualización) y la 0012 (núcleo PHP y desinstalación) ya pueden escribirse en paralelo, cada una en su worktree.
 
 ## Bloqueos / preguntas para el humano

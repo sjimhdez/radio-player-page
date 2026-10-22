@@ -24,11 +24,11 @@ paths:
 ## Reproducción
 
 - Protocolo por la extensión de la URL: MP3/OGG directo; HLS nativo en iOS y con `hls.js` en el resto (nativo como alternativa); DASH con `dashjs`. `hls.js` y `dashjs` se cargan con `import()` dinámico.
-- `crossOrigin = 'anonymous'` en toda fuente asignada a `audio.src` (MP3/OGG, HLS nativo, intro); no en las rutas MSE (ADR 0004).
+- `crossOrigin = 'anonymous'` en toda fuente asignada a `audio.src` (MP3/OGG, HLS nativo, intro) en el primer intento; no en las rutas MSE (ADR 0004). Si `play()` se rechaza con `NotSupportedError`, un solo reintento sin él en el mismo elemento, salvo que ya pase por Web Audio (`graph.isConnected()`): entonces, error. Tras el reintento la fuente no es limpia (`isCorsClean()`) y no se visualiza (ADR 0033).
 - El audio de bienvenida suena una vez antes del directo, no se puede pausar y, si falla, pasa al directo sin error.
 - **El horario no controla la reproducción:** solo informa (programa actual y siguiente, modales).
 - Volumen desactivado en iOS (`use-is-ios.tsx`).
-- Visualizador o animación estática: desde la 0007 lo decide el controlador del audio según la fuente en curso, y solo entonces se conecta Web Audio (ADR 0031). Nada de decidirlo por el *user agent*.
+- Visualizador o animación estática: desde la 0007 lo decide el controlador del audio según la fuente en curso, y solo entonces se conecta Web Audio (ADR 0031). Nada de decidirlo por el *user agent*, salvo la excepción medida de WebKit (`isWebKitBrowser()`: nunca visualiza, ADR 0033).
 
 ## Núcleo, hooks y componentes (ADR 0029)
 

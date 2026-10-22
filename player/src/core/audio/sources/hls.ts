@@ -14,30 +14,38 @@ export async function loadHlsModule(): Promise<HlsClass> {
 /**
  * Creates the source for .m3u8 streams. iOS plays HLS natively through the direct
  * source; elsewhere hls.js is used when supported, with the direct source as fallback.
- * On the hls.js path crossOrigin is cleared (ADR 0004, docs/known-issues.md K70).
+ * On the hls.js path crossOrigin is cleared (ADR 0004, docs/known-issues.md K70); native
+ * HLS retries without it as the direct source does (C1, ADR 0033).
  *
  * @param options.loadHls - Loader of the Hls class (hls.js by default)
  * @param options.isIOS - Whether the device is iOS, read when the source is created
+ * @param options.retryWithoutCors - Passed to the direct source of native HLS
  * @returns AudioSource whose start() resolves before playback on the hls.js path:
  *   play() runs on MANIFEST_PARSED and its rejection goes to onPlayRejected
  */
 export function createHlsSource({
   loadHls = loadHlsModule,
   isIOS,
+  retryWithoutCors = false,
 }: {
   loadHls?: () => Promise<HlsClass>
   isIOS: boolean
+  retryWithoutCors?: boolean
 }): AudioSource {
   let hls: HlsInstance | null = null
+  const native = createDirectSource({ retryWithoutCors })
+  let usesNative = false
 
   return {
     async start(audio, url, callbacks) {
+      usesNative = isIOS
       if (isIOS) {
-        return createDirectSource().start(audio, url, callbacks)
+        return native.start(audio, url, callbacks)
       }
       const Hls = await loadHls()
       if (!Hls.isSupported()) {
-        return createDirectSource().start(audio, url, callbacks)
+        usesNative = true
+        return native.start(audio, url, callbacks)
       }
       // hls.js 1.7 defaults to classic MediaSource; keep ManagedMediaSource as in 3.4.2.
       const instance = new Hls({ preferManagedMediaSource: true })
@@ -54,6 +62,7 @@ export function createHlsSource({
         if (data.fatal) callbacks.onError()
       })
     },
+    isCorsClean: () => !usesNative || native.isCorsClean(),
     destroy() {
       hls?.destroy()
       hls = null

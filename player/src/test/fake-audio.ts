@@ -13,6 +13,8 @@ export const media = {
   pause: vi.fn<(src: string) => void>(),
   /** Sources whose play() rejects with NotSupportedError. */
   failing: new Set<string>(),
+  /** Sources without CORS: play() rejects with NotSupportedError while crossOrigin is 'anonymous'. */
+  corsBlocked: new Set<string>(),
   /** When true, play() stays pending until release() or fail(). */
   hold: false,
   pending: [] as Deferred[],
@@ -36,6 +38,7 @@ export function installFakeAudio(): () => void {
   media.play.mockReset()
   media.pause.mockReset()
   media.failing.clear()
+  media.corsBlocked.clear()
   media.hold = false
   media.pending = []
 
@@ -83,7 +86,10 @@ export function installFakeAudio(): () => void {
       playing.add(this)
       this.dispatchEvent(new Event('playing'))
     }
-    if (media.failing.has(this.src)) {
+    if (
+      media.failing.has(this.src) ||
+      (media.corsBlocked.has(this.src) && this.crossOrigin === 'anonymous')
+    ) {
       return Promise.reject(new DOMException('fail', 'NotSupportedError'))
     }
     if (media.hold) {

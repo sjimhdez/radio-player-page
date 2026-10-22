@@ -17,6 +17,11 @@ export interface AudioSource {
    * later failures go through callbacks.
    */
   start: (audio: HTMLAudioElement, url: string, callbacks: SourceCallbacks) => Promise<void>
+  /**
+   * The audio of the last start() can go through Web Audio: false after the retry
+   * without crossOrigin of a direct source (C1, ADR 0033).
+   */
+  isCorsClean: () => boolean
   /** Releases what start() created. Does not touch the audio element. */
   destroy: () => void
 }

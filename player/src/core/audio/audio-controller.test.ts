@@ -3,10 +3,12 @@
 // src/hooks/use-audio-player.test.tsx, with its currently cases (K11, K63, K64) and
 // the K70 regression cases (task 2.9). Spec 0007 fixed C7 and K12: Play after a pause
 // reloads the live stream (ADR 0032). The concurrency suspicions of §4.5 come
-// last (task 2.10).
+// last (task 2.10). C1 (spec 0007, ADR 0033): one retry without crossOrigin on the
+// direct sources, never with the element in the Web Audio graph.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createAudioController } from 'src/core/audio/audio-controller'
 import { initialPlayerState } from 'src/core/audio/player-machine'
+import { createVisualizerGraph } from 'src/core/audio/web-audio'
 import { installFakeAudio, media } from 'src/test/fake-audio'
 import { createFakeDash, createFakeHls } from 'src/test/fake-streaming'
 
@@ -549,6 +551,68 @@ describe('welcome audio (intro)', () => {
   })
 })
 
+describe('streams without CORS (C1)', () => {
+  /** A graph that reports the element as connected. */
+  const connectedGraph = () => ({
+    ...createVisualizerGraph({ userAgent: '' }),
+    isConnected: () => true,
+  })
+
+  it('plays an MP3 without CORS by retrying without crossOrigin', async () => {
+    media.corsBlocked.add(MP3)
+    const { controller, audio } = setup()
+    await controller.play(live())
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'playing',
+      loading: false,
+      activeSource: 'live',
+    })
+  })
+
+  it('plays native HLS without CORS by retrying without crossOrigin', async () => {
+    media.corsBlocked.add(HLS)
+    const { controller, audio } = setup()
+    await controller.play(live(HLS, true))
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(controller.getSnapshot().status).toBe('playing')
+  })
+
+  it('plays the welcome audio and then the live stream without CORS', async () => {
+    media.corsBlocked.add(INTRO)
+    media.corsBlocked.add(MP3)
+    const { controller, audio } = setup()
+    await controller.play(withIntro())
+    expect(audio.src).toBe(INTRO)
+    expect(audio.hasAttribute('crossorigin')).toBe(false)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'intro' })
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(controller.getSnapshot().activeSource).toBe('live'))
+    expect(audio.src).toBe(MP3)
+    expect(media.play).toHaveBeenCalledTimes(4)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', introLocked: false })
+  })
+
+  it('sets error when the retry fails too', async () => {
+    media.failing.add(MP3)
+    const { controller } = setup()
+    await controller.play(live())
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(controller.getSnapshot().status).toBe('error')
+  })
+
+  it('does not retry when the element is in the Web Audio graph, and sets error (D1)', async () => {
+    media.corsBlocked.add(MP3)
+    const { controller, audio } = setup({ graph: connectedGraph() })
+    await controller.play(live())
+    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(audio.crossOrigin).toBe('anonymous')
+    expect(controller.getSnapshot().status).toBe('error')
+  })
+})
+
 describe('currently (docs/known-issues.md)', () => {
   it('currently stays locked in the welcome audio when the live stream fails after it (K63)', async () => {
     media.failing.add(MP3)
@@ -562,7 +626,8 @@ describe('currently (docs/known-issues.md)', () => {
     expect(controller.getSnapshot().introLocked).toBe(true)
     media.failing.clear()
     await controller.play(withIntro())
-    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    // The live stream fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3])
     expect(controller.getSnapshot().status).toBe('error')
   })
 
