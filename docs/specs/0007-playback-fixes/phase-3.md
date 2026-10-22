@@ -50,7 +50,7 @@ Corregir K66, K65 y K13 con su regresión en las capas que cita `known-issues.md
 - Archivos: `docs/adr/0036-*.md`, `docs/adr/README.md`, `docs/specs/0007-playback-fixes/spec.md`, `SPEC.md`, `player/src/components/dashboard/*.test.tsx` (si falta la caracterización).
 - Test: caracterización (si falta), validada con una mutación temporal.
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: `9b685a1`
 
 ### 3.4 K13 (1/2): el volumen se decide por capacidad (≤ 1 h)
 - Qué (`fix-bug`, TDD en el núcleo): `core/audio/volume.ts` con `isVolumeControllable(probe: HTMLMediaElement): boolean` (escribe un valor distinto en la sonda y comprueba si se lee de vuelta). `createAudioController()` recibe `volumeProbe?: () => HTMLMediaElement` (sin él, controlable), calcula `volumeControllable` al crearse y lo publica en la instantánea. `attach()` y `setVolume()` dejan de recibir `isIOS` y miran `volumeControllable`. `useAudioPlayer()` inyecta `() => document.createElement('audio')` y expone `volumeControllable`. `Dashboard` lo pasa a `VolumeControl`, que deja de llamar a `useIsIOS()`. El *fake* de audio (`src/test/fake-audio.ts`) gana un modo de volumen de solo lectura. Tests que cambian con el ADR: los de `attach`/`setVolume` con `{ isIOS: true }` (controlador y hook) pasan a la sonda de solo lectura.
