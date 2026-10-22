@@ -90,6 +90,8 @@ export function createAudioController({
   let introOptions: PlayOptions | null = null
   // The pending play(), returned to the calls made before it settles (D7).
   let pendingPlay: Promise<void> | null = null
+  // Whether the play() of the welcome audio is pending: its catch handles an error.
+  let introStarting = false
   // Bumped by pause(): what an earlier play() reports afterwards is ignored (D3).
   let generation = 0
   // The URL of the loaded live stream; with hls.js and dashjs audio.src is a blob:.
@@ -134,19 +136,42 @@ export function createAudioController({
   }
 
   /**
-   * Marks the welcome audio as consumed and loads the live stream. Used when it ends
-   * and when it fails: either way the live stream follows silently. A failure of the
-   * live stream leaves the welcome audio locked (docs/known-issues.md K63).
+   * Makes promise the pending play() until it settles (D7), so a play() meanwhile
+   * returns it.
+   */
+  const track = (promise: Promise<void>): Promise<void> => {
+    const attempt: Promise<void> = promise.finally(() => {
+      // A pause() may have released it, and a later play() taken its place.
+      if (pendingPlay === attempt) pendingPlay = null
+    })
+    pendingPlay = attempt
+    return attempt
+  }
+
+  /**
+   * Releases the welcome audio and loads the live stream. Used when it ends, fails to
+   * start or errors while it plays: the live stream follows silently. If the live
+   * stream fails, the error stays and Play loads it again (docs/known-issues.md K63,
+   * ADR 0034 D5); a pause() cancels it.
    */
   const advanceToLive = async (element: HTMLAudioElement, options: PlayOptions) => {
     dispatch({ type: 'intro-finished' })
+    const current = generation
     try {
       dispatch({ type: 'load-start' })
       await playLive(element, options.streamUrl, options.isIOS)
     } catch {
+      if (generation !== current) return
       dispatch({ type: 'play-failed' })
       dispatch({ type: 'load-end' })
     }
+  }
+
+  /**
+   * Follows the welcome audio with the live stream, as a pending play().
+   */
+  const followWithLive = () => {
+    if (audio !== null && introOptions !== null) void track(advanceToLive(audio, introOptions))
   }
 
   /**
@@ -169,10 +194,20 @@ export function createAudioController({
     }
     if (event.type === 'ended') {
       // Only the end of the welcome audio matters.
-      if (state.activeSource === 'intro' && audio !== null && introOptions !== null) {
-        void advanceToLive(audio, introOptions)
-      }
+      if (state.activeSource === 'intro') followWithLive()
       return
+    }
+    if (state.activeSource === 'intro') {
+      // An error while it starts is handled by the catch of its play() (K63).
+      if (event.type === 'error') {
+        if (!introStarting) followWithLive()
+        return
+      }
+      // A pause from outside (not the one before ended) releases it: Play loads the
+      // live stream (K63).
+      if (event.type === 'pause' && audio !== null && !audio.ended) {
+        dispatch({ type: 'intro-finished' })
+      }
     }
     dispatch({ type: event.type as Exclude<(typeof AUDIO_EVENTS)[number], 'ended' | 'playing'> })
   }
@@ -188,6 +223,7 @@ export function createAudioController({
     if (state.activeSource === null && introUrl && !state.introConsumed) {
       introOptions = options
       dispatch({ type: 'intro-started' })
+      introStarting = true
       try {
         dispatch({ type: 'load-start' })
         await createDirectSource({ retryWithoutCors: !graph.isConnected() }).start(
@@ -198,12 +234,20 @@ export function createAudioController({
             onPlayRejected: () => {},
           },
         )
-        dispatch({ type: 'resumed' })
-        dispatch({ type: 'load-end' })
       } catch {
+        introStarting = false
+        // Paused from outside while it started: it stays paused (K63).
+        if (state.activeSource !== 'intro') {
+          dispatch({ type: 'load-end' })
+          return
+        }
         // The welcome audio failed: the live stream follows, as if it had ended.
         await advanceToLive(element, options)
+        return
       }
+      introStarting = false
+      dispatch({ type: 'resumed' })
+      dispatch({ type: 'load-end' })
       return
     }
 
@@ -262,14 +306,7 @@ export function createAudioController({
     play(options) {
       // Synchronous, inside the gesture: WebKit keeps a context made outside it silent.
       graph.prepare()
-      if (pendingPlay === null) {
-        const attempt: Promise<void> = startPlay(options).finally(() => {
-          // A pause() may have released it, and a later play() taken its place.
-          if (pendingPlay === attempt) pendingPlay = null
-        })
-        pendingPlay = attempt
-      }
-      return pendingPlay
+      return pendingPlay ?? track(startPlay(options))
     },
     pause() {
       // The welcome audio cannot be paused.

@@ -1,5 +1,5 @@
-// Pure transition of the audio player (spec 0006, task 2.5). The currently cases
-// replicate docs/known-issues.md K63 (K11 is fixed in spec 0007), as fixed in
+// Pure transition of the audio player (spec 0006, task 2.5). The K1, K11, K63 and K64
+// cases of docs/known-issues.md are fixed in spec 0007 (ADR 0034), as in
 // src/hooks/use-audio-player.test.tsx and tests/e2e/cross-origin.spec.ts.
 // canVisualize (spec 0007, task 1.7): false on each attempt, set by the playing event.
 import { describe, expect, it } from 'vitest'
@@ -53,9 +53,9 @@ describe('transition', () => {
     expect(state).toMatchObject({ activeSource: 'intro', introLocked: true, status: 'idle' })
   })
 
-  it('marks the welcome audio as consumed with intro-finished', () => {
+  it('marks the welcome audio as consumed and releases it with intro-finished (K63)', () => {
     const state = run([{ type: 'intro-started' }, { type: 'intro-finished' }])
-    expect(state).toMatchObject({ introConsumed: true, activeSource: 'intro', introLocked: true })
+    expect(state).toMatchObject({ introConsumed: true, activeSource: null, introLocked: false })
   })
 
   it('switches to the live stream and unlocks with live-started', () => {
@@ -170,7 +170,7 @@ describe('transition', () => {
     expect(state).toMatchObject({ status: 'paused', loading: false })
   })
 
-  it('currently stays locked in the welcome audio when the live stream fails after it (K63)', () => {
+  it('releases the welcome audio when the live stream fails after it (K63)', () => {
     const state = run(
       [
         { type: 'intro-finished' },
@@ -180,10 +180,10 @@ describe('transition', () => {
       ],
       introState,
     )
-    expect(state).toMatchObject({ status: 'error', introLocked: true, activeSource: 'intro' })
+    expect(state).toMatchObject({ status: 'error', introLocked: false, activeSource: null })
   })
 
-  it('currently stays locked when both the welcome audio and the live stream fail (K63)', () => {
+  it('releases the welcome audio when both the welcome audio and the live stream fail (K63)', () => {
     const state = run([
       { type: 'intro-started' },
       { type: 'load-start' },
@@ -191,18 +191,28 @@ describe('transition', () => {
       { type: 'play-failed' },
       { type: 'load-end' },
     ])
-    expect(state).toMatchObject({ status: 'error', introLocked: true, activeSource: 'intro' })
+    expect(state).toMatchObject({ status: 'error', introLocked: false, activeSource: null })
   })
 
-  it('currently cannot resume when something else pauses the welcome audio (K63)', () => {
-    const paused = transition(introState, { type: 'pause' })
-    expect(paused).toMatchObject({ status: 'paused', introLocked: true, activeSource: 'intro' })
+  it('releases the welcome audio when something else pauses it (K63)', () => {
+    // The controller marks it as consumed before the pause of the element.
+    const paused = run([{ type: 'intro-finished' }, { type: 'pause' }], introState)
+    expect(paused).toMatchObject({ status: 'paused', introLocked: false, activeSource: null })
     expect(transition(paused, { type: 'user-paused' })).toBe(paused)
   })
 
-  it('currently stays locked in error when the welcome audio errors while playing (K63)', () => {
-    const state = transition(introState, { type: 'error' })
-    expect(state).toMatchObject({ status: 'error', introLocked: true, activeSource: 'intro' })
+  it('releases the welcome audio when it errors while playing (K63)', () => {
+    // The controller follows with the live stream instead of reporting the error.
+    const state = run(
+      [
+        { type: 'intro-finished' },
+        { type: 'load-start' },
+        { type: 'live-started' },
+        { type: 'playing', visualizable: false },
+      ],
+      introState,
+    )
+    expect(state).toMatchObject({ status: 'playing', introLocked: false, activeSource: 'live' })
   })
 
   it('clears loading on a pause while buffering (K64)', () => {

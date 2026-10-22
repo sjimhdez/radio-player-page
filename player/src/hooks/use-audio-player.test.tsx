@@ -647,7 +647,7 @@ describe('cleanup', () => {
 
 // Audit of zone 5 (spec 0002, task 4.6): rows of docs/known-issues.md.
 describe('audit (spec 0002, 4.6)', () => {
-  it('currently stays locked in the welcome audio when the live stream fails after it (K63)', async () => {
+  it('releases the welcome audio when the live stream fails after it (K63)', async () => {
     media.failing.add(MP3)
     const { api, audio } = mount(MP3, INTRO)
     await act(() => api.current.play())
@@ -657,16 +657,16 @@ describe('audit (spec 0002, 4.6)', () => {
     })
 
     expect(api.current.status).toBe('error')
-    // Play stays disabled and play() returns early: no retry is possible.
-    expect(api.current.introLocked).toBe(true)
+    // Play is enabled and loads the live stream, without the welcome audio.
+    expect(api.current.introLocked).toBe(false)
     media.failing.clear()
     await act(() => api.current.play())
     // The live stream fails twice: with crossOrigin and on its retry (C1, ADR 0033).
-    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3])
-    expect(api.current.status).toBe('error')
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3, MP3])
+    expect(api.current.status).toBe('playing')
   })
 
-  it('currently stays locked when both the welcome audio and the live stream fail (K63)', async () => {
+  it('releases the welcome audio when both the welcome audio and the live stream fail (K63)', async () => {
     media.failing.add(INTRO)
     media.failing.add(MP3)
     const { api } = mount(MP3, INTRO)
@@ -674,33 +674,36 @@ describe('audit (spec 0002, 4.6)', () => {
     await act(() => api.current.play())
 
     expect(api.current.status).toBe('error')
-    expect(api.current.introLocked).toBe(true)
+    expect(api.current.introLocked).toBe(false)
   })
 
-  it('currently cannot resume when something else pauses the welcome audio (K63)', async () => {
+  it('releases the welcome audio when something else pauses it (K63)', async () => {
     const { api, audio } = mount(MP3, INTRO)
     await act(() => api.current.play())
 
     act(() => {
       audio.pause()
     })
+    expect(api.current.status).toBe('paused')
+    expect(api.current.introLocked).toBe(false)
     await act(() => api.current.play())
 
-    expect(api.current.status).toBe('paused')
-    expect(api.current.introLocked).toBe(true)
-    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    expect(api.current.status).toBe('playing')
   })
 
-  it('currently stays locked in error when the welcome audio errors while playing (K63)', async () => {
+  it('releases the welcome audio when it errors while playing (K63)', async () => {
     const { api, audio } = mount(MP3, INTRO)
     await act(() => api.current.play())
 
-    act(() => {
+    await act(async () => {
       audio.dispatchEvent(new Event('error'))
     })
 
-    expect(api.current.status).toBe('error')
-    expect(api.current.introLocked).toBe(true)
+    // The live stream follows, without the error.
+    expect(audio.src).toBe(MP3)
+    expect(api.current.status).toBe('playing')
+    expect(api.current.introLocked).toBe(false)
   })
 
   it('clears loading on a pause while buffering (K64)', async () => {

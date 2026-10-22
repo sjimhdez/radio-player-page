@@ -1,6 +1,6 @@
 // The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
 // of the audio element, the volume, HLS/DASH and the welcome audio, as in
-// src/hooks/use-audio-player.test.tsx, with its currently cases (K63) and
+// src/hooks/use-audio-player.test.tsx, with the K63 cases (fixed in spec 0007) and
 // the K70 regression cases (task 2.9). Spec 0007 fixed C7 and K12: Play after a pause
 // reloads the live stream (ADR 0032). The concurrency suspicions of §4.5 come
 // last (task 2.10). C1 (spec 0007, ADR 0033): one retry without crossOrigin on the
@@ -681,7 +681,7 @@ describe('streams without CORS (C1)', () => {
 })
 
 describe('currently (docs/known-issues.md)', () => {
-  it('currently stays locked in the welcome audio when the live stream fails after it (K63)', async () => {
+  it('releases the welcome audio when the live stream fails after it (K63)', async () => {
     media.failing.add(MP3)
     const { controller, audio } = setup()
     await controller.play(withIntro())
@@ -689,37 +689,117 @@ describe('currently (docs/known-issues.md)', () => {
     await vi.waitFor(() => expect(controller.getSnapshot().status).toBe('error'))
     await vi.waitFor(() => expect(controller.getSnapshot().loading).toBe(false))
 
-    // Play stays disabled and play() returns early: no retry is possible.
-    expect(controller.getSnapshot().introLocked).toBe(true)
+    // Play is enabled and loads the live stream, without the welcome audio.
+    expect(controller.getSnapshot().introLocked).toBe(false)
     media.failing.clear()
     await controller.play(withIntro())
     // The live stream fails twice: with crossOrigin and on its retry (C1, ADR 0033).
-    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3])
-    expect(controller.getSnapshot().status).toBe('error')
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3, MP3])
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
 
-  it('currently stays locked when both the welcome audio and the live stream fail (K63)', async () => {
+  it('releases the welcome audio when both the welcome audio and the live stream fail (K63)', async () => {
     media.failing.add(INTRO)
     media.failing.add(MP3)
     const { controller } = setup()
     await controller.play(withIntro())
-    expect(controller.getSnapshot()).toMatchObject({ status: 'error', introLocked: true })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', introLocked: false })
+    media.failing.clear()
+    await controller.play(withIntro())
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
 
-  it('currently cannot resume when something else pauses the welcome audio (K63)', async () => {
+  it('releases the welcome audio when something else pauses it (K63)', async () => {
     const { controller, audio } = setup()
     await controller.play(withIntro())
     audio.pause()
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'paused',
+      introLocked: false,
+      introConsumed: true,
+    })
     await controller.play(withIntro())
-    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', introLocked: true })
-    expect(media.play).toHaveBeenCalledTimes(1)
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
 
-  it('currently stays locked in error when the welcome audio errors while playing (K63)', async () => {
+  it('releases the welcome audio when something else pauses it while it starts (K63)', async () => {
+    media.hold = true
+    const { controller, audio } = setup()
+    const playing = controller.play(withIntro())
+    audio.pause()
+    media.fail('AbortError')
+    await playing
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'paused',
+      loading: false,
+      introLocked: false,
+    })
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO])
+  })
+
+  it('releases the welcome audio when it errors while playing (K63)', async () => {
     const { controller, audio } = setup()
     await controller.play(withIntro())
     audio.dispatchEvent(new Event('error'))
-    expect(controller.getSnapshot()).toMatchObject({ status: 'error', introLocked: true })
+    await vi.waitFor(() => expect(controller.getSnapshot().activeSource).toBe('live'))
+    expect(audio.src).toBe(MP3)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', introLocked: false })
+  })
+
+  it('does not release the welcome audio on the pause before its end (K63)', async () => {
+    const { controller, audio } = setup()
+    await controller.play(withIntro())
+    // What the browser fires when the welcome audio ends: pause, with ended true.
+    Object.defineProperty(audio, 'ended', { configurable: true, value: true })
+    audio.dispatchEvent(new Event('pause'))
+    expect(controller.getSnapshot()).toMatchObject({ introLocked: true, activeSource: 'intro' })
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(controller.getSnapshot().activeSource).toBe('live'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', introLocked: false })
+  })
+
+  it('errors in the welcome audio fall through to the live stream once (K63)', async () => {
+    media.failing.add(INTRO)
+    const { controller, audio } = setup()
+    const playing = controller.play(withIntro())
+    // The error of the element comes before the rejection of its play().
+    audio.dispatchEvent(new Event('error'))
+    await playing
+    // The welcome audio fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, INTRO, MP3])
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
+  })
+
+  it('cancels the live stream that follows the welcome audio on pause() (K63)', async () => {
+    media.hold = true
+    const { controller, audio } = setup()
+    const intro = controller.play(withIntro())
+    media.release()
+    await intro
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenLastCalledWith(MP3))
+    controller.pause()
+    media.fail('AbortError')
+    await vi.waitFor(() => expect(media.pending).toHaveLength(0))
+    await Promise.resolve()
+    expect(media.pause).toHaveBeenCalledWith(MP3)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
+  })
+
+  it('keeps a single load of the live stream that follows the welcome audio on play() (K63)', async () => {
+    media.hold = true
+    const { controller, audio } = setup()
+    const intro = controller.play(withIntro())
+    media.release()
+    await intro
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenLastCalledWith(MP3))
+    const again = controller.play(withIntro())
+    media.release()
+    await again
+    expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
 
   it('clears loading on a pause while buffering (K64)', async () => {
