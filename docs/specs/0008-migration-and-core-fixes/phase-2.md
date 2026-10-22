@@ -118,7 +118,8 @@ Corregir K33 (con la variante de K21 en la migración), K21 y K43 en las globale
 - Archivos: `docs/adr/0042-*.md`, `docs/adr/README.md`, `SPEC.md`, `.claude/rules/data-and-migrations.md`
 - Test: — (docs)
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- Resultado (2026-10-23): el ADR añade la regla «lo que entra en §3.1 entra en la desinstalación y en sus tests» y descarta borrar con SQL `LIKE` (no llega a una caché de objetos persistente). §3.4 no lista las funciones `radplapag_uninstall_*`; su firma se conserva por el invariante 2.
+- [x] hecha · commit: (este)
 
 ### 2.6 K7: borrar los posts en cualquier estado (D11) (≤ 1 h)
 - Qué: `fix-bug`. `radplapag_uninstall_delete_programs()` y `…_stations()` buscan con `'post_status' => array_keys( get_post_stati() )`. Así entran `trash`, `auto-draft` e `inherit`.

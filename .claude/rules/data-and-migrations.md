@@ -39,4 +39,6 @@ Desde la 0005, el plan es `Migration\Legacy_Plan`, la escritura `WP\Migration_Wr
 
 ## Desinstalación
 
-`uninstall.php` borra los posts de los dos CPT, también en multisite (cada sitio). Desactivar el plugin no borra nada. Si se añade una opción o un transient, se añade también a la desinstalación y a su test.
+`uninstall.php` borra todo lo de `SPEC.md` §3.1 en cada sitio, también en multisite (ADR 0042): las opciones, los transients globales (también el heredado), los de errores de cada emisora (por su ID, antes de borrar el post), los posts de los dos CPT en todos los estados (`get_post_stati()`) con su meta, y `_radplapag_migration_pending`. No carga el plugin: ni el autoloader ni `includes/src/`. Desactivar el plugin no borra nada.
+
+Si se añade una opción, un transient o una meta, en el mismo cambio se añade a §3.1, a la desinstalación y a `UninstallTest` y `UninstallMultisiteTest`.
