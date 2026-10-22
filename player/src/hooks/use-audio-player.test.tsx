@@ -78,6 +78,14 @@ const DESKTOP = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)'
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)'
 const SAFARI =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0.1 Safari/605.1.15'
+const IPHONE_SAFARI =
+  'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'
+const CHROME =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36'
+const EDGE =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0'
+const FIREFOX =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 14.0; rv:131.0) Gecko/20100101 Firefox/131.0'
 
 type Api = ReturnType<typeof useAudioPlayer>
 
@@ -247,6 +255,50 @@ describe('visualization (K82)', () => {
     const { api } = mount(MP3)
     await act(() => api.current.play())
     expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  // Moved from use-can-visualize.test.tsx (spec 0007, task 1.8): the decision
+  // follows the source, not the user agent on mount.
+  it.each([
+    ['chrome', CHROME],
+    ['edge', EDGE],
+    ['firefox', FIREFOX],
+  ])('waits for a stream with CORS to visualize on %s', async (_name, userAgent) => {
+    setUserAgent(userAgent)
+    const { api } = mount(MP3)
+    expect(api.current.canVisualize).toBe(false)
+    await act(() => api.current.play())
+    expect(api.current.canVisualize).toBe(true)
+  })
+
+  it.each([
+    ['safari', SAFARI],
+    ['iphone', IPHONE_SAFARI],
+  ])('never visualizes on %s, also a same-origin stream', async (_name, userAgent) => {
+    setUserAgent(userAgent)
+    const { api } = mount(`${window.location.origin}/live.mp3`)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
+    expect(webAudio.contexts).toHaveLength(0)
+  })
+
+  it('does not visualize a stream without CORS on Chrome', async () => {
+    setUserAgent(CHROME)
+    media.corsBlocked.add(MP3)
+    const { api } = mount(MP3)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
+  })
+
+  it('does not visualize the welcome audio, then visualizes the live stream', async () => {
+    setUserAgent(CHROME)
+    const { api, audio } = mount(MP3, INTRO)
+    await act(() => api.current.play())
+    expect(api.current).toMatchObject({ introLocked: true, canVisualize: false })
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+    expect(api.current).toMatchObject({ introLocked: false, canVisualize: true })
   })
 })
 

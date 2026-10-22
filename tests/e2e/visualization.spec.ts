@@ -4,11 +4,10 @@ import { readSeed } from './seed';
 import { audioState, startPlayback, waitForPlayback } from './support/player';
 
 /**
- * Visualizer or static animation (spec 0007, task 1.4). Characterization of
- * `useCanVisualize()`: the choice is taken on mount from the user agent, before
- * any source is loaded (K82). Chromium always shows the canvas, also during the
- * welcome audio; WebKit never does, even with a CORS-enabled stream, and shows
- * the static animation instead. No pixels are read (frozen zone, ADR 0018).
+ * Visualizer or static animation (spec 0007, tasks 1.4 and 1.8; K82, ADR 0031
+ * and 0033). The audio controller decides from the source in progress: only the
+ * live stream with CORS is visualized, never the welcome audio, and WebKit never
+ * visualizes. No pixels are read (frozen zone, ADR 0018).
  */
 
 const INTRO = /\/intro(-\d+)?\.mp3$/;
@@ -37,7 +36,7 @@ function staticAnimationHeight( page: Page ) {
 		.evaluate( ( collapse ) => collapse.getBoundingClientRect().height );
 }
 
-test( 'currently shows the visualizer in Chromium and never in WebKit, with CORS (K82)', async ( {
+test( 'shows the visualizer in Chromium and never in WebKit, with CORS (K82)', async ( {
 	page,
 	browserName,
 } ) => {
@@ -50,25 +49,38 @@ test( 'currently shows the visualizer in Chromium and never in WebKit, with CORS
 			.poll( () => staticAnimationHeight( page ) )
 			.toBeGreaterThan( 0 );
 	} else {
-		expect( await canvasOpacity( page ) ).toBe( '1' );
+		await expect.poll( () => canvasOpacity( page ) ).toBe( '1' );
 		expect( await staticAnimationHeight( page ) ).toBe( 0 );
 	}
 } );
 
-test( 'currently shows the visualizer in Chromium during the welcome audio (K82)', async ( {
+test( 'shows the static animation for a stream without CORS, and the audio advances (K82)', async ( {
 	page,
-	browserName,
 } ) => {
-	test.skip(
-		browserName === 'webkit',
-		'WebKit never shows the visualizer (previous test)'
-	);
+	await page.goto( readSeed().urls[ 'nocors-mp3' ] );
+	await startPlayback( page );
+
+	expect( await canvasOpacity( page ) ).toBe( '0' );
+	await expect
+		.poll( () => staticAnimationHeight( page ) )
+		.toBeGreaterThan( 0 );
+	const { currentTime } = await audioState( page );
+	await expect
+		.poll( async () => ( await audioState( page ) ).currentTime )
+		.toBeGreaterThan( currentTime );
+} );
+
+test( 'shows the static animation during the welcome audio (K82)', async ( {
+	page,
+} ) => {
 	await page.goto( readSeed().urls.intro );
 	const introPlaying = waitForPlayback( page, 0.2 );
 	await page.getByRole( 'button', { name: 'Play' } ).click();
 	await introPlaying;
 
 	expect( ( await audioState( page ) ).src ).toMatch( INTRO );
-	expect( await canvasOpacity( page ) ).toBe( '1' );
-	expect( await staticAnimationHeight( page ) ).toBe( 0 );
+	expect( await canvasOpacity( page ) ).toBe( '0' );
+	await expect
+		.poll( () => staticAnimationHeight( page ) )
+		.toBeGreaterThan( 0 );
 } );

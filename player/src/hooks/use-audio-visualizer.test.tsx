@@ -1,13 +1,13 @@
-// Characterization of use-audio-visualizer (spec 0007, task 1.4). The hook builds
-// the Web Audio graph in an effect once the status is 'playing', outside the
-// click that started playback, and knows nothing of canVisualize (K82).
+// use-audio-visualizer (spec 0007, task 1.8; K82, ADR 0031 and 0033): only the
+// drawing loop. The audio controller owns the Web Audio graph and decides
+// canVisualize; the hook reads its analyser while active.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import useAudioVisualizer, { type VisualizerFn } from 'src/hooks/use-audio-visualizer'
-import type { PlayerStatus } from 'src/types/player'
 import type { VisualizerDataType } from 'src/config/visualizers'
 import {
   FREQUENCY_BYTE,
+  FakeAnalyserNode,
   TIME_DOMAIN_BYTE,
   installFakeWebAudio,
   webAudio,
@@ -55,101 +55,66 @@ afterEach(() => {
   uninstall()
 })
 
-type Props = { status: PlayerStatus; dataType?: VisualizerDataType }
+type Props = { active: boolean; dataType?: VisualizerDataType }
 
-function mount(initial: Props, options: { canvas?: HTMLCanvasElement | null } = {}) {
-  const audio = document.createElement('audio')
+function mount(
+  initial: Props,
+  options: { canvas?: HTMLCanvasElement | null; analyser?: FakeAnalyserNode | null } = {},
+) {
   const canvas = options.canvas === undefined ? document.createElement('canvas') : options.canvas
-  const audioRef = { current: audio }
   const canvasRef = canvas === null ? null : { current: canvas }
+  const analyser = options.analyser === undefined ? new FakeAnalyserNode() : options.analyser
+  if (analyser) analyser.fftSize = 256
+  const getAnalyser = vi.fn(() => analyser as unknown as AnalyserNode | null)
   const draw = vi.fn<VisualizerFn>()
   const hook = renderHook(
-    ({ status, dataType }: Props) =>
-      useAudioVisualizer(audioRef, canvasRef, status, WIDTH, HEIGHT, draw, dataType),
+    ({ active, dataType }: Props) =>
+      useAudioVisualizer(getAnalyser, canvasRef, active, WIDTH, HEIGHT, draw, dataType),
     { initialProps: initial },
   )
-  return { audio, canvas, draw, hook }
+  return { analyser, canvas, draw, getAnalyser, hook }
 }
 
-describe('useAudioVisualizer: Web Audio graph', () => {
-  it('creates no AudioContext before the status is playing', () => {
-    const { hook } = mount({ status: 'idle' })
-    hook.rerender({ status: 'paused' })
-    hook.rerender({ status: 'error' })
+describe('useAudioVisualizer: no Web Audio of its own', () => {
+  // K82: the context used to be created by the effect that followed the
+  // 'playing' render, outside the user's gesture.
+  it('never creates an AudioContext, also when active', () => {
+    const { hook } = mount({ active: false })
+    hook.rerender({ active: true })
     expect(webAudio.contexts).toHaveLength(0)
   })
 
-  // K82: the context is created by the effect that follows the 'playing' render,
-  // not inside the user's click, so it is not tied to the gesture.
-  it('currently creates the AudioContext in the effect when the status becomes playing', () => {
-    const { hook } = mount({ status: 'idle' })
-    expect(webAudio.contexts).toHaveLength(0)
-    hook.rerender({ status: 'playing' })
-    expect(webAudio.contexts).toHaveLength(1)
-    expect(webAudio.contexts[0].resume).not.toHaveBeenCalled()
-  })
-
-  it('connects the audio element to an analyser of fftSize 256 and to the destination', () => {
-    const { audio } = mount({ status: 'playing' })
-    const [audioCtx] = webAudio.contexts
-    const [source] = audioCtx.sources
-    const [analyser] = audioCtx.analysers
-    expect(audioCtx.createMediaElementSource).toHaveBeenCalledWith(audio)
-    expect(source.connect).toHaveBeenCalledWith(analyser)
-    expect(analyser.connect).toHaveBeenCalledWith(audioCtx.destination)
-    expect(analyser.fftSize).toBe(256)
-  })
-
-  it('keeps one context, analyser and source across pause and play', () => {
-    const { hook } = mount({ status: 'playing' })
-    hook.rerender({ status: 'paused' })
-    hook.rerender({ status: 'playing' })
-    hook.rerender({ status: 'playing', dataType: 'frequency' })
-    expect(webAudio.contexts).toHaveLength(1)
-    expect(webAudio.contexts[0].createAnalyser).toHaveBeenCalledTimes(1)
-    expect(webAudio.contexts[0].createMediaElementSource).toHaveBeenCalledTimes(1)
-  })
-
-  // K82: the dashboard always hands over its canvas, at opacity 0 when
-  // canVisualize is false, so the graph is connected even then.
-  it('currently connects the graph although the canvas is hidden', () => {
-    const canvas = document.createElement('canvas')
-    canvas.style.opacity = '0'
-    mount({ status: 'playing' }, { canvas })
-    expect(webAudio.contexts[0].createMediaElementSource).toHaveBeenCalledTimes(1)
+  // K82: the graph used to be connected although the canvas was hidden.
+  it('neither reads the analyser nor draws while inactive', () => {
+    const { draw, getAnalyser } = mount({ active: false })
+    expect(getAnalyser).not.toHaveBeenCalled()
+    expect(draw).not.toHaveBeenCalled()
+    expect(frames.size).toBe(0)
   })
 
   it('does nothing without a canvas ref', () => {
-    mount({ status: 'playing' }, { canvas: null })
-    expect(webAudio.contexts).toHaveLength(0)
+    const { getAnalyser } = mount({ active: true }, { canvas: null })
+    expect(getAnalyser).not.toHaveBeenCalled()
     expect(frames.size).toBe(0)
   })
 
   it('does nothing when the canvas has no 2D context', () => {
     vi.mocked(HTMLCanvasElement.prototype.getContext).mockReturnValue(null)
-    mount({ status: 'playing' })
-    expect(webAudio.contexts).toHaveLength(0)
+    const { draw } = mount({ active: true })
+    expect(draw).not.toHaveBeenCalled()
+    expect(frames.size).toBe(0)
   })
 
-  it('warns and draws nothing when Web Audio throws', () => {
-    vi.stubGlobal(
-      'AudioContext',
-      class {
-        constructor() {
-          throw new Error('no Web Audio')
-        }
-      },
-    )
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const { draw } = mount({ status: 'playing' })
-    expect(warn).toHaveBeenCalledWith('Visualization not supported:', expect.any(Error))
+  it('does nothing without an analyser', () => {
+    const { draw } = mount({ active: true }, { analyser: null })
     expect(draw).not.toHaveBeenCalled()
+    expect(frames.size).toBe(0)
   })
 })
 
 describe('useAudioVisualizer: drawing', () => {
   it('draws a first frame at once with time-domain data by default', () => {
-    const { canvas, draw } = mount({ status: 'playing' })
+    const { canvas, draw } = mount({ active: true })
     expect(context2d.imageSmoothingEnabled).toBe(false)
     expect(context2d.clearRect).toHaveBeenCalledWith(0, 0, canvas!.width, canvas!.height)
     expect(draw).toHaveBeenCalledTimes(1)
@@ -161,39 +126,43 @@ describe('useAudioVisualizer: drawing', () => {
     expect([...data].every((byte) => byte === TIME_DOMAIN_BYTE)).toBe(true)
   })
 
+  it('starts drawing when it becomes active', () => {
+    const { draw, hook } = mount({ active: false })
+    hook.rerender({ active: true })
+    expect(draw).toHaveBeenCalledTimes(1)
+  })
+
   it('draws again on every animation frame', () => {
-    const { draw } = mount({ status: 'playing' })
+    const { draw } = mount({ active: true })
     runFrame()
     runFrame()
     expect(draw).toHaveBeenCalledTimes(3)
   })
 
   it('reads frequency data for a frequency visualizer', () => {
-    const { draw } = mount({ status: 'playing', dataType: 'frequency' })
-    const analyser = webAudio.contexts[0].analysers[0]
-    expect(analyser.getByteFrequencyData).toHaveBeenCalledTimes(1)
-    expect(analyser.getByteTimeDomainData).not.toHaveBeenCalled()
+    const { analyser, draw } = mount({ active: true, dataType: 'frequency' })
+    expect(analyser!.getByteFrequencyData).toHaveBeenCalledTimes(1)
+    expect(analyser!.getByteTimeDomainData).not.toHaveBeenCalled()
     expect([...draw.mock.calls[0][1]].every((byte) => byte === FREQUENCY_BYTE)).toBe(true)
   })
 
   it("reads time-domain data for an 'other' visualizer", () => {
-    mount({ status: 'playing', dataType: 'other' })
-    const analyser = webAudio.contexts[0].analysers[0]
-    expect(analyser.getByteTimeDomainData).toHaveBeenCalledTimes(1)
-    expect(analyser.getByteFrequencyData).not.toHaveBeenCalled()
+    const { analyser } = mount({ active: true, dataType: 'other' })
+    expect(analyser!.getByteTimeDomainData).toHaveBeenCalledTimes(1)
+    expect(analyser!.getByteFrequencyData).not.toHaveBeenCalled()
   })
 
-  it('cancels the loop on pause', () => {
-    const { draw, hook } = mount({ status: 'playing' })
+  it('cancels the loop when it becomes inactive', () => {
+    const { draw, hook } = mount({ active: true })
     runFrame()
-    hook.rerender({ status: 'paused' })
+    hook.rerender({ active: false })
     expect(cancelAnimationFrame).toHaveBeenCalledWith(2)
     runFrame()
     expect(draw).toHaveBeenCalledTimes(2)
   })
 
   it('cancels the loop on unmount', () => {
-    const { draw, hook } = mount({ status: 'playing' })
+    const { draw, hook } = mount({ active: true })
     hook.unmount()
     expect(cancelAnimationFrame).toHaveBeenCalledWith(1)
     runFrame()

@@ -182,8 +182,8 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 
 - Cuatro: osciloscopio (por defecto), barras, cascada y partículas, según `visualizer`. Se cargan de forma diferida (`getVisualizer()`) y solo se activan con el audio sonando.
 - Zona congelada: `player/src/components/visualizers/**`, `player/src/config/visualizers.ts`, `player/src/types/visualizers.tsx` (el dibujo y el catálogo).
-- Visualizador o animación estática: hoy lo decide `use-can-visualize.tsx` por el *user agent*, al montar (en WebKit nunca hay visualizador). Desde la 0007 (ADR 0031) lo decide el controlador del audio según la fuente en curso: con datos limpios (CORS o rutas MSE) se pinta el visualizador; si no, la animación estática, y el audio no pasa por Web Audio.
-- Contrato con el reproductor: leen el `<audio>` compartido (`audioRef`) con Web Audio API (`AnalyserNode`), y por eso dependen del `crossOrigin` de §3.8.
+- Visualizador o animación estática: lo decide el controlador del audio según la fuente en curso (`canVisualize`, ADR 0031 y 0033). Se pinta el visualizador solo con el directo sonando con datos limpios (CORS sin reintento, o rutas MSE); si no, la animación estática, y el audio no pasa por Web Audio. La bienvenida nunca se visualiza y WebKit (`isWebKitBrowser()`) nunca visualiza.
+- Contrato con el reproductor: el controlador del audio crea el `AudioContext` dentro del gesto de Play y conecta el `<audio>` a un `AnalyserNode` (`fftSize` 256) la primera vez que `canVisualize` pasa a verdadero; `useAudioVisualizer()` solo dibuja con ese analizador (`getAnalyser()`) mientras suena y `canVisualize` es verdadero. Por eso dependen del `crossOrigin` de §3.8.
 - Fuera del refactor y de los mínimos de cobertura. Las actualizaciones de dependencias no los tocan; si una lo obliga, el cambio es mínimo y lleva un ADR.
 
 ### 3.10 Release

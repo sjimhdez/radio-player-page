@@ -6,7 +6,6 @@ import Alert from '@mui/material/Alert'
 import { useTranslation } from 'react-i18next'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
-import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import useMediaSession from 'src/hooks/use-media-session'
 import useSleepTimer from 'src/hooks/use-sleep-timer'
 import useConfig from 'src/hooks/use-config'
@@ -82,9 +81,18 @@ const Dashboard = () => {
       config.schedule.saturday?.length ||
       config.schedule.sunday?.length),
   )
-  const { audioRef, status, loading, introLocked, play, pause, volume, handleVolumeChange } =
-    useAudioPlayer(config.streamUrl, config.introAudioUrl)
-  const canVisualize = useCanVisualize(audioRef)
+  const {
+    audioRef,
+    status,
+    loading,
+    introLocked,
+    play,
+    pause,
+    volume,
+    handleVolumeChange,
+    canVisualize,
+    getAnalyser,
+  } = useAudioPlayer(config.streamUrl, config.introAudioUrl)
   const transmissionTimeData = useTransmissionTime()
 
   // Show error snackbar when error occurs and loading is complete
@@ -134,9 +142,9 @@ const Dashboard = () => {
     } as VisualizerConfig)
 
   useAudioVisualizer(
-    audioRef,
+    getAnalyser,
     canvasRef,
-    status,
+    status === 'playing' && canVisualize,
     dimensions.width,
     dimensions.height,
     currentVisualizerConfig.fn,

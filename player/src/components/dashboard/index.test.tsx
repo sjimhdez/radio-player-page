@@ -24,10 +24,11 @@ vi.mock('src/hooks/use-audio-player', () => ({
     pause: player.pause,
     volume: 1,
     handleVolumeChange: () => {},
+    canVisualize: false,
+    getAnalyser: () => null,
   }),
 }))
 vi.mock('src/hooks/use-audio-visualizer', () => ({ default: () => {} }))
-vi.mock('src/hooks/use-can-visualize', () => ({ useCanVisualize: () => false }))
 
 const ERROR_TEXT = 'Unable to play the stream. Try again later.'
 

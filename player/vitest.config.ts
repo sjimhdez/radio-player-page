@@ -22,14 +22,11 @@ export default defineConfig({
         'src/components/visualizers/**',
         'src/config/visualizers.ts',
         'src/types/visualizers.tsx',
-        'src/hooks/use-audio-visualizer.tsx',
-        'src/hooks/use-can-visualize.tsx',
         'src/vite-env.d.ts',
       ],
       reporter: ['text-summary', 'html', 'json-summary'],
       // Minimums of spec 0002 (.claude/rules/testing.md), raised by spec 0006 A3.
-      // Each glob is checked on its files together; the visualizer hooks are
-      // excluded above.
+      // Each glob is checked on its files together.
       thresholds: {
         'src/core/**': { lines: 90, branches: 85 },
         'src/utils/**': { lines: 90 },
