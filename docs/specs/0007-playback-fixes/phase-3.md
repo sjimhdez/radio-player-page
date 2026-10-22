@@ -75,7 +75,7 @@ Corregir K66, K65 y K13 con su regresión en las capas que cita `known-issues.md
 - Archivos: `SPEC.md`, `docs/specs/README.md`, `docs/known-issues.md`.
 - Test: — (documentación).
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: `e871e9e`
 
 ## Decisiones abiertas → ADR
 - ADR 0035 (3.1): temporizador de sueño (hora límite; deshabilitado durante la bienvenida).
