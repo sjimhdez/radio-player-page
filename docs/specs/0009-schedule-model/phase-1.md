@@ -42,14 +42,14 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `includes/src/schedule/class-week-interval.php`, `tests/fixtures/schedule-vectors.json`, `tests/zip/expected-additions.txt`
 - Test: primero (TDD): `tests/php/unit/Schedule/WeekIntervalTest.php`
 - Verificación: `npm run test:php:unit -- --filter WeekInterval && npm run check:zip && npm run lint:phpstan`
-- [x] hecha · commit: este
+- [x] hecha · commit: `c1241ae`
 
 ### 1.3 `utils/week-interval.ts` en el player (≤ 1 h)
 - Qué: las mismas operaciones en TS puro, leyendo los vectores `model`.
 - Archivos: `player/src/utils/week-interval.ts`
 - Test: primero (TDD): `player/src/utils/week-interval.test.ts`
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: este
 
 ### 1.4 Funciones del modelo en `schedule-rules.js` (≤ 1 h)
 - Qué: las mismas operaciones expuestas en `radplapagScheduleRules`, sin usarlas todavía (las usa la fase 3).
