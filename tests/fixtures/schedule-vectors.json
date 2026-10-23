@@ -33,6 +33,37 @@
 			"tuesday": [
 				{ "program": "F", "start": "08:00", "end": "08:00", "is_rerun": false }
 			]
+		},
+		"k52-daily": {
+			"monday": [
+				{ "program": "A", "start": "00:00", "end": "00:00", "is_rerun": false }
+			],
+			"tuesday": [
+				{ "program": "A", "start": "00:00", "end": "00:00", "is_rerun": false }
+			],
+			"wednesday": [
+				{ "program": "A", "start": "00:00", "end": "00:00", "is_rerun": false }
+			],
+			"thursday": [
+				{ "program": "A", "start": "00:00", "end": "00:00", "is_rerun": false }
+			],
+			"friday": [
+				{ "program": "A", "start": "00:00", "end": "00:00", "is_rerun": false }
+			],
+			"saturday": [
+				{ "program": "A", "start": "00:00", "end": "00:00", "is_rerun": false }
+			],
+			"sunday": [
+				{ "program": "A", "start": "00:00", "end": "00:00", "is_rerun": false }
+			]
+		},
+		"k52-split": {
+			"monday": [
+				{ "program": "A", "start": "22:00", "end": "00:00", "is_rerun": false }
+			],
+			"tuesday": [
+				{ "program": "A", "start": "00:00", "end": "02:00", "is_rerun": false }
+			]
 		}
 	},
 	"resolution": [
@@ -184,6 +215,32 @@
 				"upcoming": null,
 				"currently": true,
 				"issue": "C16"
+			}
+		},
+		{
+			"id": "K52-1",
+			"grid": "k52-daily",
+			"now": { "day": "monday", "time": "23:55" },
+			"current": { "program": "A", "day": "monday", "from": "today", "time_range": "00:00-00:00", "is_rerun": false },
+			"upcoming": null,
+			"ts": {
+				"current": { "program": "A", "day": "monday", "from": "today", "time_range": "00:00-00:00", "is_rerun": false },
+				"upcoming": { "program": "A", "day": "tuesday", "time_range": "00:00-00:00", "is_rerun": false, "minutes": 5 },
+				"currently": true,
+				"issue": "K52"
+			}
+		},
+		{
+			"id": "K52-2",
+			"grid": "k52-split",
+			"now": { "day": "monday", "time": "23:55" },
+			"current": { "program": "A", "day": "monday", "from": "today", "time_range": "22:00-00:00", "is_rerun": false },
+			"upcoming": null,
+			"ts": {
+				"current": { "program": "A", "day": "monday", "from": "today", "time_range": "22:00-00:00", "is_rerun": false },
+				"upcoming": { "program": "A", "day": "tuesday", "time_range": "00:00-02:00", "is_rerun": false, "minutes": 5 },
+				"currently": true,
+				"issue": "K52"
 			}
 		}
 	],

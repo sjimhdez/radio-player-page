@@ -9,6 +9,7 @@ Estado: en curso · Inicio: 2026-10-23 · ADRs: 0044 (nuevo), 0006, 0017, 0019, 
   - `player/src/utils/program-schedule.test.ts` «picks the earliest start when slots overlap» → con D3 gana la que empezó más tarde.
   - `tests/php/unit/Schedule/NowPlayingResolverTest.php` `test_unknown_program_today_falls_back_to_yesterday` → en la fase 1 espera `null` (gana la franja de hoy, cuyo programa no se conoce); la fase 2 lo pasa a `'1'` al ignorar los desconocidos (C10).
   - Su gemelo de integración, `tests/php/integration/Schedule/ScheduleVectorsTest.php` `test_draft_program_on_air_today_falls_back_to_yesterday` (aprobado el 2026-10-23, en la 1.6), igual: `null` en la fase 1 y el programa A en la fase 2. Los dos pasan a `test_*_that_started_latest_gives_no_current`.
+  - `tests/php/integration/Schedule/ScheduleVectorsTest.php` `test_current_has_logo_and_upcoming_has_none` (aprobado el 2026-10-23, en la 1.7): usaba el mismo programa en 09:00–10:00 y 10:00–11:00, justo el caso de K52. La segunda franja pasa a 10:05–11:00 y el test sigue probando lo mismo (`upcoming` sin `logo_id`).
 - **La spec decía algo falso:** `a11y.spec.ts` no puede fijar la hora con `page.clock`, porque `now-playing` se pinta en el servidor. Decisión del usuario: sin `page.clock`. Tras K52, el e2e espera un solo `article` a cualquier hora; las 23:55 las cubren `BlockAuditTest` (con `Support/Clock`) y el núcleo. §2 de la spec se corrige en la 1.1.
 - Comprobado que no caen otros tests con D3: `test_first_active_slot_wins` (09:30 gana a 09:00), `test_today_wins_over_yesterday`, `test_today_upcoming_wins_over_tomorrow_on_tie` y los datos de `TimeTest`/`ScheduleHelpersTest` fuera de los `currently`.
 - La resolución de «Coming up» en PHP solo necesita `start` (una franja sin `end` cuenta, `test_malformed_entries_are_skipped`): se conserva.
@@ -82,7 +83,10 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `class-now-playing-resolver.php`, los dos tests, `schedule-vectors.json`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm run test:php:unit && npm run test:php:integration -- --filter 'BlockAudit|ScheduleVectors|BlockData' && npm --prefix player test -- schedule-vectors`
-- [ ] hecha · commit: —
+- Rojo: `NowPlayingResolverTest` → 2 fallos (24 h diario y partido en la medianoche: `upcoming` salía el mismo programa, martes `00:00-00:00` / `00:00-02:00`, en vez de `null`); `ScheduleVectorsTest` (unit) → K52-1 y K52-2; `BlockAuditTest::test_24_hour_slot_is_not_coming_up_while_on_air`, rojo sin el arreglo. Dos tests nuevos de la regla fijan sus límites: otro programa contiguo y el mismo programa tras un hueco sí se anuncian.
+- Resultado: el resolutor recoge los candidatos de «Coming up» y, tras saber cuál suena, salta el del mismo `program_id` que empieza en el minuto de la semana en que acaba la franja actual. En `player/src/utils/schedule-vectors.test.ts`, el test «currently differs» compara `current` y `upcoming` (antes solo `current`, y K52 solo difiere en `upcoming`). La integración tumbó `test_current_has_logo_and_upcoming_has_none`, editado con aprobación (Contexto). `test_draft_program_is_hidden` usa el mismo par contiguo y sigue en verde, pero ahora su `upcoming` es `null` también por K52; lo cubre a fondo la fase 2 (C10).
+- Changelog: «Coming up» ya no anuncia el mismo programa que sigue sonando (un programa de 24 h o partido en la medianoche) (K52).
+- [x] hecha · commit: este
 
 ### 1.8 C16 y K8 en el player (`fix-bug`) (≤ 1 h)
 - Qué: `isProgramActive()` (misma firma) y `findActiveProgram()` sobre `week-interval.ts` y D3: mira toda la semana, también ayer con hoy vacío. Tests `currently` de C16 y K8 → regresión; se edita el test aprobado del solape. Se borran los `ts` de 13, 14, C3-4 y C3-2. e2e `schedule.spec.ts` (C16, vector 13) → regresión: el lunes 00:10 se ve E.

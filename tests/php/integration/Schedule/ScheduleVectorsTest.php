@@ -138,7 +138,9 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `current` carries the program logo; `upcoming` never has `logo_id`.
+	 * `current` carries the program logo; `upcoming` never has `logo_id`. The second
+	 * slot starts after a gap: right at the end it would go on, not come up (K52;
+	 * approved edit in the phase 1 plan of spec 0009).
 	 */
 	public function test_current_has_logo_and_upcoming_has_none() {
 		$logo    = $this->factory_rpp->image( 'Logo' );
@@ -161,7 +163,7 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 								),
 								array(
 									'program_id' => $with,
-									'start'      => '10:00',
+									'start'      => '10:05',
 									'end'        => '11:00',
 								),
 							),

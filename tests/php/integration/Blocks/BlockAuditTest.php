@@ -218,9 +218,9 @@ final class BlockAuditTest extends WP_UnitTestCase {
 
 	/**
 	 * K52: a 24-hour slot on every day (`start == end`, valid on the server, C3) is
-	 * announced as coming up while it is on air, from 23:50 on.
+	 * not announced as coming up while it is on air, also from 23:50 on.
 	 */
-	public function test_currently_24_hour_slot_is_coming_up_while_on_air() {
+	public function test_24_hour_slot_is_not_coming_up_while_on_air() {
 		$f       = $this->factory_rpp;
 		$program = $f->program( 'Always' );
 		$station = $f->station( 'Main' );
@@ -237,8 +237,7 @@ final class BlockAuditTest extends WP_UnitTestCase {
 
 				$now_playing = radplapag_get_now_playing_for_station( 0 );
 				$this->assertSame( (string) $program, $now_playing['current']['id'] );
-				$this->assertSame( (string) $program, $now_playing['upcoming']['id'] );
-				$this->assertSame( '00:00-00:00', $now_playing['upcoming']['time_range'] );
+				$this->assertNull( $now_playing['upcoming'] );
 			}
 		);
 	}

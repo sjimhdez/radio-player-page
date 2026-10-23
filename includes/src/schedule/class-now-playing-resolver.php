@@ -21,7 +21,9 @@ defined( 'ABSPATH' ) || exit;
  * - On air: the active slot that started latest; on a tie, the first one in the
  *   stored order of its day (D3).
  * - Coming up: the slot that starts soonest, strictly after now and within the
- *   window, on any day; on a tie, the first one. Only its start is needed.
+ *   window, on any day; on a tie, the first one. Only its start is needed. A slot
+ *   of the program on air that starts just when the slot on air ends is skipped:
+ *   it goes on, it does not come up (K52 in docs/known-issues.md).
  * - A slot whose program is not in the map, or whose program ID is missing or not
  *   numeric, gives a null entry but still wins (C10 in docs/known-issues.md).
  *
@@ -45,11 +47,12 @@ final class Now_Playing_Resolver {
 		$minute = Week_Interval::at( $now );
 
 		// On air: the active slot with the fewest minutes since its start.
-		$current         = null;
-		$current_elapsed = null;
-		// Coming up: the slot with the fewest minutes until its start, within the window.
-		$upcoming       = null;
-		$upcoming_delta = null;
+		$current          = null;
+		$current_elapsed  = null;
+		$current_interval = null;
+		$current_program  = null;
+		// Coming up: the slots starting within the window, in stored order.
+		$candidates = array();
 		foreach ( Week::KEYS as $day_key ) {
 			foreach ( self::entries( $schedule, $day_key ) as $entry ) {
 				$start = (string) ( $entry['start'] ?? '' );
@@ -64,15 +67,31 @@ final class Now_Playing_Resolver {
 				if ( '' !== $end && Week_Interval::contains( $interval, $minute ) ) {
 					$elapsed = ( Week_Interval::WEEK - Week_Interval::minutes_until_start( $interval, $minute ) ) % Week_Interval::WEEK;
 					if ( null === $current_elapsed || $elapsed < $current_elapsed ) {
-						$current         = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
-						$current_elapsed = $elapsed;
+						$current          = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
+						$current_elapsed  = $elapsed;
+						$current_interval = $interval;
+						$current_program  = (string) ( $entry['program_id'] ?? '' );
 					}
 				}
 				$delta = Week_Interval::minutes_until_start( $interval, $minute );
-				if ( $delta > 0 && $delta <= $window && ( null === $upcoming_delta || $delta < $upcoming_delta ) ) {
-					$upcoming       = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
-					$upcoming_delta = $delta;
+				if ( $delta > 0 && $delta <= $window ) {
+					$candidates[] = array( $delta, $interval['start'], $entry, $day_key );
 				}
+			}
+		}
+
+		// Where the slot on air ends, as a minute of the week.
+		$current_end = null === $current_interval ? null : ( $current_interval['start'] + $current_interval['duration'] ) % Week_Interval::WEEK;
+
+		$upcoming       = null;
+		$upcoming_delta = null;
+		foreach ( $candidates as list( $delta, $start_w, $entry, $day_key ) ) {
+			if ( $start_w === $current_end && (string) ( $entry['program_id'] ?? '' ) === $current_program ) {
+				continue;
+			}
+			if ( null === $upcoming_delta || $delta < $upcoming_delta ) {
+				$upcoming       = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
+				$upcoming_delta = $delta;
 			}
 		}
 

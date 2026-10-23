@@ -447,11 +447,11 @@ final class NowPlayingResolverTest extends TestCase {
 	}
 
 	/**
-	 * K52: a 24-hour slot on every day is announced as coming up while it is on air, from 23:50 on.
+	 * K52: a 24-hour slot on every day is not announced as coming up while it is on air.
 	 *
 	 * @see docs/known-issues.md K52
 	 */
-	public function test_currently_24_hour_slot_is_coming_up_while_on_air() {
+	public function test_24_hour_slot_is_not_coming_up_while_on_air() {
 		$schedule = array();
 		foreach ( array_keys( $this->labels ) as $day ) {
 			$schedule[ $day ] = array( self::slot( 1, '00:00', '00:00' ) );
@@ -460,8 +460,56 @@ final class NowPlayingResolverTest extends TestCase {
 		$result = $this->resolve( $schedule, '2026-10-19 23:55' );
 
 		$this->assertSame( '1', $result['current']['id'] );
-		$this->assertSame( '1', $result['upcoming']['id'] );
-		$this->assertSame( '00:00-00:00', $result['upcoming']['time_range'] );
+		$this->assertNull( $result['upcoming'] );
+	}
+
+	/**
+	 * K52: the second half of a program split at midnight is not announced as coming up.
+	 *
+	 * @see docs/known-issues.md K52
+	 */
+	public function test_second_half_of_program_split_at_midnight_is_not_coming_up() {
+		$schedule = array(
+			'monday'  => array( self::slot( 1, '22:00', '00:00' ) ),
+			'tuesday' => array( self::slot( 1, '00:00', '02:00' ) ),
+		);
+
+		$result = $this->resolve( $schedule, '2026-10-19 23:55' );
+
+		$this->assertSame( '22:00-00:00', $result['current']['time_range'] );
+		$this->assertNull( $result['upcoming'] );
+	}
+
+	/**
+	 * K52: another program starting when the current one ends is still coming up.
+	 */
+	public function test_other_program_starting_at_the_end_is_coming_up() {
+		$schedule = array(
+			'monday'  => array( self::slot( 1, '22:00', '00:00' ) ),
+			'tuesday' => array( self::slot( 2, '00:00', '02:00' ) ),
+		);
+
+		$result = $this->resolve( $schedule, '2026-10-19 23:55' );
+
+		$this->assertSame( '1', $result['current']['id'] );
+		$this->assertSame( '2', $result['upcoming']['id'] );
+	}
+
+	/**
+	 * K52: the same program starting later than the end of the current one is still coming up.
+	 */
+	public function test_same_program_after_a_gap_is_coming_up() {
+		$schedule = array(
+			'monday' => array(
+				self::slot( 1, '22:00', '23:55' ),
+				self::slot( 1, '23:58', '01:00' ),
+			),
+		);
+
+		$result = $this->resolve( $schedule, '2026-10-19 23:54' );
+
+		$this->assertSame( '22:00-23:55', $result['current']['time_range'] );
+		$this->assertSame( '23:58-01:00', $result['upcoming']['time_range'] );
 	}
 
 	/**
