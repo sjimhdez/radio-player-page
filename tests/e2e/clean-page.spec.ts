@@ -636,3 +636,82 @@ test.describe( 'clean page without a usable manifest (HTTP)', () => {
 		} );
 	}
 } );
+
+/**
+ * Robots and text direction (K23, SPEC.md §3.3). The headers are read by the
+ * test mu-plugin (tests/e2e/mu-plugins/radplapag-e2e.php): one adds a marker
+ * through wp_robots, the other makes the request right-to-left. The theme page
+ * of no-station shows that each switch works.
+ */
+test.describe( 'clean page robots and direction (HTTP)', () => {
+	test.skip(
+		( { browserName } ) => browserName !== 'chromium',
+		'HTTP only: the response does not depend on the browser'
+	);
+
+	const ROBOTS = { 'X-Radplapag-E2e-Robots': '1' };
+	const RTL = { 'X-Radplapag-E2e-Rtl': '1' };
+
+	test( 'currently prints no robots meta with blog_public = 0 (K23)', async ( {
+		request,
+	} ) => {
+		const seed = readSeed();
+		try {
+			wpCli( 'option', 'update', 'blog_public', '0' );
+			const theme = await (
+				await request.get( seed.urls[ 'no-station' ], {
+					headers: ROBOTS,
+				} )
+			).text();
+			const html = await (
+				await request.get( seed.urls.mp3, { headers: ROBOTS } )
+			).text();
+
+			expect( theme ).toContain( 'noindex, nofollow' );
+			expect( theme ).toContain( 'radplapag-e2e' );
+			expect( html ).toContain( 'RADPLAPAG_CONFIG' );
+			expect( html ).not.toContain( 'name="robots"' );
+			expect( html ).not.toContain( 'radplapag-e2e' );
+		} finally {
+			wpCli( 'option', 'update', 'blog_public', '1' );
+		}
+	} );
+
+	test( 'currently prints no dir on a right-to-left site', async ( {
+		request,
+	} ) => {
+		const seed = readSeed();
+		const theme = await (
+			await request.get( seed.urls[ 'no-station' ], { headers: RTL } )
+		).text();
+		const html = await (
+			await request.get( seed.urls.mp3, { headers: RTL } )
+		).text();
+
+		expect( theme ).toMatch( /<html [^>]*dir="rtl"/ );
+		expect( html ).toContain( '<html lang="en-US"><head>' );
+	} );
+} );
+
+test.describe( 'clean page feed, embed and trackback (HTTP)', () => {
+	test.skip(
+		( { browserName } ) => browserName !== 'chromium',
+		'HTTP only: the response does not depend on the browser'
+	);
+
+	for ( const suffix of [ 'feed/', 'embed/', 'trackback/' ] ) {
+		test( `currently serves the player on the page's ${ suffix } (K26)`, async ( {
+			request,
+		} ) => {
+			const html =
+				await // A GET of trackback/ redirects to the page once it is not intercepted.
+				(
+					await request.get( readSeed().urls.mp3 + suffix, {
+						maxRedirects: 0,
+					} )
+				).text();
+
+			expect( html ).toContain( 'RADPLAPAG_CONFIG' );
+		} );
+	}
+} );

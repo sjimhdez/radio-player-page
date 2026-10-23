@@ -13,6 +13,7 @@
 		"wp-content/plugins/radplapag-no-manifest": ".",
 		"wp-content/plugins/radplapag-no-manifest/player/dist": "./tests/fixtures/player-dist/no-manifest",
 		"wp-content/plugins/radplapag-no-main-entry": ".",
-		"wp-content/plugins/radplapag-no-main-entry/player/dist": "./tests/fixtures/player-dist/no-main-entry"
+		"wp-content/plugins/radplapag-no-main-entry/player/dist": "./tests/fixtures/player-dist/no-main-entry",
+		"wp-content/mu-plugins": "./tests/e2e/mu-plugins"
 	}
 }
