@@ -83,7 +83,9 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Archivos: `includes/src/player/class-globals-builder.php`, `radio-player-page.php`, `tests/php/unit/Player/GlobalsBuilderTest.php`, `tests/e2e/clean-page.spec.ts`, `tests/e2e/snapshots/minimal.html`, `player/src/core/config/read-config.test.ts`, `player/src/hooks/use-config.test.tsx`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm run test:php:unit -- --filter GlobalsBuilder && npm --prefix player run check && npm run test:e2e -- tests/e2e/clean-page.spec.ts`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («fix(0009): print the programs of the printed slots and an empty schedule as {} on the clean page (2.6)»)
+- Rojo visto: `GlobalsBuilderTest::test_an_empty_schedule_prints_as_a_json_object` («Call to undefined method …printable_schedule()») y en `clean-page.spec.ts` K17 (`Expected: "{}"`, `Received: "[]"`) y K78 (C de más en `[b, c, a]`). Snapshot `minimal.html` regenerado con `--update-snapshots`: solo cambia `RADPLAPAG_SCHEDULE = {}`. La edición de «skips the raw schedule entries…» ya llegó en la 2.5.
+- Changelog: ya anotado en la 2.1 (`{}`, también en `== Upgrade Notice ==`).
 
 ### 2.7 C10 en el player (`fix-bug`) (≤ 1 h)
 - Qué: en `program-schedule.ts`, `findActiveSlot()`, `findIncomingProgram()`, `getProgramsForDay()` y `getAllProgramsWithSlots()` ignoran la franja cuyo `program_id` no está en `programs` (undefined = ninguno). Ediciones aprobadas de los dos tests; test nuevo de la ventana de «Coming up» (un desconocido no tapa al siguiente). Se borran los `ts` de C10 de los vectores.

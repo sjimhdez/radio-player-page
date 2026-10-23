@@ -10,6 +10,7 @@ namespace RadioPlayerPage\Player;
 
 use DateTimeImmutable;
 use RadioPlayerPage\Data\Station;
+use stdClass;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -126,7 +127,8 @@ final class Globals_Builder {
 	 *
 	 * Numeric IDs are cast to an integer string; the rest go through
 	 * sanitize_text_field(). Entries with an empty ID, start or end are skipped, and
-	 * so are days left empty. Without slots the result is an empty array (K17).
+	 * so are days left empty. Without slots the result is an empty array; printable_schedule()
+	 * prints it as an object.
 	 *
 	 * @since 3.5.0
 	 *
@@ -164,6 +166,22 @@ final class Globals_Builder {
 			}
 		}
 		return $result;
+	}
+
+	/**
+	 * RADPLAPAG_SCHEDULE as it is printed: schedule(), or an empty object without slots.
+	 *
+	 * wp_json_encode() prints an empty array as [], not the {} of SPEC.md §3 (K17, ADR 0045).
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param array<mixed> $schedule      Raw station schedule, by day.
+	 * @param callable     $sanitize_text sanitize_text_field().
+	 * @return array<array-key, list<array{program_id: string, start: mixed, end: mixed, is_rerun: bool}>>|stdClass
+	 */
+	public static function printable_schedule( array $schedule, callable $sanitize_text ) {
+		$result = self::schedule( $schedule, $sanitize_text );
+		return empty( $result ) ? new stdClass() : $result;
 	}
 
 	/**

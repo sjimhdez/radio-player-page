@@ -467,11 +467,19 @@ final class GlobalsBuilderTest extends TestCase {
 	}
 
 	/**
-	 * K17: without slots the schedule is an empty PHP array, printed as [] and not {}.
+	 * K17: without slots the printable schedule is an empty object, printed as {} (ADR 0045).
+	 * schedule() keeps returning an array; with slots both print the same.
 	 */
-	public function test_currently_an_empty_schedule_is_a_json_array() {
-		$this->assertSame( '[]', json_encode( Globals_Builder::schedule( array(), self::sanitize_text() ) ) );
-		$this->assertSame( '[]', json_encode( Globals_Builder::schedule( array( 'monday' => array() ), self::sanitize_text() ) ) );
+	public function test_an_empty_schedule_prints_as_a_json_object() {
+		$this->assertSame( '{}', json_encode( Globals_Builder::printable_schedule( array(), self::sanitize_text() ) ) );
+		$this->assertSame( '{}', json_encode( Globals_Builder::printable_schedule( array( 'monday' => array() ), self::sanitize_text() ) ) );
+		$this->assertSame( array(), Globals_Builder::schedule( array(), self::sanitize_text() ) );
+
+		$schedule = array( 'monday' => array( array( 'program_id' => '4', 'start' => '08:00', 'end' => '09:00' ) ) );
+		$this->assertSame(
+			json_encode( Globals_Builder::schedule( $schedule, self::sanitize_text() ) ),
+			json_encode( Globals_Builder::printable_schedule( $schedule, self::sanitize_text() ) )
+		);
 	}
 
 	/**

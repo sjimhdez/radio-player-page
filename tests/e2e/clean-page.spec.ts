@@ -414,14 +414,14 @@ test.describe( 'clean page (HTTP)', () => {
 		}
 	} );
 
-	test( 'currently prints an empty schedule as a JSON array (K17)', async ( {
+	test( 'prints an empty schedule as a JSON object (K17)', async ( {
 		request,
 	} ) => {
 		const html = await getHtml( request, readSeed().urls.minimal );
 		const raw = rawGlobals( html );
 
 		expect( raw.RADPLAPAG_PROGRAMS ).toBe( '[]' );
-		expect( raw.RADPLAPAG_SCHEDULE ).toBe( '[]' );
+		expect( raw.RADPLAPAG_SCHEDULE ).toBe( '{}' );
 	} );
 
 	test( 'skips the raw schedule entries that cannot be printed', async ( {
@@ -455,19 +455,20 @@ test.describe( 'clean page (HTTP)', () => {
 		} );
 	} );
 
-	test( 'currently lists the program of a slot left out of the schedule (K78)', async ( {
+	test( 'lists only the programs of the printed slots (K78)', async ( {
 		request,
 	} ) => {
-		await withRawSchedule( async ( { a, b, c } ) => {
+		await withRawSchedule( async ( { a, b } ) => {
 			const html = await getHtml( request, readSeed().urls.minimal );
 
-			// C only has a slot without start, which RADPLAPAG_SCHEDULE drops;
-			// A's first slot has start '0'. The draft program is left out (C10).
+			// C only has a slot without start, which RADPLAPAG_SCHEDULE drops,
+			// so C is not listed; A's first printed slot is on Friday. The
+			// draft program is left out (C10).
 			expect(
 				readGlobals( html ).RADPLAPAG_PROGRAMS.map(
 					( program ) => program.id
 				)
-			).toEqual( [ b, c, a ] );
+			).toEqual( [ b, a ] );
 		} );
 	} );
 
