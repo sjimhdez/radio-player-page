@@ -109,30 +109,34 @@ final class FieldSanitizerTest extends TestCase {
 	}
 
 	/**
-	 * Background and logo that are not images go to 0, without an error (K37).
+	 * Background and logo that are not images are not written (null) and each one
+	 * reports its error, after the required field codes (K37, ADR 0048).
 	 */
-	public function test_currently_non_image_attachments_go_to_zero_without_notice() {
-		$result = Field_Sanitizer::sanitize( self::input(), self::is_image( false ), self::mime_type( 'audio/mpeg' ), array() );
+	public function test_non_image_attachments_are_kept_with_an_error() {
+		$input               = self::input();
+		$input['stream_url'] = '';
+		$result              = Field_Sanitizer::sanitize( $input, self::is_image( false ), self::mime_type( 'audio/mpeg' ), array() );
 
-		$this->assertSame( 0, $result['values']['background_id'] );
-		$this->assertSame( 0, $result['values']['logo_id'] );
+		$this->assertNull( $result['values']['background_id'] );
+		$this->assertNull( $result['values']['logo_id'] );
 		$this->assertSame( 7, $result['values']['intro_audio_id'] );
-		$this->assertSame( array(), $result['errors'] );
+		$this->assertSame( array( 'stream_url_required', 'background_not_image', 'logo_not_image' ), $result['errors'] );
 	}
 
 	/**
-	 * Only an audio/mpeg intro is kept; anything else goes to 0, without an error (K37).
+	 * Only an audio/mpeg intro is written; anything else is not written (null) and
+	 * reports its error (K37, ADR 0048).
 	 *
 	 * @dataProvider provide_non_mp3_mime
 	 *
 	 * @param mixed $mime What get_post_mime_type() returns.
 	 */
-	public function test_currently_non_mp3_intro_goes_to_zero_without_notice( $mime ) {
+	public function test_non_mp3_intro_is_kept_with_an_error( $mime ) {
 		$result = Field_Sanitizer::sanitize( self::input(), self::is_image( true ), self::mime_type( $mime ), array() );
 
-		$this->assertSame( 0, $result['values']['intro_audio_id'] );
+		$this->assertNull( $result['values']['intro_audio_id'] );
 		$this->assertSame( 5, $result['values']['background_id'] );
-		$this->assertSame( array(), $result['errors'] );
+		$this->assertSame( array( 'intro_not_mp3' ), $result['errors'] );
 	}
 
 	/**
@@ -262,9 +266,9 @@ final class FieldSanitizerTest extends TestCase {
 			array(
 				'stream_url'     => '',
 				'player_page'    => 34,
-				'background_id'  => 0,
-				'logo_id'        => 0,
-				'intro_audio_id' => 0,
+				'background_id'  => null,
+				'logo_id'        => null,
+				'intro_audio_id' => null,
 				'theme_color'    => 'neutral',
 				'visualizer'     => 'bars',
 			),

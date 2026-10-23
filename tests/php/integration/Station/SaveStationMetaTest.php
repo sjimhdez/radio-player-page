@@ -27,6 +27,10 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 	const PAGE_REQUIRED = 'Player Page is required. Please select a page.';
 	const PAGE_TAKEN    = 'This Player Page is already assigned to another station. Please choose a different page.';
 
+	const BACKGROUND_NOT_IMAGE = 'Background Image must be an image; the previous one was kept.';
+	const LOGO_NOT_IMAGE       = 'Logo Image must be an image; the previous one was kept.';
+	const INTRO_NOT_MP3        = 'Welcome Audio must be an MP3 file; the previous one was kept.';
+
 	/**
 	 * Fixture factory.
 	 *
@@ -364,12 +368,17 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Images must be images and the welcome audio must be `audio/mpeg`; otherwise 0.
+	 * Images must be images and the welcome audio must be `audio/mpeg`; otherwise
+	 * the stored value is kept and the field errors transient says so (K37, ADR 0048).
 	 */
-	public function test_invalid_attachments_become_zero() {
+	public function test_invalid_attachments_keep_the_stored_value() {
 		$ogg   = $this->factory_rpp->audio( 'Ogg', 'audio/ogg' );
 		$image = $this->factory_rpp->image( 'Image' );
+		$mp3   = $this->factory_rpp->audio( 'Mp3' );
 		$page  = $this->factory_rpp->page( 'Page' );
+		update_post_meta( $this->station, 'radplapag_station_background_id', $image );
+		update_post_meta( $this->station, 'radplapag_station_logo_id', $image );
+		update_post_meta( $this->station, 'radplapag_station_intro_audio_id', $mp3 );
 
 		$this->save(
 			array(
@@ -379,13 +388,13 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '0', $this->meta( 'background_id' ) );
-		$this->assertSame( '0', $this->meta( 'logo_id' ) );
-		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
-
-		$this->save( array( 'intro_audio_id' => (string) $ogg ) );
-
-		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
+		$this->assertSame( (string) $image, $this->meta( 'background_id' ) );
+		$this->assertSame( (string) $image, $this->meta( 'logo_id' ) );
+		$this->assertSame( (string) $mp3, $this->meta( 'intro_audio_id' ) );
+		$this->assertSame(
+			self::URL_REQUIRED . ' ' . self::PAGE_REQUIRED . ' ' . self::BACKGROUND_NOT_IMAGE . ' ' . self::LOGO_NOT_IMAGE . ' ' . self::INTRO_NOT_MP3,
+			$this->field_errors()
+		);
 	}
 
 	/**
@@ -404,21 +413,19 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, a welcome audio that is not MP3 (the media frame offers any audio)
-	 * replaces the previous one with 0 and the only notice is the field errors one,
-	 * which says nothing about the audio. In the CLI the URL is always missing
-	 * (class docblock), so the transient holds exactly that message. K37 of
-	 * docs/known-issues.md.
+	 * A welcome audio that is not MP3 (the media frame offered any audio) keeps the
+	 * previous one and says so. In the CLI the URL is always missing (class
+	 * docblock), so its message comes first. K37 of docs/known-issues.md.
 	 */
-	public function test_currently_non_mp3_welcome_audio_is_dropped_without_notice() {
+	public function test_non_mp3_welcome_audio_keeps_the_previous_one_with_a_notice() {
 		$mp3 = $this->factory_rpp->audio( 'Mp3' );
 		$ogg = $this->factory_rpp->audio( 'Ogg', 'audio/ogg' );
 		update_post_meta( $this->station, 'radplapag_station_intro_audio_id', $mp3 );
 
 		$this->save( array( 'intro_audio_id' => (string) $ogg ) );
 
-		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
-		$this->assertSame( self::URL_REQUIRED . ' ' . self::PAGE_REQUIRED, $this->field_errors() );
+		$this->assertSame( (string) $mp3, $this->meta( 'intro_audio_id' ) );
+		$this->assertSame( self::URL_REQUIRED . ' ' . self::PAGE_REQUIRED . ' ' . self::INTRO_NOT_MP3, $this->field_errors() );
 		$this->assertFalse( get_transient( 'radplapag_station_schedule_errors_' . $this->station ) );
 	}
 

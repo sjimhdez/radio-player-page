@@ -76,7 +76,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `includes/src/station/class-field-sanitizer.php`, `includes/src/wp/class-station-meta-saver.php`, `tests/php/unit/Station/FieldSanitizerTest.php`, `tests/php/integration/Station/StationMetaSaverTest.php`, `tests/php/integration/Station/SaveStationMetaTest.php`, `docs/known-issues.md`
 - Test: primero los `currently` de `FieldSanitizerTest` (dos) y de `SaveStationMetaTest` a regresión, más `test_invalid_attachments_become_zero` y `test_wrong_attachments_go_to_zero` (§4.3) con el valor anterior conservado y el mensaje. Todos en rojo.
 - Verificación: `npm run test:php:unit -- --filter FieldSanitizerTest && npm run test:php:integration -- --filter 'StationMetaSaverTest|SaveStationMetaTest' && npm run lint:phpstan`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): unit, 5 fallos («Failed asserting that 0 is null»: `test_non_image_attachments_are_kept_with_an_error` y los cuatro casos de `test_non_mp3_intro_is_kept_with_an_error`); integración, 3 (`test_wrong_attachments_keep_the_stored_value_with_a_message` sin transient; `test_invalid_attachments_keep_the_stored_value` y `test_non_mp3_welcome_audio_keeps_the_previous_one_with_a_notice` con la meta a 0). `test_removed_attachments_are_written_as_zero` (un 0 enviado se escribe) es guarda y ya pasaba. Tras el arreglo cayó `FieldSanitizerTest::test_values_with_errors`, fuera de la lista: el usuario aprobó que espere `null` (anotado en §4.3). Verde: unit 27/27, integración 58/58, PHPStan sin errores.
+- Changelog: «Saving a station with a background or logo that is not an image, or a welcome audio that is not an MP3, now keeps the previous one and says so.» Upgrade Notice: K37 conserva el adjunto anterior.
+- [x] hecha · commit: ver `git log` («fix(0010): keep a rejected attachment and report it (3.4)»)
 
 ### 3.5 K37: el selector de la bienvenida solo ofrece MP3 (≤ 30 min) — `fix-bug`
 - Qué: `library: { type: 'audio/mpeg' }` en `program-admin.js`. K37 pasa a «corregido (spec 0010)».
