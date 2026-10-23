@@ -57,7 +57,7 @@ if ( is_admin() ) {
  * @param array  $caps    Required capabilities (returned by map_meta_cap).
  * @param string $cap     Meta capability being checked (e.g. edit_post, delete_post).
  * @param int    $user_id User ID.
- * @param array  $args    Optional args; [0] is post ID for post meta caps.
+ * @param array  $args    Optional args; [0] is the post (ID or WP_Post) for post meta caps.
  * @return array Mapped capabilities.
  */
 function radplapag_map_cpt_meta_cap( array $caps, string $cap, int $user_id, array $args ): array {
@@ -65,11 +65,12 @@ function radplapag_map_cpt_meta_cap( array $caps, string $cap, int $user_id, arr
 	if ( ! in_array( $cap, $post_meta_caps, true ) ) {
 		return $caps;
 	}
-	$post_id = (int) ( $args[0] ?? 0 );
-	if ( $post_id <= 0 ) {
+	// Without a post, get_post() would fall back to the global post.
+	$post = empty( $args[0] ) ? null : get_post( $args[0] );
+	if ( ! $post ) {
 		return $caps;
 	}
-	$post_type = get_post_type( $post_id );
+	$post_type = $post->post_type;
 	if ( 'radplapag_station' !== $post_type && 'radplapag_program' !== $post_type ) {
 		return $caps;
 	}

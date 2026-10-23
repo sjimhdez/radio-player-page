@@ -411,6 +411,18 @@ final class CptTest extends WP_UnitTestCase {
 		$this->assertSame( array( 'x' ), radplapag_map_cpt_meta_cap( array( 'x' ), 'edit_post', 1, array( 0 ) ) );
 	}
 
+	/**
+	 * A call without a post does not fall back to the global post (get_post( 0 )
+	 * does): with the loop on a station it still leaves the capabilities alone.
+	 */
+	public function test_map_meta_cap_without_a_post_ignores_the_global_post() {
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Puts the loop on a station; tear_down() resets it.
+		$GLOBALS['post'] = get_post( $this->factory_rpp->station( 'Station' ) );
+
+		$this->assertSame( array( 'x' ), radplapag_map_cpt_meta_cap( array( 'x' ), 'edit_post', 1, array() ) );
+		$this->assertSame( array( 'x' ), radplapag_map_cpt_meta_cap( array( 'x' ), 'edit_post', 1, array( 0 ) ) );
+	}
+
 	// Editor.
 
 	/**
@@ -478,14 +490,13 @@ final class CptTest extends WP_UnitTestCase {
 
 	/**
 	 * `current_user_can( 'edit_post', $post )` with a WP_Post (core accepts an
-	 * object or an ID): the map_meta_cap filter casts the object to int, which
-	 * raises a PHP notice/warning and gives 1, so it does not see the station and
-	 * leaves the capabilities of core. K25 of docs/known-issues.md.
+	 * object or an ID): the map_meta_cap filter maps it to manage_options without
+	 * any PHP notice/warning, as with the ID. K25 of docs/known-issues.md.
 	 */
-	public function test_currently_map_meta_cap_casts_a_post_object_with_a_warning() {
+	public function test_map_meta_cap_accepts_a_post_object() {
 		$station = get_post( $this->factory_rpp->station( 'Station' ) );
 		$errors  = array();
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Captures the notice/warning of the cast instead of failing the test.
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Captures any notice/warning instead of failing the test.
 		set_error_handler(
 			static function ( $errno, $errstr ) use ( &$errors ) {
 				$errors[] = $errstr;
@@ -498,7 +509,7 @@ final class CptTest extends WP_UnitTestCase {
 			restore_error_handler();
 		}
 
-		$this->assertSame( array( 'x' ), $caps );
-		$this->assertSame( array( 'Object of class WP_Post could not be converted to int' ), $errors );
+		$this->assertSame( array( 'manage_options' ), $caps );
+		$this->assertSame( array(), $errors );
 	}
 }
