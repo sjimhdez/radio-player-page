@@ -36,7 +36,7 @@ La validación del horario en PHP y en el admin calcula los solapes con el model
 - Archivos: `includes/src/schedule/class-slot-validator.php`
 - Test: caracterización existente (`SlotValidatorTest`, `ScheduleVectorsTest`, `SanitizeScheduleTest`) sin editar; mutación temporal de `overlaps()` para verlos fallar.
 - Verificación: `npm run test:php:unit -- --filter 'SlotValidator|ScheduleVectors' && npm run test:php:integration -- --filter SanitizeSchedule && npm run lint:phpstan`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («refactor(0009): compute schedule overlaps in Slot_Validator with the week-interval model (3.1)»)
 
 ### 3.2 `schedule-rules.js`: solapes sobre el modelo (≤ 1 h)
 - Qué: `findSameDayOverlap()`, `findNextDayOverlap()` y `findPrevDayOverlap()` comparan con `overlaps()` sobre un intervalo de la fila (`intervalOf( day, slot )`, con `timeToMinutes()`). Mismos filtros de filas (`hidden`, sin horas, `isComplete()`), mismo orden y escrituras. Fuera `sameDayEnd()` y `crossesMidnight()`. El comentario «Not used yet» del bloque del modelo se actualiza.

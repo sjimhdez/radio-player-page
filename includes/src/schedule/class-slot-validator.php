@@ -20,11 +20,11 @@ defined( 'ABSPATH' ) || exit;
  * - `invalid_program`: the program ID is not in the names map.
  * - `format`: start or end is not HH:MM (00:00-23:59).
  * - `overlap`: a row overlaps an earlier-starting row of the same day.
- * - `cross_midnight_overlap`: a row that crosses midnight runs past the start of a
- *   row of the next day. The first one ends the check.
+ * - `cross_midnight_overlap`: a row overlaps a row of the next day. The first one
+ *   ends the check.
  *
- * A row with end <= start crosses midnight; start == end is a 24 h slot (C3 in
- * docs/known-issues.md).
+ * Overlaps are those of the week-interval model (Week_Interval, ADR 0044): a row
+ * with end < start crosses midnight and start == end is a 24 h slot.
  *
  * @since 3.5.0
  */
@@ -34,11 +34,6 @@ final class Slot_Validator {
 	 * HH:MM, 00:00 to 23:59.
 	 */
 	const TIME_REGEX = '/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/';
-
-	/**
-	 * Minutes in a day.
-	 */
-	const DAY_MINUTES = 1440;
 
 	/**
 	 * Sanitizes and validates a raw schedule.
@@ -97,16 +92,13 @@ final class Slot_Validator {
 					continue;
 				}
 
-				$start_min = Time::to_minutes( $start );
-				$end_min   = Time::to_minutes( $end );
-				$rows[]    = array(
+				$rows[] = array(
 					'program_id' => $program_id,
 					'name'       => $name,
 					'start'      => $start,
 					'end'        => $end,
 					'is_rerun'   => ! empty( $program['is_rerun'] ),
-					'start_min'  => $start_min,
-					'end_min'    => $end_min <= $start_min ? $end_min + self::DAY_MINUTES : $end_min,
+					'start_min'  => Time::to_minutes( $start ),
 				);
 			}
 
@@ -120,7 +112,7 @@ final class Slot_Validator {
 			$kept = array();
 			foreach ( $rows as $row ) {
 				foreach ( $kept as $other ) {
-					if ( $row['start_min'] < $other['end_min'] && $row['end_min'] > $other['start_min'] ) {
+					if ( self::overlap( $day, $row, $day, $other ) ) {
 						$errors[] = self::error( 'overlap', $day, $row['name'], $other['name'] );
 						continue 2;
 					}
@@ -147,7 +139,7 @@ final class Slot_Validator {
 	}
 
 	/**
-	 * Finds the first row that crosses midnight into a row of the next day.
+	 * Finds the first row that overlaps a row of the next day.
 	 *
 	 * Rows are already valid. Days are checked Monday to Sunday (Sunday's next day is
 	 * Monday) and rows in start order.
@@ -165,12 +157,11 @@ final class Slot_Validator {
 			}
 			$next_day = Week::KEYS[ ( $day_idx + 1 ) % 7 ];
 			foreach ( $schedule[ $day ] as $row ) {
-				$end_min = Time::to_minutes( $row['end'] );
-				if ( $end_min > Time::to_minutes( $row['start'] ) || empty( $schedule[ $next_day ] ) ) {
+				if ( empty( $schedule[ $next_day ] ) ) {
 					continue;
 				}
 				foreach ( $schedule[ $next_day ] as $next_row ) {
-					if ( $end_min > Time::to_minutes( $next_row['start'] ) ) {
+					if ( self::overlap( $day, $row, $next_day, $next_row ) ) {
 						return self::error(
 							'cross_midnight_overlap',
 							$day,
@@ -184,6 +175,23 @@ final class Slot_Validator {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Checks if two valid rows overlap as intervals of the week.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param string                            $day       Day key of the first row.
+	 * @param array{start: string, end: string} $row       First row.
+	 * @param string                            $other_day Day key of the second row.
+	 * @param array{start: string, end: string} $other     Second row.
+	 * @return bool True if they share at least one minute.
+	 */
+	private static function overlap( string $day, array $row, string $other_day, array $other ): bool {
+		$a = Week_Interval::from_slot( $day, $row['start'], $row['end'] );
+		$b = Week_Interval::from_slot( $other_day, $other['start'], $other['end'] );
+		return null !== $a && null !== $b && Week_Interval::overlaps( $a, $b );
 	}
 
 	/**
