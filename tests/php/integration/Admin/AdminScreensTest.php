@@ -39,8 +39,6 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'saturday',
 		'sunday',
 		'invalidTimeFormat',
-		'completeTimeFields',
-		'startEndSame',
 		'unnamedProgram',
 		'timeSlotOverlapsWith',
 		'timeSlotOverlapsWithMessage',

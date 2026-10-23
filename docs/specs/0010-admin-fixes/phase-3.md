@@ -145,7 +145,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `admin/admin-strings.php`, `tests/php/integration/Admin/AdminScreensTest.php`, `docs/known-issues.md`
 - Test: primero `STRING_KEYS` sin las dos claves, en rojo.
 - Verificación: `grep -rn "completeTimeFields\|startEndSame" admin includes tests/js; npm run test:php:integration -- --filter test_admin_strings_keys && npm test`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): `test_admin_strings_keys` falla con «Failed asserting that two arrays are identical» por `completeTimeFields` y `startEndSame` de más. El `grep` previo solo las encuentra en `admin-strings.php`, el test y el soporte `mount-station-screen.js` (marcador `completeTimeFields` sin uso, que también sale). Verde: `test_admin_strings_keys` (90 aserciones), `npm test` 315/315, el `grep` vacío y `npm run check`.
+- Changelog: «Removed two unused translatable strings from the station screen.» (ADR 0047: `radplapagAdmin.strings.completeTimeFields` y `startEndSame` pasan a `undefined`).
+- [x] hecha · commit: ver `git log` («fix(0010): drop two unused admin strings (3.11)»)
 
 ## Decisiones abiertas → ADR
 Las de la fase van en 0047 y 0048 (3.1). Si un test de caracterización que no está en la lista del contexto cae, se para y se pregunta.

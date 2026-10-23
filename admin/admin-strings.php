@@ -36,8 +36,6 @@ function radplapag_get_admin_strings(): array {
 			'saturday'                    => __( 'Saturday', 'radio-player-page' ),
 			'sunday'                      => __( 'Sunday', 'radio-player-page' ),
 			'invalidTimeFormat'           => __( 'Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
-			'completeTimeFields'          => __( 'Please complete all time fields.', 'radio-player-page' ),
-			'startEndSame'                => __( 'Start and end times cannot be the same.', 'radio-player-page' ),
 			'unnamedProgram'              => __( 'Unnamed Radio Show', 'radio-player-page' ),
 			'timeSlotOverlapsWith'        => __( 'This time slot overlaps with', 'radio-player-page' ),
 			/* translators: %s: program name or time slot description. */
