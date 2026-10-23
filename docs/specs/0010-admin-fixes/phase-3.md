@@ -127,7 +127,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `includes/src/program/class-field-sanitizer.php`, `includes/src/wp/class-program-meta-saver.php`, `tests/php/unit/Program/FieldSanitizerTest.php`, `tests/php/integration/Cpt/SaveProgramMetaTest.php`, `docs/known-issues.md`
 - Test: primero los `currently` de K5 (unit e integración) y de K34 a regresión, y los dos `test_truncation_counts_bytes_not_characters` a «…counts_characters» (200 «é» → 200), en rojo.
 - Verificación: `npm run test:php:unit -- --filter FieldSanitizerTest && npm run test:php:integration -- --filter SaveProgramMetaTest`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): unit «…counts_characters» (200 «é» → 128) y «…cut_never_splits_a_character» (queda `\xC3`); integración «…counts_characters», «…with_a_character_at_the_limit_is_saved» (se guarda vacío) y «…keep_backslashes» («ACDC o/»). Los `currently` de K5 pasan a regresión con «éé» en el límite, para que el corte caiga entre caracteres. `mb_*` sin comprobar la extensión: WordPress trae su reserva (D10). Verde: `FieldSanitizerTest` 27/27, `SaveProgramMetaTest` 16/16 y `npm run check`.
+- Changelog: «Program descriptions are now limited by characters, so text with accents is no longer saved empty, and they keep their backslashes.»
+- [x] hecha · commit: ver `git log` («fix(0010): cut program descriptions by characters and keep backslashes (3.9)»)
 
 ### 3.10 «Entrada publicada» con error: la redirección sin `message` (≤ 1 h) — `fix-bug`
 - Qué (D9): `radplapag_station_redirect_without_message( $location, $post_id )`, en `includes/radplapag-station-cpt.php`, enganchada a `redirect_post_location` (10, 2) dentro de `is_admin()`. Si el post es una emisora y existe alguno de los dos transients de errores, devuelve `remove_query_arg( 'message', $location )`; si no, `$location` tal cual. `HooksTest::EXPECTED` añade la fila. El ayudante `save()` del grupo «server» espera el POST y la carga (excepción de la 3.1), y comprueba que no hay `#message`.

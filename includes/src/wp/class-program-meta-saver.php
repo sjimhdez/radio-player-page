@@ -24,7 +24,7 @@ final class Program_Meta_Saver {
 	 * Saves the program fields.
 	 *
 	 * Writes in the order of 3.4.2: description, extended description and logo.
-	 * The values are not slashed, so update_post_meta() drops their backslashes (K34).
+	 * The descriptions are slashed, since update_post_meta() unslashes them (K34).
 	 *
 	 * @since 3.5.0
 	 *
@@ -42,8 +42,8 @@ final class Program_Meta_Saver {
 			'wp_attachment_is_image'
 		);
 
-		update_post_meta( $post_id, 'radplapag_program_description', $values['description'] );
-		update_post_meta( $post_id, 'radplapag_program_extended_description', $values['extended_description'] );
+		update_post_meta( $post_id, 'radplapag_program_description', wp_slash( $values['description'] ) );
+		update_post_meta( $post_id, 'radplapag_program_extended_description', wp_slash( $values['extended_description'] ) );
 		update_post_meta( $post_id, 'radplapag_program_logo_id', $values['logo_id'] );
 	}
 }
