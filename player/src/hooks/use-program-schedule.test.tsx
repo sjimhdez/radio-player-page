@@ -17,8 +17,13 @@ const SCHEDULE: Schedule = {
   ],
 }
 
-function setGlobals(timezoneOffset: number, schedule: unknown = SCHEDULE) {
-  window.RADPLAPAG_CONFIG = { streamUrl: '', siteTitle: '', timezoneOffset } as PluginConfig
+function setGlobals(timezoneOffset: number, schedule: unknown = SCHEDULE, timezone?: string) {
+  window.RADPLAPAG_CONFIG = {
+    streamUrl: '',
+    siteTitle: '',
+    timezoneOffset,
+    timezone,
+  } as PluginConfig
   window.RADPLAPAG_PROGRAMS = PROGRAMS
   window.RADPLAPAG_SCHEDULE = schedule as Schedule
 }
@@ -68,6 +73,17 @@ describe('useProgramSchedule', () => {
     const { result } = renderHook(() => useProgramSchedule())
 
     expect(names(result.current)).toEqual({ active: 'Morning Show', incoming: null })
+  })
+
+  it('follows the station daylight saving time with its zone (C9)', () => {
+    // 2026-03-08 is a Sunday; New York is at UTC-4 from 07:00Z, so 13:30Z is 09:30,
+    // not the 08:30 the served offset (-5) gives.
+    vi.setSystemTime(new Date('2026-03-08T13:30:00Z'))
+    setGlobals(-5, { sunday: SCHEDULE.monday }, 'America/New_York')
+
+    const { result } = renderHook(() => useProgramSchedule())
+
+    expect(names(result.current)).toEqual({ active: 'News', incoming: null })
   })
 
   it('returns nulls without a schedule', () => {

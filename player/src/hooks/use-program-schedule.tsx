@@ -31,14 +31,14 @@ const NO_SCHEDULE_STORE: MinuteStore<ProgramScheduleResult> = {
  * @returns Object with active and incoming program, or null for each if none
  */
 function useProgramSchedule(): ProgramScheduleResult {
-  const { schedule, programs, timezoneOffset } = useConfig()
+  const { schedule, programs, timezoneOffset, timezone } = useConfig()
 
   const store = useMemo(
     () =>
       schedule
-        ? createMinuteStore(() => getNowPlaying(schedule, programs, timezoneOffset))
+        ? createMinuteStore(() => getNowPlaying(schedule, programs, timezoneOffset, timezone))
         : NO_SCHEDULE_STORE,
-    [schedule, programs, timezoneOffset],
+    [schedule, programs, timezoneOffset, timezone],
   )
 
   return useSyncExternalStore(store.subscribe, store.getSnapshot)

@@ -1,6 +1,7 @@
 import {
   formatTimeInTimezone,
   getBrowserTimezoneOffset,
+  getStationOffset,
   getTimezoneDifference,
 } from 'src/utils/timezone'
 
@@ -24,18 +25,20 @@ export interface TransmissionTime {
 /**
  * Computes the station and browser clocks for the current minute.
  *
- * The station offset comes from WordPress, fixed when the page is served; the browser
- * offset is read now, so it follows the browser's daylight saving time.
+ * Both offsets are read now: the station one from the site zone when there is one, so
+ * both clocks follow daylight saving time (ADR 0046).
  *
- * @param timezoneOffset - Station offset in hours from UTC
+ * @param timezoneOffset - Station offset in hours from UTC served with the page (fallback)
+ * @param timezone - Site IANA zone; its current offset wins
  * @returns TransmissionTime with both times as "HH:MM" and their difference
  */
-export function getTransmissionTime(timezoneOffset: number): TransmissionTime {
+export function getTransmissionTime(timezoneOffset: number, timezone?: string): TransmissionTime {
+  const stationOffset = getStationOffset(timezone, timezoneOffset)
   const browserOffset = getBrowserTimezoneOffset()
-  const timeDifference = getTimezoneDifference(timezoneOffset, browserOffset)
+  const timeDifference = getTimezoneDifference(stationOffset, browserOffset)
 
   return {
-    transmissionTime: formatTimeInTimezone(timezoneOffset, false),
+    transmissionTime: formatTimeInTimezone(stationOffset, false),
     browserTime: formatTimeInTimezone(browserOffset, false),
     timeDifference,
     hasDifference: Math.abs(timeDifference) > DIFFERENCE_THRESHOLD,

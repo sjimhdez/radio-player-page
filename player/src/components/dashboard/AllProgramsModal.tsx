@@ -10,7 +10,7 @@ import Button from '@mui/material/Button'
 import Collapse from '@mui/material/Collapse'
 import { useTranslation } from 'react-i18next'
 import useConfig from 'src/hooks/use-config'
-import { getCurrentTimeInTimezone } from 'src/utils/timezone'
+import { getCurrentTimeInTimezone, getStationOffset } from 'src/utils/timezone'
 import { getAllProgramsWithSlots, type ProgramWithSlots } from 'src/utils/program-schedule'
 import Chip from '@mui/material/Chip'
 import IconButton from '@mui/material/IconButton'
@@ -203,9 +203,9 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
   const config = useConfig()
   const schedule = config.schedule
   const programs = config.programs
-  const timezoneOffset = config.timezoneOffset
-
-  const { dayOfWeek: currentDayOfWeek, currentTime } = getCurrentTimeInTimezone(timezoneOffset)
+  const { dayOfWeek: currentDayOfWeek, currentTime } = getCurrentTimeInTimezone(
+    getStationOffset(config.timezone, config.timezoneOffset),
+  )
 
   const programsWithSlots: ProgramWithSlots[] = getAllProgramsWithSlots(
     schedule,

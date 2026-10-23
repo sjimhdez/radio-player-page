@@ -68,7 +68,8 @@ El player sigue la zona horaria del sitio (y su horario de verano) mientras la p
 - Archivos: `player/src/core/clock/transmission-time.ts` (+ test), `player/src/hooks/use-program-schedule.tsx` (+ test), `player/src/hooks/use-transmission-time.tsx` (+ test), `player/src/components/dashboard/ScheduleModal.tsx`, `player/src/components/dashboard/AllProgramsModal.tsx`, `docs/known-issues.md`
 - Test: primero (regresión)
 - Verificación: `npm --prefix player run check && npx playwright test tests/e2e/modals.spec.ts tests/e2e/schedule.spec.ts`
-- [ ] hecha · commit: —
+- Rojo visto: los tres tests C9 usaban el desfase servido (−5): `transmission-time` daba `03:30`, `use-transmission-time` `02:00` tras el cambio y `use-program-schedule` «Morning Show» en vez de «News». Los modales no tienen test unitario; los cubren `modals.spec.ts` y `schedule.spec.ts` (26/26, con el seed en `Asia/Kolkata`).
+- [x] hecha · commit: ver `git log` («fix(0009): follow the site zone in the player clock, hooks and modals (4.5)»)
 
 ### 4.6 K10: diferencia del reloj en `±H:MM` (`fix-bug`) (≤ 1 h)
 - Qué: rojo primero: `timezone.test.ts` K10 → «formats 45-minute differences exactly and symmetrically» (`5.75` → `+5:45`, `-5.75` → `-5:45`, `12.75` → `+12:45`) y las filas `5.5`/`-9.5` → `+5:30`/`-9:30` (ver «Contexto»); `getTimezoneDifference()` en minutos enteros (caso con ruido de coma flotante). Después `formatTimezoneDifference()` y `getTimezoneDifference()`. `known-issues.md` K10 → corregido; nota de la release en `docs/specs/README.md` (K10).
