@@ -14,6 +14,7 @@ Estado: en curso · Inicio: 2026-10-23 · ADRs: 0045 (nuevo), 0044, 0019, 0028, 
   - `clean-page.spec.ts` «skips the raw schedule entries that cannot be printed»: desaparecen la franja del borrador y la de `'tagged id'` (un ID no numérico es un programa que no existe).
   - Admin: el estado va en el texto de la opción («Draft Show (Draft)») para todo programa no público del selector; el fixture `tests/fixtures/admin/station-meta-box.html` se regenera con su test.
   - `BlockDataTest::test_unknown_program_slot_has_empty_name` (integración) pasa a «la franja de un programa que no existe no sale», literal de §2 («o no existe … ni con “—”») (aprobado con el plan).
+  - `AdminScreensTest::test_station_screen_localizes_radplapag_admin`: `radplapagAdmin.programs` es `radplapag_get_station_programs_for_select( $post_id )` (con `label` y `public`), no `radplapag_get_admin_strings()['programs']` (aprobado en la 2.8, 2026-10-23).
 - Cualquier otro test de caracterización que caiga: se para y se pregunta.
 
 ## Objetivo
@@ -100,7 +101,10 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Archivos: `includes/radplapag-program-cpt.php`, `includes/radplapag-station-cpt.php`, `admin/admin.php`, `admin/admin-strings.php`, `tests/php/integration/Admin/AdminScreensTest.php`, `tests/fixtures/admin/station-meta-box.html`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm run test:php:integration -- --filter AdminScreens && npm test`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («fix(0009): keep the program of each slot with its status and warn when it is not public in the station meta box (2.8)»)
+- Rojo: `Call to undefined function radplapag_get_station_programs_for_select()`; la franja del programa en la papelera, sin selección (`Array ()`); el borrador y el de contraseña, `>Night Owl</option>` sin estado.
+- Hecho: `radplapag_get_station_programs_for_select()` (lista de siempre por título y después los programas de las franjas en otro estado, por orden de aparición; descarta IDs que no son programas), el meta box con `label` y el aviso `<div class="radplapag-program-notice">` dentro de la fila, tras el mensaje de error; `radplapagAdmin.programs` con esa lista; `programNotPublished`; la función nueva en `PublicApiTest`; una regla de `admin/css/admin.css` para el aviso (ancho completo en la fila flex). Excepción aprobada: `test_station_screen_localizes_radplapag_admin` (ver «Contexto»). El JS de `station-admin.js` aún construye las opciones con `name` (2.9).
+- Changelog: en el admin, la franja de un programa no publicado conserva su programa, con su estado, y avisa de que no sale en el sitio (con la 2.9).
 
 ### 2.9 Admin JS: el aviso al elegir un programa no publicado (≤ 1 h)
 - Qué: `station-admin.js` construye las opciones con `label`, muestra u oculta el aviso al cambiar el selector (y en filas nuevas) con `textContent`; la validación acepta los programas no públicos de la lista, así que se puede enviar. `SanitizeScheduleTest` y `SlotValidatorTest`: `test_currently_accepts_draft_program` → `test_accepts_draft_program` (mismo comportamiento). Fila C10 y K41 → corregido.

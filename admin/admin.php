@@ -60,6 +60,9 @@ function radplapag_admin_scripts( $hook_suffix ) { // phpcs:ignore Generic.CodeA
 			array_merge(
 				radplapag_get_admin_strings(),
 				array(
+					'programs'            => function_exists( 'radplapag_get_station_programs_for_select' )
+						? radplapag_get_station_programs_for_select( $post_id )
+						: array(),
 					'assignedPlayerPages' => function_exists( 'radplapag_get_player_pages_assigned_to_other_stations' )
 						? radplapag_get_player_pages_assigned_to_other_stations( $post_id )
 						: array(),

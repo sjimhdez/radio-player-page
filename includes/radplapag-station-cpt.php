@@ -461,7 +461,8 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 		'sunday'    => __( 'Sunday', 'radio-player-page' ),
 	);
 
-	$cpt_programs = radplapag_get_all_programs_for_select();
+	$cpt_programs      = radplapag_get_station_programs_for_select( $post->ID );
+	$public_by_program = wp_list_pluck( $cpt_programs, 'public', 'id' );
 	?>
 	<div id="radplapag-station-cpt-container">
 		<div class="radplapag-schedule-wrapper">
@@ -502,10 +503,9 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 									<option value=""><?php esc_html_e( 'Select Radio Show', 'radio-player-page' ); ?></option>
 									<?php
 									foreach ( $cpt_programs as $p ) :
-										$p_id  = (int) $p['id'];
-										$pname = isset( $p['name'] ) ? $p['name'] : '';
+										$p_id = (int) $p['id'];
 										?>
-										<option value="<?php echo esc_attr( $p_id ); ?>" <?php selected( $prog_id_int > 0 && $prog_id_int === $p_id ); ?>><?php echo esc_html( $pname ); ?></option>
+										<option value="<?php echo esc_attr( $p_id ); ?>" <?php selected( $prog_id_int > 0 && $prog_id_int === $p_id ); ?>><?php echo esc_html( $p['label'] ); ?></option>
 									<?php endforeach; ?>
 								</select>
 								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" value="<?php echo esc_attr( $prog_start ); ?>" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">
@@ -519,6 +519,9 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 									<a href="#" class="submitdelete radplapag-remove-program"><?php esc_html_e( 'Remove Time Slot', 'radio-player-page' ); ?></a>
 								</div>
 								<div class="radplapag-program-error-message" style="display: none;"></div>
+								<?php if ( isset( $public_by_program[ $prog_id_int ] ) && ! $public_by_program[ $prog_id_int ] ) : ?>
+									<div class="radplapag-program-notice"><?php esc_html_e( 'This program is not published; this time slot is not shown on the site.', 'radio-player-page' ); ?></div>
+								<?php endif; ?>
 							</div>
 						<?php endforeach; ?>
 					</div>

@@ -192,6 +192,61 @@ function radplapag_get_all_programs_for_select() {
 }
 
 /**
+ * Gets the programs for the schedule dropdowns of a station (ADR 0045).
+ *
+ * The list of radplapag_get_all_programs_for_select() plus the program of each saved
+ * slot in any other status, so the slot keeps its program. Each one has its status in
+ * the label unless it is public (published and without password).
+ *
+ * @since 3.5.0
+ * @param int $station_id Post ID of radplapag_station; 0 for a new station.
+ * @return array<int, array{id: int, name: string, label: string, public: bool}> Published and draft programs by title, then the other programs of the slots in the order they first appear.
+ */
+function radplapag_get_station_programs_for_select( $station_id ) {
+	$ids           = wp_list_pluck( radplapag_get_all_programs_for_select(), 'id' );
+	$schedule_json = get_post_meta( (int) $station_id, 'radplapag_station_schedule', true );
+	$schedule      = is_string( $schedule_json ) ? json_decode( $schedule_json, true ) : null;
+	if ( is_array( $schedule ) ) {
+		$ids = array_values( array_unique( array_merge( $ids, \RadioPlayerPage\Schedule\Schedule_View::program_ids( $schedule ) ) ) );
+	}
+
+	$statuses = array(
+		'draft'   => __( 'Draft', 'radio-player-page' ),
+		'pending' => __( 'Pending', 'radio-player-page' ),
+		'future'  => __( 'Scheduled', 'radio-player-page' ),
+		'private' => __( 'Private', 'radio-player-page' ),
+		'trash'   => __( 'Trash', 'radio-player-page' ),
+	);
+	$out      = array();
+	foreach ( $ids as $id ) {
+		$post = get_post( (int) $id );
+		if ( ! $post || 'radplapag_program' !== $post->post_type ) {
+			continue;
+		}
+		$is_public = 'publish' === $post->post_status && '' === $post->post_password;
+		$label     = $post->post_title;
+		if ( ! $is_public ) {
+			if ( 'publish' === $post->post_status ) {
+				$status = __( 'Password protected', 'radio-player-page' );
+			} elseif ( isset( $statuses[ $post->post_status ] ) ) {
+				$status = $statuses[ $post->post_status ];
+			} else {
+				$status = $post->post_status;
+			}
+			/* translators: 1: program name, 2: program status, such as Draft or Trash. */
+			$label = sprintf( __( '%1$s (%2$s)', 'radio-player-page' ), $post->post_title, $status );
+		}
+		$out[] = array(
+			'id'     => (int) $post->ID,
+			'name'   => $post->post_title,
+			'label'  => $label,
+			'public' => $is_public,
+		);
+	}
+	return $out;
+}
+
+/**
  * Adds meta boxes for program description, extended description and logo.
  *
  * @since 3.3.0
