@@ -33,7 +33,7 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `admin/js/station-admin.js`
 - Test: caracterización existente (~110 tests del DOM en `station-fields.test.js` y `station-validation.test.js`), sin editar.
 - Verificación: `npm test && npm run lint:js`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («refactor(0010): unify the schedule revalidation and the day list (1.1)»)
 
 ### 1.2 `nextIndex()` y un solo punto de pintado del error (≤ 30 min)
 - Qué: `nextIndex( dayWrapper )` con el comportamiento de hoy (número de filas); `showProgramError`/`clearProgramError` pasan a `setRowError( row, message )`/`clearRowError( row )`. Sin cambio de comportamiento.

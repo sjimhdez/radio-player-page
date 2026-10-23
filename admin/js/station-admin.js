@@ -294,65 +294,61 @@
 		return { valid: true };
 	}
 
-	function revalidateAdjacentDays( programRow, scheduleWrapper, dayWrapper ) {
-		if ( ! scheduleWrapper || ! dayWrapper ) {
+	function dayRows( scheduleWrapper, day ) {
+		const dayWrapper = scheduleWrapper.querySelector(
+			'.radplapag-schedule-day[data-day="' + day + '"]'
+		);
+		return dayWrapper
+			? dayWrapper.querySelectorAll( '.radplapag-program-row' )
+			: [];
+	}
+
+	/**
+	 * Validates every row of a day, in order.
+	 *
+	 * @param {Element} scheduleWrapper Element that holds the schedule days.
+	 * @param {string}  day             Day key.
+	 * @param {Object}  [options]       except: row left out; skipHidden: leave
+	 *                                  out the hidden rows.
+	 */
+	function revalidateDay( scheduleWrapper, day, options ) {
+		const opts = options || {};
+		dayRows( scheduleWrapper, day ).forEach( function ( row ) {
+			if ( row === opts.except ) {
+				return;
+			}
+			if (
+				opts.skipHidden &&
+				window.getComputedStyle( row ).display === 'none'
+			) {
+				return;
+			}
+			validateProgramRow( row );
+		} );
+	}
+
+	/**
+	 * Validates the visible rows of the next day, then of the previous one,
+	 * wrapping the week.
+	 *
+	 * @param {Element} scheduleWrapper Element that holds the schedule days.
+	 * @param {string}  day             Day key.
+	 * @param {Object}  [options]       legacyRemoval: as the removal does today,
+	 *                                  no wrap and hidden rows too (K16).
+	 */
+	function revalidateAround( scheduleWrapper, day, options ) {
+		const rules = scheduleRules();
+		const index = rules.DAYS.indexOf( day );
+		if ( index === -1 ) {
 			return;
 		}
-		const currentDay = dayWrapper.getAttribute( 'data-day' );
-		if ( ! currentDay ) {
-			return;
+		const legacyRemoval = !! ( options && options.legacyRemoval );
+		const neighbour = { skipHidden: ! legacyRemoval };
+		if ( ! legacyRemoval || index < rules.DAYS.length - 1 ) {
+			revalidateDay( scheduleWrapper, rules.nextDay( day ), neighbour );
 		}
-		const dayMap = {
-			monday: 'tuesday',
-			tuesday: 'wednesday',
-			wednesday: 'thursday',
-			thursday: 'friday',
-			friday: 'saturday',
-			saturday: 'sunday',
-			sunday: 'monday',
-		};
-		const prevDayMap = {
-			monday: 'sunday',
-			tuesday: 'monday',
-			wednesday: 'tuesday',
-			thursday: 'wednesday',
-			friday: 'thursday',
-			saturday: 'friday',
-			sunday: 'saturday',
-		};
-		const nextDay = dayMap[ currentDay ];
-		if ( nextDay ) {
-			const nextDayWrapper = scheduleWrapper.querySelector(
-				'.radplapag-schedule-day[data-day="' + nextDay + '"]'
-			);
-			if ( nextDayWrapper ) {
-				nextDayWrapper
-					.querySelectorAll( '.radplapag-program-row' )
-					.forEach( function ( row ) {
-						if (
-							window.getComputedStyle( row ).display !== 'none'
-						) {
-							validateProgramRow( row );
-						}
-					} );
-			}
-		}
-		const prevDay = prevDayMap[ currentDay ];
-		if ( prevDay ) {
-			const prevDayWrapper = scheduleWrapper.querySelector(
-				'.radplapag-schedule-day[data-day="' + prevDay + '"]'
-			);
-			if ( prevDayWrapper ) {
-				prevDayWrapper
-					.querySelectorAll( '.radplapag-program-row' )
-					.forEach( function ( row ) {
-						if (
-							window.getComputedStyle( row ).display !== 'none'
-						) {
-							validateProgramRow( row );
-						}
-					} );
-			}
+		if ( ! legacyRemoval || index > 0 ) {
+			revalidateDay( scheduleWrapper, rules.prevDay( day ), neighbour );
 		}
 	}
 
@@ -573,27 +569,14 @@
 							const dayWrapper = programRow.closest(
 								'.radplapag-schedule-day'
 							);
-							if ( dayWrapper ) {
-								dayWrapper
-									.querySelectorAll(
-										'.radplapag-program-row'
-									)
-									.forEach( function ( row ) {
-										if ( row !== programRow ) {
-											validateProgramRow( row );
-										}
-									} );
-							}
 							const scheduleWrapper = programRow.closest(
 								'.radplapag-schedule-wrapper'
 							);
-							if ( scheduleWrapper && dayWrapper ) {
-								revalidateAdjacentDays(
-									programRow,
-									scheduleWrapper,
-									dayWrapper
-								);
-							}
+							const day = dayWrapper.getAttribute( 'data-day' );
+							revalidateDay( scheduleWrapper, day, {
+								except: programRow,
+							} );
+							revalidateAround( scheduleWrapper, day );
 							const dayProgramsList = dayWrapper.querySelector(
 								'.radplapag-programs-list'
 							);
@@ -660,62 +643,12 @@
 							'.radplapag-schedule-wrapper'
 						);
 						programRow.remove();
-						if ( dayWrapper ) {
-							dayWrapper
-								.querySelectorAll( '.radplapag-program-row' )
-								.forEach( function ( row ) {
-									validateProgramRow( row );
-								} );
-						}
 						if ( scheduleWrapper && dayWrapper ) {
-							const currentDay =
-								dayWrapper.getAttribute( 'data-day' );
-							const days = [
-								'monday',
-								'tuesday',
-								'wednesday',
-								'thursday',
-								'friday',
-								'saturday',
-								'sunday',
-							];
-							const currentDayIndex = days.indexOf( currentDay );
-							if ( currentDayIndex < days.length - 1 ) {
-								const nextDay = days[ currentDayIndex + 1 ];
-								const nextDayWrapper =
-									scheduleWrapper.querySelector(
-										'.radplapag-schedule-day[data-day="' +
-											nextDay +
-											'"]'
-									);
-								if ( nextDayWrapper ) {
-									nextDayWrapper
-										.querySelectorAll(
-											'.radplapag-program-row'
-										)
-										.forEach( function ( row ) {
-											validateProgramRow( row );
-										} );
-								}
-							}
-							if ( currentDayIndex > 0 ) {
-								const prevDay = days[ currentDayIndex - 1 ];
-								const prevDayWrapper =
-									scheduleWrapper.querySelector(
-										'.radplapag-schedule-day[data-day="' +
-											prevDay +
-											'"]'
-									);
-								if ( prevDayWrapper ) {
-									prevDayWrapper
-										.querySelectorAll(
-											'.radplapag-program-row'
-										)
-										.forEach( function ( row ) {
-											validateProgramRow( row );
-										} );
-								}
-							}
+							const day = dayWrapper.getAttribute( 'data-day' );
+							revalidateDay( scheduleWrapper, day );
+							revalidateAround( scheduleWrapper, day, {
+								legacyRemoval: true,
+							} );
 						}
 					}
 				}
