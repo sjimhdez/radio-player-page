@@ -34,7 +34,6 @@ export const MARKER_STRINGS = {
 	allFieldsRequired: '[required]',
 	pleaseSelectProgram: '[invalid_program]',
 	invalidTimeFormat: '[format]',
-	completeTimeFields: '[complete_time_fields]',
 	timeSlotOverlapsWithMessage: '[overlap] %s',
 };
 

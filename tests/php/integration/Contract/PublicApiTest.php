@@ -94,6 +94,7 @@ final class PublicApiTest extends WP_UnitTestCase {
 			'radplapag_render_station_schedule_meta_box' => '($post)',
 			'radplapag_save_station_meta'                => '($post_id)',
 			'radplapag_station_schedule_errors_notice'   => '()',
+			'radplapag_station_redirect_without_message' => '($location, $post_id)',
 			'radplapag_get_player_pages_assigned_to_other_stations' => '($exclude_post_id = 0)',
 			'radplapag_station_edit_scripts'             => '()',
 		),

@@ -11,13 +11,14 @@
 									<option value="103" >Free Page</option>
 									<option value="101"  selected='selected'>Main Player</option>
 									<option value="102" >Other Player</option>
-							</select>
+											</select>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
-		</p>
-		<p class="radplapag-field-wrap" data-field="stream_url">
+								</p>
+		<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="http">
 			<label for="radplapag_station_stream_url"><strong>Streaming URL <span class="required">*</span></strong></label><br>
 			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="https://stream.example.test/live.mp3" class="large-text radplapag-field-input radplapag-stream-url" placeholder="https://my.station.com:8000/stream">
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
+			<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice" hidden>This stream uses http:// and this site uses https://; browsers block it, so it will not play.</span>
 		</p>
 	</div>
 	<div class="radplapag-form-row">
@@ -84,19 +85,22 @@
 	</div>
 		<div id="radplapag-station-cpt-container">
 		<div class="radplapag-schedule-wrapper">
-							<div class="radplapag-schedule-day" data-day="monday">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">Monday</h4>
+							<fieldset class="radplapag-schedule-day" data-day="monday">
+					<legend class="radplapag-schedule-day-legend">Monday</legend>
 					<div class="radplapag-programs-list">
 													<div class="radplapag-program-row" data-program-index="1">
-								<select name="radplapag_station_schedule[monday][1][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">
+								<label class="screen-reader-text" for="radplapag-slot-monday-1-program">Radio Show</label>
+								<select name="radplapag_station_schedule[monday][1][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="radplapag-slot-monday-1-program">
 									<option value="">Select Radio Show</option>
 																			<option value="203" >Draft Show (Draft)</option>
 																			<option value="201"  selected='selected'>Morning Show</option>
 																			<option value="202" >Night Owl</option>
 																	</select>
-								<input type="time" name="radplapag_station_schedule[monday][1][start]" value="07:00" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">
+								<label class="screen-reader-text" for="radplapag-slot-monday-1-start">Start time</label>
+								<input type="time" name="radplapag_station_schedule[monday][1][start]" value="07:00" class="radplapag-program-start" style="width: 100px; margin-right: 5px;" id="radplapag-slot-monday-1-start">
 								<span style="margin-right: 5px;"> to </span>
-								<input type="time" name="radplapag_station_schedule[monday][1][end]" value="10:00" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">
+								<label class="screen-reader-text" for="radplapag-slot-monday-1-end">End time</label>
+								<input type="time" name="radplapag_station_schedule[monday][1][end]" value="10:00" class="radplapag-program-end" style="width: 100px; margin-right: 10px;" id="radplapag-slot-monday-1-end">
 								<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;">
 									<input type="checkbox" name="radplapag_station_schedule[monday][1][is_rerun]" value="1"  class="radplapag-program-is-rerun">
 									Rerun								</label>
@@ -106,15 +110,18 @@
 								<div class="radplapag-program-error-message" style="display: none;"></div>
 															</div>
 													<div class="radplapag-program-row" data-program-index="0">
-								<select name="radplapag_station_schedule[monday][0][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">
+								<label class="screen-reader-text" for="radplapag-slot-monday-0-program">Radio Show</label>
+								<select name="radplapag_station_schedule[monday][0][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="radplapag-slot-monday-0-program">
 									<option value="">Select Radio Show</option>
 																			<option value="203" >Draft Show (Draft)</option>
 																			<option value="201" >Morning Show</option>
 																			<option value="202"  selected='selected'>Night Owl</option>
 																	</select>
-								<input type="time" name="radplapag_station_schedule[monday][0][start]" value="22:00" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">
+								<label class="screen-reader-text" for="radplapag-slot-monday-0-start">Start time</label>
+								<input type="time" name="radplapag_station_schedule[monday][0][start]" value="22:00" class="radplapag-program-start" style="width: 100px; margin-right: 5px;" id="radplapag-slot-monday-0-start">
 								<span style="margin-right: 5px;"> to </span>
-								<input type="time" name="radplapag_station_schedule[monday][0][end]" value="02:00" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">
+								<label class="screen-reader-text" for="radplapag-slot-monday-0-end">End time</label>
+								<input type="time" name="radplapag_station_schedule[monday][0][end]" value="02:00" class="radplapag-program-end" style="width: 100px; margin-right: 10px;" id="radplapag-slot-monday-0-end">
 								<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;">
 									<input type="checkbox" name="radplapag_station_schedule[monday][0][is_rerun]" value="1"  class="radplapag-program-is-rerun">
 									Rerun								</label>
@@ -126,27 +133,30 @@
 											</div>
 					<button type="button" class="button radplapag-add-program" data-day="monday" style="margin-top: 5px; margin-bottom: 15px;">
 						Add Time Slot					</button>
-				</div>
-							<div class="radplapag-schedule-day" data-day="tuesday">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">Tuesday</h4>
+				</fieldset>
+							<fieldset class="radplapag-schedule-day" data-day="tuesday">
+					<legend class="radplapag-schedule-day-legend">Tuesday</legend>
 					<div class="radplapag-programs-list">
 											</div>
 					<button type="button" class="button radplapag-add-program" data-day="tuesday" style="margin-top: 5px; margin-bottom: 15px;">
 						Add Time Slot					</button>
-				</div>
-							<div class="radplapag-schedule-day" data-day="wednesday">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">Wednesday</h4>
+				</fieldset>
+							<fieldset class="radplapag-schedule-day" data-day="wednesday">
+					<legend class="radplapag-schedule-day-legend">Wednesday</legend>
 					<div class="radplapag-programs-list">
 													<div class="radplapag-program-row" data-program-index="0">
-								<select name="radplapag_station_schedule[wednesday][0][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">
+								<label class="screen-reader-text" for="radplapag-slot-wednesday-0-program">Radio Show</label>
+								<select name="radplapag_station_schedule[wednesday][0][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="radplapag-slot-wednesday-0-program">
 									<option value="">Select Radio Show</option>
 																			<option value="203" >Draft Show (Draft)</option>
 																			<option value="201"  selected='selected'>Morning Show</option>
 																			<option value="202" >Night Owl</option>
 																	</select>
-								<input type="time" name="radplapag_station_schedule[wednesday][0][start]" value="07:00" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">
+								<label class="screen-reader-text" for="radplapag-slot-wednesday-0-start">Start time</label>
+								<input type="time" name="radplapag_station_schedule[wednesday][0][start]" value="07:00" class="radplapag-program-start" style="width: 100px; margin-right: 5px;" id="radplapag-slot-wednesday-0-start">
 								<span style="margin-right: 5px;"> to </span>
-								<input type="time" name="radplapag_station_schedule[wednesday][0][end]" value="10:00" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">
+								<label class="screen-reader-text" for="radplapag-slot-wednesday-0-end">End time</label>
+								<input type="time" name="radplapag_station_schedule[wednesday][0][end]" value="10:00" class="radplapag-program-end" style="width: 100px; margin-right: 10px;" id="radplapag-slot-wednesday-0-end">
 								<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;">
 									<input type="checkbox" name="radplapag_station_schedule[wednesday][0][is_rerun]" value="1"  checked='checked' class="radplapag-program-is-rerun">
 									Rerun								</label>
@@ -158,35 +168,35 @@
 											</div>
 					<button type="button" class="button radplapag-add-program" data-day="wednesday" style="margin-top: 5px; margin-bottom: 15px;">
 						Add Time Slot					</button>
-				</div>
-							<div class="radplapag-schedule-day" data-day="thursday">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">Thursday</h4>
+				</fieldset>
+							<fieldset class="radplapag-schedule-day" data-day="thursday">
+					<legend class="radplapag-schedule-day-legend">Thursday</legend>
 					<div class="radplapag-programs-list">
 											</div>
 					<button type="button" class="button radplapag-add-program" data-day="thursday" style="margin-top: 5px; margin-bottom: 15px;">
 						Add Time Slot					</button>
-				</div>
-							<div class="radplapag-schedule-day" data-day="friday">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">Friday</h4>
+				</fieldset>
+							<fieldset class="radplapag-schedule-day" data-day="friday">
+					<legend class="radplapag-schedule-day-legend">Friday</legend>
 					<div class="radplapag-programs-list">
 											</div>
 					<button type="button" class="button radplapag-add-program" data-day="friday" style="margin-top: 5px; margin-bottom: 15px;">
 						Add Time Slot					</button>
-				</div>
-							<div class="radplapag-schedule-day" data-day="saturday">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">Saturday</h4>
+				</fieldset>
+							<fieldset class="radplapag-schedule-day" data-day="saturday">
+					<legend class="radplapag-schedule-day-legend">Saturday</legend>
 					<div class="radplapag-programs-list">
 											</div>
 					<button type="button" class="button radplapag-add-program" data-day="saturday" style="margin-top: 5px; margin-bottom: 15px;">
 						Add Time Slot					</button>
-				</div>
-							<div class="radplapag-schedule-day" data-day="sunday">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;">Sunday</h4>
+				</fieldset>
+							<fieldset class="radplapag-schedule-day" data-day="sunday">
+					<legend class="radplapag-schedule-day-legend">Sunday</legend>
 					<div class="radplapag-programs-list">
 											</div>
 					<button type="button" class="button radplapag-add-program" data-day="sunday" style="margin-top: 5px; margin-bottom: 15px;">
 						Add Time Slot					</button>
-				</div>
+				</fieldset>
 					</div>
 	</div>
 	</form>

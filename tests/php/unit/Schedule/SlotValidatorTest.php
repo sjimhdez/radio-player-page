@@ -441,37 +441,49 @@ final class SlotValidatorTest extends TestCase {
 	}
 
 	/**
-	 * Currently, `start` or `end` posted as an array (`[start][]=x`, only from a
-	 * hand-made POST) reaches trim(): a TypeError on PHP 8; on PHP 7.4 a warning.
+	 * `start` or `end` posted as an array (`[start][]=x`, only from a hand-made POST)
+	 * counts as missing: the row is a `required` error and is dropped, with no
+	 * TypeError on PHP 8 and no warning on PHP 7.4.
 	 *
 	 * @see docs/known-issues.md K38
+	 *
+	 * @dataProvider data_time_fields
+	 *
+	 * @param string $field `start` or `end`.
 	 */
-	public function test_currently_array_time_reaches_trim() {
-		$row          = $this->row( 6, '08:00', '09:00' );
-		$row['start'] = array( '08:00' );
-
-		if ( PHP_VERSION_ID >= 80000 ) {
-			$this->expectException( \TypeError::class );
-			$this->validate( array( 'monday' => array( $row ) ) );
-			return;
-		}
+	public function test_array_time_is_discarded_without_warning( $field ) {
+		$row           = $this->row( 6, '08:00', '09:00' );
+		$row[ $field ] = array( '08:00' );
 
 		$warnings = array();
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Captures the PHP 7.4 warning (expectWarning() is deprecated in PHPUnit 9.6).
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Captures any PHP 7.4 warning (expectWarning() is deprecated in PHPUnit 9.6).
 		set_error_handler(
 			static function ( $errno, $errstr ) use ( &$warnings ) {
 				$warnings[] = $errstr;
 				return true;
-			},
-			E_WARNING
+			}
 		);
 		try {
-			$this->validate( array( 'monday' => array( $row ) ) );
+			$result = $this->validate( array( 'monday' => array( $row ) ) );
 		} finally {
 			restore_error_handler();
 		}
 
-		$this->assertSame( array( 'trim() expects parameter 1 to be string, array given' ), $warnings );
+		$this->assertSame( array(), $warnings );
+		$this->assertSame( array( $this->error( 'required', 'monday' ) ), $result['errors'] );
+		$this->assertSame( array(), $result['schedule'] );
+	}
+
+	/**
+	 * Inputs for test_array_time_is_discarded_without_warning().
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public function data_time_fields() {
+		return array(
+			'start' => array( 'start' ),
+			'end'   => array( 'end' ),
+		);
 	}
 
 	/**

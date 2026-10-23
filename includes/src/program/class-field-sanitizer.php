@@ -18,22 +18,22 @@ defined( 'ABSPATH' ) || exit;
 final class Field_Sanitizer {
 
 	/**
-	 * Maximum length of the description, in bytes.
+	 * Maximum length of the description, in characters.
 	 */
-	const DESCRIPTION_MAX_BYTES = 256;
+	const DESCRIPTION_MAX_CHARS = 256;
 
 	/**
-	 * Maximum length of the extended description, in bytes.
+	 * Maximum length of the extended description, in characters.
 	 */
-	const EXTENDED_DESCRIPTION_MAX_BYTES = 512;
+	const EXTENDED_DESCRIPTION_MAX_CHARS = 512;
 
 	/**
 	 * Sanitizes the program fields.
 	 *
 	 * The input comes from sanitize_text_field(), sanitize_textarea_field() and
 	 * absint(); a missing key reads as a form posted without that field. The
-	 * descriptions are cut by bytes, as in 3.4.2: a cut inside a multibyte
-	 * character keeps half of it (K5). A logo that is not an image goes to 0;
+	 * descriptions are cut by characters, never inside one (K5). A logo that is
+	 * not an image goes to 0;
 	 * the lookup runs only for an ID above 0.
 	 *
 	 * @since 3.5.0
@@ -49,25 +49,25 @@ final class Field_Sanitizer {
 		}
 
 		return array(
-			'description'          => self::truncate( $input['description'] ?? '', self::DESCRIPTION_MAX_BYTES ),
-			'extended_description' => self::truncate( $input['extended_description'] ?? '', self::EXTENDED_DESCRIPTION_MAX_BYTES ),
+			'description'          => self::truncate( $input['description'] ?? '', self::DESCRIPTION_MAX_CHARS ),
+			'extended_description' => self::truncate( $input['extended_description'] ?? '', self::EXTENDED_DESCRIPTION_MAX_CHARS ),
 			'logo_id'              => $logo_id,
 		);
 	}
 
 	/**
-	 * Returns the value cut to a number of bytes, or '' if it is not a string.
+	 * Returns the value cut to a number of characters, or '' if it is not a string.
 	 *
 	 * @since 3.5.0
 	 *
 	 * @param mixed $value     Sanitized value.
-	 * @param int   $max_bytes Maximum length in bytes.
+	 * @param int   $max_chars Maximum length in characters.
 	 * @return string
 	 */
-	private static function truncate( $value, int $max_bytes ): string {
+	private static function truncate( $value, int $max_chars ): string {
 		if ( ! is_string( $value ) ) {
 			return '';
 		}
-		return strlen( $value ) > $max_bytes ? substr( $value, 0, $max_bytes ) : $value;
+		return mb_strlen( $value, 'UTF-8' ) > $max_chars ? mb_substr( $value, 0, $max_chars, 'UTF-8' ) : $value;
 	}
 }

@@ -30,6 +30,17 @@
 .radplapag-field-error-message:empty {
 	display: none;
 }
+/* Non-blocking field notice (mixed content, C13): WP's warning color. */
+.radplapag-field-notice {
+	display: block;
+	border-left: 4px solid #dba617;
+	padding-left: 8px;
+	font-size: 12px;
+	margin-top: 4px;
+}
+.radplapag-field-notice[hidden] {
+	display: none;
+}
 
 /* Admin: form fields in a row (reusable) */
 .radplapag-form-row {
@@ -72,7 +83,8 @@
 	pointer-events: none;
 	transition: opacity 0.15s ease;
 }
-.radplapag-program-row:hover .radplapag-schedule-remove-cell {
+.radplapag-program-row:hover .radplapag-schedule-remove-cell,
+.radplapag-program-row:focus-within .radplapag-schedule-remove-cell {
 	opacity: 1;
 	pointer-events: auto;
 }
@@ -99,7 +111,7 @@
 	box-shadow: 0 0 2px rgba(220, 50, 50, 0.3);
 }
 .radplapag-program-error-message {
-	color: #dc3232;
+	color: #b32d2e;
 	font-size: 12px;
 	margin-top: 4px;
 	margin-left: 0;
@@ -111,13 +123,27 @@
 .radplapag-schedule-wrapper {
 	display: block;
 }
+/* The day's fieldset and legend keep the look of the h4 they replace: a
+   rendered legend ignores its top margin, so the fieldset carries it. */
+.radplapag-schedule-day {
+	min-width: 0;
+	margin: 10px 0 0 0;
+	padding: 0;
+	border: 0;
+}
+.radplapag-schedule-day-legend {
+	margin: 0 0 5px 0;
+	padding: 0;
+	font-size: 13px;
+	font-weight: 600;
+}
 
 /* Remove Time Slot: red on link hover */
 .radplapag-program-row .radplapag-remove-program {
 	transition: color 0.15s ease;
 }
 .radplapag-program-row .radplapag-remove-program:hover {
-	color: #dc3232;
+	color: #b32d2e;
 }
 .radplapag-program-row .radplapag-program-notice {
 	width: 100%;

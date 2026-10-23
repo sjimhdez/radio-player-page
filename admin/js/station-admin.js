@@ -56,14 +56,18 @@
 			if ( streamUrlInputEl ) {
 				streamUrlInputEl.addEventListener( 'input', function () {
 					const val = streamUrlInputEl.value.trim();
+					updateMixedContentNotice(
+						streamUrlWrap,
+						streamUrlInputEl,
+						val
+					);
 					if ( ! val ) {
 						clearFieldError( streamUrlWrap );
 						return;
 					}
-					try {
-						new URL( val );
+					if ( streamUrlProblem( val ) === null ) {
 						clearFieldError( streamUrlWrap );
-					} catch {}
+					}
 				} );
 			}
 		}
@@ -127,9 +131,9 @@
 		writes.forEach( function ( item ) {
 			const row = rows[ item.day ][ item.index ];
 			if ( item.error ) {
-				showProgramError( row, rules.message( item.error, s ) );
+				setRowError( row, rules.message( item.error, s ) );
 			} else {
-				clearProgramError( row );
+				clearRowError( row );
 			}
 		} );
 	}
@@ -152,25 +156,28 @@
 		return { valid: ! writes[ writes.length - 1 ].error };
 	}
 
-	function showProgramError( programRow, message ) {
-		programRow.classList.add( 'radplapag-error' );
-		const startInput = programRow.querySelector(
-			'.radplapag-program-start'
+	function rowErrorId( row ) {
+		const dayWrapper = row.closest( '.radplapag-schedule-day' );
+		return (
+			'radplapag-slot-' +
+			( dayWrapper ? dayWrapper.getAttribute( 'data-day' ) : '' ) +
+			'-' +
+			row.getAttribute( 'data-program-index' ) +
+			'-error'
 		);
-		const endInput = programRow.querySelector( '.radplapag-program-end' );
-		const programIdSelect = programRow.querySelector(
-			'.radplapag-program-id'
-		);
-		if ( startInput ) {
-			startInput.classList.add( 'radplapag-error' );
-		}
-		if ( endInput ) {
-			endInput.classList.add( 'radplapag-error' );
-		}
-		if ( programIdSelect ) {
-			programIdSelect.classList.add( 'radplapag-error' );
-		}
-		const existingError = programRow.querySelector(
+	}
+
+	function setRowError( row, message ) {
+		row.classList.add( 'radplapag-error' );
+		const errorId = rowErrorId( row );
+		row.querySelectorAll(
+			'.radplapag-program-id, .radplapag-program-start, .radplapag-program-end'
+		).forEach( function ( el ) {
+			el.classList.add( 'radplapag-error' );
+			el.setAttribute( 'aria-invalid', 'true' );
+			el.setAttribute( 'aria-describedby', errorId );
+		} );
+		const existingError = row.querySelector(
 			'.radplapag-program-error-message'
 		);
 		if ( existingError ) {
@@ -178,17 +185,20 @@
 		}
 		const errorMsg = document.createElement( 'div' );
 		errorMsg.className = 'radplapag-program-error-message show';
+		errorMsg.id = errorId;
 		errorMsg.textContent = message;
-		programRow.appendChild( errorMsg );
+		row.appendChild( errorMsg );
 	}
 
-	function clearProgramError( programRow ) {
-		programRow.classList.remove( 'radplapag-error' );
-		const inputs = programRow.querySelectorAll( 'input, select' );
+	function clearRowError( row ) {
+		row.classList.remove( 'radplapag-error' );
+		const inputs = row.querySelectorAll( 'input, select' );
 		inputs.forEach( function ( el ) {
 			el.classList.remove( 'radplapag-error' );
+			el.removeAttribute( 'aria-invalid' );
+			el.removeAttribute( 'aria-describedby' );
 		} );
-		const errorMsg = programRow.querySelector(
+		const errorMsg = row.querySelector(
 			'.radplapag-program-error-message'
 		);
 		if ( errorMsg ) {
@@ -210,6 +220,52 @@
 		);
 		if ( msgEl ) {
 			msgEl.textContent = message;
+		}
+	}
+
+	/**
+	 * What is wrong with a non-empty stream URL (K42). `new URL()` reads
+	 * `host:port/path` as a URL with the host as its scheme.
+	 *
+	 * @param {string} value Trimmed field value.
+	 * @return {?string} `'invalid'`, `'scheme'` or null when it is fine.
+	 */
+	function streamUrlProblem( value ) {
+		let url;
+		try {
+			url = new URL( value );
+		} catch {
+			return 'invalid';
+		}
+		return url.protocol === 'http:' || url.protocol === 'https:'
+			? null
+			: 'scheme';
+	}
+
+	/**
+	 * Shows the notice printed by PHP when the stream is http and the site
+	 * https, or hides it (C13). It never blocks the submit.
+	 *
+	 * @param {Element} fieldWrap Wrapper with `data-site-scheme`.
+	 * @param {Element} input     Stream URL input.
+	 * @param {string}  value     Trimmed field value.
+	 */
+	function updateMixedContentNotice( fieldWrap, input, value ) {
+		const notice = fieldWrap.querySelector( '.radplapag-field-notice' );
+		if ( ! notice ) {
+			return;
+		}
+		let mixed = false;
+		if ( fieldWrap.getAttribute( 'data-site-scheme' ) === 'https' ) {
+			try {
+				mixed = new URL( value ).protocol === 'http:';
+			} catch {}
+		}
+		notice.hidden = ! mixed;
+		if ( mixed ) {
+			input.setAttribute( 'aria-describedby', notice.id );
+		} else {
+			input.removeAttribute( 'aria-describedby' );
 		}
 	}
 
@@ -280,9 +336,8 @@
 			}
 			return { valid: false, firstErrorElement: streamUrlWrap };
 		}
-		try {
-			new URL( streamUrlVal );
-		} catch {
+		const urlProblem = streamUrlProblem( streamUrlVal );
+		if ( urlProblem === 'invalid' ) {
 			if ( streamUrlWrap ) {
 				showFieldError(
 					streamUrlWrap,
@@ -291,69 +346,67 @@
 			}
 			return { valid: false, firstErrorElement: streamUrlWrap };
 		}
+		if ( urlProblem === 'scheme' ) {
+			if ( streamUrlWrap ) {
+				showFieldError(
+					streamUrlWrap,
+					s.streamUrlScheme ||
+						'Please enter a URL that starts with http:// or https://.'
+				);
+			}
+			return { valid: false, firstErrorElement: streamUrlWrap };
+		}
 		return { valid: true };
 	}
 
-	function revalidateAdjacentDays( programRow, scheduleWrapper, dayWrapper ) {
-		if ( ! scheduleWrapper || ! dayWrapper ) {
+	function dayRows( scheduleWrapper, day ) {
+		const dayWrapper = scheduleWrapper.querySelector(
+			'.radplapag-schedule-day[data-day="' + day + '"]'
+		);
+		return dayWrapper
+			? dayWrapper.querySelectorAll( '.radplapag-program-row' )
+			: [];
+	}
+
+	/**
+	 * Validates every row of a day, in order.
+	 *
+	 * @param {Element} scheduleWrapper Element that holds the schedule days.
+	 * @param {string}  day             Day key.
+	 * @param {Object}  [options]       except: row left out; skipHidden: leave
+	 *                                  out the hidden rows.
+	 */
+	function revalidateDay( scheduleWrapper, day, options ) {
+		const opts = options || {};
+		dayRows( scheduleWrapper, day ).forEach( function ( row ) {
+			if ( row === opts.except ) {
+				return;
+			}
+			if (
+				opts.skipHidden &&
+				window.getComputedStyle( row ).display === 'none'
+			) {
+				return;
+			}
+			validateProgramRow( row );
+		} );
+	}
+
+	/**
+	 * Validates the visible rows of the next day, then of the previous one,
+	 * wrapping the week.
+	 *
+	 * @param {Element} scheduleWrapper Element that holds the schedule days.
+	 * @param {string}  day             Day key.
+	 */
+	function revalidateAround( scheduleWrapper, day ) {
+		const rules = scheduleRules();
+		if ( rules.DAYS.indexOf( day ) === -1 ) {
 			return;
 		}
-		const currentDay = dayWrapper.getAttribute( 'data-day' );
-		if ( ! currentDay ) {
-			return;
-		}
-		const dayMap = {
-			monday: 'tuesday',
-			tuesday: 'wednesday',
-			wednesday: 'thursday',
-			thursday: 'friday',
-			friday: 'saturday',
-			saturday: 'sunday',
-			sunday: 'monday',
-		};
-		const prevDayMap = {
-			monday: 'sunday',
-			tuesday: 'monday',
-			wednesday: 'tuesday',
-			thursday: 'wednesday',
-			friday: 'thursday',
-			saturday: 'friday',
-			sunday: 'saturday',
-		};
-		const nextDay = dayMap[ currentDay ];
-		if ( nextDay ) {
-			const nextDayWrapper = scheduleWrapper.querySelector(
-				'.radplapag-schedule-day[data-day="' + nextDay + '"]'
-			);
-			if ( nextDayWrapper ) {
-				nextDayWrapper
-					.querySelectorAll( '.radplapag-program-row' )
-					.forEach( function ( row ) {
-						if (
-							window.getComputedStyle( row ).display !== 'none'
-						) {
-							validateProgramRow( row );
-						}
-					} );
-			}
-		}
-		const prevDay = prevDayMap[ currentDay ];
-		if ( prevDay ) {
-			const prevDayWrapper = scheduleWrapper.querySelector(
-				'.radplapag-schedule-day[data-day="' + prevDay + '"]'
-			);
-			if ( prevDayWrapper ) {
-				prevDayWrapper
-					.querySelectorAll( '.radplapag-program-row' )
-					.forEach( function ( row ) {
-						if (
-							window.getComputedStyle( row ).display !== 'none'
-						) {
-							validateProgramRow( row );
-						}
-					} );
-			}
-		}
+		const neighbour = { skipHidden: true };
+		revalidateDay( scheduleWrapper, rules.nextDay( day ), neighbour );
+		revalidateDay( scheduleWrapper, rules.prevDay( day ), neighbour );
 	}
 
 	// Text as the HTML strings of 3.4 showed it: entities decoded (risk 1 of spec
@@ -396,7 +449,7 @@
 		);
 	}
 
-	function buildProgramSelect( day, nextIndex ) {
+	function buildProgramSelect( day, index ) {
 		const selectProgramOpt = s.selectProgram || 'Select Radio Show';
 		const options = [
 			createElement( 'option', { value: '' }, [
@@ -422,7 +475,7 @@
 		return createElement(
 			'select',
 			{
-				name: scheduleFieldName( day, nextIndex, 'program_id' ),
+				name: scheduleFieldName( day, index, 'program_id' ),
 				class: 'radplapag-program-id',
 				style: 'width: 200px; margin-right: 24px;',
 			},
@@ -460,33 +513,77 @@
 		);
 	}
 
-	function buildProgramRow( day, nextIndex ) {
+	// The highest index + 1, not the row count: after a removal the count
+	// would reuse the field names of a kept row (K15).
+	function nextIndex( dayWrapper ) {
+		let next = 0;
+		dayWrapper
+			.querySelectorAll( '.radplapag-program-row' )
+			.forEach( function ( row ) {
+				const index = parseInt(
+					row.getAttribute( 'data-program-index' ),
+					10
+				);
+				if ( index >= next ) {
+					next = index + 1;
+				}
+			} );
+		return next;
+	}
+
+	// The accessible name of a slot field, as the PHP rows print it (AX3, AX4).
+	function buildScreenReaderLabel( id, text ) {
+		return createElement(
+			'label',
+			{ class: 'screen-reader-text', for: id },
+			[ decodeEntities( text ) ]
+		);
+	}
+
+	function buildProgramRow( day, index ) {
 		const toLabel = decodeEntities( s.to || 'to' );
 		const removeTimeSlot = decodeEntities(
 			s.removeTimeSlot || 'Remove Time Slot'
 		);
 		const rerunLabel = decodeEntities( s.scheduleRerun || 'Rerun' );
+		const fieldId = 'radplapag-slot-' + day + '-' + index + '-';
+		const select = buildProgramSelect( day, index );
+		select.id = fieldId + 'program';
 		const newRow = document.createElement( 'div' );
 		newRow.className = 'radplapag-program-row';
-		newRow.setAttribute( 'data-program-index', nextIndex );
+		newRow.setAttribute( 'data-program-index', index );
 		newRow.append(
-			buildProgramSelect( day, nextIndex ),
+			buildScreenReaderLabel(
+				fieldId + 'program',
+				s.programLabel || 'Radio Show'
+			),
+			select,
+			buildScreenReaderLabel(
+				fieldId + 'start',
+				s.startTimeLabel || 'Start time'
+			),
 			createElement( 'input', {
 				type: 'time',
-				name: scheduleFieldName( day, nextIndex, 'start' ),
+				name: scheduleFieldName( day, index, 'start' ),
 				value: '',
 				class: 'radplapag-program-start',
 				style: 'width: 100px; margin-right: 5px;',
+				id: fieldId + 'start',
 			} ),
 			createElement( 'span', { style: 'margin-right: 5px;' }, [
 				' ' + toLabel + ' ',
 			] ),
+			buildScreenReaderLabel(
+				fieldId + 'end',
+				s.endTimeLabel || 'End time'
+			),
 			createElement( 'input', {
 				type: 'time',
-				name: scheduleFieldName( day, nextIndex, 'end' ),
+				name: scheduleFieldName( day, index, 'end' ),
 				value: '',
 				class: 'radplapag-program-end',
 				style: 'width: 100px; margin-right: 10px;',
+				id: fieldId + 'end',
 			} ),
 			createElement(
 				'label',
@@ -497,7 +594,7 @@
 				[
 					createElement( 'input', {
 						type: 'checkbox',
-						name: scheduleFieldName( day, nextIndex, 'is_rerun' ),
+						name: scheduleFieldName( day, index, 'is_rerun' ),
 						value: '1',
 						class: 'radplapag-program-is-rerun',
 					} ),
@@ -551,9 +648,18 @@
 				}
 				return startA.localeCompare( startB );
 			} );
+			// appendChild detaches each row: give the focus back if it was in
+			// the list (K39).
+			const doc = dayProgramsList.ownerDocument;
+			const focused = dayProgramsList.contains( doc.activeElement )
+				? doc.activeElement
+				: null;
 			rows.forEach( function ( row ) {
 				dayProgramsList.appendChild( row );
 			} );
+			if ( focused && doc.activeElement !== focused ) {
+				focused.focus( { preventScroll: true } );
+			}
 		}
 
 		function setupGroupValidation( programRow ) {
@@ -573,27 +679,14 @@
 							const dayWrapper = programRow.closest(
 								'.radplapag-schedule-day'
 							);
-							if ( dayWrapper ) {
-								dayWrapper
-									.querySelectorAll(
-										'.radplapag-program-row'
-									)
-									.forEach( function ( row ) {
-										if ( row !== programRow ) {
-											validateProgramRow( row );
-										}
-									} );
-							}
 							const scheduleWrapper = programRow.closest(
 								'.radplapag-schedule-wrapper'
 							);
-							if ( scheduleWrapper && dayWrapper ) {
-								revalidateAdjacentDays(
-									programRow,
-									scheduleWrapper,
-									dayWrapper
-								);
-							}
+							const day = dayWrapper.getAttribute( 'data-day' );
+							revalidateDay( scheduleWrapper, day, {
+								except: programRow,
+							} );
+							revalidateAround( scheduleWrapper, day );
 							const dayProgramsList = dayWrapper.querySelector(
 								'.radplapag-programs-list'
 							);
@@ -634,13 +727,10 @@
 					if ( ! dayWrapper || ! dayProgramsList ) {
 						return;
 					}
-					const existingPrograms = dayProgramsList.querySelectorAll(
-						'.radplapag-program-row'
+					const newRow = buildProgramRow(
+						day,
+						nextIndex( dayWrapper )
 					);
-					const nextIndex = existingPrograms
-						? existingPrograms.length
-						: 0;
-					const newRow = buildProgramRow( day, nextIndex );
 					dayProgramsList.appendChild( newRow );
 					setupGroupValidation( newRow );
 				}
@@ -659,63 +749,25 @@
 						const scheduleWrapper = programRow.closest(
 							'.radplapag-schedule-wrapper'
 						);
+						const nextRow = programRow.nextElementSibling;
 						programRow.remove();
-						if ( dayWrapper ) {
-							dayWrapper
-								.querySelectorAll( '.radplapag-program-row' )
-								.forEach( function ( row ) {
-									validateProgramRow( row );
-								} );
-						}
 						if ( scheduleWrapper && dayWrapper ) {
-							const currentDay =
-								dayWrapper.getAttribute( 'data-day' );
-							const days = [
-								'monday',
-								'tuesday',
-								'wednesday',
-								'thursday',
-								'friday',
-								'saturday',
-								'sunday',
-							];
-							const currentDayIndex = days.indexOf( currentDay );
-							if ( currentDayIndex < days.length - 1 ) {
-								const nextDay = days[ currentDayIndex + 1 ];
-								const nextDayWrapper =
-									scheduleWrapper.querySelector(
-										'.radplapag-schedule-day[data-day="' +
-											nextDay +
-											'"]'
-									);
-								if ( nextDayWrapper ) {
-									nextDayWrapper
-										.querySelectorAll(
-											'.radplapag-program-row'
-										)
-										.forEach( function ( row ) {
-											validateProgramRow( row );
-										} );
-								}
-							}
-							if ( currentDayIndex > 0 ) {
-								const prevDay = days[ currentDayIndex - 1 ];
-								const prevDayWrapper =
-									scheduleWrapper.querySelector(
-										'.radplapag-schedule-day[data-day="' +
-											prevDay +
-											'"]'
-									);
-								if ( prevDayWrapper ) {
-									prevDayWrapper
-										.querySelectorAll(
-											'.radplapag-program-row'
-										)
-										.forEach( function ( row ) {
-											validateProgramRow( row );
-										} );
-								}
-							}
+							const day = dayWrapper.getAttribute( 'data-day' );
+							revalidateDay( scheduleWrapper, day );
+							revalidateAround( scheduleWrapper, day );
+						}
+						// Keep the keyboard focus in the day (K39).
+						const focusTarget =
+							( nextRow &&
+								nextRow.querySelector(
+									'.radplapag-program-id'
+								) ) ||
+							( dayWrapper &&
+								dayWrapper.querySelector(
+									'.radplapag-add-program'
+								) );
+						if ( focusTarget ) {
+							focusTarget.focus();
 						}
 					}
 				}
@@ -750,6 +802,22 @@
 			if ( hasErrors ) {
 				e.preventDefault();
 				if ( firstErrorElement ) {
+					// A collapsed meta box would hide the error.
+					const box = firstErrorElement.closest( '.postbox.closed' );
+					if ( box ) {
+						box.classList.remove( 'closed' );
+						const toggle = box.querySelector( '.handlediv' );
+						if ( toggle ) {
+							toggle.setAttribute( 'aria-expanded', 'true' );
+						}
+					}
+					const focusTarget =
+						firstErrorElement.querySelector(
+							'.radplapag-program-id'
+						) || firstErrorElement.querySelector( 'input, select' );
+					if ( focusTarget ) {
+						focusTarget.focus( { preventScroll: true } );
+					}
 					firstErrorElement.scrollIntoView( {
 						behavior: 'smooth',
 						block: 'center',

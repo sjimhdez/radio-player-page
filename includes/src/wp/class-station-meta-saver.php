@@ -23,9 +23,10 @@ final class Station_Meta_Saver {
 	/**
 	 * Saves the station fields and the schedule.
 	 *
-	 * Writes in the order of 3.4.2: the field errors transient (set, or deleted
-	 * together with writing the URL and the player page), the five other metas, and
-	 * the schedule through radplapag_sanitize_station_schedule().
+	 * Writes in the order of 3.4.2: the field errors transient (set, or deleted),
+	 * the URL and the player page each one if it is valid (ADR 0048), the five
+	 * other metas (a rejected attachment keeps the stored one, K37), and the
+	 * schedule through radplapag_sanitize_station_schedule().
 	 *
 	 * @since 3.5.0
 	 *
@@ -53,17 +54,24 @@ final class Station_Meta_Saver {
 		);
 		$values = $result['values'];
 
-		if ( array() !== $result['errors'] ) {
-			set_transient( 'radplapag_station_field_errors_' . $post_id, implode( ' ', array_map( array( self::class, 'message' ), $result['errors'] ) ), 45 );
+		$errors = $result['errors'];
+		if ( array() !== $errors ) {
+			set_transient( 'radplapag_station_field_errors_' . $post_id, implode( ' ', array_map( array( self::class, 'message' ), $errors ) ), 45 );
 		} else {
 			delete_transient( 'radplapag_station_field_errors_' . $post_id );
+		}
+		if ( ! in_array( 'stream_url_required', $errors, true ) ) {
 			update_post_meta( $post_id, 'radplapag_station_stream_url', $values['stream_url'] );
+		}
+		if ( array() === array_intersect( array( 'player_page_required', 'player_page_taken' ), $errors ) ) {
 			update_post_meta( $post_id, 'radplapag_station_player_page', $values['player_page'] );
 		}
 
-		update_post_meta( $post_id, 'radplapag_station_background_id', $values['background_id'] );
-		update_post_meta( $post_id, 'radplapag_station_logo_id', $values['logo_id'] );
-		update_post_meta( $post_id, 'radplapag_station_intro_audio_id', $values['intro_audio_id'] );
+		foreach ( array( 'background_id', 'logo_id', 'intro_audio_id' ) as $key ) {
+			if ( null !== $values[ $key ] ) {
+				update_post_meta( $post_id, 'radplapag_station_' . $key, $values[ $key ] );
+			}
+		}
 		update_post_meta( $post_id, 'radplapag_station_theme_color', $values['theme_color'] );
 		update_post_meta( $post_id, 'radplapag_station_visualizer', $values['visualizer'] );
 
@@ -91,6 +99,12 @@ final class Station_Meta_Saver {
 				return __( 'Streaming URL is required.', 'radio-player-page' );
 			case 'player_page_required':
 				return __( 'Player Page is required. Please select a page.', 'radio-player-page' );
+			case 'background_not_image':
+				return __( 'Background Image must be an image; the previous one was kept.', 'radio-player-page' );
+			case 'logo_not_image':
+				return __( 'Logo Image must be an image; the previous one was kept.', 'radio-player-page' );
+			case 'intro_not_mp3':
+				return __( 'Welcome Audio must be an MP3 file; the previous one was kept.', 'radio-player-page' );
 			default:
 				return __( 'This Player Page is already assigned to another station. Please choose a different page.', 'radio-player-page' );
 		}

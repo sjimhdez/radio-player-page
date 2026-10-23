@@ -1,18 +1,16 @@
 # Estado
-Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: cerrada (1–4, el 2026-10-23; PR listo, pendiente de merge en `trunk`) · Plan: [`phase-4.md`](specs/0009-schedule-model/phase-4.md) · Actualizado: 2026-10-23
+Spec activa: 0010 — Correcciones: admin · Fase: cerrada (1–3, el 2026-10-23; PR #44 listo, pendiente de merge en `trunk`) · Plan: [phase-3.md](specs/0010-admin-fixes/phase-3.md) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0009 (horario y programa en antena: C16, C4, K8, K52, C10, K41, K88, K78, K17, C3, C9, K10; ADRs 0044–0046) cerrada el 2026-10-23 en la rama `spec/0009-schedule-model`; PR listo contra `trunk`, a la espera del merge del usuario.
-- Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
+- Spec 0010 (admin: K15, K16, K39, K44, K74, K75, K38, AX3, AX4, K45, K89, AX5, K20, C13, K42, K37, K36, K27, K5, K34, K90, K76; ADRs 0047 y 0048) cerrada el 2026-10-23 en la rama `spec/0010-admin-fixes`; PR #44 listo contra `trunk`, a la espera del merge del usuario.
+- Spec 0009 cerrada y fusionada en `trunk` (PR #43, 2026-10-23).
 
 ## Siguiente (máx. 5)
-1. Merge del PR de la 0009 (lo decide el usuario: merge commit, título `Spec 0009: Correcciones: horario y programa en antena`; antes puede lanzar `/code-review`).
-2. Tras el merge, sesión de diseño → `write-spec` de la 0010 (admin; parte del modelo de la 0009, notas en la hoja de ruta).
-3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
-4. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente) y `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0009 (meta box y su aviso, validación del horario, `timezone` impreso, reloj en `±H:MM`). No se pasaron al cerrarlas (decisión del usuario). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044, 0045 y 0046).
+1. Merge del PR #44 (lo decide el usuario: merge commit, título `Spec 0010: Correcciones: admin`; antes puede lanzar `/code-review`). Tras el merge, sesión de diseño → `write-spec` de la 0013 (bloques; notas en la hoja de ruta).
+2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
+3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente); `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0009 (meta box y su aviso, validación del horario, `timezone` impreso, reloj en `±H:MM`); y `backcompat-reviewer`, `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0010 (fase 1: foco del editor de franjas, `Slot_Validator`; fase 2: `fieldset`/`legend`, etiquetas, ARIA de los errores y foco, y si los errores de `focusout` necesitan `aria-live`, WCAG 4.1.3; fase 3: guardado campo a campo, `redirect_post_location`, avisos de C13, K36 y K27, estos dos sin `aria-describedby`). No se pasaron al cerrarlas (decisión del usuario). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 y la 0010 (lista en la nota de release de `docs/specs/README.md`).
 
 ## Bloqueos / preguntas para el humano
-- Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` y `startEndSame` sin uso; propuesta: 0010 admin).
 - Decidir si se corrige y en qué spec K83 (baja, 2026-10-22): durante el reintento de C1 el controlador publica `error` sin `loading`; no se ve con `useState`, pero impide volver a `useSyncExternalStore` (ADR 0030).
 
 ## Verificación manual pendiente
@@ -23,4 +21,4 @@ Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: cerrad
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66), en iPhone y iPad reales (también iPad con la web de escritorio) sin deslizador de volumen y con HLS nativo (K13) y los controles con `100vh` bajo la barra de Safari de iOS.
 
 ## Desviaciones de la spec activa (→ ADR)
-Ninguna (las de la 0009 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).
+Ninguna (las de la 0010 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).

@@ -212,7 +212,7 @@ describe( 'program-admin.js: image selector', () => {
 } );
 
 describe( 'program-admin.js: welcome audio selector', () => {
-	it( 'opens its own audio frame and fills the preview', async () => {
+	it( 'opens its own MP3-only audio frame and fills the preview (K37)', async () => {
 		const screen = await mountProgramAdmin();
 		screen.click( screen.logo, 'select' );
 		screen.click( screen.audio, 'select' );
@@ -224,7 +224,7 @@ describe( 'program-admin.js: welcome audio selector', () => {
 
 		expect( screen.media ).toHaveBeenCalledTimes( 2 );
 		expect( screen.media.frames[ 1 ].options ).toEqual( {
-			library: { type: 'audio' },
+			library: { type: 'audio/mpeg' },
 			multiple: false,
 		} );
 		expect( screen.state( screen.audio ) ).toEqual( {

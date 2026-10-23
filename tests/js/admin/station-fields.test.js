@@ -23,10 +23,14 @@ const FIELD_STRINGS = {
 	playerPageAlreadyAssigned: '[player_page_assigned]',
 	streamUrlRequired: '[stream_url_required]',
 	streamUrlInvalid: '[stream_url_invalid]',
+	streamUrlScheme: '[stream_url_scheme]',
 	selectProgram: '[select_program]',
 	to: '[to]',
 	removeTimeSlot: '[remove]',
 	scheduleRerun: '[rerun]',
+	programLabel: '[program_label]',
+	startTimeLabel: '[start_label]',
+	endTimeLabel: '[end_label]',
 };
 
 /**
@@ -167,11 +171,25 @@ describe( 'station-admin.js: required station fields', () => {
 		);
 	} );
 
-	it( 'accepts any URL scheme `new URL()` parses', async () => {
+	it( 'rejects a URL whose scheme is not http or https (K42)', async () => {
 		const screen = await mount();
 		screen.streamUrl.value = 'ftp://stream.example.test/live.mp3';
 
-		expect( screen.submit().blocked ).toBe( false );
+		expect( screen.submit().blocked ).toBe( true );
+		expect( screen.fieldError( 'stream_url' ).message ).toBe(
+			'[stream_url_scheme]'
+		);
+	} );
+
+	it( 'rejects host:port/path without a scheme (K42)', async () => {
+		const screen = await mount();
+		// `new URL()` reads `radio.example.com` as the scheme.
+		screen.streamUrl.value = 'radio.example.com:8000/stream';
+
+		expect( screen.submit().blocked ).toBe( true );
+		expect( screen.fieldError( 'stream_url' ).message ).toBe(
+			'[stream_url_scheme]'
+		);
 	} );
 
 	it( 'reports only the page when both fields are wrong', async () => {
@@ -253,6 +271,17 @@ describe( 'station-admin.js: required station fields', () => {
 			expect( screen.fieldError( 'stream_url' ) ).toEqual( NO_ERROR );
 		} );
 
+		it( 'keeps the URL error on input with a URL that is not http or https (K42)', async () => {
+			const screen = await mount();
+			screen.streamUrl.value = 'not a url';
+			screen.submit();
+
+			screen.streamUrl.value = 'radio.example.com:8000/stream';
+			screen.streamUrl.dispatchEvent( new window.Event( 'input' ) );
+
+			expect( screen.fieldError( 'stream_url' ).marked ).toBe( true );
+		} );
+
 		it( 'keeps the URL error on input with another invalid URL', async () => {
 			const screen = await mount();
 			screen.streamUrl.value = 'not a url';
@@ -265,6 +294,68 @@ describe( 'station-admin.js: required station fields', () => {
 				'[stream_url_invalid]'
 			);
 		} );
+	} );
+} );
+
+describe( 'station-admin.js: mixed content notice (C13)', () => {
+	/**
+	 * Mounts the screen as on a site with the given scheme (the fixture is http).
+	 *
+	 * @param {string} siteScheme `data-site-scheme` of the URL field.
+	 * @return {Promise<Object>} The mounted screen, plus `notice()`.
+	 */
+	async function mountOn( siteScheme ) {
+		const screen = await mount();
+		screen.wrap( 'stream_url' ).dataset.siteScheme = siteScheme;
+		const el = screen.form.querySelector(
+			'#radplapag_station_stream_url_notice'
+		);
+		return {
+			...screen,
+			type( value ) {
+				screen.streamUrl.value = value;
+				screen.streamUrl.dispatchEvent( new window.Event( 'input' ) );
+			},
+			notice: () => ( {
+				shown: ! el.hidden,
+				described:
+					screen.streamUrl.getAttribute( 'aria-describedby' ) ===
+					el.id,
+			} ),
+		};
+	}
+
+	it( 'shows the mixed content notice while typing an http URL on an https site (C13)', async () => {
+		const screen = await mountOn( 'https' );
+
+		screen.type( 'http://stream.example.test/live.mp3' );
+
+		expect( screen.notice() ).toEqual( { shown: true, described: true } );
+	} );
+
+	it.each( [
+		[ 'an https URL on an https site', 'https', 'https://a.test/live' ],
+		[ 'an empty field on an https site', 'https', '' ],
+		[ 'a URL that does not parse on an https site', 'https', 'http//x' ],
+		[ 'an http URL on an http site', 'http', 'http://a.test/live' ],
+	] )( 'hides it for %s', async ( _t, siteScheme, value ) => {
+		const screen = await mountOn( siteScheme );
+		screen.type( 'http://stream.example.test/live.mp3' );
+
+		screen.type( value );
+
+		expect( screen.notice() ).toEqual( {
+			shown: false,
+			described: false,
+		} );
+	} );
+
+	it( 'does not block the submit', async () => {
+		const screen = await mountOn( 'https' );
+
+		screen.type( 'http://stream.example.test/live.mp3' );
+
+		expect( screen.submit().blocked ).toBe( false );
 	} );
 } );
 
@@ -353,6 +444,51 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		).toBe( false );
 	} );
 
+	// docs/known-issues.md AX3, AX4: the added row's fields had no name.
+	it( 'labels the program and the times of an added slot (AX3, AX4)', async () => {
+		const screen = await mount();
+
+		addButton( screen, 'monday' ).click();
+
+		const row = screen.rows( 'monday' )[ 2 ];
+		const controls = [
+			'.radplapag-program-id',
+			'.radplapag-program-start',
+			'.radplapag-program-end',
+		].map( ( selector ) => row.querySelector( selector ) );
+		expect(
+			controls.map( ( control ) => [
+				control.id,
+				control.previousElementSibling.tagName.toLowerCase(),
+				control.previousElementSibling.className,
+				control.previousElementSibling.getAttribute( 'for' ),
+				control.labels[ 0 ].textContent,
+			] )
+		).toEqual( [
+			[
+				'radplapag-slot-monday-2-program',
+				'label',
+				'screen-reader-text',
+				'radplapag-slot-monday-2-program',
+				'[program_label]',
+			],
+			[
+				'radplapag-slot-monday-2-start',
+				'label',
+				'screen-reader-text',
+				'radplapag-slot-monday-2-start',
+				'[start_label]',
+			],
+			[
+				'radplapag-slot-monday-2-end',
+				'label',
+				'screen-reader-text',
+				'radplapag-slot-monday-2-end',
+				'[end_label]',
+			],
+		] );
+	} );
+
 	it( 'starts at index 0 on an empty day', async () => {
 		const screen = await mount();
 
@@ -397,10 +533,9 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		expect( screen.rows( 'monday' ) ).toEqual( [ morning ] );
 	} );
 
-	// docs/known-issues.md K15: the next index is the row count, not the
-	// highest index + 1, so the new row reuses the names of a kept row and
-	// PHP keeps only one of the two slots.
-	it( 'currently reuses the index of a kept row after a removal (K15)', async () => {
+	// docs/known-issues.md K15: the row count reused the names of a kept row
+	// and PHP kept only one of the two slots.
+	it( 'uses the highest index + 1 after a removal (K15)', async () => {
 		const screen = await mount();
 		const [ morning, night ] = screen.rows( 'monday' );
 		expect( morning.getAttribute( 'data-program-index' ) ).toBe( '1' );
@@ -409,9 +544,9 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		addButton( screen, 'monday' ).click();
 
 		const added = screen.rows( 'monday' )[ 1 ];
-		expect( added.getAttribute( 'data-program-index' ) ).toBe( '1' );
+		expect( added.getAttribute( 'data-program-index' ) ).toBe( '2' );
 		expect( added.querySelector( '.radplapag-program-start' ).name ).toBe(
-			morning.querySelector( '.radplapag-program-start' ).name
+			'radplapag_station_schedule[monday][2][start]'
 		);
 	} );
 
@@ -458,9 +593,7 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		expect( rowErrorCode( tuesday ) ).toBeNull();
 	} );
 
-	// docs/known-issues.md K16: removal walks Monday → Sunday without
-	// wrapping, unlike the focusout revalidation.
-	it( 'currently leaves Monday stale after removing the Sunday slot (K16)', async () => {
+	it( 'revalidates Monday after removing the Sunday slot (K16)', async () => {
 		const screen = await mount();
 		screen.clearSchedule();
 		const sunday = screen.addSlot( 'sunday', {
@@ -478,10 +611,25 @@ describe( 'station-admin.js: adding and removing slots', () => {
 
 		screen.remove( sunday );
 
-		expect( rowErrorCode( monday ) ).toBe( 'cross_midnight_overlap' );
-		// The next submit revalidates every row and clears it.
-		expect( screen.submit().blocked ).toBe( false );
 		expect( rowErrorCode( monday ) ).toBeNull();
+	} );
+
+	// docs/known-issues.md K39: the focus fell to body with the removed row.
+	it( "moves the focus to the next row's program, or to Add Time Slot, after a removal (K39)", async () => {
+		const screen = await mount();
+		const [ morning, night ] = screen.rows( 'monday' );
+
+		morning.querySelector( '.radplapag-remove-program' ).focus();
+		screen.remove( morning );
+
+		expect( document.activeElement ).toBe(
+			night.querySelector( '.radplapag-program-id' )
+		);
+
+		night.querySelector( '.radplapag-remove-program' ).focus();
+		screen.remove( night );
+
+		expect( document.activeElement ).toBe( addButton( screen, 'monday' ) );
 	} );
 } );
 

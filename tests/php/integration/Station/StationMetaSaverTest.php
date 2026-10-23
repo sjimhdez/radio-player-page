@@ -204,7 +204,8 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A page of another station is reported and the URL and page are kept.
+	 * A page of another station is reported and kept, and the valid URL is written
+	 * (K42, ADR 0048).
 	 */
 	public function test_page_of_another_station_is_reported() {
 		update_post_meta( $this->station, 'radplapag_station_stream_url', 'https://radio.test/old.mp3' );
@@ -219,8 +220,74 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( self::PAGE_TAKEN, $this->field_errors() );
-		$this->assertSame( 'https://radio.test/old.mp3', $this->meta( 'stream_url' ) );
+		$this->assertSame( 'https://radio.test/live.mp3', $this->meta( 'stream_url' ) );
 		$this->assertSame( '', $this->meta( 'player_page' ) );
+	}
+
+	/**
+	 * A URL that fails keeps its saved value and does not stop a valid page from
+	 * being written, in the order of a valid save (K42).
+	 */
+	public function test_invalid_url_still_writes_a_valid_page() {
+		update_post_meta( $this->station, 'radplapag_station_stream_url', 'https://radio.test/old.mp3' );
+
+		$writes = $this->save_and_record_writes(
+			array(
+				'stream_url'  => 'radio.example.com:8000/stream',
+				'player_page' => (string) $this->page,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'setted_transient:radplapag_station_field_errors_' . $this->station,
+				'added_post_meta:radplapag_station_player_page',
+				'added_post_meta:radplapag_station_background_id',
+				'added_post_meta:radplapag_station_logo_id',
+				'added_post_meta:radplapag_station_intro_audio_id',
+				'added_post_meta:radplapag_station_theme_color',
+				'added_post_meta:radplapag_station_visualizer',
+				'added_post_meta:radplapag_station_schedule',
+			),
+			$writes
+		);
+		$this->assertSame( self::URL_REQUIRED, $this->field_errors() );
+		$this->assertSame( 'https://radio.test/old.mp3', $this->meta( 'stream_url' ) );
+		$this->assertSame( (string) $this->page, $this->meta( 'player_page' ) );
+	}
+
+	/**
+	 * A page of another station keeps the saved page and does not stop a valid URL
+	 * from being written (K42).
+	 */
+	public function test_taken_page_still_writes_a_valid_url() {
+		$old_page = $this->factory_rpp->page( 'Old page' );
+		update_post_meta( $this->station, 'radplapag_station_player_page', $old_page );
+		$this->factory_rpp->station( 'Other', array( 'player_page' => $this->page ) );
+
+		$writes = $this->save_and_record_writes(
+			array(
+				'stream_url'  => 'https://radio.test/live.mp3',
+				'player_page' => (string) $this->page,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'setted_transient:radplapag_station_field_errors_' . $this->station,
+				'added_post_meta:radplapag_station_stream_url',
+				'added_post_meta:radplapag_station_background_id',
+				'added_post_meta:radplapag_station_logo_id',
+				'added_post_meta:radplapag_station_intro_audio_id',
+				'added_post_meta:radplapag_station_theme_color',
+				'added_post_meta:radplapag_station_visualizer',
+				'added_post_meta:radplapag_station_schedule',
+			),
+			$writes
+		);
+		$this->assertSame( self::PAGE_TAKEN, $this->field_errors() );
+		$this->assertSame( 'https://radio.test/live.mp3', $this->meta( 'stream_url' ) );
+		$this->assertSame( (string) $old_page, $this->meta( 'player_page' ) );
 	}
 
 	/**
@@ -281,10 +348,16 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Attachments of the wrong type go to 0 without a message (K37).
+	 * Attachments of the wrong type keep the stored value and each one adds its
+	 * message to the field errors transient (K37, ADR 0048).
 	 */
-	public function test_wrong_attachments_go_to_zero() {
-		$ogg = $this->factory_rpp->audio( 'Intro', 'audio/ogg' );
+	public function test_wrong_attachments_keep_the_stored_value_with_a_message() {
+		$ogg   = $this->factory_rpp->audio( 'Intro', 'audio/ogg' );
+		$image = $this->factory_rpp->image( 'Image' );
+		$mp3   = $this->factory_rpp->audio( 'Mp3' );
+		update_post_meta( $this->station, 'radplapag_station_background_id', $image );
+		update_post_meta( $this->station, 'radplapag_station_logo_id', $image );
+		update_post_meta( $this->station, 'radplapag_station_intro_audio_id', $mp3 );
 
 		Station_Meta_Saver::save(
 			$this->station,
@@ -292,13 +365,40 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 				'stream_url'     => 'https://radio.test/live.mp3',
 				'player_page'    => $this->page,
 				'background_id'  => $ogg,
+				'logo_id'        => $ogg,
 				'intro_audio_id' => $ogg,
 			)
 		);
 
+		$this->assertSame(
+			'Background Image must be an image; the previous one was kept. Logo Image must be an image; the previous one was kept. Welcome Audio must be an MP3 file; the previous one was kept.',
+			$this->field_errors()
+		);
+		$this->assertSame( (string) $image, $this->meta( 'background_id' ) );
+		$this->assertSame( (string) $image, $this->meta( 'logo_id' ) );
+		$this->assertSame( (string) $mp3, $this->meta( 'intro_audio_id' ) );
+		$this->assertSame( 'https://radio.test/live.mp3', $this->meta( 'stream_url' ) );
+		$this->assertSame( (string) $this->page, $this->meta( 'player_page' ) );
+	}
+
+	/**
+	 * A 0 sent (the attachment removed) is still written (K37, ADR 0048).
+	 */
+	public function test_removed_attachments_are_written_as_zero() {
+		$image = $this->factory_rpp->image( 'Image' );
+		update_post_meta( $this->station, 'radplapag_station_logo_id', $image );
+
+		Station_Meta_Saver::save(
+			$this->station,
+			array(
+				'stream_url'  => 'https://radio.test/live.mp3',
+				'player_page' => $this->page,
+				'logo_id'     => 0,
+			)
+		);
+
 		$this->assertFalse( $this->field_errors() );
-		$this->assertSame( '0', $this->meta( 'background_id' ) );
-		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
+		$this->assertSame( '0', $this->meta( 'logo_id' ) );
 	}
 
 	/**

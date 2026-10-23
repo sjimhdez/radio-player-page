@@ -25,6 +25,7 @@ function radplapag_get_admin_strings(): array {
 			'changeImage'                 => __( 'Change Image', 'radio-player-page' ),
 			'streamUrlRequired'           => __( 'This field is required.', 'radio-player-page' ),
 			'streamUrlInvalid'            => __( 'Please enter a valid URL.', 'radio-player-page' ),
+			'streamUrlScheme'             => __( 'Please enter a URL that starts with http:// or https://.', 'radio-player-page' ),
 			'playerPageRequired'          => __( 'This field is required.', 'radio-player-page' ),
 			'playerPageAlreadyAssigned'   => __( 'This Player Page is already assigned to another station. Please choose a different page.', 'radio-player-page' ),
 			'monday'                      => __( 'Monday', 'radio-player-page' ),
@@ -35,8 +36,6 @@ function radplapag_get_admin_strings(): array {
 			'saturday'                    => __( 'Saturday', 'radio-player-page' ),
 			'sunday'                      => __( 'Sunday', 'radio-player-page' ),
 			'invalidTimeFormat'           => __( 'Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
-			'completeTimeFields'          => __( 'Please complete all time fields.', 'radio-player-page' ),
-			'startEndSame'                => __( 'Start and end times cannot be the same.', 'radio-player-page' ),
 			'unnamedProgram'              => __( 'Unnamed Radio Show', 'radio-player-page' ),
 			'timeSlotOverlapsWith'        => __( 'This time slot overlaps with', 'radio-player-page' ),
 			/* translators: %s: program name or time slot description. */
@@ -62,6 +61,9 @@ function radplapag_get_admin_strings(): array {
 			'removeProgram'               => __( 'Remove Radio Show', 'radio-player-page' ),
 			'programNameRequired'         => __( 'Radio Show Name is required. Enter a name to use this Radio Show in the schedule.', 'radio-player-page' ),
 			'programNotPublished'         => __( 'This program is not published; this time slot is not shown on the site.', 'radio-player-page' ),
+			'programLabel'                => __( 'Radio Show', 'radio-player-page' ),
+			'startTimeLabel'              => __( 'Start time', 'radio-player-page' ),
+			'endTimeLabel'                => __( 'End time', 'radio-player-page' ),
 		),
 	);
 }

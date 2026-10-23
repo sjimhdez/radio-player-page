@@ -172,12 +172,21 @@ test.describe( 'admin: create and save', () => {
 		await expect( page.locator( '#message' ) ).toContainText(
 			'Post published.'
 		);
-		// C13: the save never compares the stream scheme with the site's. The
-		// only other visible notice allowed is core's "WordPress X is
-		// available!" (core also prints hidden ones, such as the lost connection).
+		// No notice from the plugin. The only other visible notice allowed is
+		// core's "WordPress X is available!" (core also prints hidden ones, such
+		// as the lost connection).
 		await expect(
 			page.locator( '.notice:not(#message):not(.update-nag):visible' )
 		).toHaveCount( 0 );
+		// C13: the mixed content notice is only for an https site; this
+		// environment is http, so it stays hidden (the https case is in
+		// AdminScreensTest and station-fields.test.js).
+		await expect(
+			page.locator( '#radplapag_station_stream_url_notice' )
+		).toBeHidden();
+		await expect(
+			page.locator( '#radplapag_station_stream_url' )
+		).not.toHaveAttribute( 'aria-describedby' );
 
 		expect( meta( stationId, 'radplapag_station_stream_url' ) ).toBe(
 			'http://localhost:8901/tone.mp3'
@@ -267,7 +276,7 @@ const VALIDATION_STREAM = 'http://localhost:8901/tone.mp3';
 
 /**
  * Adds a Monday slot from the schedule meta box. The new row is found by its
- * index (the number of rows before the click), because leaving a row sorts
+ * index (the highest index of the day + 1), because leaving a row sorts
  * the day by start time.
  *
  * @param page  Station edit screen.
@@ -469,6 +478,61 @@ test.describe( 'admin: validation and notices', () => {
 			).toHaveText( 'All fields are required.' );
 			expect( await submitOutcome( page ) ).toBe( 'blocked' );
 		} );
+
+		test.describe( 'with the schedule box collapsed', () => {
+			test.afterEach( () => {
+				// WordPress saves the collapsed state per user over AJAX.
+				try {
+					wpCli(
+						'user',
+						'meta',
+						'delete',
+						'admin',
+						'closedpostboxes_radplapag_station'
+					);
+				} catch {
+					// Not saved yet: nothing to clean up.
+				}
+			} );
+
+			test( 'opens the schedule box to show the error that blocks the submit (K89)', async ( {
+				page,
+			} ) => {
+				const row = await addMondaySlot( page, 3 );
+				await row
+					.locator( '.radplapag-program-id' )
+					.selectOption( programId );
+				await row.locator( '.radplapag-program-start' ).fill( '10:30' );
+				await row.locator( '.radplapag-program-end' ).fill( '11:30' );
+				const box = page.locator( '#radplapag_station_schedule' );
+				await box.locator( '.handlediv' ).click();
+				await expect( box ).toHaveClass( /\bclosed\b/ );
+				await watchSubmit( page );
+
+				await page.locator( '#publish' ).click();
+
+				const message = row.locator(
+					'.radplapag-program-error-message.show'
+				);
+				await expect( message ).toHaveText(
+					`This time slot overlaps with: ${ VALIDATION.program } (Monday, 10:00 - 11:00)`
+				);
+				expect( await submitOutcome( page ) ).toBe( 'blocked' );
+				await expect( box ).not.toHaveClass( /\bclosed\b/ );
+				await expect( box.locator( '.handlediv' ) ).toHaveAttribute(
+					'aria-expanded',
+					'true'
+				);
+				await expect( message ).toBeVisible();
+				// The saved 10:00 slot overlaps too and comes first.
+				const focused = box.locator( '.radplapag-program-id:focus' );
+				await expect( focused ).toHaveCount( 1 );
+				await expect( focused ).toHaveAttribute(
+					'aria-invalid',
+					'true'
+				);
+			} );
+		} );
 	} );
 
 	test.describe( 'server, without the client validation', () => {
@@ -482,10 +546,33 @@ test.describe( 'admin: validation and notices', () => {
 		 * @param page Station edit screen.
 		 */
 		async function save( page: Page ) {
+			// With an error the redirect has no `&message=` (D9): wait for the
+			// edit screen that the POST redirects to, and its load.
+			const redirected = page.waitForResponse(
+				( response ) =>
+					response.request().method() === 'GET' &&
+					/post\.php\?post=\d+&action=edit/.test( response.url() ) &&
+					response.request().redirectedFrom()?.method() === 'POST'
+			);
 			await page.locator( '#publish' ).click();
-			await page.waitForURL( /post\.php\?post=\d+&action=edit&message=/ );
+			await redirected;
+			await page.waitForLoadState( 'load' );
 			return page.locator( '.notice-error:visible' );
 		}
+
+		test( 'shows the server notice without core\'s "Post published."', async ( {
+			page,
+		} ) => {
+			await page.locator( '#radplapag_station_stream_url' ).fill( '' );
+
+			const notices = await save( page );
+
+			await expect( notices ).toHaveText( [
+				'Validation failed: Streaming URL is required.',
+			] );
+			expect( page.url() ).not.toContain( 'message=' );
+			await expect( page.locator( '#message' ) ).toHaveCount( 0 );
+		} );
 
 		test( 'an empty stream URL shows its notice once and keeps the saved URL', async ( {
 			page,
@@ -552,25 +639,31 @@ test.describe( 'admin: validation and notices', () => {
 
 	// `new URL()` and the browser's `type="url"` take `host:port/path` as a URL
 	// with the scheme `radio.example.com`; esc_url_raw() returns '' for it.
-	test( 'currently reports a stream URL without a scheme as missing (K42)', async ( {
+	test( 'blocks a stream URL without a scheme with its message (K42)', async ( {
 		page,
 	} ) => {
+		// The browser's `type="url"` reads `radio.example.com` as the scheme.
 		await page
 			.locator( '#radplapag_station_stream_url' )
 			.fill( 'radio.example.com:8000/stream' );
+		await watchSubmit( page );
 
 		await page.locator( '#publish' ).click();
-		await page.waitForURL( /post\.php\?post=\d+&action=edit&message=/ );
 
-		await expect( page.locator( '.notice-error:visible p' ) ).toHaveText( [
-			'Validation failed: Streaming URL is required.',
-		] );
+		await expect(
+			page.locator(
+				'[data-field="stream_url"] .radplapag-field-error-message'
+			)
+		).toHaveText(
+			'Please enter a URL that starts with http:// or https://.'
+		);
+		expect( await submitOutcome( page ) ).toBe( 'blocked' );
 		expect( meta( stationId, 'radplapag_station_stream_url' ) ).toBe(
 			VALIDATION_STREAM
 		);
 	} );
 
-	test( 'currently loses a slot and mixes another after removing a middle row and adding one (K15)', async ( {
+	test( 'keeps every slot after removing a middle row and adding one (K15)', async ( {
 		page,
 	} ) => {
 		const monday = page.locator(
@@ -582,10 +675,9 @@ test.describe( 'admin: validation and notices', () => {
 		// The link only takes the pointer while its row is hovered.
 		await middle.hover();
 		await middle.getByText( 'Remove Time Slot' ).click();
-		// Two rows left (indexes 0 and 2): the new one gets index 2 again.
-		const added = await addMondaySlot( page, 2 );
-		await expect( added ).toHaveCount( 2 );
-		const row = added.last();
+		// Two rows left (indexes 0 and 2): the new one gets index 3.
+		const row = await addMondaySlot( page, 3 );
+		await expect( row ).toHaveCount( 1 );
 		await row.locator( '.radplapag-program-id' ).selectOption( programId );
 		await row.locator( '.radplapag-program-start' ).fill( '14:00' );
 		await row.locator( '.radplapag-program-end' ).fill( '15:00' );
@@ -593,8 +685,6 @@ test.describe( 'admin: validation and notices', () => {
 		await page.locator( '#publish' ).click();
 		await page.waitForURL( /post\.php\?post=\d+&action=edit&message=/ );
 
-		// 12:00–13:00 is gone without a notice, and 14:00–15:00 keeps the
-		// rerun flag of the row whose names it reused.
 		await expect( page.locator( '.notice-error:visible' ) ).toHaveCount(
 			0
 		);
@@ -608,9 +698,15 @@ test.describe( 'admin: validation and notices', () => {
 				},
 				{
 					program_id: Number( programId ),
+					start: '12:00',
+					end: '13:00',
+					is_rerun: true,
+				},
+				{
+					program_id: Number( programId ),
 					start: '14:00',
 					end: '15:00',
-					is_rerun: true,
+					is_rerun: false,
 				},
 			],
 		} );

@@ -93,30 +93,30 @@ final class FieldSanitizerTest extends TestCase {
 	}
 
 	/**
-	 * Truncation counts bytes, not characters: 200 "é" (400 bytes) become 128.
+	 * Truncation counts characters, not bytes: 200 "é" (400 bytes) stay 200 (K5).
 	 */
-	public function test_truncation_counts_bytes_not_characters() {
+	public function test_truncation_counts_characters() {
 		$input                = self::input();
 		$input['description'] = str_repeat( 'é', 200 );
 
 		$values = Field_Sanitizer::sanitize( $input, self::is_image( true ) );
 
-		$this->assertSame( str_repeat( 'é', 128 ), $values['description'] );
+		$this->assertSame( str_repeat( 'é', 200 ), $values['description'] );
 	}
 
 	/**
-	 * A cut inside a multibyte character keeps its first byte; the registered meta
-	 * sanitizer then saves the field empty (K5).
+	 * A multibyte character at the limit is kept whole; the value is never cut
+	 * inside a character (K5).
 	 */
-	public function test_currently_cut_inside_a_character_keeps_half_of_it() {
+	public function test_cut_never_splits_a_character() {
 		$input                         = self::input();
-		$input['description']          = str_repeat( 'a', 255 ) . 'é';
-		$input['extended_description'] = str_repeat( 'b', 511 ) . 'é';
+		$input['description']          = str_repeat( 'a', 255 ) . 'éé';
+		$input['extended_description'] = str_repeat( 'b', 511 ) . 'éé';
 
 		$values = Field_Sanitizer::sanitize( $input, self::is_image( true ) );
 
-		$this->assertSame( str_repeat( 'a', 255 ) . "\xC3", $values['description'] );
-		$this->assertSame( str_repeat( 'b', 511 ) . "\xC3", $values['extended_description'] );
+		$this->assertSame( str_repeat( 'a', 255 ) . 'é', $values['description'] );
+		$this->assertSame( str_repeat( 'b', 511 ) . 'é', $values['extended_description'] );
 	}
 
 	/**

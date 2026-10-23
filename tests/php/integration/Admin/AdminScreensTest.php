@@ -28,6 +28,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'changeImage',
 		'streamUrlRequired',
 		'streamUrlInvalid',
+		'streamUrlScheme',
 		'playerPageRequired',
 		'playerPageAlreadyAssigned',
 		'monday',
@@ -38,8 +39,6 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'saturday',
 		'sunday',
 		'invalidTimeFormat',
-		'completeTimeFields',
-		'startEndSame',
 		'unnamedProgram',
 		'timeSlotOverlapsWith',
 		'timeSlotOverlapsWithMessage',
@@ -64,6 +63,9 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'removeProgram',
 		'programNameRequired',
 		'programNotPublished',
+		'programLabel',
+		'startTimeLabel',
+		'endTimeLabel',
 	);
 
 	/**
@@ -576,13 +578,11 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, when the assigned page stops being published (draft, private,
-	 * scheduled), the select does not list it and selects nothing, without saying so:
-	 * the meta still points to it, but the form shows "Select a Page" and its
-	 * validation asks for one, so any later save (a new stream URL) needs another
-	 * page. K36 of docs/known-issues.md.
+	 * When the assigned page stops being published (draft, private, scheduled), the
+	 * select still lists it, selected, with its status in the label, and a notice
+	 * says the player is not shown until it is published (K36).
 	 */
-	public function test_currently_details_box_drops_an_assigned_page_that_is_not_published() {
+	public function test_details_box_lists_an_assigned_page_that_is_not_published_with_its_status_and_a_notice() {
 		$page    = $this->factory_rpp->page( 'Player' );
 		$station = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $page ) );
 		wp_update_post(
@@ -594,9 +594,140 @@ final class AdminScreensTest extends WP_UnitTestCase {
 
 		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
 
-		$this->assertSame( (string) $page, get_post_meta( $station, 'radplapag_station_player_page', true ) );
-		$this->assertStringNotContainsString( 'value="' . $page . '"', $this->select( $html, 'radplapag_station_player_page' ) );
-		$this->assertSame( array(), $this->selected( $html, 'radplapag_station_player_page' ) );
+		$this->assertSame( array( (string) $page ), $this->selected( $html, 'radplapag_station_player_page' ) );
+		$this->assertStringContainsString( '>Player (Private)</option>', $this->select( $html, 'radplapag_station_player_page' ) );
+		$this->assertStringContainsString(
+			'<span class="radplapag-field-notice">This page is not published; the player is not shown until it is.</span>',
+			$html
+		);
+	}
+
+	/**
+	 * A published assigned page is listed once, without a status or the notice (K36).
+	 */
+	public function test_details_box_does_not_warn_about_a_published_assigned_page() {
+		$page    = $this->factory_rpp->page( 'Player' );
+		$station = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $page ) );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertSame( 1, substr_count( $this->select( $html, 'radplapag_station_player_page' ), 'value="' . $page . '"' ) );
+		$this->assertStringContainsString( '>Player</option>', $html );
+		$this->assertStringNotContainsString( 'This page is not published', $html );
+	}
+
+	/**
+	 * With a static front page, the posts page never shows the player, so the
+	 * select leaves it out (K27).
+	 */
+	public function test_details_box_leaves_out_the_posts_page() {
+		$posts_page = $this->factory_rpp->page( 'Blog' );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', $posts_page );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM' ) );
+
+		$this->assertStringNotContainsString( 'value="' . $posts_page . '"', $this->select( $html, 'radplapag_station_player_page' ) );
+		$this->assertStringNotContainsString( 'This page is the posts page', $html );
+	}
+
+	/**
+	 * A station already assigned to the posts page keeps it, selected, with a
+	 * notice that the player is not shown on it (K27).
+	 */
+	public function test_details_box_warns_when_the_assigned_page_is_the_posts_page() {
+		$posts_page = $this->factory_rpp->page( 'Blog' );
+		$station    = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $posts_page ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', $posts_page );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertSame( array( (string) $posts_page ), $this->selected( $html, 'radplapag_station_player_page' ) );
+		$this->assertSame( 1, substr_count( $this->select( $html, 'radplapag_station_player_page' ), 'value="' . $posts_page . '"' ) );
+		$this->assertStringContainsString(
+			'<span class="radplapag-field-notice">This page is the posts page; the player is not shown on it.</span>',
+			$html
+		);
+	}
+
+	/**
+	 * With the latest posts on the front page, page_for_posts is not the posts
+	 * page, so it is listed like any other, without the notice (K27).
+	 */
+	public function test_details_box_lists_page_for_posts_when_the_front_page_shows_posts() {
+		$posts_page = $this->factory_rpp->page( 'Blog' );
+		$station    = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $posts_page ) );
+		update_option( 'show_on_front', 'posts' );
+		update_option( 'page_for_posts', $posts_page );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertSame( array( (string) $posts_page ), $this->selected( $html, 'radplapag_station_player_page' ) );
+		$this->assertStringNotContainsString( 'This page is the posts page', $html );
+	}
+
+	/**
+	 * On an https site, a saved http stream shows the mixed content notice next to
+	 * the URL, tied to the input with aria-describedby (C13).
+	 */
+	public function test_details_box_warns_about_an_http_stream_on_an_https_site() {
+		add_filter( 'home_url', array( $this, 'https_home_url' ) );
+		$station = $this->factory_rpp->station( 'Test FM', array( 'stream_url' => 'http://stream.example.test/live.mp3' ) );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertStringContainsString( '<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="https">', $html );
+		$this->assertStringContainsString( 'aria-describedby="radplapag_station_stream_url_notice"', $html );
+		$this->assertStringContainsString(
+			'<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice">This stream uses http:// and this site uses https://; browsers block it, so it will not play.</span>',
+			$html
+		);
+	}
+
+	/**
+	 * Without an http stream on an https site, the notice is printed hidden, for the
+	 * JS, and the input does not point to it (C13).
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function data_no_mixed_content() {
+		return array(
+			'http stream on an http site'   => array( 'http', 'http://stream.example.test/live.mp3' ),
+			'https stream on an https site' => array( 'https', 'https://stream.example.test/live.mp3' ),
+			'no stream on an https site'    => array( 'https', '' ),
+		);
+	}
+
+	/**
+	 * See data_no_mixed_content().
+	 *
+	 * @dataProvider data_no_mixed_content
+	 *
+	 * @param string $site_scheme Scheme of home_url().
+	 * @param string $stream_url  Saved stream URL.
+	 */
+	public function test_details_box_hides_the_notice_without_mixed_content( $site_scheme, $stream_url ) {
+		if ( 'https' === $site_scheme ) {
+			add_filter( 'home_url', array( $this, 'https_home_url' ) );
+		}
+		$station = $this->factory_rpp->station( 'Test FM', array( 'stream_url' => $stream_url ) );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertStringContainsString( 'data-field="stream_url" data-site-scheme="' . $site_scheme . '">', $html );
+		$this->assertStringNotContainsString( 'aria-describedby="radplapag_station_stream_url_notice"', $html );
+		$this->assertStringContainsString( '<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice" hidden>', $html );
+	}
+
+	/**
+	 * Filter for home_url(): the same URL with https.
+	 *
+	 * @param string $url URL.
+	 * @return string
+	 */
+	public function https_home_url( $url ) {
+		return set_url_scheme( $url, 'https' );
 	}
 
 	/**
@@ -696,6 +827,32 @@ final class AdminScreensTest extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( '>Morning Show</option>', $html );
 		$this->assertStringNotContainsString( 'radplapag-program-notice', $html );
+	}
+
+	/**
+	 * Each day is a fieldset named by its legend, and the program, start and end of
+	 * each slot have a screen reader label tied by `for`/`id`; the names do not
+	 * change (AX3, AX4 and the meta box part of AX2 in docs/known-issues.md).
+	 */
+	public function test_schedule_box_names_each_slot_field() {
+		$program = $this->factory_rpp->program( 'Morning Show' );
+		$station = $this->station_with_slot( $program );
+
+		$html = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
+
+		$this->assertSame( 7, preg_match_all( '/<fieldset class="radplapag-schedule-day" data-day="[a-z]+">\s*<legend class="radplapag-schedule-day-legend">/', $html ) );
+		$this->assertStringContainsString( '<legend class="radplapag-schedule-day-legend">Monday</legend>', $html );
+		$this->assertStringNotContainsString( '<h4', $html );
+		$fields = array(
+			'program' => array( 'Radio Show', '<select name="radplapag_station_schedule[monday][0][program_id]"' ),
+			'start'   => array( 'Start time', '<input type="time" name="radplapag_station_schedule[monday][0][start]"' ),
+			'end'     => array( 'End time', '<input type="time" name="radplapag_station_schedule[monday][0][end]"' ),
+		);
+		foreach ( $fields as $field => list( $label, $control ) ) {
+			$id = 'radplapag-slot-monday-0-' . $field;
+			$this->assertSame( 1, substr_count( $html, '<label class="screen-reader-text" for="' . $id . '">' . $label . '</label>' ), $field );
+			$this->assertSame( 1, preg_match( '#' . preg_quote( $control, '#' ) . '[^>]* id="' . $id . '">#', $html ), $field );
+		}
 	}
 
 	/**

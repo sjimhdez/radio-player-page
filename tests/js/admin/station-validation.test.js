@@ -3,7 +3,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 /**
  * Internal dependencies
@@ -269,9 +269,7 @@ describe( 'station-admin.js: rows and submit', () => {
 		expect( rowErrorCode( screen.rows( 'tuesday' )[ 0 ] ) ).toBeNull();
 	} );
 
-	// docs/known-issues.md K44: String.prototype.replace() reads `$` patterns
-	// in the replacement, so `$$` in a program name prints as `$`.
-	it( 'currently collapses `$$` in the program name of an overlap message (K44)', async () => {
+	it( 'keeps `$$` in the program name of an overlap message (K44)', async () => {
 		const screen = await mountStationScreen(
 			adminData( {
 				programs: [
@@ -299,12 +297,12 @@ describe( 'station-admin.js: rows and submit', () => {
 		expect(
 			second.querySelector( '.radplapag-program-error-message' )
 				.textContent
-		).toBe( '[overlap] Money $ Talk (Monday, 06:00 - 10:00)' );
+		).toBe( '[overlap] Money $$ Talk (Monday, 06:00 - 10:00)' );
 	} );
 
-	// docs/known-issues.md K45: nothing ties the message to its fields or
-	// announces it (WCAG 3.3.1, 4.1.3); axe does not see it.
-	it( 'currently shows a slot error without any ARIA (K45)', async () => {
+	// docs/known-issues.md K45: the message is tied to the slot's fields
+	// (WCAG 3.3.1, 1.3.1); axe does not see it.
+	it( 'ties a slot error to its fields (K45)', async () => {
 		const screen = await mountSchedule( {
 			monday: [
 				{ program: 'A', start: '06:00', end: '10:00' },
@@ -315,15 +313,106 @@ describe( 'station-admin.js: rows and submit', () => {
 		screen.submit();
 
 		const row = screen.rows( 'monday' )[ 1 ];
+		const index = row.getAttribute( 'data-program-index' );
+		const id = `radplapag-slot-monday-${ index }-error`;
 		const message = row.querySelector( '.radplapag-program-error-message' );
 		expect( message.textContent ).not.toBe( '' );
-		[ 'id', 'role', 'aria-live' ].forEach( ( attribute ) =>
-			expect( message.hasAttribute( attribute ) ).toBe( false )
+		expect( message.id ).toBe( id );
+		const controls = row.querySelectorAll(
+			'.radplapag-program-id, .radplapag-program-start, .radplapag-program-end'
 		);
+		expect( controls ).toHaveLength( 3 );
+		controls.forEach( ( control ) => {
+			expect( control.getAttribute( 'aria-invalid' ) ).toBe( 'true' );
+			expect( control.getAttribute( 'aria-describedby' ) ).toBe( id );
+		} );
+	} );
+
+	it( 'removes the ARIA when the error clears (K45)', async () => {
+		const screen = await mountSchedule( {
+			monday: [
+				{ program: 'A', start: '06:00', end: '10:00' },
+				{ program: 'B', start: '09:00', end: '11:00' },
+			],
+		} );
+		screen.submit();
+		const row = screen.rows( 'monday' )[ 1 ];
+		row.querySelector( '.radplapag-program-start' ).value = '10:00';
+
+		screen.submit();
+
+		expect(
+			row.querySelector( '.radplapag-program-error-message' )
+		).toBeNull();
 		row.querySelectorAll( 'select, input' ).forEach( ( control ) => {
 			expect( control.hasAttribute( 'aria-invalid' ) ).toBe( false );
 			expect( control.hasAttribute( 'aria-describedby' ) ).toBe( false );
 		} );
+	} );
+
+	it( 'focuses the first field with an error on submit (K45)', async () => {
+		const screen = await mountSchedule( {
+			monday: [ { program: 'A', start: '06:00', end: '10:00' } ],
+			tuesday: [
+				{ program: 'A', start: '06:00', end: '10:00' },
+				{ program: 'B', start: '09:00', end: '11:00' },
+			],
+		} );
+		const focus = vi.spyOn( window.HTMLElement.prototype, 'focus' );
+
+		const { firstError } = screen.submit();
+
+		expect( screen.rows( 'tuesday' ) ).toContain( firstError );
+		expect( document.activeElement ).toBe(
+			firstError.querySelector( '.radplapag-program-id' )
+		);
+		expect( focus ).toHaveBeenCalledWith( { preventScroll: true } );
+		focus.mockRestore();
+	} );
+
+	it( 'focuses the control of a station field with an error on submit (K45)', async () => {
+		const screen = await mountSchedule( {} );
+		const playerPage = screen.form.querySelector(
+			'#radplapag_station_player_page'
+		);
+		playerPage.value = '';
+
+		const { firstError } = screen.submit();
+
+		expect( firstError ).toBe(
+			screen.form.querySelector( '[data-field="player_page"]' )
+		);
+		expect( document.activeElement ).toBe( playerPage );
+	} );
+
+	// docs/known-issues.md K89: a collapsed meta box hid the error that
+	// blocked the submit.
+	it( 'opens the collapsed meta box of the first error on submit (K89)', async () => {
+		const screen = await mountSchedule( {
+			monday: [
+				{ program: 'A', start: '06:00', end: '10:00' },
+				{ program: 'B', start: '09:00', end: '11:00' },
+			],
+		} );
+		const box = document.createElement( 'div' );
+		box.className = 'postbox closed';
+		const toggle = document.createElement( 'button' );
+		toggle.className = 'handlediv';
+		toggle.setAttribute( 'aria-expanded', 'false' );
+		const inside = document.createElement( 'div' );
+		inside.className = 'inside';
+		screen.container.before( box );
+		box.append( toggle, inside );
+		inside.append( screen.container );
+
+		const { firstError } = screen.submit();
+
+		expect( screen.rows( 'monday' ) ).toContain( firstError );
+		expect( box.classList ).not.toContain( 'closed' );
+		expect( toggle.getAttribute( 'aria-expanded' ) ).toBe( 'true' );
+		expect( document.activeElement ).toBe(
+			firstError.querySelector( '.radplapag-program-id' )
+		);
 	} );
 } );
 
@@ -669,8 +758,8 @@ describe( 'station-admin.js: overlaps across days', () => {
 		] );
 	} );
 
-	// docs/known-issues.md K74: the same-day check falls back to "Unnamed
-	// program"; the checks across days print the empty name.
+	// docs/known-issues.md K74: the checks across days fall back to "Unnamed
+	// program", like the same-day check.
 	it.each( [
 		[
 			'monday',
@@ -678,7 +767,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'the crossing slot',
 			[
 				'[overlap] Morning Show (Tuesday, 01:00 - 03:00)',
-				'[overlap]  (Monday, 22:00 - 02:00)',
+				'[overlap] Unnamed program (Monday, 22:00 - 02:00)',
 			],
 		],
 		[
@@ -686,7 +775,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'tuesday',
 			'the next-day slot',
 			[
-				'[overlap]  (Tuesday, 01:00 - 03:00)',
+				'[overlap] Unnamed program (Tuesday, 01:00 - 03:00)',
 				'[overlap] Night Owl (Monday, 22:00 - 02:00)',
 			],
 		],
@@ -695,7 +784,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'monday',
 			'the crossing slot',
 			[
-				'[overlap]  (Sunday, 22:00 - 02:00)',
+				'[overlap] Unnamed program (Sunday, 22:00 - 02:00)',
 				'[overlap] Morning Show (Monday, 01:00 - 03:00)',
 			],
 		],
@@ -705,11 +794,11 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'the next-day slot',
 			[
 				'[overlap] Night Owl (Sunday, 22:00 - 02:00)',
-				'[overlap]  (Monday, 01:00 - 03:00)',
+				'[overlap] Unnamed program (Monday, 01:00 - 03:00)',
 			],
 		],
 	] )(
-		'currently leaves the name empty in an overlap from %s into %s, unnamed %s (K74)',
+		'names an untitled program in an overlap from %s into %s, unnamed %s (K74)',
 		async ( from, to, unnamed, messages ) => {
 			const crossing = { programId: '202', start: '22:00', end: '02:00' };
 			const next = { programId: '201', start: '01:00', end: '03:00' };
@@ -733,9 +822,9 @@ describe( 'station-admin.js: overlaps across days', () => {
 		}
 	);
 
-	// docs/known-issues.md K75: the same-day check compares with a row that has
-	// times but no program, and names it after the select's placeholder.
-	it( 'currently names the placeholder of a row without a program in an overlap (K75)', async () => {
+	// docs/known-issues.md K75: the same-day check skips a row without a
+	// program, which only shows its own error.
+	it( 'ignores a row without a program in a same-day overlap (K75)', async () => {
 		const screen = await mountSlots( MARKER_STRINGS, {
 			monday: [
 				{ programId: '', start: '06:00', end: '10:00' },
@@ -747,7 +836,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 
 		expect( screen.rows( 'monday' ).map( rowMessage ) ).toEqual( [
 			'[invalid_program]',
-			'[overlap] Select Radio Show (Monday, 06:00 - 10:00)',
+			null,
 		] );
 	} );
 } );

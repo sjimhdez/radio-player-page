@@ -330,13 +330,44 @@ function radplapag_render_station_details_meta_box( $post ) {
 	$theme          = get_post_meta( $post->ID, 'radplapag_station_theme_color', true );
 	$visualizer     = get_post_meta( $post->ID, 'radplapag_station_visualizer', true );
 
+	// Mixed content (C13). The notice is printed hidden too, so the JS can show it while typing.
 	$stream_url   = is_string( $stream_url ) ? esc_url( $stream_url ) : '';
+	$site_scheme  = (string) wp_parse_url( home_url(), PHP_URL_SCHEME );
+	$mixed        = 'https' === $site_scheme && 'http' === wp_parse_url( $stream_url, PHP_URL_SCHEME );
 	$valid_themes = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
 	$theme        = in_array( $theme, $valid_themes, true ) ? $theme : 'neutral';
 	$valid_viz    = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
 	$visualizer   = in_array( $visualizer, $valid_viz, true ) ? $visualizer : 'oscilloscope';
 
-	$pages           = get_pages( array( 'post_status' => 'publish' ) );
+	$pages = get_pages( array( 'post_status' => 'publish' ) );
+	$pages = is_array( $pages ) ? $pages : array();
+
+	// The posts page never shows the player, so it is left out unless already assigned (K27).
+	$posts_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
+	if ( $posts_page > 0 && $posts_page !== $player_page ) {
+		$pages = array_values(
+			array_filter(
+				$pages,
+				function ( $page ) use ( $posts_page ) {
+					return $posts_page !== $page->ID;
+				}
+			)
+		);
+	}
+	$is_posts_page = $posts_page > 0 && $posts_page === $player_page;
+
+	// An assigned page that is not published stays listed, with its status (K36).
+	$unpublished_page  = null;
+	$unpublished_label = '';
+	if ( $player_page > 0 && ! in_array( $player_page, wp_list_pluck( $pages, 'ID' ), true ) ) {
+		$assigned = get_post( $player_page );
+		if ( $assigned && 'page' === $assigned->post_type ) {
+			$unpublished_page = $assigned;
+			/* translators: 1: page title, 2: page status, such as Draft or Private. */
+			$unpublished_label = sprintf( __( '%1$s (%2$s)', 'radio-player-page' ), $assigned->post_title, \RadioPlayerPage\WP\Post_Status_Label::of( $assigned->post_status ) );
+		}
+	}
+
 	$bg_url          = $background_id > 0 ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
 	$logo_url        = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
 	$intro_audio_url = $intro_audio_id > 0 ? wp_get_attachment_url( $intro_audio_id ) : '';
@@ -360,13 +391,23 @@ function radplapag_render_station_details_meta_box( $post ) {
 				<?php foreach ( $pages as $page ) : ?>
 					<option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $player_page, $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option>
 				<?php endforeach; ?>
+				<?php if ( $unpublished_page ) : ?>
+					<option value="<?php echo esc_attr( (string) $unpublished_page->ID ); ?>" selected='selected'><?php echo esc_html( $unpublished_label ); ?></option>
+				<?php endif; ?>
 			</select>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
+			<?php if ( $unpublished_page ) : ?>
+				<span class="radplapag-field-notice"><?php esc_html_e( 'This page is not published; the player is not shown until it is.', 'radio-player-page' ); ?></span>
+			<?php endif; ?>
+			<?php if ( $is_posts_page ) : ?>
+				<span class="radplapag-field-notice"><?php esc_html_e( 'This page is the posts page; the player is not shown on it.', 'radio-player-page' ); ?></span>
+			<?php endif; ?>
 		</p>
-		<p class="radplapag-field-wrap" data-field="stream_url">
+		<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="<?php echo esc_attr( $site_scheme ); ?>">
 			<label for="radplapag_station_stream_url"><strong><?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?> <span class="required">*</span></strong></label><br>
-			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>">
+			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>"<?php echo $mixed ? ' aria-describedby="radplapag_station_stream_url_notice"' : ''; ?>>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
+			<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice"<?php echo $mixed ? '' : ' hidden'; ?>><?php esc_html_e( 'This stream uses http:// and this site uses https://; browsers block it, so it will not play.', 'radio-player-page' ); ?></span>
 		</p>
 	</div>
 	<div class="radplapag-form-row">
@@ -488,8 +529,8 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 					}
 				);
 				?>
-				<div class="radplapag-schedule-day" data-day="<?php echo esc_attr( $day_key ); ?>">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;"><?php echo esc_html( $day_label ); ?></h4>
+				<fieldset class="radplapag-schedule-day" data-day="<?php echo esc_attr( $day_key ); ?>">
+					<legend class="radplapag-schedule-day-legend"><?php echo esc_html( $day_label ); ?></legend>
 					<div class="radplapag-programs-list">
 						<?php
 						foreach ( $day_programs as $prog_index => $program ) :
@@ -498,9 +539,11 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 							$prog_start    = isset( $program['start'] ) ? esc_attr( $program['start'] ) : '';
 							$prog_end      = isset( $program['end'] ) ? esc_attr( $program['end'] ) : '';
 							$prog_is_rerun = ! empty( $program['is_rerun'] );
+							$field_id      = 'radplapag-slot-' . $day_key . '-' . $prog_index . '-';
 							?>
 							<div class="radplapag-program-row" data-program-index="<?php echo esc_attr( $prog_index ); ?>">
-								<select name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'program' ); ?>"><?php esc_html_e( 'Radio Show', 'radio-player-page' ); ?></label>
+								<select name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="<?php echo esc_attr( $field_id . 'program' ); ?>">
 									<option value=""><?php esc_html_e( 'Select Radio Show', 'radio-player-page' ); ?></option>
 									<?php
 									foreach ( $cpt_programs as $p ) :
@@ -509,9 +552,11 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 										<option value="<?php echo esc_attr( $p_id ); ?>" <?php selected( $prog_id_int > 0 && $prog_id_int === $p_id ); ?>><?php echo esc_html( $p['label'] ); ?></option>
 									<?php endforeach; ?>
 								</select>
-								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" value="<?php echo esc_attr( $prog_start ); ?>" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'start' ); ?>"><?php esc_html_e( 'Start time', 'radio-player-page' ); ?></label>
+								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" value="<?php echo esc_attr( $prog_start ); ?>" class="radplapag-program-start" style="width: 100px; margin-right: 5px;" id="<?php echo esc_attr( $field_id . 'start' ); ?>">
 								<span style="margin-right: 5px;"> <?php esc_html_e( 'to', 'radio-player-page' ); ?> </span>
-								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" value="<?php echo esc_attr( $prog_end ); ?>" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'end' ); ?>"><?php esc_html_e( 'End time', 'radio-player-page' ); ?></label>
+								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" value="<?php echo esc_attr( $prog_end ); ?>" class="radplapag-program-end" style="width: 100px; margin-right: 10px;" id="<?php echo esc_attr( $field_id . 'end' ); ?>">
 								<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;">
 									<input type="checkbox" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][is_rerun]" value="1" <?php checked( $prog_is_rerun ); ?> class="radplapag-program-is-rerun">
 									<?php esc_html_e( 'Rerun', 'radio-player-page' ); ?>
@@ -529,7 +574,7 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 					<button type="button" class="button radplapag-add-program" data-day="<?php echo esc_attr( $day_key ); ?>" style="margin-top: 5px; margin-bottom: 15px;">
 						<?php esc_html_e( 'Add Time Slot', 'radio-player-page' ); ?>
 					</button>
-				</div>
+				</fieldset>
 			<?php endforeach; ?>
 		</div>
 	</div>
@@ -616,6 +661,28 @@ function radplapag_station_schedule_errors_notice() {
 }
 
 /**
+ * Drops core's "Post published." / "Post updated." from the redirect after saving a
+ * station that left an error notice (ADR 0048).
+ *
+ * The station is still published or updated; only the notice changes.
+ *
+ * @since 3.5.0
+ * @param string $location The destination URL.
+ * @param int    $post_id  The saved post ID.
+ * @return string
+ */
+function radplapag_station_redirect_without_message( $location, $post_id ) {
+	if ( get_post_type( $post_id ) !== 'radplapag_station' ) {
+		return $location;
+	}
+	if ( false === get_transient( 'radplapag_station_field_errors_' . $post_id ) && false === get_transient( 'radplapag_station_schedule_errors_' . $post_id ) ) {
+		return $location;
+	}
+
+	return remove_query_arg( 'message', $location );
+}
+
+/**
  * Returns page IDs that are assigned as Player Page by other stations (excluding the given post).
  *
  * Used by admin to disable those options in the Player Page select and validate on submit.
@@ -648,4 +715,5 @@ if ( is_admin() ) {
 	add_action( 'save_post_radplapag_station', 'radplapag_save_station_meta' );
 	add_action( 'admin_notices', 'radplapag_station_schedule_errors_notice' );
 	add_action( 'admin_enqueue_scripts', 'radplapag_station_edit_scripts' );
+	add_filter( 'redirect_post_location', 'radplapag_station_redirect_without_message', 10, 2 );
 }

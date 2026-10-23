@@ -381,37 +381,47 @@ final class SanitizeScheduleTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, `start` or `end` posted as an array (`[start][]=x`, only from a
-	 * hand-made POST) reaches trim(): a TypeError on PHP 8, which ends the save with a
-	 * 500 after the details meta are written; on PHP 7.4 a warning. K38 of
+	 * `start` or `end` posted as an array (`[start][]=x`, only from a hand-made POST)
+	 * counts as missing: a `required` error and nothing saved, with no TypeError on
+	 * PHP 8 (it ended the save with a 500) and no warning on PHP 7.4. K38 of
 	 * docs/known-issues.md.
+	 *
+	 * @dataProvider data_time_fields
+	 *
+	 * @param string $field `start` or `end`.
 	 */
-	public function test_currently_array_time_reaches_trim() {
-		$row          = $this->row( 'F', '08:00', '09:00' );
-		$row['start'] = array( '08:00' );
-
-		if ( PHP_VERSION_ID >= 80000 ) {
-			$this->expectException( \TypeError::class );
-			radplapag_sanitize_station_schedule( array( 'monday' => array( $row ) ) );
-			return;
-		}
+	public function test_array_time_is_discarded_without_warning( $field ) {
+		$row           = $this->row( 'F', '08:00', '09:00' );
+		$row[ $field ] = array( '08:00' );
 
 		$warnings = array();
-		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Captures the PHP 7.4 warning (expectWarning() is deprecated in PHPUnit 9.6).
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Captures any PHP 7.4 warning (expectWarning() is deprecated in PHPUnit 9.6).
 		set_error_handler(
 			static function ( $errno, $errstr ) use ( &$warnings ) {
 				$warnings[] = $errstr;
 				return true;
-			},
-			E_WARNING
+			}
 		);
 		try {
-			radplapag_sanitize_station_schedule( array( 'monday' => array( $row ) ) );
+			$result = radplapag_sanitize_station_schedule( array( 'monday' => array( $row ) ) );
 		} finally {
 			restore_error_handler();
 		}
 
-		$this->assertSame( array( 'trim() expects parameter 1 to be string, array given' ), $warnings );
+		$this->assertSame( array(), $warnings );
+		$this->assertSame( 'required', $this->first_error_code( $result ) );
+	}
+
+	/**
+	 * Inputs for test_array_time_is_discarded_without_warning().
+	 *
+	 * @return array<string, array{string}>
+	 */
+	public function data_time_fields() {
+		return array(
+			'start' => array( 'start' ),
+			'end'   => array( 'end' ),
+		);
 	}
 
 	/**

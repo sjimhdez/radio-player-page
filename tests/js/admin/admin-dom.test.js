@@ -42,6 +42,9 @@ const ENTITY_STRINGS = {
 	to: 'a &amp; b',
 	scheduleRerun: 'R & R',
 	removeTimeSlot: 'Don&rsquo;t',
+	programLabel: 'Show &amp; tell',
+	startTimeLabel: 'From &lt; to',
+	endTimeLabel: 'Until & after',
 };
 
 /**
@@ -54,25 +57,40 @@ const ENTITY_STRINGS = {
  * @param {string} text.to      Text between the two times.
  * @param {string} text.rerun   Text of the rerun label.
  * @param {string} text.remove  Text of the remove link.
+ * @param {Object} text.labels  Screen reader labels: `program`, `start`, `end`.
  * @return {string} `outerHTML` of the row.
  */
-function rowHtml( day, index, { options, to, rerun, remove } ) {
+function rowHtml( day, index, { options, to, rerun, remove, labels } ) {
 	const name = ( field ) =>
 		`radplapag_station_schedule[${ day }][${ index }][${ field }]`;
+	const id = ( field ) => `radplapag-slot-${ day }-${ index }-${ field }`;
+	const label = ( field ) =>
+		`<label class="screen-reader-text" for="${ id( field ) }">${
+			labels[ field ]
+		}</label>`;
 	return (
 		`<div class="radplapag-program-row" data-program-index="${ index }">` +
+		label( 'program' ) +
 		`<select name="${ name(
 			'program_id'
-		) }" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">` +
+		) }" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="${ id(
+			'program'
+		) }">` +
 		options +
 		'</select>' +
+		label( 'start' ) +
 		`<input type="time" name="${ name(
 			'start'
-		) }" value="" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">` +
+		) }" value="" class="radplapag-program-start" style="width: 100px; margin-right: 5px;" id="${ id(
+			'start'
+		) }">` +
 		`<span style="margin-right: 5px;"> ${ to } </span>` +
+		label( 'end' ) +
 		`<input type="time" name="${ name(
 			'end'
-		) }" value="" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">` +
+		) }" value="" class="radplapag-program-end" style="width: 100px; margin-right: 10px;" id="${ id(
+			'end'
+		) }">` +
 		'<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;">' +
 		`<input type="checkbox" name="${ name(
 			'is_rerun'
@@ -125,6 +143,11 @@ describe( 'station-admin.js: new schedule row', () => {
 				to: 'to',
 				rerun: 'Rerun',
 				remove: 'Remove Time Slot',
+				labels: {
+					program: 'Radio Show',
+					start: 'Start time',
+					end: 'End time',
+				},
 			} )
 		);
 	} );
@@ -165,6 +188,11 @@ describe( 'station-admin.js: new schedule row', () => {
 				to: 'a &amp; b',
 				rerun: 'R &amp; R',
 				remove: 'Don’t',
+				labels: {
+					program: 'Show &amp; tell',
+					start: 'From &lt; to',
+					end: 'Until &amp; after',
+				},
 			} )
 		);
 	} );

@@ -305,7 +305,7 @@ test.describe( 'a11y: meta boxes', () => {
 	} );
 
 	// axe does not check focus visibility (WCAG 2.4.7).
-	test( 'currently keeps "Remove Time Slot" invisible when it has the keyboard focus (K20)', async ( {
+	test( 'shows "Remove Time Slot" when it has the keyboard focus (K20)', async ( {
 		page,
 	} ) => {
 		await page.goto(
@@ -318,13 +318,13 @@ test.describe( 'a11y: meta boxes', () => {
 		await remove.focus();
 
 		await expect( remove ).toBeFocused();
-		await expect(
-			page
-				.locator(
-					'#radplapag_station_schedule .radplapag-schedule-remove-cell'
-				)
-				.first()
-		).toHaveCSS( 'opacity', '0' );
+		const cell = page
+			.locator(
+				'#radplapag_station_schedule .radplapag-schedule-remove-cell'
+			)
+			.first();
+		await expect( cell ).toHaveCSS( 'opacity', '1' );
+		await expect( cell ).toHaveCSS( 'pointer-events', 'auto' );
 	} );
 
 	// ADR 0023 gap: rows added by JS. The day has no slots, so the row is new.
@@ -390,48 +390,102 @@ test.describe( 'a11y: meta boxes', () => {
 		);
 	} );
 
+	// axe does not analyse :hover (WCAG 1.4.3).
+	test( 'uses the darker red for "Remove Time Slot" on hover over a row with an error (AX5)', async ( {
+		page,
+	} ) => {
+		await openStation( page );
+		const monday = page.locator(
+			'.radplapag-schedule-day[data-day="monday"]'
+		);
+		await monday.getByRole( 'button', { name: 'Add Time Slot' } ).click();
+		const row = monday.locator( '.radplapag-program-row' ).last();
+		await row
+			.locator( '.radplapag-program-id' )
+			.selectOption( { index: 1 } );
+		await row.locator( '.radplapag-program-start' ).fill( '07:00' );
+		await row.locator( '.radplapag-program-end' ).fill( '08:00' );
+		await page.locator( '#radplapag_station_stream_url' ).focus();
+		const errorRow = monday
+			.locator( '.radplapag-program-row.radplapag-error' )
+			.first();
+		await expect(
+			errorRow.locator( '.radplapag-program-error-message.show' )
+		).toBeVisible();
+		const remove = errorRow.locator( '.radplapag-remove-program' );
+
+		await remove.hover();
+
+		await expect( remove ).toHaveCSS( 'color', 'rgb(179, 45, 46)' );
+	} );
+
 	// axe does not follow the keyboard focus (WCAG 2.4.3).
-	test( 'currently drops the keyboard focus when tabbing into the next slot of the day (K39)', async ( {
+	test( 'keeps the keyboard focus when tabbing into the next slot of the day (K39)', async ( {
 		page,
 	} ) => {
 		await openStation( page );
 		const rows = page.locator(
 			'.radplapag-schedule-day[data-day="monday"] .radplapag-program-row'
 		);
+		const next = rows.nth( 1 ).locator( '.radplapag-program-id' );
 		await rows.nth( 0 ).locator( '.radplapag-remove-program' ).focus();
 
 		await page.keyboard.press( 'Tab' );
+		await expect( next ).toBeFocused();
 
-		// Leaving the first row re-sorts the day 10 ms later with appendChild,
-		// which detaches the row that has just taken the focus.
-		await expect
-			.poll( () =>
-				rows
-					.nth( 0 )
-					.evaluate(
-						( row ) => row.ownerDocument.activeElement?.tagName
-					)
-			)
-			.toBe( 'BODY' );
+		// Leaving the first row re-sorts the day 10 ms later with appendChild;
+		// wait past that timer before checking the focus again.
+		await page.evaluate(
+			() => new Promise( ( resolve ) => setTimeout( resolve, 100 ) )
+		);
+		await expect( next ).toBeFocused();
 	} );
 
-	test( 'currently drops the keyboard focus when a slot is removed (K39)', async ( {
+	test( 'moves the focus to the next slot when a slot is removed (K39)', async ( {
 		page,
 	} ) => {
 		await openStation( page );
 		const rows = page.locator(
 			'.radplapag-schedule-day[data-day="monday"] .radplapag-program-row'
 		);
+		const nextIndex = await rows
+			.nth( 1 )
+			.getAttribute( 'data-program-index' );
 		await rows.nth( 0 ).locator( '.radplapag-remove-program' ).focus();
 
 		await page.keyboard.press( 'Enter' );
 
 		await expect( rows ).toHaveCount( 2 );
-		expect(
-			await rows
-				.nth( 0 )
-				.evaluate( ( row ) => row.ownerDocument.activeElement?.tagName )
-		).toBe( 'BODY' );
+		await expect(
+			page.locator(
+				`.radplapag-schedule-day[data-day="monday"] .radplapag-program-row[data-program-index="${ nextIndex }"] .radplapag-program-id`
+			)
+		).toBeFocused();
+	} );
+
+	// axe does not follow the keyboard focus (WCAG 3.3.1, 2.4.3).
+	test( 'moves the focus to the first slot with an error on submit (K45)', async ( {
+		page,
+	} ) => {
+		await openStation( page );
+		const monday = page.locator(
+			'.radplapag-schedule-day[data-day="monday"]'
+		);
+		await monday.getByRole( 'button', { name: 'Add Time Slot' } ).click();
+		const row = monday.locator( '.radplapag-program-row' ).last();
+		await row
+			.locator( '.radplapag-program-id' )
+			.selectOption( { index: 1 } );
+		await row.locator( '.radplapag-program-start' ).fill( '07:00' );
+		await row.locator( '.radplapag-program-end' ).fill( '08:00' );
+
+		await page.locator( '#publish' ).click();
+
+		const focused = page.locator( '.radplapag-program-id:focus' );
+		await expect( focused ).toHaveCount( 1 );
+		await expect( focused ).toHaveAttribute( 'aria-invalid', 'true' );
+		const errorId = await focused.getAttribute( 'aria-describedby' );
+		await expect( page.locator( `[id="${ errorId }"]` ) ).toBeVisible();
 	} );
 
 	test( 'program', async ( { page }, testInfo ) => {

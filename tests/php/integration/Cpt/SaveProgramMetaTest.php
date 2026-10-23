@@ -250,38 +250,36 @@ final class SaveProgramMetaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Truncation counts bytes, not characters: 200 "é" (400 bytes) become 128.
+	 * Truncation counts characters, not bytes: 200 "é" (400 bytes) stay 200 (K5).
 	 */
-	public function test_truncation_counts_bytes_not_characters() {
+	public function test_truncation_counts_characters() {
 		$this->save( array( 'description' => str_repeat( 'é', 200 ) ) );
 
-		$this->assertSame( str_repeat( 'é', 128 ), $this->meta( 'description' ) );
+		$this->assertSame( str_repeat( 'é', 200 ), $this->meta( 'description' ) );
 	}
 
 	/**
-	 * When the cut falls inside a multibyte character, the value ends in half a
-	 * character; the registered sanitizer (sanitize_text_field() /
-	 * sanitize_textarea_field()) sees invalid UTF-8 and the whole field is saved
-	 * empty, without any error. K5 of docs/known-issues.md.
+	 * A multibyte character at the limit is kept whole, so the registered
+	 * sanitizer never sees invalid UTF-8 and the field is not saved empty.
+	 * K5 of docs/known-issues.md.
 	 */
-	public function test_currently_description_cut_inside_a_character_is_saved_empty() {
+	public function test_description_with_a_character_at_the_limit_is_saved() {
 		$this->save(
 			array(
-				'description'          => str_repeat( 'a', 255 ) . 'é',
-				'extended_description' => str_repeat( 'b', 511 ) . 'é',
+				'description'          => str_repeat( 'a', 255 ) . 'éé',
+				'extended_description' => str_repeat( 'b', 511 ) . 'éé',
 			)
 		);
 
-		$this->assertSame( '', $this->meta( 'description' ) );
-		$this->assertSame( '', $this->meta( 'extended_description' ) );
+		$this->assertSame( str_repeat( 'a', 255 ) . 'é', $this->meta( 'description' ) );
+		$this->assertSame( str_repeat( 'b', 511 ) . 'é', $this->meta( 'extended_description' ) );
 	}
 
 	/**
-	 * Currently, the backslashes of both descriptions are lost when saving from the
-	 * edit form: the value goes through wp_unslash() and then update_post_meta()
-	 * unslashes it again. K34 of docs/known-issues.md.
+	 * The backslashes of both descriptions are kept when saving from the edit
+	 * form. K34 of docs/known-issues.md.
 	 */
-	public function test_currently_descriptions_lose_backslashes() {
+	public function test_descriptions_keep_backslashes() {
 		$this->save(
 			array(
 				'description'          => 'AC\\DC \\o/',
@@ -289,8 +287,8 @@ final class SaveProgramMetaTest extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( 'ACDC o/', $this->meta( 'description' ) );
-		$this->assertSame( 'C:Temp', $this->meta( 'extended_description' ) );
+		$this->assertSame( 'AC\\DC \\o/', $this->meta( 'description' ) );
+		$this->assertSame( 'C:\\Temp', $this->meta( 'extended_description' ) );
 	}
 
 	/**

@@ -67,7 +67,7 @@
 		const current = intervalOf( day, slots[ index ] );
 		for ( let i = 0; i < slots.length; i++ ) {
 			const other = slots[ i ];
-			if ( i === index || other.hidden || ! other.start || ! other.end ) {
+			if ( i === index || ! isComplete( other ) ) {
 				continue;
 			}
 			if ( overlaps( current, intervalOf( day, other ) ) ) {
@@ -355,12 +355,10 @@
 		return contains( a, b.start ) || contains( b, a.start );
 	}
 
-	// Kept as today: the name goes through replace(), so `$` patterns in it
-	// are read (docs/known-issues.md K44).
-	function overlapMessage( name, other, strings ) {
+	function overlapMessage( other, strings ) {
 		const dayLabel = strings[ other.day ] || DAY_LABELS[ other.day ];
 		const description =
-			name +
+			( other.name || strings.unnamedProgram || 'Unnamed program' ) +
 			' (' +
 			dayLabel +
 			', ' +
@@ -371,7 +369,10 @@
 		return (
 			strings.timeSlotOverlapsWithMessage ||
 			'This time slot overlaps with: %s'
-		).replace( '%s', description );
+		).replace( '%s', function () {
+			// A function, so `$` patterns in the name are not read.
+			return description;
+		} );
 	}
 
 	/**
@@ -397,18 +398,9 @@
 				);
 			case 'required':
 				return strings.allFieldsRequired || 'All fields are required.';
-			case 'overlap':
-				return overlapMessage(
-					error.other.name ||
-						strings.unnamedProgram ||
-						'Unnamed program',
-					error.other,
-					strings
-				);
 			default:
-				// cross_midnight_overlap: no fallback for an untitled
-				// program (docs/known-issues.md K74).
-				return overlapMessage( error.other.name, error.other, strings );
+				// overlap and cross_midnight_overlap.
+				return overlapMessage( error.other, strings );
 		}
 	}
 

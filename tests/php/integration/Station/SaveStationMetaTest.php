@@ -1,6 +1,7 @@
 <?php
 /**
- * Characterization of radplapag_save_station_meta() and
+ * Characterization of radplapag_save_station_meta(),
+ * radplapag_station_redirect_without_message() and
  * radplapag_station_schedule_errors_notice() (3.4.2).
  *
  * @package radio-player-page
@@ -26,6 +27,10 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 	const URL_REQUIRED  = 'Streaming URL is required.';
 	const PAGE_REQUIRED = 'Player Page is required. Please select a page.';
 	const PAGE_TAKEN    = 'This Player Page is already assigned to another station. Please choose a different page.';
+
+	const BACKGROUND_NOT_IMAGE = 'Background Image must be an image; the previous one was kept.';
+	const LOGO_NOT_IMAGE       = 'Logo Image must be an image; the previous one was kept.';
+	const INTRO_NOT_MP3        = 'Welcome Audio must be an MP3 file; the previous one was kept.';
 
 	/**
 	 * Fixture factory.
@@ -187,9 +192,9 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 
 	/**
 	 * In the CLI the URL in $_POST is never read: it is reported as missing and
-	 * neither the URL nor the page are written, even if both are valid.
+	 * keeps its saved value, and the valid page is still written (K42, ADR 0048).
 	 */
-	public function test_cli_never_reads_stream_url_so_url_and_page_are_kept() {
+	public function test_cli_never_reads_stream_url_so_url_is_kept_and_page_written() {
 		$old_page = $this->factory_rpp->page( 'Old page' );
 		$new_page = $this->factory_rpp->page( 'New page' );
 		update_post_meta( $this->station, 'radplapag_station_stream_url', 'https://old.example/stream' );
@@ -204,7 +209,7 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 
 		$this->assertSame( self::URL_REQUIRED, $this->field_errors() );
 		$this->assertSame( 'https://old.example/stream', $this->meta( 'stream_url' ) );
-		$this->assertSame( (string) $old_page, $this->meta( 'player_page' ) );
+		$this->assertSame( (string) $new_page, $this->meta( 'player_page' ) );
 	}
 
 	/**
@@ -364,12 +369,17 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Images must be images and the welcome audio must be `audio/mpeg`; otherwise 0.
+	 * Images must be images and the welcome audio must be `audio/mpeg`; otherwise
+	 * the stored value is kept and the field errors transient says so (K37, ADR 0048).
 	 */
-	public function test_invalid_attachments_become_zero() {
+	public function test_invalid_attachments_keep_the_stored_value() {
 		$ogg   = $this->factory_rpp->audio( 'Ogg', 'audio/ogg' );
 		$image = $this->factory_rpp->image( 'Image' );
+		$mp3   = $this->factory_rpp->audio( 'Mp3' );
 		$page  = $this->factory_rpp->page( 'Page' );
+		update_post_meta( $this->station, 'radplapag_station_background_id', $image );
+		update_post_meta( $this->station, 'radplapag_station_logo_id', $image );
+		update_post_meta( $this->station, 'radplapag_station_intro_audio_id', $mp3 );
 
 		$this->save(
 			array(
@@ -379,13 +389,13 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertSame( '0', $this->meta( 'background_id' ) );
-		$this->assertSame( '0', $this->meta( 'logo_id' ) );
-		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
-
-		$this->save( array( 'intro_audio_id' => (string) $ogg ) );
-
-		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
+		$this->assertSame( (string) $image, $this->meta( 'background_id' ) );
+		$this->assertSame( (string) $image, $this->meta( 'logo_id' ) );
+		$this->assertSame( (string) $mp3, $this->meta( 'intro_audio_id' ) );
+		$this->assertSame(
+			self::URL_REQUIRED . ' ' . self::PAGE_REQUIRED . ' ' . self::BACKGROUND_NOT_IMAGE . ' ' . self::LOGO_NOT_IMAGE . ' ' . self::INTRO_NOT_MP3,
+			$this->field_errors()
+		);
 	}
 
 	/**
@@ -404,21 +414,19 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, a welcome audio that is not MP3 (the media frame offers any audio)
-	 * replaces the previous one with 0 and the only notice is the field errors one,
-	 * which says nothing about the audio. In the CLI the URL is always missing
-	 * (class docblock), so the transient holds exactly that message. K37 of
-	 * docs/known-issues.md.
+	 * A welcome audio that is not MP3 (the media frame offered any audio) keeps the
+	 * previous one and says so. In the CLI the URL is always missing (class
+	 * docblock), so its message comes first. K37 of docs/known-issues.md.
 	 */
-	public function test_currently_non_mp3_welcome_audio_is_dropped_without_notice() {
+	public function test_non_mp3_welcome_audio_keeps_the_previous_one_with_a_notice() {
 		$mp3 = $this->factory_rpp->audio( 'Mp3' );
 		$ogg = $this->factory_rpp->audio( 'Ogg', 'audio/ogg' );
 		update_post_meta( $this->station, 'radplapag_station_intro_audio_id', $mp3 );
 
 		$this->save( array( 'intro_audio_id' => (string) $ogg ) );
 
-		$this->assertSame( '0', $this->meta( 'intro_audio_id' ) );
-		$this->assertSame( self::URL_REQUIRED . ' ' . self::PAGE_REQUIRED, $this->field_errors() );
+		$this->assertSame( (string) $mp3, $this->meta( 'intro_audio_id' ) );
+		$this->assertSame( self::URL_REQUIRED . ' ' . self::PAGE_REQUIRED . ' ' . self::INTRO_NOT_MP3, $this->field_errors() );
 		$this->assertFalse( get_transient( 'radplapag_station_schedule_errors_' . $this->station ) );
 	}
 
@@ -616,6 +624,66 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 				'setted_transient:radplapag_station_schedule_errors_' . $this->station,
 			),
 			$writes
+		);
+	}
+
+	// Redirect after saving: core's "Post published." / "Post updated." goes away
+	// when an error notice follows (D9, ADR 0048).
+
+	/**
+	 * The edit link core redirects to after saving a post.
+	 *
+	 * @param int $post_id Post saved.
+	 * @return string
+	 */
+	private static function redirect_location( $post_id ) {
+		return admin_url( 'post.php?post=' . $post_id . '&action=edit&message=6' );
+	}
+
+	/**
+	 * With field errors, the redirect drops core's message.
+	 */
+	public function test_redirect_drops_core_message_with_field_errors() {
+		set_transient( 'radplapag_station_field_errors_' . $this->station, 'Field error', 45 );
+
+		$this->assertSame(
+			admin_url( 'post.php?post=' . $this->station . '&action=edit' ),
+			radplapag_station_redirect_without_message( self::redirect_location( $this->station ), $this->station )
+		);
+	}
+
+	/**
+	 * With schedule errors, the redirect drops core's message.
+	 */
+	public function test_redirect_drops_core_message_with_schedule_errors() {
+		set_transient( 'radplapag_station_schedule_errors_' . $this->station, 'Schedule error', 45 );
+
+		$this->assertSame(
+			admin_url( 'post.php?post=' . $this->station . '&action=edit' ),
+			radplapag_station_redirect_without_message( self::redirect_location( $this->station ), $this->station )
+		);
+	}
+
+	/**
+	 * Without errors, the redirect keeps core's message.
+	 */
+	public function test_redirect_keeps_core_message_without_errors() {
+		$this->assertSame(
+			self::redirect_location( $this->station ),
+			radplapag_station_redirect_without_message( self::redirect_location( $this->station ), $this->station )
+		);
+	}
+
+	/**
+	 * A post of another type keeps core's message, even with a transient of its ID.
+	 */
+	public function test_redirect_ignores_other_post_types() {
+		$page = $this->factory_rpp->page( 'Page' );
+		set_transient( 'radplapag_station_field_errors_' . $page, 'Field error', 45 );
+
+		$this->assertSame(
+			self::redirect_location( $page ),
+			radplapag_station_redirect_without_message( self::redirect_location( $page ), $page )
 		);
 	}
 
