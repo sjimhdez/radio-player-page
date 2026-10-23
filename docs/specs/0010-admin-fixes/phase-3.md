@@ -85,7 +85,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `admin/js/program-admin.js`, `tests/js/admin/program-admin.test.js`, `docs/known-issues.md`
 - Test: primero la aserción de las opciones del marco de audio (excepción de la 3.1), en rojo.
 - Verificación: `npm test -- tests/js/admin/program-admin.test.js`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): «opens its own MP3-only audio frame and fills the preview (K37)» recibe `library: { type: 'audio' }` en lugar de `'audio/mpeg'`. Verde: Vitest de admin 263/263.
+- Changelog: «The welcome audio picker now lists only MP3 files.»
+- [x] hecha · commit: ver `git log` («fix(0010): offer only MP3 files in the welcome audio picker (3.5)»)
 
 ### 3.6 C13: aviso de contenido mixto (≤ 1 h) — `fix-bug`
 - Qué (D6):

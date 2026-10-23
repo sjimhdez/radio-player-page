@@ -100,7 +100,7 @@
 					return;
 				}
 				audioFrame = wp.media( {
-					library: { type: 'audio' },
+					library: { type: 'audio/mpeg' },
 					multiple: false,
 				} );
 				audioFrame.on( 'select', function () {
