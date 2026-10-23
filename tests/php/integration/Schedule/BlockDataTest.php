@@ -74,12 +74,19 @@ final class BlockDataTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The `resolution` vectors whose PHP result is the correct one, by ID.
+	 * The `resolution` vectors whose PHP result is the correct one, by ID. Those with
+	 * unpublished programs run in
+	 * test_currently_unpublished_slot_is_live_in_the_schedule_block() (C10).
 	 *
 	 * @return array<string, array{array}>
 	 */
 	public function resolution_vectors() {
-		return self::resolution_vectors_where( false );
+		return array_filter(
+			self::resolution_vectors_where( false ),
+			function ( $args ) {
+				return empty( $args[0]['unpublished'] );
+			}
+		);
 	}
 
 	/**
@@ -696,20 +703,45 @@ final class BlockDataTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Puts the site on the vector's day and minute, stores its grid and compares the
-	 * live slots of both blocks with $expected (vector days).
+	 * C10: with the program of a slot as a draft (vector C10-1), the programs list marks
+	 * as live only the vector's `current` slot, but the schedule block keeps the draft
+	 * slot, live and with an empty name.
 	 *
-	 * @param array    $vector   A `resolution` vector.
-	 * @param string[] $expected Sorted "day program time_range" entries.
+	 * @see docs/known-issues.md C10
 	 */
-	private function assert_live_slots( array $vector, array $expected ) {
+	public function test_currently_unpublished_slot_is_live_in_the_schedule_block() {
+		$vectors = array_column( self::vectors()['resolution'], null, 'id' );
+		$vector  = $vectors['C10-1'];
+		$correct = $this->live_expected( array( $vector['current'] ) );
+
+		$this->assert_live_slots( $vector, $correct, array_merge( array( 'monday  09:30-10:00' ), $correct ) );
+	}
+
+	/**
+	 * Puts the site on the vector's day and minute, stores its grid (its `unpublished`
+	 * programs as drafts) and compares the live slots of both blocks with $expected
+	 * (vector days).
+	 *
+	 * @param array         $vector            A `resolution` vector.
+	 * @param string[]      $expected          Sorted "day program time_range" entries.
+	 * @param string[]|null $schedule_expected Those of the schedule block, when they differ.
+	 */
+	private function assert_live_slots( array $vector, array $expected, $schedule_expected = null ) {
 		$station = $this->factory_rpp->station( 'Station' );
 		$grid    = self::vectors()['grids'][ $vector['grid'] ];
+		foreach ( isset( $vector['unpublished'] ) ? $vector['unpublished'] : array() as $key ) {
+			wp_update_post(
+				array(
+					'ID'          => $this->programs[ $key ],
+					'post_status' => 'draft',
+				)
+			);
+		}
 
 		Clock::run(
 			$vector['now']['day'],
 			$vector['now']['time'],
-			function ( Clock $clock ) use ( $station, $grid, $expected ) {
+			function ( Clock $clock ) use ( $station, $grid, $expected, $schedule_expected ) {
 				$schedule = array();
 				foreach ( $grid as $day => $slots ) {
 					foreach ( $slots as $slot ) {
@@ -727,7 +759,7 @@ final class BlockDataTest extends WP_UnitTestCase {
 					}
 				}
 				sort( $live );
-				$this->assertSame( $expected, $live, 'schedule' );
+				$this->assertSame( null === $schedule_expected ? $expected : $schedule_expected, $live, 'schedule' );
 
 				$live = array();
 				foreach ( radplapag_get_programs_list_for_station( 0 ) as $program ) {

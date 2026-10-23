@@ -220,12 +220,12 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * D3: the slot on air that started latest wins even when its program is a draft,
-	 * so `current` is null (C10; approved edit in the phase 1 plan of spec 0009).
+	 * C10: a slot whose program is a draft is skipped even when it started latest, so
+	 * the published program on air wins (approved edit in the phase 2 plan of spec 0009).
 	 *
 	 * @see docs/known-issues.md C10
 	 */
-	public function test_draft_program_that_started_latest_gives_no_current() {
+	public function test_draft_program_that_started_latest_is_skipped() {
 		$draft   = $this->factory_rpp->program( 'Draft', array(), 'draft' );
 		$station = $this->factory_rpp->station( 'Station' );
 
@@ -260,16 +260,16 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 					)
 				);
 
-				$this->assertNull( radplapag_get_now_playing_for_station( 0 )['current'] );
+				$this->assertSame( (string) $this->programs['A'], radplapag_get_now_playing_for_station( 0 )['current']['id'] );
 			}
 		);
 	}
 
 	/**
 	 * Malformed entries (stored without the sanitizer) are skipped: entries that are
-	 * not arrays, and slots without a start (or an end, for `current`). A slot on air
-	 * whose program ID is missing or not numeric gives no `current` and stops the
-	 * search, so an overlapping valid slot after it is not reported either.
+	 * not arrays, slots without a start (or an end, for `current`) and slots whose
+	 * program ID is missing or not numeric, so an overlapping valid slot after them is
+	 * on air (C10; approved edit in the phase 2 plan of spec 0009).
 	 */
 	public function test_malformed_entries_are_skipped() {
 		$station = $this->factory_rpp->station( 'Station' );
@@ -321,7 +321,7 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 
 				$result = radplapag_get_now_playing_for_station( 0 );
 
-				$this->assertNull( $result['current'] );
+				$this->assertSame( (string) $this->programs['C'], $result['current']['id'] );
 				$this->assertSame(
 					array(
 						'id'         => (string) $this->programs['B'],
@@ -337,8 +337,9 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Puts the site on the vector's day and minute, stores its grid and compares the
-	 * result with the vector's top-level (3.4.2) `current` and `upcoming`.
+	 * Puts the site on the vector's day and minute, stores its grid (its `unpublished`
+	 * programs as drafts) and compares the result with the vector's top-level `current`
+	 * and `upcoming`.
 	 *
 	 * @param array $vector A `resolution` vector.
 	 */
@@ -348,6 +349,14 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 
 		$station = $this->factory_rpp->station( 'Station' );
 		$grid    = self::vectors()['grids'][ $vector['grid'] ];
+		foreach ( isset( $vector['unpublished'] ) ? $vector['unpublished'] : array() as $key ) {
+			wp_update_post(
+				array(
+					'ID'          => $this->programs[ $key ],
+					'post_status' => 'draft',
+				)
+			);
+		}
 
 		Clock::run(
 			$vector['now']['day'],

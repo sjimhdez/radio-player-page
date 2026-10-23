@@ -25,7 +25,8 @@ defined( 'ABSPATH' ) || exit;
  *   of the program on air that starts just when the slot on air ends is skipped:
  *   it goes on, it does not come up (K52 in docs/known-issues.md).
  * - A slot whose program is not in the map, or whose program ID is missing or not
- *   numeric, gives a null entry but still wins (C10 in docs/known-issues.md).
+ *   numeric, is skipped: it is neither on air nor coming up, so it does not hide
+ *   another slot (C10 in docs/known-issues.md, ADR 0045).
  *
  * @since 3.5.0
  */
@@ -61,13 +62,14 @@ final class Now_Playing_Resolver {
 				}
 				$end      = (string) ( $entry['end'] ?? '' );
 				$interval = Week_Interval::from_slot( $day_key, $start, $end );
-				if ( null === $interval ) {
+				$built    = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
+				if ( null === $interval || null === $built ) {
 					continue;
 				}
 				if ( '' !== $end && Week_Interval::contains( $interval, $minute ) ) {
 					$elapsed = ( Week_Interval::WEEK - Week_Interval::minutes_until_start( $interval, $minute ) ) % Week_Interval::WEEK;
 					if ( null === $current_elapsed || $elapsed < $current_elapsed ) {
-						$current          = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
+						$current          = $built;
 						$current_elapsed  = $elapsed;
 						$current_interval = $interval;
 						$current_program  = (string) ( $entry['program_id'] ?? '' );
@@ -75,7 +77,7 @@ final class Now_Playing_Resolver {
 				}
 				$delta = Week_Interval::minutes_until_start( $interval, $minute );
 				if ( $delta > 0 && $delta <= $window ) {
-					$candidates[] = array( $delta, $interval['start'], $entry, $day_key );
+					$candidates[] = array( $delta, $interval['start'], $entry, $built );
 				}
 			}
 		}
@@ -85,12 +87,12 @@ final class Now_Playing_Resolver {
 
 		$upcoming       = null;
 		$upcoming_delta = null;
-		foreach ( $candidates as list( $delta, $start_w, $entry, $day_key ) ) {
+		foreach ( $candidates as list( $delta, $start_w, $entry, $built ) ) {
 			if ( $start_w === $current_end && (string) ( $entry['program_id'] ?? '' ) === $current_program ) {
 				continue;
 			}
 			if ( null === $upcoming_delta || $delta < $upcoming_delta ) {
-				$upcoming       = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
+				$upcoming       = $built;
 				$upcoming_delta = $delta;
 			}
 		}
@@ -121,7 +123,7 @@ final class Now_Playing_Resolver {
 	}
 
 	/**
-	 * The entry of a slot, or null when its program is unknown.
+	 * The entry of a slot, or null when its program is unknown (the slot is skipped).
 	 *
 	 * @param array<mixed>                                  $entry     Stored slot.
 	 * @param array<int, array{name: string, logo_id: int}> $programs  Program ID => data.

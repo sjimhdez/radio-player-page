@@ -98,6 +98,7 @@ final class ScheduleVectorsTest extends TestCase {
 	/**
 	 * Resolves the vector's grid at its day and minute (in the week of Monday
 	 * 2026-10-19, UTC) and compares with its top-level `current` and `upcoming`.
+	 * Its `unpublished` programs are left out of the map.
 	 *
 	 * @param array<string, mixed> $vector A `resolution` vector.
 	 */
@@ -105,8 +106,12 @@ final class ScheduleVectorsTest extends TestCase {
 		$this->assertArrayHasKey( 'current', $vector, 'Vector without a PHP result.' );
 		$this->assertArrayHasKey( 'upcoming', $vector, 'Vector without a PHP result.' );
 
-		$programs = array();
+		$unpublished = isset( $vector['unpublished'] ) ? $vector['unpublished'] : array();
+		$programs    = array();
 		foreach ( self::program_ids() as $key => $id ) {
+			if ( in_array( $key, $unpublished, true ) ) {
+				continue;
+			}
 			$programs[ $id ] = array(
 				'name'    => $key,
 				'logo_id' => 0,

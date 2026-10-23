@@ -17,8 +17,13 @@ type VectorUpcoming = {
 
 const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
-// Program keys double as IDs and names, as in the PHP test.
-const programs: ProgramDefinition[] = vectors.programs.map((key) => ({ id: key, name: key }))
+// Program keys double as IDs and names, as in the PHP test. A vector's
+// unpublished programs are left out (ADR 0045).
+function programsOf(unpublished: string[] = []): ProgramDefinition[] {
+  return vectors.programs
+    .filter((key) => !unpublished.includes(key))
+    .map((key) => ({ id: key, name: key }))
+}
 
 function toSchedule(grid: Record<string, VectorSlot[]>): Schedule {
   const schedule: Record<string, unknown> = {}
@@ -65,6 +70,7 @@ type ResolutionVector = {
   id: string
   grid: string
   now: { day: string; time: string }
+  unpublished?: string[]
   current: VectorCurrent
   upcoming: VectorUpcoming
   currently?: boolean
@@ -81,6 +87,7 @@ describe('schedule vectors: resolution', () => {
     const correct = vector.ts ? vector : vector.correct
     const label = `${result.currently ? 'currently ' : ''}resolves vector ${vector.id} (${vector.now.day} ${vector.now.time})`
     const schedule = toSchedule(grids[vector.grid])
+    const programs = programsOf(vector.unpublished)
     const dayOfWeek = DAYS.indexOf(vector.now.day)
     const currentTime = toMinutes(vector.now.time)
 

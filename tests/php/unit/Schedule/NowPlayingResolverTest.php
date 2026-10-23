@@ -354,12 +354,12 @@ final class NowPlayingResolverTest extends TestCase {
 	}
 
 	/**
-	 * D3: the slot on air that started latest wins even when its program is unknown,
-	 * so `current` is null (C10; approved edit in the phase 1 plan of spec 0009).
+	 * C10: a slot whose program is unknown is skipped even when it started latest,
+	 * so the known program on air wins (approved edit in the phase 2 plan of spec 0009).
 	 *
 	 * @see docs/known-issues.md C10
 	 */
-	public function test_unknown_program_that_started_latest_gives_no_current() {
+	public function test_unknown_program_that_started_latest_is_skipped() {
 		$schedule = array(
 			'sunday' => array( self::slot( 3, '23:00', '02:00' ) ),
 			'monday' => array(
@@ -368,13 +368,13 @@ final class NowPlayingResolverTest extends TestCase {
 			),
 		);
 
-		$this->assertNull( $this->resolve( $schedule, '2026-10-19 01:00' )['current'] );
+		$this->assertSame( '1', $this->resolve( $schedule, '2026-10-19 01:00' )['current']['id'] );
 	}
 
 	/**
 	 * Malformed entries are skipped: days that are not arrays, entries that are not
-	 * arrays, slots without start (or end, for current). A slot on air whose program
-	 * ID is missing or not numeric gives no `current` and stops the search.
+	 * arrays, slots without start (or end, for current) and slots whose program ID is
+	 * missing or not numeric (C10; approved edit in the phase 2 plan of spec 0009).
 	 */
 	public function test_malformed_entries_are_skipped() {
 		$schedule = array(
@@ -408,7 +408,7 @@ final class NowPlayingResolverTest extends TestCase {
 
 		$result = $this->resolve( $schedule, '2026-10-19 23:55' );
 
-		$this->assertNull( $result['current'] );
+		$this->assertSame( '3', $result['current']['id'] );
 		$this->assertSame( '2', $result['upcoming']['id'] );
 		$this->assertSame( '00:03-01:00', $result['upcoming']['time_range'] );
 	}
@@ -431,11 +431,11 @@ final class NowPlayingResolverTest extends TestCase {
 
 	/**
 	 * C10 (variant): a slot of a program not in the map within the upcoming window
-	 * still takes the window, so the program after it is not announced.
+	 * is skipped, so the program after it is announced.
 	 *
 	 * @see docs/known-issues.md C10
 	 */
-	public function test_currently_unknown_program_slot_hides_the_next_upcoming_program() {
+	public function test_unknown_program_slot_does_not_hide_the_next_upcoming_program() {
 		$schedule = array(
 			'monday' => array(
 				self::slot( 99, '10:00', '10:05' ),
@@ -443,7 +443,7 @@ final class NowPlayingResolverTest extends TestCase {
 			),
 		);
 
-		$this->assertNull( $this->resolve( $schedule, '2026-10-19 09:58' )['upcoming'] );
+		$this->assertSame( '1', $this->resolve( $schedule, '2026-10-19 09:58' )['upcoming']['id'] );
 	}
 
 	/**
