@@ -20,7 +20,7 @@
 | 0010 | [Correcciones: admin](0010-admin-fixes/spec.md) | cerrada (PR #44) | `spec/0010-admin-fixes` | 0005, 0009 |
 | 0011 | Correcciones: interfaz, i18n y accesibilidad del player | pendiente de escribir | — | 0006, 0007 |
 | 0012 | ~~Correcciones: núcleo PHP y desinstalación~~: fusionada en la 0008 (comparten `uninstall.php` y `SPEC.md` §3.7; usuario, 2026-10-22) | fusionada | — | — |
-| 0013 | [Correcciones: bloques](0013-block-fixes/spec.md) | propuesta | `spec/0013-block-fixes` | 0009, 0010 |
+| 0013 | [Correcciones: bloques](0013-block-fixes/spec.md) | en curso | `spec/0013-block-fixes` | 0009, 0010 |
 | último | Release | pendiente de escribir | — | todas |
 
 Las 0005 y 0006 son independientes entre sí. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree y con su rama desde `trunk`.

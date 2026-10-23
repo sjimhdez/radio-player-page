@@ -1,5 +1,5 @@
 # Spec 0013 · Fase 1 — Emisora por ID y editor
-Estado: en curso · Inicio: 2026-10-24 · ADRs: 0017, 0020, 0021, 0023, 0028, 0045, 0049 (nuevo)
+Estado: cerrada (2026-10-24) · Inicio: 2026-10-24 · ADRs: 0017, 0020, 0021, 0023, 0028, 0045, 0049 (nuevo)
 
 ## Contexto
 
