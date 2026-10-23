@@ -87,14 +87,14 @@ test( 'shows no program in an empty slot', async ( { page } ) => {
 	await expect( next( page ) ).toHaveCount( 0 );
 } );
 
-test( 'currently shows the slot of its own day crossing midnight early on Monday (C16, vector 13)', async ( {
+// Regression: docs/known-issues.md C16.
+test( 'shows the previous day slot still on air early on Monday (C16, vector 13)', async ( {
 	page,
 } ) => {
 	await openAt( page, 'monday', '00:10' );
 
-	// The vector expects E (Sunday 23:55–00:30, still on air); 3.4.2 takes
-	// Monday's 22:00–02:00 as active from midnight.
-	await expect( onAir( page ) ).toHaveText( 'On Air:E2E Program C' );
+	// Sunday's 23:55–00:30 is still on air; Monday's 22:00–02:00 has not started.
+	await expect( onAir( page ) ).toHaveText( 'On Air:E2E Program E' );
 } );
 
 test( 'announces the next program 10 minutes ahead (vector 3)', async ( {

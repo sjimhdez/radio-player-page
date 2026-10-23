@@ -62,9 +62,9 @@ describe('isProgramActive', () => {
     expect(isProgramActive({ start: '22:00', end: '02:00' }, at('21:59'))).toBe(false)
   })
 
-  // docs/known-issues.md C16.
-  it('currently treats a slot crossing midnight as active early on its own day', () => {
-    expect(isProgramActive({ start: '22:00', end: '02:00' }, at('01:00'))).toBe(true)
+  // Regression: docs/known-issues.md C16.
+  it('does not treat a slot crossing midnight as active early on its own day', () => {
+    expect(isProgramActive({ start: '22:00', end: '02:00' }, at('01:00'))).toBe(false)
   })
 
   it('treats start equal to end as a 24-hour slot', () => {
@@ -98,14 +98,12 @@ describe('findActiveProgram', () => {
     expect(findActiveProgram(schedule, programs, MONDAY, at('10:30'))?.isRerun).toBe(true)
   })
 
-  it('picks the earliest start when slots overlap', () => {
+  it('picks the slot that started latest when slots overlap', () => {
     const overlapping: Schedule = {
       friday: [slot('news', '09:00', '11:00'), slot('morning', '08:00', '10:00')],
     }
 
-    expect(findActiveProgram(overlapping, programs, FRIDAY, at('09:30'))?.programName).toBe(
-      'morning show',
-    )
+    expect(findActiveProgram(overlapping, programs, FRIDAY, at('09:30'))?.programName).toBe('News')
   })
 
   it('returns the previous day slot crossing midnight', () => {
@@ -127,11 +125,13 @@ describe('findActiveProgram', () => {
     )
   })
 
-  // docs/known-issues.md K8.
-  it('currently ignores the previous day slot crossing midnight when today has no slots', () => {
+  // Regression: docs/known-issues.md K8.
+  it('returns the previous day slot crossing midnight when today has no slots', () => {
     const fridayNight: Schedule = { friday: [slot('late', '22:00', '02:00')] }
 
-    expect(findActiveProgram(fridayNight, programs, SATURDAY, at('01:00'))).toBeNull()
+    expect(findActiveProgram(fridayNight, programs, SATURDAY, at('01:00'))?.programName).toBe(
+      'Late Night',
+    )
   })
 
   it('leaves the name empty for an unknown program', () => {

@@ -156,26 +156,14 @@
 			"grid": "main",
 			"now": { "day": "monday", "time": "00:10" },
 			"current": { "program": "E", "day": "sunday", "from": "yesterday", "time_range": "23:55-00:30", "is_rerun": false },
-			"upcoming": null,
-			"ts": {
-				"current": { "program": "C", "day": "monday", "from": "today", "time_range": "22:00-02:00", "is_rerun": false },
-				"upcoming": null,
-				"currently": true,
-				"issue": "C16"
-			}
+			"upcoming": null
 		},
 		{
 			"id": "14",
 			"grid": "main",
 			"now": { "day": "monday", "time": "00:30" },
 			"current": null,
-			"upcoming": null,
-			"ts": {
-				"current": { "program": "C", "day": "monday", "from": "today", "time_range": "22:00-02:00", "is_rerun": false },
-				"upcoming": null,
-				"currently": true,
-				"issue": "C16"
-			}
+			"upcoming": null
 		},
 		{
 			"id": "C3-1",
@@ -189,13 +177,7 @@
 			"grid": "c3",
 			"now": { "day": "wednesday", "time": "07:59" },
 			"current": { "program": "F", "day": "tuesday", "from": "yesterday", "time_range": "08:00-08:00", "is_rerun": false },
-			"upcoming": null,
-			"ts": {
-				"current": null,
-				"upcoming": null,
-				"currently": true,
-				"issue": "K8"
-			}
+			"upcoming": null
 		},
 		{
 			"id": "C3-3",
@@ -209,13 +191,7 @@
 			"grid": "c3",
 			"now": { "day": "tuesday", "time": "07:00" },
 			"current": null,
-			"upcoming": null,
-			"ts": {
-				"current": { "program": "F", "day": "tuesday", "from": "today", "time_range": "08:00-08:00", "is_rerun": false },
-				"upcoming": null,
-				"currently": true,
-				"issue": "C16"
-			}
+			"upcoming": null
 		},
 		{
 			"id": "K52-1",

@@ -93,7 +93,9 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `player/src/utils/program-schedule.ts`, `program-schedule.test.ts`, `schedule-vectors.test.ts`, `schedule-vectors.json`, `tests/e2e/schedule.spec.ts`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/schedule.spec.ts`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («fix(0009): resolve the player's program on air on the week-interval model (1.8)»)
+- Rojo: Vitest → 7 fallos: `isProgramActive()` el lunes 01:00 con 22:00–02:00 (`true` en vez de `false`, C16), el test aprobado del solape (`morning show` en vez de `News`, D3), K8 (sábado 01:00: `undefined` en vez de `Late Night`) y los vectores 13, 14, C3-2 y C3-4 (C, C, `null` y F en vez de E, `null`, F y `null`). El e2e se pasó en verde con el arreglo ya en `dist/` (no se vio en rojo en la página; el rojo de la lógica lo da Vitest).
+- Changelog: el player ya no da por activa una franja que cruza la medianoche en la madrugada de su propio día (C16), muestra la franja de ayer que sigue sonando aunque hoy no tenga franjas (K8) y, con franjas solapadas, la que empezó más tarde (D3).
 
 ### 1.9 C4 en el player (`fix-bug`) (≤ 1 h)
 - Qué: `getProgramsForDay()` marca activa la franja de ayer que sigue sonando (con `contains()` del modelo, no solo «hoy»); `getAllProgramsWithSlots()` sobre el modelo (refactor). Test `currently` de C4 → regresión; e2e `modals.spec.ts` (C4) → regresión.

@@ -12,6 +12,7 @@
  */
 
 import type { Schedule, ScheduleEntry, ProgramDefinition } from 'src/types/global'
+import { at, contains, DAY, fromSlot, minutesUntilStart, WEEK } from 'src/utils/week-interval'
 
 /** Program name and time range for display (resolved from schedule + programs) */
 export interface CurrentProgram {
@@ -48,7 +49,8 @@ function parseToMinutes(time: string): number {
 }
 
 /**
- * Check if a schedule entry is currently active (by start/end only).
+ * Check if a schedule entry is currently active (by start/end only), as an
+ * interval of the week (ADR 0044): only from its start, never early on its own day.
  *
  * @param entry - Schedule entry with start and end times
  * @param currentTime - Current time as minutes since midnight (0-1439)
@@ -59,18 +61,10 @@ export function isProgramActive(
   currentTime: number,
   isPrevDayCrossing = false,
 ): boolean {
-  const startTime = parseToMinutes(entry.start)
-  const endTime = parseToMinutes(entry.end)
+  const interval = fromSlot('monday', entry.start, entry.end)
+  const minute = (isPrevDayCrossing ? DAY : 0) + currentTime
 
-  if (isPrevDayCrossing) {
-    return endTime <= startTime && currentTime < endTime
-  }
-
-  if (endTime <= startTime) {
-    return currentTime >= startTime || currentTime < endTime
-  }
-
-  return currentTime >= startTime && currentTime < endTime
+  return interval !== null && contains(interval, minute)
 }
 
 /**
@@ -100,6 +94,9 @@ function resolveProgram(
 /**
  * Find the currently active program.
  *
+ * Looks at the whole week (ADR 0044): the active slot that started latest wins;
+ * on a tie, the first one in the stored order of its day, from Monday (D3).
+ *
  * @param schedule - Weekly schedule (relational: program_id (string ID), start, end)
  * @param programs - Program definitions to resolve name/logo by program_id (unique string ID)
  * @param dayOfWeek - Current day (0=Sunday, 1=Monday, ...)
@@ -114,49 +111,32 @@ export function findActiveProgram(
 ): CurrentProgram | null {
   if (!schedule) return null
 
-  const dayKey = DAY_MAP[dayOfWeek]
-  const dayEntries = schedule[dayKey]
+  const minute = at(dayOfWeek, currentTime)
+  let current: ScheduleEntry | null = null
+  let currentElapsed = WEEK
 
-  if (!dayEntries || dayEntries.length === 0) {
-    return null
-  }
-
-  const sorted = [...dayEntries].sort((a, b) => parseToMinutes(a.start) - parseToMinutes(b.start))
-
-  for (const entry of sorted) {
-    if (isProgramActive(entry, currentTime, false)) {
-      const { name, logoUrl } = resolveProgram(programs, entry.program_id)
-      return {
-        programName: name,
-        timeRange: `${entry.start}-${entry.end}`,
-        programLogoUrl: logoUrl,
-        isRerun: !!entry.is_rerun,
+  for (let i = 1; i <= 7; i++) {
+    const dayKey = DAY_MAP[i % 7]
+    for (const entry of schedule[dayKey] ?? []) {
+      const interval = fromSlot(dayKey, entry.start, entry.end)
+      if (interval === null || !contains(interval, minute)) continue
+      const elapsed = (WEEK - minutesUntilStart(interval, minute)) % WEEK
+      if (elapsed < currentElapsed) {
+        current = entry
+        currentElapsed = elapsed
       }
     }
   }
 
-  const prevDayIndex = (dayOfWeek - 1 + 7) % 7
-  const prevDayKey = DAY_MAP[prevDayIndex]
-  const prevDayEntries = schedule[prevDayKey]
+  if (current === null) return null
 
-  if (prevDayEntries && prevDayEntries.length > 0) {
-    const sortedPrev = [...prevDayEntries].sort(
-      (a, b) => parseToMinutes(a.start) - parseToMinutes(b.start),
-    )
-    for (const entry of sortedPrev) {
-      if (isProgramActive(entry, currentTime, true)) {
-        const { name, logoUrl } = resolveProgram(programs, entry.program_id)
-        return {
-          programName: name,
-          timeRange: `${entry.start}-${entry.end}`,
-          programLogoUrl: logoUrl,
-          isRerun: !!entry.is_rerun,
-        }
-      }
-    }
+  const { name, logoUrl } = resolveProgram(programs, current.program_id)
+  return {
+    programName: name,
+    timeRange: `${current.start}-${current.end}`,
+    programLogoUrl: logoUrl,
+    isRerun: !!current.is_rerun,
   }
-
-  return null
 }
 
 /** Incoming program window in minutes (relative to current time) */

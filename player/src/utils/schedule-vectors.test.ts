@@ -97,10 +97,6 @@ describe('schedule vectors: resolution', () => {
     })
 
     if (result.currently) {
-      // docs/known-issues.md C16: a slot crossing midnight counts as active
-      // early on its own day and hides the previous day's slot.
-      // docs/known-issues.md K8: on a day without slots, the previous day's
-      // slot crossing midnight is not looked at.
       // docs/known-issues.md K52: the same program's slot starting when the
       // current one ends is announced as coming up.
       it(`currently differs from the correct result in vector ${vector.id} (${result.issue})`, () => {
