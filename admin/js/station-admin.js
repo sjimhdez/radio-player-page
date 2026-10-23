@@ -553,9 +553,18 @@
 				}
 				return startA.localeCompare( startB );
 			} );
+			// appendChild detaches each row: give the focus back if it was in
+			// the list (K39).
+			const doc = dayProgramsList.ownerDocument;
+			const focused = dayProgramsList.contains( doc.activeElement )
+				? doc.activeElement
+				: null;
 			rows.forEach( function ( row ) {
 				dayProgramsList.appendChild( row );
 			} );
+			if ( focused && doc.activeElement !== focused ) {
+				focused.focus( { preventScroll: true } );
+			}
 		}
 
 		function setupGroupValidation( programRow ) {
@@ -645,11 +654,25 @@
 						const scheduleWrapper = programRow.closest(
 							'.radplapag-schedule-wrapper'
 						);
+						const nextRow = programRow.nextElementSibling;
 						programRow.remove();
 						if ( scheduleWrapper && dayWrapper ) {
 							const day = dayWrapper.getAttribute( 'data-day' );
 							revalidateDay( scheduleWrapper, day );
 							revalidateAround( scheduleWrapper, day );
+						}
+						// Keep the keyboard focus in the day (K39).
+						const focusTarget =
+							( nextRow &&
+								nextRow.querySelector(
+									'.radplapag-program-id'
+								) ) ||
+							( dayWrapper &&
+								dayWrapper.querySelector(
+									'.radplapag-add-program'
+								) );
+						if ( focusTarget ) {
+							focusTarget.focus();
 						}
 					}
 				}

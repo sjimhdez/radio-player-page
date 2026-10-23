@@ -391,47 +391,47 @@ test.describe( 'a11y: meta boxes', () => {
 	} );
 
 	// axe does not follow the keyboard focus (WCAG 2.4.3).
-	test( 'currently drops the keyboard focus when tabbing into the next slot of the day (K39)', async ( {
+	test( 'keeps the keyboard focus when tabbing into the next slot of the day (K39)', async ( {
 		page,
 	} ) => {
 		await openStation( page );
 		const rows = page.locator(
 			'.radplapag-schedule-day[data-day="monday"] .radplapag-program-row'
 		);
+		const next = rows.nth( 1 ).locator( '.radplapag-program-id' );
 		await rows.nth( 0 ).locator( '.radplapag-remove-program' ).focus();
 
 		await page.keyboard.press( 'Tab' );
+		await expect( next ).toBeFocused();
 
-		// Leaving the first row re-sorts the day 10 ms later with appendChild,
-		// which detaches the row that has just taken the focus.
-		await expect
-			.poll( () =>
-				rows
-					.nth( 0 )
-					.evaluate(
-						( row ) => row.ownerDocument.activeElement?.tagName
-					)
-			)
-			.toBe( 'BODY' );
+		// Leaving the first row re-sorts the day 10 ms later with appendChild;
+		// wait past that timer before checking the focus again.
+		await page.evaluate(
+			() => new Promise( ( resolve ) => setTimeout( resolve, 100 ) )
+		);
+		await expect( next ).toBeFocused();
 	} );
 
-	test( 'currently drops the keyboard focus when a slot is removed (K39)', async ( {
+	test( 'moves the focus to the next slot when a slot is removed (K39)', async ( {
 		page,
 	} ) => {
 		await openStation( page );
 		const rows = page.locator(
 			'.radplapag-schedule-day[data-day="monday"] .radplapag-program-row'
 		);
+		const nextIndex = await rows
+			.nth( 1 )
+			.getAttribute( 'data-program-index' );
 		await rows.nth( 0 ).locator( '.radplapag-remove-program' ).focus();
 
 		await page.keyboard.press( 'Enter' );
 
 		await expect( rows ).toHaveCount( 2 );
-		expect(
-			await rows
-				.nth( 0 )
-				.evaluate( ( row ) => row.ownerDocument.activeElement?.tagName )
-		).toBe( 'BODY' );
+		await expect(
+			page.locator(
+				`.radplapag-schedule-day[data-day="monday"] .radplapag-program-row[data-program-index="${ nextIndex }"] .radplapag-program-id`
+			)
+		).toBeFocused();
 	} );
 
 	test( 'program', async ( { page }, testInfo ) => {

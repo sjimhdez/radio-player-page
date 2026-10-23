@@ -65,7 +65,9 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `admin/js/station-admin.js`, `tests/e2e/a11y.spec.ts`, `tests/js/admin/station-fields.test.js`, `docs/known-issues.md`
 - Test: primero: `a11y.spec.ts` «keeps the keyboard focus when tabbing into the next slot of the day (K39)» (activo = `select` de la segunda fila) y «moves the focus to the next slot when a slot is removed (K39)»; `station-fields.test.js` «moves the focus to the next row's program, or to Add Time Slot, after a removal (K39)». Si WebKit difiere (riesgo 2), se para y se pregunta.
 - Verificación: `npm test -- tests/js/admin/station-fields.test.js && npx playwright test tests/e2e/a11y.spec.ts -g K39`
-- [ ] hecha · commit: —
+- Rojo: Vitest `expected <body> to be <select>`; e2e (Chromium y WebKit) `toBeFocused()` → `inactive` en los dos tests. WebKit no difiere (riesgo 2 no se da).
+- Changelog: el foco del teclado ya no se pierde en el horario al pasar con Tab a otra franja del día ni al quitar una franja (K39).
+- [x] hecha · commit: ver `git log` («fix(0010): keep the keyboard focus in the schedule editor (1.5)»)
 
 ### 1.6 K44: reemplazo con función (≤ 30 min) — `fix-bug`
 - Qué: `overlapMessage()` usa `.replace( '%s', function () { return description; } )`; fuera el comentario «Kept as today».

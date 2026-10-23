@@ -477,6 +477,24 @@ describe( 'station-admin.js: adding and removing slots', () => {
 
 		expect( rowErrorCode( monday ) ).toBeNull();
 	} );
+
+	// docs/known-issues.md K39: the focus fell to body with the removed row.
+	it( "moves the focus to the next row's program, or to Add Time Slot, after a removal (K39)", async () => {
+		const screen = await mount();
+		const [ morning, night ] = screen.rows( 'monday' );
+
+		morning.querySelector( '.radplapag-remove-program' ).focus();
+		screen.remove( morning );
+
+		expect( document.activeElement ).toBe(
+			night.querySelector( '.radplapag-program-id' )
+		);
+
+		night.querySelector( '.radplapag-remove-program' ).focus();
+		screen.remove( night );
+
+		expect( document.activeElement ).toBe( addButton( screen, 'monday' ) );
+	} );
 } );
 
 describe( 'station-admin.js: leaving a row (focusout)', () => {
