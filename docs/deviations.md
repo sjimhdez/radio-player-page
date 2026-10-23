@@ -2,6 +2,17 @@
 
 Lo que cada spec hizo distinto de lo escrito, con su motivo y quién lo decidió. Las de la spec activa están en `status.md` y pasan aquí al cerrarla (`close-phase`). Las más recientes van primero.
 
+## Spec 0008
+Detalle en el «Resultado» de cada tarea de `phase-1.md`, `phase-2.md` y `phase-3.md`. Los cambios de contrato van con su ADR (0037–0043).
+
+- Fase 3 (cierre): solo `spec-conformance-reviewer` y `backcompat-reviewer`, sobre el diff de la fase; `wp-security-reviewer` y `wporg-reviewer`, previstos sobre el diff de la spec, quedan para antes de la release. Decidido por el usuario (2026-10-23).
+- Fase 3 (3.5 y 3.6): el *mu-plugin* de los e2e se carga también en la integración; `PublicApiTest` y `HooksTest` cuentan solo las funciones y callbacks de los archivos del plugin. Decidido por el usuario (2026-10-23).
+- Fase 3 (3.6): K25 conserva la guarda `empty( $args[0] )` antes de `get_post()`, para no caer en el post global.
+- Fase 3 (3.2 y 3.3): el *mu-plugin* es `tests/e2e/mu-plugins/radplapag-e2e.php` y la cabecera `X-Radplapag-E2e-Rtl: 1`, no los nombres del plan.
+- Fase 2 (cierre): K86, K87 y dos huecos de test pasan a la fase 3; `wp-security-reviewer` y `wporg-reviewer` se aplazan al cierre de la spec. Decidido por el usuario (2026-10-23).
+- Fase 2: el aviso de éxito no caduca (ADR 0041). Decidido por el usuario (2026-10-23).
+- Fase 1: la toma del bloqueo es un `INSERT IGNORE` (ADR 0038); la 1.12 (renovación, ADR 0040) sale de la revisión; `is_rerun` heredado se anula (ADR 0039). Decidido por el usuario (2026-10-22).
+
 ## Spec 0007
 Detalle en cada `phase-N.md`. Los cambios de contrato van con su ADR (0031–0036).
 

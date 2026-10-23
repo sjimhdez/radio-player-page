@@ -1,14 +1,14 @@
 # Estado
-Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0008-migration-and-core-fixes/phase-3.md) · Actualizado: 2026-10-23
+Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: cerrada (1–3, el 2026-10-23; PR listo, pendiente de merge en `trunk`) · Plan: [`phase-3.md`](specs/0008-migration-and-core-fixes/phase-3.md) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)). Fases 1 (migración) y 2 (actualización, entidades y desinstalación) cerradas el 2026-10-22 y el 2026-10-23. Fase 3 (página limpia y API: K23 con RTL, K26, K24, K25, más K86, K87 y dos huecos de test de la fase 2) en curso desde el 2026-10-23: tareas 3.1–3.9 hechas; falta el cierre.
+- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)) cerrada el 2026-10-23 (fases 1–3); PR de `spec/0008-migration-and-core-fixes` listo para revisión. El merge lo decide el usuario.
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Cerrar la fase 3 de la 0008 (última de la spec) con `close-phase`: tareas 3.1–3.9 hechas. El entorno de tests monta `tests/e2e/mu-plugins/` (hay que reiniciarlo con `env:start:min|latest` para que lo vea).
-2. Al cerrar la fase 3 (última de la spec), pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). Las fases 1 y 2 se cerraron solo con `spec-conformance-reviewer` y `backcompat-reviewer` (decisión del usuario).
-3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
+1. Tras el merge de la 0008, sesión de diseño → `write-spec` de la 0009 (horario y programa en antena; notas en la hoja de ruta).
+2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
+3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario).
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` sin uso; propuesta: 0010 admin).
@@ -22,4 +22,4 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66), en iPhone y iPad reales (también iPad con la web de escritorio) sin deslizador de volumen y con HLS nativo (K13) y los controles con `100vh` bajo la barra de Safari de iOS.
 
 ## Desviaciones de la spec activa (→ ADR)
-Ninguna (las de la 0007 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).
+Ninguna (las de la 0008 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).

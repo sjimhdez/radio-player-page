@@ -233,6 +233,7 @@ function radplapag_get_station_for_current_page() {
  *
  * @since 1.0.0
  * @since 3.5.0 Delegates the three globals to RadioPlayerPage\Player\Globals_Builder, with the time of RadioPlayerPage\WP\Clock.
+ * @since 3.5.0 Leaves the page's feed, embed and trackback to WordPress, prints the robots meta when the site discourages search engines and dir="rtl" on right-to-left sites.
  *
  * @return void Exits execution after outputting HTML.
  */

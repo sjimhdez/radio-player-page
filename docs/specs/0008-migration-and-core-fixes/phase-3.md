@@ -1,5 +1,5 @@
 # Spec 0008 · Fase 3 — Página limpia y API
-Estado: en curso · Inicio: 2026-10-23 · ADRs: 0001, 0008, 0021, 0028, 0037, 0038, 0041; nuevo 0043 (robots y `dir` en la página limpia)
+Estado: cerrada (2026-10-23) · Inicio: 2026-10-23 · ADRs: 0001, 0008, 0021, 0028, 0037, 0038, 0041; nuevo 0043 (robots y `dir` en la página limpia)
 
 ## Contexto
 Lo medido al planificar:
@@ -43,7 +43,7 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `tests/e2e/mu-plugins/radplapag-e2e-text-direction.php`, `.wp-env.tests.json`, `tests/e2e/clean-page.spec.ts`, `docs/known-issues.md`.
 - Test: caracterización: `tests/e2e/clean-page.spec.ts`. Cada uno se valida con una mutación temporal (`dir` y `robots` impresos a mano; `is_feed()` añadido).
 - Verificación: `npm run env:start:min && npm run test:e2e -- clean-page.spec.ts`
-- [x] hecha · commit: 113beab
+- [x] hecha · commit: `113beab`
 
 ### 3.2 ADR 0043: robots y `dir` en la página limpia (≤ 1 h)
 - Qué:
@@ -53,7 +53,7 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Test: — (documentación).
 - Verificación: `npm run check`
 - Resultado (2026-10-23): ADR 0043 aceptado. El *mu-plugin* real es `tests/e2e/mu-plugins/radplapag-e2e.php` (no `radplapag-e2e-text-direction.php`); el ADR cita ese. `SPEC.md` §3.3 recoge `dir`, `robots` y K26; la fila de §6 la añade `close-phase`.
-- [x] hecha · commit: —
+- [x] hecha · commit: `4c82b15`
 
 ### 3.3 K23 y `dir` en RTL (D12) (≤ 1 h)
 - Qué:
@@ -64,7 +64,7 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Test: primero (regresión en rojo): `tests/e2e/clean-page.spec.ts`.
 - Verificación: `npm run test:e2e -- clean-page.spec.ts`
 - Resultado (2026-10-23): en rojo antes del arreglo, «prints noindex, nofollow without wp_robots with blog_public = 0 (K23)» (sin meta `robots`) y «prints dir="rtl" on a right-to-left site» (`<html lang="en-US"><head>`); los de `blog_public = 1` y LTR ya pasaban. Tras el arreglo, `clean-page.spec.ts` 29/29 en Chromium, *snapshots* sin cambios. El ADR 0043 citaba una cabecera que no existe; ahora cita `X-Radplapag-E2e-Rtl: 1`. Changelog: la página del reproductor respeta «Disuadir a los motores de búsqueda» y lleva `dir="rtl"` en sitios RTL.
-- [x] hecha · commit: —
+- [x] hecha · commit: `c186f15`
 
 ### 3.4 K26: no interceptar feed, embed ni trackback (D15) (≤ 1 h)
 - Qué:
@@ -75,7 +75,7 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Test: primero (regresión en rojo): `tests/e2e/clean-page.spec.ts`.
 - Verificación: `npm run test:e2e -- clean-page.spec.ts`
 - Resultado (2026-10-23): en rojo antes del arreglo, los tres «does not serve the player on the page's feed/ | embed/ | trackback/ (K26)» (el HTML del player con `RADPLAPAG_CONFIG`); «still serves the player on the page itself (K26)» ya pasaba. Tras el arreglo, `clean-page.spec.ts` 30/30 en Chromium: `feed/` responde 200 con XML, `embed/` 200 con la plantilla de embed y `trackback/` una redirección a la página. Changelog: la página del reproductor ya no tapa el feed, el embed ni el trackback de su página.
-- [x] hecha · commit: —
+- [x] hecha · commit: `22d3d7e`
 
 ### 3.5 K24: la emisora de la página actual solo en una página (D13) (≤ 1 h)
 - Qué:
@@ -89,7 +89,7 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Test: primero (regresión en rojo), unit e integración.
 - Verificación: `npm run test:php:unit -- --filter StationsTest && npm run test:php:integration -- --filter 'ConfigTest|PublicApiTest'`
 - Resultado (2026-10-23): en rojo antes del arreglo, `StationsTest::test_for_page_zero_matches_nothing` (devolvía la emisora 2, sin página) y en `ConfigTest` `…_returns_false_when_nothing_is_queried` y `…_is_false_on_a_term_with_the_page_id` (devolvían la emisora). Tras el arreglo, `StationsTest` 13/13 y `ConfigTest` en verde. `PublicApiTest::test_no_other_radplapag_function_is_defined` falla, también sin este cambio: el *mu-plugin* de la 3.1 (`tests/e2e/mu-plugins/radplapag-e2e.php`) se carga también en la integración y define `radplapag_e2e_*`. Decisión del usuario (2026-10-23): el test cuenta solo las funciones de los archivos del plugin, sin `uninstall.php` ni `tests/` (el *mu-plugin* se monta en `wp-content/mu-plugins/`, fuera del plugin); commit `test(0008)` aparte en esta tarea, validado con una mutación temporal (una `radplapag_*` de más en `radio-player-page.php` lo pone en rojo). `SPEC.md` §3.4 recoge el `false` fuera de una página. Changelog: `radplapag_get_station_for_current_page()` devuelve `false` fuera de una página.
-- [x] hecha · commit: —
+- [x] hecha · commit: `27c8d13`, `3d312e0`
 
 ### 3.6 K25: `map_meta_cap` con un `WP_Post` (D14) (≤ 1 h)
 - Qué:
@@ -100,7 +100,7 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Test: primero (regresión en rojo): `CptTest`.
 - Verificación: `npm run test:php:integration -- --filter CptTest`
 - Resultado (2026-10-23): en rojo antes del arreglo, `test_map_meta_cap_accepts_a_post_object` (devolvía `['x']` en vez de `['manage_options']`). Desviación del plan: `get_post( $args[0] ?? 0 )` tal cual cae en el post global con `0` o sin argumento (core ya responde `do_not_allow` a un `edit_post` sin post, y el filtro lo cambiaría por `manage_options` con el bucle en una emisora); el arreglo deja la guarda `empty( $args[0] )` antes de `get_post()`. Test nuevo `test_map_meta_cap_without_a_post_ignores_the_global_post`, en rojo con la versión del plan. Tras el arreglo, `CptTest` 23/23 y `npm run check` en verde. La integración completa da 884 tests con 2 fallos ajenos a la tarea, también en `3d312e0` sin este cambio: `HooksTest::test_hooked_callbacks_match_the_contract_exactly` y `…_same_priority_callbacks_run_in_registration_order` ven `radplapag_e2e_maybe_rtl` en `init` (el *mu-plugin* de la 3.1, misma causa que `PublicApiTest` en la 3.5). Decisión del usuario (2026-10-23): `HooksTest` cuenta solo los callbacks `radplapag_*` definidos en los archivos del plugin, fuera de `tests/`; commit `test(0008)` aparte en esta tarea, validado con una mutación temporal (un `add_filter` de más en `radio-player-page.php` lo pone en rojo). Integración completa: 884/884. Sin cambio visible: no va al changelog.
-- [x] hecha · commit: ver `git log` (3.6)
+- [x] hecha · commit: `9a7bfcb`, `217392c`
 
 ### 3.7 K86: leer el bloqueo antes de intentar tomarlo (≤ 1 h)
 - Qué:
@@ -111,7 +111,7 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Test: primero (en rojo): `UpgradeFlowTest`.
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
 - Resultado (2026-10-23): en rojo antes del arreglo, `test_front_pass_while_the_lock_is_held_after_a_failure_inserts_nothing` (un `INSERT IGNORE INTO wptests_options … 'radplapag_migrating'` en la pasada del visitante). Tras el arreglo, `UpgradeFlowTest` y `MigrationGoldenTest` 89/89. Si el `INSERT IGNORE` de un bloqueo que falta pierde la carrera, `acquire()` sale con `false` sin releer (otra petición acaba de tomarlo). Sin cambio visible: no va al changelog.
-- [x] hecha · commit: ver `git log` (3.7)
+- [x] hecha · commit: `f9067cf`
 
 ### 3.8 K87: restaurar el usuario y kses también si la migración lanza (≤ 1 h)
 - Qué:
@@ -122,7 +122,8 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Test: primero (en rojo): `UpgradeFlowTest`.
 - Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
 - Rojo: `Failed asserting that 1 is identical to 0.` (la excepción sale, pero el usuario actual sigue siendo el primer administrador).
-- [x] hecha · commit: ver `git log` (3.8)
+- Resultado (2026-10-23): tras el arreglo, `UpgradeFlowTest` en verde; la excepción se sigue propagando y el bloqueo se queda hasta que caduca (120 s). Sin cambio visible: no va al changelog.
+- [x] hecha · commit: `acc8346`
 
 ### 3.9 Huecos de test de la fase 2: kses con el usuario 0 y un post en `inherit` (≤ 1 h)
 - Qué:
@@ -133,11 +134,13 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Test: nuevo (debe pasar ya).
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|Uninstall' && npm run test:php:integration:ms -- --filter Uninstall`
 - Nota: pasan en verde. Mutaciones que los tumban: sacar `inherit` de los estados de la desinstalación y cambiar el `kses_init()` del `finally` por `kses_remove_filters()` (quitar solo el `kses_init()` no basta: `wp_set_current_user( 0 )` ya lo llama desde `set_current_user`).
-- [x] hecha · commit: ver `git log` (3.9)
+- [x] hecha · commit: `3338c3a`
 
-Cierre (`close-phase`, última fase de la spec):
-- `SPEC.md` §6 (historial), `known-issues.md`, la hoja de ruta sin las notas de la 0008 y `status.md` → la 0009.
-- Revisores sobre el diff completo de la spec: `spec-conformance-reviewer`, `backcompat-reviewer`, `wp-security-reviewer` y `wporg-reviewer`. La lista se confirma con el usuario antes de lanzarlos.
+## Cierre (2026-10-23)
+- Revisores: solo `spec-conformance-reviewer` y `backcompat-reviewer`, sobre el diff de la fase. `wp-security-reviewer` y `wporg-reviewer` no se pasaron sobre el diff de la spec, como preveían el cierre de la fase 2 y este plan (decisión del usuario: revisión mínima); quedan para antes de la release.
+- Lo de los revisores que era documentación entra en el commit de cierre: los hashes de cada tarea, el «Resultado» de la 3.8, el `@since 3.5.0` de `radplapag_output_clean_page()` y el formato de K86 y K87 en `known-issues.md`.
+- Observación sin corregir (`backcompat-reviewer`): `PublicApiTest` (`$relative !== $file`, línea 215) no comprobaría nada si la raíz del plugin cargado no coincidiera con la de los tests. Hoy la comprueba la mutación de la 3.5; riesgo de configuración, no un fallo.
+- Changelog (para la skill `release`): las notas de las tareas 3.3, 3.4 y 3.5.
 
 ## Decisiones abiertas → ADR
 - ADR 0043 (3.2): robots y `dir` en la página limpia.

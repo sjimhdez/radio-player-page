@@ -1,6 +1,6 @@
 # Spec 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación
 
-> Estado: **propuesta** · Fecha: 2026-10-22 · Rama: `spec/0008-migration-and-core-fixes` · Depende de: 0005
+> Estado: **cerrada** (2026-10-23) · Fecha: 2026-10-22 · Rama: `spec/0008-migration-and-core-fixes` · Depende de: 0005
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 
