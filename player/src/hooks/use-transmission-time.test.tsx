@@ -7,8 +7,13 @@ import type { PluginConfig } from 'src/types/global'
 // The scripts run Vitest with TZ=UTC; these tests switch it per case.
 const originalTz = process.env.TZ
 
-function setOffset(timezoneOffset: number) {
-  window.RADPLAPAG_CONFIG = { streamUrl: '', siteTitle: '', timezoneOffset } as PluginConfig
+function setOffset(timezoneOffset: number, timezone?: string) {
+  window.RADPLAPAG_CONFIG = {
+    streamUrl: '',
+    siteTitle: '',
+    timezoneOffset,
+    timezone,
+  } as PluginConfig
 }
 
 beforeEach(() => {
@@ -62,6 +67,18 @@ describe('useTransmissionTime', () => {
       timeDifference: 5.5,
       hasDifference: true,
     })
+  })
+
+  it('follows the station daylight saving time with its zone (C9)', () => {
+    // New York switches to UTC-4 at 07:00Z on 2026-03-08; the page was served at -5.
+    process.env.TZ = 'UTC'
+    vi.setSystemTime(new Date('2026-03-08T06:59:30Z'))
+    setOffset(-5, 'America/New_York')
+    const { result } = renderHook(() => useTransmissionTime())
+    expect(result.current).toMatchObject({ transmissionTime: '01:59', timeDifference: -5 })
+
+    act(() => vi.advanceTimersByTime(30_000))
+    expect(result.current).toMatchObject({ transmissionTime: '03:00', timeDifference: -4 })
   })
 
   it('updates at the start of the next minute and then every 60 s', () => {

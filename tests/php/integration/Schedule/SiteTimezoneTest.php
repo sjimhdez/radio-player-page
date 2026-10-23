@@ -1,7 +1,8 @@
 <?php
 /**
  * Characterization of the site time zone in radplapag_get_now_playing_for_station()
- * (3.4.2): a named zone with daylight saving time.
+ * (3.4.2): a named zone with daylight saving time. Also the zone that reaches the
+ * player in RADPLAPAG_CONFIG (C9, ADR 0046).
  *
  * @package radio-player-page
  */
@@ -10,7 +11,9 @@ namespace RadioPlayerPage\Tests\Integration\Schedule;
 
 use DateTime;
 use DateTimeZone;
+use RadioPlayerPage\Player\Globals_Builder;
 use RadioPlayerPage\Tests\Integration\Support\Factory;
+use RadioPlayerPage\WP\Clock;
 use WP_UnitTestCase;
 
 /**
@@ -45,6 +48,37 @@ final class SiteTimezoneTest extends WP_UnitTestCase {
 
 		$this->assertNotNull( $result['current'], $zone );
 		$this->assertSame( 'DST hour', $result['current']['name'], $zone );
+	}
+
+	/**
+	 * With `timezone_string` the player gets the zone next to the offset (C9, ADR 0046).
+	 */
+	public function test_config_prints_the_site_zone() {
+		update_option( 'timezone_string', 'America/New_York' );
+		update_option( 'gmt_offset', '' );
+
+		$this->assertSame( 'America/New_York', $this->config()['timezone'] );
+	}
+
+	/**
+	 * With a manual offset (`gmt_offset`) there is no zone: the player keeps timezoneOffset.
+	 */
+	public function test_config_prints_no_zone_with_a_manual_offset() {
+		update_option( 'timezone_string', '' );
+		update_option( 'gmt_offset', -3.5 );
+
+		$config = $this->config();
+		$this->assertNull( $config['timezone'] );
+		$this->assertSame( -3.5, $config['timezoneOffset'] );
+	}
+
+	/**
+	 * RADPLAPAG_CONFIG as radplapag_output_clean_page() builds it, with the time of WP\Clock.
+	 *
+	 * @return array
+	 */
+	private function config() {
+		return Globals_Builder::config( array( 'stream_url' => 'https://example.com/stream.mp3' ), array(), 'Site', Clock::now(), 'sanitize_key' );
 	}
 
 	/**

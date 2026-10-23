@@ -119,6 +119,7 @@ describe( 'station-admin.js: new schedule row', () => {
 			rowHtml( 'sunday', 0, {
 				options:
 					'<option value="">Select Radio Show</option>' +
+					'<option value="203">Draft Show (Draft)</option>' +
 					'<option value="201">Morning Show</option>' +
 					'<option value="202">Night Owl</option>',
 				to: 'to',

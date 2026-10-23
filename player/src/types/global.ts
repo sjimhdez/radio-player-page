@@ -72,14 +72,18 @@ export interface PluginConfig {
   themeColor: 'neutral' | 'blue' | 'green' | 'red' | 'orange' | 'yellow' | 'purple' | 'pink'
   /** Visualizer ID (validated against whitelist, defaults to 'oscilloscope') */
   visualizer: 'oscilloscope' | 'bars' | 'particles' | 'waterfall'
-  /** WordPress timezone offset in hours from UTC (numeric, handles DST automatically) */
+  /** Site offset in hours from UTC, fixed when the page is served; fallback without timezone */
   timezoneOffset: number
+  /** Site IANA time zone, or null when the site uses a manual offset (ADR 0046) */
+  timezone?: string | null
 }
 
 /**
  * Full config returned by useConfig(): config + programs + schedule (relational).
  */
 export interface ResolvedConfig extends PluginConfig {
+  /** Site IANA time zone, only when Intl accepts it */
+  timezone?: string
   /** Program definitions (from RADPLAPAG_PROGRAMS). Resolve by schedule entry program_id. */
   programs?: ProgramDefinition[]
   /** Weekly schedule relational (from RADPLAPAG_SCHEDULE). */

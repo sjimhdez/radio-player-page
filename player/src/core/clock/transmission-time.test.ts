@@ -7,10 +7,10 @@ import { getTransmissionTime } from 'src/core/clock/transmission-time'
 // The scripts run Vitest with TZ=UTC; these tests switch it per case.
 const originalTz = process.env.TZ
 
-function at(tz: string, utc: string, timezoneOffset: number) {
+function at(tz: string, utc: string, timezoneOffset: number, timezone?: string) {
   process.env.TZ = tz
   vi.setSystemTime(new Date(utc))
-  return getTransmissionTime(timezoneOffset)
+  return getTransmissionTime(timezoneOffset, timezone)
 }
 
 beforeEach(() => {
@@ -86,9 +86,25 @@ describe('getTransmissionTime', () => {
     })
   })
 
+  it('follows the station daylight saving time with its zone (C9)', () => {
+    // New York switches to UTC-4 at 07:00Z on 2026-03-08; the page was served at -5.
+    expect(at('UTC', '2026-03-08T08:30:00Z', -5, 'America/New_York')).toEqual({
+      transmissionTime: '04:30',
+      browserTime: '08:30',
+      timeDifference: -4,
+      hasDifference: true,
+    })
+  })
+
+  it('keeps the served offset without a zone or with one Intl rejects', () => {
+    expect(at('UTC', '2026-03-08T08:30:00Z', -5).transmissionTime).toBe('03:30')
+    expect(at('UTC', '2026-03-08T08:30:00Z', -5, 'Not/AZone').transmissionTime).toBe('03:30')
+  })
+
   it('ignores differences under the 0.01 h threshold', () => {
+    // K10: the difference is in whole minutes, so 18 seconds is no difference.
     expect(at('UTC', '2026-10-19T14:05:30Z', 0.005)).toMatchObject({
-      timeDifference: 0.005,
+      timeDifference: 0,
       hasDifference: false,
     })
     expect(at('UTC', '2026-10-19T14:05:30Z', -0.02).hasDifference).toBe(true)

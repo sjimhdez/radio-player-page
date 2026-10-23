@@ -4,6 +4,7 @@ import {
   formatTimezoneDifference,
   getBrowserTimezoneOffset,
   getCurrentTimeInTimezone,
+  getStationOffset,
   getTimezoneDifference,
 } from 'src/utils/timezone'
 
@@ -84,14 +85,54 @@ describe('getCurrentTimeInTimezone', () => {
     vi.unstubAllEnvs()
   })
 
-  // docs/known-issues.md C9: the offset is computed per request.
-  it('currently keeps the served offset after a DST switch with the page open', () => {
+  // docs/known-issues.md C9 (fixed in spec 0009): the offset follows the site zone.
+  it('follows daylight saving time with the site zone', () => {
     // New York switches to EDT (-4) at 2026-03-08T07:00Z; the page was served
-    // at 06:00Z with -5. At 08:30Z the station is at 04:30, the player says 03:30.
+    // at 06:00Z with -5. At 08:30Z the station is at 04:30.
     vi.setSystemTime(new Date('2026-03-08T08:30:00Z'))
+    const offset = getStationOffset('America/New_York', -5)
 
-    expect(getCurrentTimeInTimezone(-5).currentTime).toBe(3 * 60 + 30)
-    expect(formatTimeInTimezone(-5, false)).toBe('03:30')
+    expect(getCurrentTimeInTimezone(offset).currentTime).toBe(4 * 60 + 30)
+    expect(formatTimeInTimezone(offset, false)).toBe('04:30')
+  })
+})
+
+describe('getStationOffset', () => {
+  it.each([
+    ['America/New_York', '2026-03-08T06:59:00Z', -5, -5],
+    ['America/New_York', '2026-03-08T07:00:00Z', -5, -4],
+    ['America/New_York', '2026-11-01T05:59:00Z', -4, -4],
+    ['America/New_York', '2026-11-01T06:00:00Z', -4, -5],
+    ['Asia/Kathmandu', '2026-10-19T20:00:00Z', 0, 5.75],
+    ['America/St_Johns', '2026-01-15T12:00:00Z', 0, -3.5],
+    ['America/St_Johns', '2026-07-15T12:00:00Z', -3.5, -2.5],
+    ['UTC', '2026-07-15T12:00:00Z', 2, 0],
+  ])('gives the current offset of %s at %s', (timezone, now, served, expected) => {
+    vi.setSystemTime(new Date(now))
+
+    expect(getStationOffset(timezone, served)).toBe(expected)
+  })
+
+  it.each(['UTC', 'Asia/Tokyo', 'America/Los_Angeles'])(
+    'does not depend on the browser timezone (%s)',
+    (tz) => {
+      useTz(tz)
+      vi.setSystemTime(new Date('2026-07-15T12:00:30Z'))
+
+      expect(getStationOffset('Europe/Madrid', 1)).toBe(2)
+    },
+  )
+
+  it('takes the instant as a parameter', () => {
+    vi.setSystemTime(new Date('2026-01-15T12:00:00Z'))
+
+    expect(getStationOffset('Europe/Madrid', 1, new Date('2026-07-15T12:00:00Z'))).toBe(2)
+  })
+
+  it.each([undefined, '', 'Not/AZone'])('falls back to the served offset with zone %j', (tz) => {
+    vi.setSystemTime(new Date('2026-07-15T12:00:00Z'))
+
+    expect(getStationOffset(tz, -5)).toBe(-5)
   })
 })
 
@@ -132,6 +173,12 @@ describe('getTimezoneDifference', () => {
     vi.setSystemTime(new Date('2026-01-15T12:00:00Z'))
 
     expect(getTimezoneDifference(-5)).toBe(-10.5)
+  })
+
+  // docs/known-issues.md K10.
+  it('subtracts in whole minutes, without floating point noise', () => {
+    expect(getTimezoneDifference(0.1 + 0.2, 0)).toBe(0.3)
+    expect(getTimezoneDifference(5.75, 1 / 3)).toBe(325 / 60)
   })
 })
 
@@ -185,16 +232,16 @@ describe('formatTimezoneDifference', () => {
     [-3, '-3'],
     [0, '+0'],
     [-0, '+0'],
-    [5.5, '+5.5'],
-    [-9.5, '-9.5'],
+    [5.5, '+5:30'],
+    [-9.5, '-9:30'],
   ])('formats %s as %s', (difference, expected) => {
     expect(formatTimezoneDifference(difference)).toBe(expected)
   })
 
-  // docs/known-issues.md K10: rounded to one decimal, and Math.round rounds
-  // halves up, so a 45-minute difference gives different magnitudes by sign.
-  it('currently rounds 45-minute differences asymmetrically', () => {
-    expect(formatTimezoneDifference(5.75)).toBe('+5.8')
-    expect(formatTimezoneDifference(-5.75)).toBe('-5.7')
+  // docs/known-issues.md K10.
+  it('formats 45-minute differences exactly and symmetrically', () => {
+    expect(formatTimezoneDifference(5.75)).toBe('+5:45')
+    expect(formatTimezoneDifference(-5.75)).toBe('-5:45')
+    expect(formatTimezoneDifference(12.75)).toBe('+12:45')
   })
 })

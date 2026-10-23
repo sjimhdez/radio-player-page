@@ -397,12 +397,11 @@ final class SlotValidatorTest extends TestCase {
 	}
 
 	/**
-	 * Currently, `start == end` is accepted and stored as given (a 24 h slot), while the
-	 * admin JS rejects it. The proposal keeps this behavior.
+	 * `start == end` is accepted and stored as given (a 24 h slot), as in the admin JS.
 	 *
 	 * @see docs/known-issues.md C3
 	 */
-	public function test_currently_accepts_start_equals_end() {
+	public function test_accepts_start_equals_end() {
 		$result = $this->validate( array( 'tuesday' => array( $this->row( 6, '08:00', '08:00' ) ) ) );
 
 		$this->assertSame(
@@ -424,13 +423,13 @@ final class SlotValidatorTest extends TestCase {
 	}
 
 	/**
-	 * Currently, any program in the names map is accepted, and the wrapper puts drafts
-	 * in it (radplapag_get_program_data() finds them): a draft is accepted in a slot
-	 * without any warning, although drafts are never shown.
+	 * Any program in the names map is accepted, and the wrapper puts drafts in it
+	 * (radplapag_get_program_data() finds them): a slot keeps a program that is not
+	 * public, and the meta box warns about it (ADR 0045).
 	 *
 	 * @see docs/known-issues.md C10
 	 */
-	public function test_currently_accepts_draft_program() {
+	public function test_accepts_draft_program() {
 		$draft  = 42;
 		$result = Slot_Validator::validate(
 			array( 'monday' => array( $this->row( $draft, '06:00', '10:00' ) ) ),

@@ -63,7 +63,13 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'recommendedProgramImageSize',
 		'removeProgram',
 		'programNameRequired',
+		'programNotPublished',
 	);
+
+	/**
+	 * Notice printed under a slot whose program is not public.
+	 */
+	const NOTICE = '<div class="radplapag-program-notice">This program is not published; this time slot is not shown on the site.</div>';
 
 	/**
 	 * Globals each test starts empty, with their empty value (null makes wp_scripts()
@@ -322,9 +328,10 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The station screen localizes radplapagAdmin: the admin strings plus the pages of other
-	 * stations. In the CLI, filter_input() reads no `post`, so no station is excluded
-	 * (the exclusion is checked below and in e2e, phase 2).
+	 * The station screen localizes radplapagAdmin: the admin strings with the programs of
+	 * the station (ADR 0045) plus the pages of other stations. In the CLI, filter_input()
+	 * reads no `post`, so it is a new station and no station is excluded (the exclusion
+	 * is checked below and in e2e, phase 2).
 	 */
 	public function test_station_screen_localizes_radplapag_admin() {
 		$main  = $this->factory_rpp->page( 'Main Player' );
@@ -341,7 +348,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		$localized = json_decode( $m[1], true );
 
 		$this->assertSame( array( 'programs', 'strings', 'assignedPlayerPages' ), array_keys( $localized ) );
-		$this->assertSame( radplapag_get_admin_strings()['programs'], $localized['programs'] );
+		$this->assertSame( radplapag_get_station_programs_for_select( 0 ), $localized['programs'] );
 		$this->assertSame( radplapag_get_admin_strings()['strings'], $localized['strings'] );
 		$this->assertEqualsCanonicalizing( array( $main, $other ), $localized['assignedPlayerPages'] );
 		$this->assertFalse( wp_scripts()->get_data( 'radplapag-program-admin', 'data' ) );
@@ -625,38 +632,126 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, a slot whose program is trashed (or private, pending or scheduled:
-	 * the select lists published and draft programs only) prints with nothing
-	 * selected but keeps its times, while the server would still accept the ID. The
-	 * client validation then asks for a program, so the station cannot be saved
-	 * until that slot is fixed, and the program name is no longer shown. K41 of
-	 * docs/known-issues.md.
+	 * A slot whose program is trashed keeps its program selected, with the status in
+	 * the option text, and prints the notice under the row, so the station can still
+	 * be saved (K41 of docs/known-issues.md, ADR 0045).
 	 */
-	public function test_currently_schedule_box_empties_a_slot_whose_program_is_trashed() {
+	public function test_schedule_box_keeps_a_slot_whose_program_is_trashed() {
 		$program = $this->factory_rpp->program( 'Morning Show' );
-		$station = $this->factory_rpp->station(
-			'Test FM',
-			array(
-				'schedule' => array(
-					'monday' => array(
-						array(
-							'program_id' => $program,
-							'start'      => '07:00',
-							'end'        => '10:00',
-						),
-					),
-				),
-			)
-		);
+		$station = $this->station_with_slot( $program );
 		wp_trash_post( $program );
 
 		$html = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
 		$name = 'radplapag_station_schedule[monday][0][program_id]';
 
-		$this->assertStringNotContainsString( 'Morning Show', $html );
-		$this->assertSame( array(), $this->selected( $html, $name ) );
+		$this->assertSame( array( (string) $program ), $this->selected( $html, $name ) );
+		$this->assertStringContainsString( '>Morning Show (Trash)</option>', $this->select( $html, $name ) );
 		$this->assertStringContainsString( 'name="radplapag_station_schedule[monday][0][start]" value="07:00"', $html );
-		$this->assertNotNull( radplapag_get_program_data( $program ) );
+		$this->assertSame( 1, substr_count( $html, self::NOTICE ) );
+	}
+
+	/**
+	 * Draft and password-protected programs are not public: their slot keeps the
+	 * program, with its status, and prints the notice (C10 in the admin, ADR 0045).
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function data_not_public_programs() {
+		return array(
+			'draft'              => array( 'draft', 'Night Owl (Draft)' ),
+			'password protected' => array( 'password', 'Night Owl (Password protected)' ),
+		);
+	}
+
+	/**
+	 * See data_not_public_programs().
+	 *
+	 * @dataProvider data_not_public_programs
+	 *
+	 * @param string $state Program state.
+	 * @param string $label Expected option text.
+	 */
+	public function test_schedule_box_warns_about_a_program_that_is_not_public( $state, $label ) {
+		$program = 'draft' === $state
+			? $this->factory_rpp->program( 'Night Owl', array(), 'draft' )
+			: $this->password_protected( $this->factory_rpp->program( 'Night Owl' ) );
+		$station = $this->station_with_slot( $program );
+
+		$html = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
+		$name = 'radplapag_station_schedule[monday][0][program_id]';
+
+		$this->assertSame( array( (string) $program ), $this->selected( $html, $name ) );
+		$this->assertStringContainsString( '>' . $label . '</option>', $this->select( $html, $name ) );
+		$this->assertSame( 1, substr_count( $html, self::NOTICE ) );
+	}
+
+	/**
+	 * A slot of a published program prints no notice.
+	 */
+	public function test_schedule_box_does_not_warn_about_a_published_program() {
+		$program = $this->factory_rpp->program( 'Morning Show' );
+		$station = $this->station_with_slot( $program );
+
+		$html = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
+
+		$this->assertStringContainsString( '>Morning Show</option>', $html );
+		$this->assertStringNotContainsString( 'radplapag-program-notice', $html );
+	}
+
+	/**
+	 * The station list: the published and draft programs, then the program of each
+	 * saved slot in any other status, once; each with its label and whether it is
+	 * public. Slots of programs that do not exist or are not programs add nothing.
+	 */
+	public function test_station_programs_for_select() {
+		$morning  = $this->factory_rpp->program( 'Morning Show' );
+		$draft    = $this->factory_rpp->program( 'Draft Show', array(), 'draft' );
+		$locked   = $this->password_protected( $this->factory_rpp->program( 'Locked Show' ) );
+		$pending  = $this->factory_rpp->program( 'Pending Show', array(), 'pending' );
+		$private  = $this->factory_rpp->program( 'Private Show', array(), 'private' );
+		$trashed  = $this->factory_rpp->program( 'Trashed Show', array(), 'trash' );
+		$future   = $this->factory_rpp->program( 'Future Show' );
+		$unused   = $this->factory_rpp->program( 'Unused Pending', array(), 'pending' );
+		$page     = $this->factory_rpp->page( 'Some Page' );
+		$schedule = array();
+		foreach ( array( $trashed, $private, $future, $pending, $pending, $page, 999999, 'x' ) as $i => $id ) {
+			$schedule[] = array(
+				'program_id' => $id,
+				'start'      => sprintf( '%02d:00', $i ),
+				'end'        => sprintf( '%02d:30', $i ),
+			);
+		}
+		$station = $this->factory_rpp->station( 'Test FM', array( 'schedule' => array( 'monday' => $schedule ) ) );
+		wp_update_post(
+			array(
+				'ID'            => $future,
+				'post_status'   => 'future',
+				'post_date'     => '2099-01-01 00:00:00',
+				'post_date_gmt' => '2099-01-01 00:00:00',
+			)
+		);
+		$this->assertSame( 'pending', get_post_status( $unused ) );
+
+		$this->assertSame(
+			array(
+				$this->option( $draft, 'Draft Show', 'Draft Show (Draft)', false ),
+				$this->option( $locked, 'Locked Show', 'Locked Show (Password protected)', false ),
+				$this->option( $morning, 'Morning Show', 'Morning Show', true ),
+				$this->option( $trashed, 'Trashed Show', 'Trashed Show (Trash)', false ),
+				$this->option( $private, 'Private Show', 'Private Show (Private)', false ),
+				$this->option( $future, 'Future Show', 'Future Show (Scheduled)', false ),
+				$this->option( $pending, 'Pending Show', 'Pending Show (Pending)', false ),
+			),
+			radplapag_get_station_programs_for_select( $station )
+		);
+		$this->assertSame(
+			array(
+				$this->option( $draft, 'Draft Show', 'Draft Show (Draft)', false ),
+				$this->option( $locked, 'Locked Show', 'Locked Show (Password protected)', false ),
+				$this->option( $morning, 'Morning Show', 'Morning Show', true ),
+			),
+			radplapag_get_station_programs_for_select( 0 )
+		);
 	}
 
 	/**
@@ -827,6 +922,64 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		call_user_func( $callback, get_post( $post_id ) );
 
 		return ob_get_clean();
+	}
+
+	/**
+	 * Station with one Monday slot of the given program, 07:00 to 10:00.
+	 *
+	 * @param int $program Program post ID.
+	 * @return int Station post ID.
+	 */
+	private function station_with_slot( $program ) {
+		return $this->factory_rpp->station(
+			'Test FM',
+			array(
+				'schedule' => array(
+					'monday' => array(
+						array(
+							'program_id' => $program,
+							'start'      => '07:00',
+							'end'        => '10:00',
+						),
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Sets a password on a post.
+	 *
+	 * @param int $post_id Post ID.
+	 * @return int The same post ID.
+	 */
+	private function password_protected( $post_id ) {
+		wp_update_post(
+			array(
+				'ID'            => $post_id,
+				'post_password' => 'secret',
+			)
+		);
+
+		return $post_id;
+	}
+
+	/**
+	 * An entry of radplapag_get_station_programs_for_select().
+	 *
+	 * @param int    $id     Program post ID.
+	 * @param string $name   Program title.
+	 * @param string $label  Option text.
+	 * @param bool   $is_public Whether the program is public.
+	 * @return array{id: int, name: string, label: string, public: bool}
+	 */
+	private function option( $id, $name, $label, $is_public ) {
+		return array(
+			'id'     => $id,
+			'name'   => $name,
+			'label'  => $label,
+			'public' => $is_public,
+		);
 	}
 
 	/**

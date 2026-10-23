@@ -1,17 +1,18 @@
 # Estado
-Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: cerrada (1–3, el 2026-10-23; PR listo, pendiente de merge en `trunk`) · Plan: [`phase-3.md`](specs/0008-migration-and-core-fixes/phase-3.md) · Actualizado: 2026-10-23
+Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: cerrada (1–4, el 2026-10-23; PR listo, pendiente de merge en `trunk`) · Plan: [`phase-4.md`](specs/0009-schedule-model/phase-4.md) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)) cerrada el 2026-10-23 (fases 1–3); PR de `spec/0008-migration-and-core-fixes` listo para revisión. El merge lo decide el usuario.
-- Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
+- Spec 0009 (horario y programa en antena: C16, C4, K8, K52, C10, K41, K88, K78, K17, C3, C9, K10; ADRs 0044–0046) cerrada el 2026-10-23 en la rama `spec/0009-schedule-model`; PR listo contra `trunk`, a la espera del merge del usuario.
+- Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tras el merge de la 0008, sesión de diseño → `write-spec` de la 0009 (horario y programa en antena; notas en la hoja de ruta).
-2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
-3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario).
+1. Merge del PR de la 0009 (lo decide el usuario: merge commit, título `Spec 0009: Correcciones: horario y programa en antena`; antes puede lanzar `/code-review`).
+2. Tras el merge, sesión de diseño → `write-spec` de la 0010 (admin; parte del modelo de la 0009, notas en la hoja de ruta).
+3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
+4. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente) y `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0009 (meta box y su aviso, validación del horario, `timezone` impreso, reloj en `±H:MM`). No se pasaron al cerrarlas (decisión del usuario). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044, 0045 y 0046).
 
 ## Bloqueos / preguntas para el humano
-- Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` sin uso; propuesta: 0010 admin).
+- Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` y `startEndSame` sin uso; propuesta: 0010 admin).
 - Decidir si se corrige y en qué spec K83 (baja, 2026-10-22): durante el reintento de C1 el controlador publica `error` sin `loading`; no se ve con `useState`, pero impide volver a `useSyncExternalStore` (ADR 0030).
 
 ## Verificación manual pendiente
@@ -22,4 +23,4 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66), en iPhone y iPad reales (también iPad con la web de escritorio) sin deslizador de volumen y con HLS nativo (K13) y los controles con `100vh` bajo la barra de Safari de iOS.
 
 ## Desviaciones de la spec activa (→ ADR)
-Ninguna (las de la 0008 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).
+Ninguna (las de la 0009 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).

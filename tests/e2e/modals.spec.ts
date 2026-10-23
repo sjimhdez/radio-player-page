@@ -96,17 +96,17 @@ test( 'lists the days from today, skipping empty ones, with the rerun marked', a
 	);
 } );
 
-test( 'currently does not mark the previous day slot crossing midnight as on air in the schedule modal (C4)', async ( {
+test( 'marks the previous day slot crossing midnight as on air in the schedule modal (C4)', async ( {
 	page,
 } ) => {
 	await openAt( page, 'tuesday', '01:00' );
 	const dialog = await openSchedule( page );
 
-	// C (Monday 22:00–02:00) is on air; the modal only checks today's slots.
-	await expect( card( dialog, 'E2E Program C' ) ).toBeVisible();
+	// C (Monday 22:00–02:00) is still on air on Tuesday at 01:00.
 	await expect( dialog.getByText( 'On Air', { exact: true } ) ).toHaveCount(
-		0
+		1
 	);
+	await expect( card( dialog, 'E2E Program C' ) ).toContainText( 'On Air' );
 } );
 
 test( 'marks the previous day slot crossing midnight as on air in the all-programs modal (C4)', async ( {

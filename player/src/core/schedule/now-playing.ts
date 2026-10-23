@@ -1,5 +1,5 @@
 import type { ProgramDefinition, Schedule } from 'src/types/global'
-import { getCurrentTimeInTimezone } from 'src/utils/timezone'
+import { getCurrentTimeInTimezone, getStationOffset } from 'src/utils/timezone'
 import {
   findActiveProgram,
   findIncomingProgram,
@@ -22,17 +22,21 @@ export interface NowPlaying {
  *
  * @param schedule - Weekly schedule (relational: program_id, start, end)
  * @param programs - Program definitions to resolve name/logo by program_id
- * @param timezoneOffset - Station offset in hours from UTC, fixed when the page is served
+ * @param timezoneOffset - Station offset in hours from UTC served with the page (fallback)
+ * @param timezone - Site IANA zone; its current offset wins, so DST is followed (ADR 0046)
  * @returns NowPlaying, with null for each program when there is none
  */
 export function getNowPlaying(
   schedule: Schedule | undefined,
   programs: ProgramDefinition[] | undefined,
   timezoneOffset: number,
+  timezone?: string,
 ): NowPlaying {
   if (!schedule) return { active: null, incoming: null }
 
-  const { dayOfWeek, currentTime } = getCurrentTimeInTimezone(timezoneOffset)
+  const { dayOfWeek, currentTime } = getCurrentTimeInTimezone(
+    getStationOffset(timezone, timezoneOffset),
+  )
   return {
     active: findActiveProgram(schedule, programs, dayOfWeek, currentTime),
     incoming: findIncomingProgram(schedule, programs, dayOfWeek, currentTime),

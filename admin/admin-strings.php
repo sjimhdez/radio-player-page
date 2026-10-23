@@ -61,6 +61,7 @@ function radplapag_get_admin_strings(): array {
 			'recommendedProgramImageSize' => __( 'Recommended size: 256x256 pixels.', 'radio-player-page' ),
 			'removeProgram'               => __( 'Remove Radio Show', 'radio-player-page' ),
 			'programNameRequired'         => __( 'Radio Show Name is required. Enter a name to use this Radio Show in the schedule.', 'radio-player-page' ),
+			'programNotPublished'         => __( 'This program is not published; this time slot is not shown on the site.', 'radio-player-page' ),
 		),
 	);
 }

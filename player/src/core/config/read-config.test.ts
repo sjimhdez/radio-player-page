@@ -90,6 +90,22 @@ describe('readConfig', () => {
     },
   )
 
+  // The site zone, or null with a manual offset (C9, ADR 0046).
+  it.each(['UTC', 'Asia/Kolkata', 'America/New_York'])('accepts the timezone %s', (timezone) => {
+    expect(read({ ...CONFIG, timezone }).timezone).toBe(timezone)
+  })
+
+  it.each([null, undefined, '', 42, 'Not/AZone'])(
+    'resolves the timezone %j to undefined',
+    (timezone) => {
+      expect(read({ ...CONFIG, timezone }).timezone).toBeUndefined()
+    },
+  )
+
+  it('keeps timezoneOffset next to the timezone', () => {
+    expect(read({ ...CONFIG, timezone: 'America/New_York' }).timezoneOffset).toBe(-6)
+  })
+
   it('ignores programs that are not an array', () => {
     expect(read(CONFIG, { 7: PROGRAMS[0] }, SCHEDULE).programs).toBeUndefined()
   })
@@ -98,9 +114,9 @@ describe('readConfig', () => {
     expect(read(CONFIG, PROGRAMS, schedule).schedule).toBeUndefined()
   })
 
-  // PHP prints an empty schedule as `[]` (wp_json_encode of an empty array); it is
-  // kept and every consumer reads it as a schedule without slots (K17).
-  it('currently keeps an empty array as the schedule', () => {
+  // PHP prints an empty schedule as `{}` (K17, ADR 0045); an older `[]` is still
+  // accepted, kept as is, and every consumer reads it as a schedule without slots.
+  it('keeps an empty array as the schedule', () => {
     expect(read(CONFIG, PROGRAMS, []).schedule).toEqual([])
   })
 

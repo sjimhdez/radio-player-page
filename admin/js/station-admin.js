@@ -407,12 +407,14 @@
 			const id =
 				p.id !== null && p.id !== undefined ? String( p.id ) : '';
 			const name = p.name ? String( p.name ) : '';
+			// The label carries the status of a program that is not public.
+			const label = p.label ? String( p.label ) : name;
 			if ( id !== '' && name !== '' ) {
 				options.push(
 					createElement(
 						'option',
 						{ value: decodeEntities( escapeName( id ) ) },
-						[ decodeEntities( escapeName( name ) ) ]
+						[ decodeEntities( escapeName( label ) ) ]
 					)
 				);
 			}
@@ -425,6 +427,36 @@
 				style: 'width: 200px; margin-right: 24px;',
 			},
 			options
+		);
+	}
+
+	/**
+	 * Shows the notice of a row whose program is not public, or removes it
+	 * (ADR 0045). A program without `public` counts as public.
+	 *
+	 * @param {Element} programRow Program row.
+	 */
+	function updateProgramNotice( programRow ) {
+		const programId = fieldValue( programRow, '.radplapag-program-id' );
+		const program = programsList.find( function ( p ) {
+			return String( p.id ) === programId;
+		} );
+		let notice = programRow.querySelector( '.radplapag-program-notice' );
+		if ( ! program || program.public !== false ) {
+			if ( notice ) {
+				notice.remove();
+			}
+			return;
+		}
+		if ( ! notice ) {
+			notice = createElement( 'div', {
+				class: 'radplapag-program-notice',
+			} );
+			programRow.appendChild( notice );
+		}
+		notice.textContent = decodeEntities(
+			s.programNotPublished ||
+				'This program is not published; this time slot is not shown on the site.'
 		);
 	}
 
@@ -580,6 +612,14 @@
 				.forEach( function ( programRow ) {
 					setupGroupValidation( programRow );
 				} );
+
+			container.addEventListener( 'change', function ( e ) {
+				if ( e.target.classList.contains( 'radplapag-program-id' ) ) {
+					updateProgramNotice(
+						e.target.closest( '.radplapag-program-row' )
+					);
+				}
+			} );
 
 			container.addEventListener( 'click', function ( e ) {
 				if ( e.target.classList.contains( 'radplapag-add-program' ) ) {

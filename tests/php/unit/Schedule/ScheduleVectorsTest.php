@@ -59,21 +59,12 @@ final class ScheduleVectorsTest extends TestCase {
 	}
 
 	/**
-	 * The `resolution` vectors whose 3.4.2 result is the correct one, by ID.
+	 * The `resolution` vectors whose PHP result is the correct one, by ID.
 	 *
 	 * @return array<string, array{array<string, mixed>}>
 	 */
 	public function resolution_vectors() {
 		return self::resolution_vectors_where( false );
-	}
-
-	/**
-	 * The `resolution` vectors whose 3.4.2 result is wrong (`currently`), by ID.
-	 *
-	 * @return array<string, array{array<string, mixed>}>
-	 */
-	public function currently_resolution_vectors() {
-		return self::resolution_vectors_where( true );
 	}
 
 	/**
@@ -105,29 +96,9 @@ final class ScheduleVectorsTest extends TestCase {
 	}
 
 	/**
-	 * C16: a slot that crosses midnight counts as active in the early morning of its
-	 * own day and hides the previous day's slot (vectors 13, 14 and C3-4).
-	 *
-	 * @see docs/known-issues.md C16
-	 *
-	 * @dataProvider currently_resolution_vectors
-	 *
-	 * @param array<string, mixed> $vector A `resolution` vector with `currently`.
-	 */
-	public function test_currently_midnight_slot_is_active_early_on_its_own_day( array $vector ) {
-		$this->assertSame( 'C16', $vector['issue'] );
-		$this->assertNotEquals(
-			array( $vector['current'], $vector['upcoming'] ),
-			array( $vector['correct']['current'], $vector['correct']['upcoming'] ),
-			'A currently vector must differ from its correct result.'
-		);
-
-		$this->assert_resolution( $vector );
-	}
-
-	/**
 	 * Resolves the vector's grid at its day and minute (in the week of Monday
 	 * 2026-10-19, UTC) and compares with its top-level `current` and `upcoming`.
+	 * Its `unpublished` programs are left out of the map.
 	 *
 	 * @param array<string, mixed> $vector A `resolution` vector.
 	 */
@@ -135,8 +106,12 @@ final class ScheduleVectorsTest extends TestCase {
 		$this->assertArrayHasKey( 'current', $vector, 'Vector without a PHP result.' );
 		$this->assertArrayHasKey( 'upcoming', $vector, 'Vector without a PHP result.' );
 
-		$programs = array();
+		$unpublished = isset( $vector['unpublished'] ) ? $vector['unpublished'] : array();
+		$programs    = array();
 		foreach ( self::program_ids() as $key => $id ) {
+			if ( in_array( $key, $unpublished, true ) ) {
+				continue;
+			}
 			$programs[ $id ] = array(
 				'name'    => $key,
 				'logo_id' => 0,

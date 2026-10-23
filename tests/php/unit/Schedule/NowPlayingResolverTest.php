@@ -173,6 +173,52 @@ final class NowPlayingResolverTest extends TestCase {
 	}
 
 	/**
+	 * D3: of two overlapping slots on air, the one that started latest wins, whatever their order.
+	 */
+	public function test_latest_started_slot_wins() {
+		$schedule = array(
+			'monday' => array(
+				self::slot( 1, '09:00', '11:00' ),
+				self::slot( 2, '09:30', '10:30' ),
+			),
+		);
+
+		$this->assertSame( '2', $this->resolve( $schedule, '2026-10-19 09:45' )['current']['id'] );
+		$this->assertSame( '2', $this->resolve( $schedule, '2026-10-19 09:30' )['current']['id'] );
+	}
+
+	/**
+	 * D3: of two slots on air that started at the same minute, the first in the day wins.
+	 */
+	public function test_same_start_first_slot_wins() {
+		$schedule = array(
+			'monday' => array(
+				self::slot( 2, '09:00', '10:00' ),
+				self::slot( 1, '09:00', '11:00' ),
+			),
+		);
+
+		$this->assertSame( '2', $this->resolve( $schedule, '2026-10-19 09:30' )['current']['id'] );
+	}
+
+	/**
+	 * D3: of yesterday's slots that cross midnight, the one that started latest wins,
+	 * labelled with its own day.
+	 */
+	public function test_latest_started_slot_wins_among_yesterdays() {
+		$schedule = array(
+			'monday' => array(
+				self::slot( 1, '22:00', '02:00' ),
+				self::slot( 2, '23:30', '01:00' ),
+			),
+		);
+
+		$current = $this->resolve( $schedule, '2026-10-20 00:30' )['current'];
+		$this->assertSame( '2', $current['id'] );
+		$this->assertSame( 'Lunes', $current['day_label'] );
+	}
+
+	/**
 	 * After midnight, yesterday's slot that crosses midnight is on air, labelled with its own day.
 	 */
 	public function test_previous_day_slot_crossing_midnight() {
@@ -308,10 +354,12 @@ final class NowPlayingResolverTest extends TestCase {
 	}
 
 	/**
-	 * A slot on air today whose program is unknown ends today's search, but yesterday's
-	 * slots that cross midnight are still looked at.
+	 * C10: a slot whose program is unknown is skipped even when it started latest,
+	 * so the known program on air wins (approved edit in the phase 2 plan of spec 0009).
+	 *
+	 * @see docs/known-issues.md C10
 	 */
-	public function test_unknown_program_today_falls_back_to_yesterday() {
+	public function test_unknown_program_that_started_latest_is_skipped() {
 		$schedule = array(
 			'sunday' => array( self::slot( 3, '23:00', '02:00' ) ),
 			'monday' => array(
@@ -320,13 +368,13 @@ final class NowPlayingResolverTest extends TestCase {
 			),
 		);
 
-		$this->assertSame( '3', $this->resolve( $schedule, '2026-10-19 01:00' )['current']['id'] );
+		$this->assertSame( '1', $this->resolve( $schedule, '2026-10-19 01:00' )['current']['id'] );
 	}
 
 	/**
 	 * Malformed entries are skipped: days that are not arrays, entries that are not
-	 * arrays, slots without start (or end, for current). A slot on air whose program
-	 * ID is missing or not numeric gives no `current` and stops the search.
+	 * arrays, slots without start (or end, for current) and slots whose program ID is
+	 * missing or not numeric (C10; approved edit in the phase 2 plan of spec 0009).
 	 */
 	public function test_malformed_entries_are_skipped() {
 		$schedule = array(
@@ -360,7 +408,7 @@ final class NowPlayingResolverTest extends TestCase {
 
 		$result = $this->resolve( $schedule, '2026-10-19 23:55' );
 
-		$this->assertNull( $result['current'] );
+		$this->assertSame( '3', $result['current']['id'] );
 		$this->assertSame( '2', $result['upcoming']['id'] );
 		$this->assertSame( '00:03-01:00', $result['upcoming']['time_range'] );
 	}
@@ -383,11 +431,11 @@ final class NowPlayingResolverTest extends TestCase {
 
 	/**
 	 * C10 (variant): a slot of a program not in the map within the upcoming window
-	 * still takes the window, so the program after it is not announced.
+	 * is skipped, so the program after it is announced.
 	 *
 	 * @see docs/known-issues.md C10
 	 */
-	public function test_currently_unknown_program_slot_hides_the_next_upcoming_program() {
+	public function test_unknown_program_slot_does_not_hide_the_next_upcoming_program() {
 		$schedule = array(
 			'monday' => array(
 				self::slot( 99, '10:00', '10:05' ),
@@ -395,15 +443,15 @@ final class NowPlayingResolverTest extends TestCase {
 			),
 		);
 
-		$this->assertNull( $this->resolve( $schedule, '2026-10-19 09:58' )['upcoming'] );
+		$this->assertSame( '1', $this->resolve( $schedule, '2026-10-19 09:58' )['upcoming']['id'] );
 	}
 
 	/**
-	 * K52: a 24-hour slot on every day is announced as coming up while it is on air, from 23:50 on.
+	 * K52: a 24-hour slot on every day is not announced as coming up while it is on air.
 	 *
 	 * @see docs/known-issues.md K52
 	 */
-	public function test_currently_24_hour_slot_is_coming_up_while_on_air() {
+	public function test_24_hour_slot_is_not_coming_up_while_on_air() {
 		$schedule = array();
 		foreach ( array_keys( $this->labels ) as $day ) {
 			$schedule[ $day ] = array( self::slot( 1, '00:00', '00:00' ) );
@@ -412,8 +460,56 @@ final class NowPlayingResolverTest extends TestCase {
 		$result = $this->resolve( $schedule, '2026-10-19 23:55' );
 
 		$this->assertSame( '1', $result['current']['id'] );
-		$this->assertSame( '1', $result['upcoming']['id'] );
-		$this->assertSame( '00:00-00:00', $result['upcoming']['time_range'] );
+		$this->assertNull( $result['upcoming'] );
+	}
+
+	/**
+	 * K52: the second half of a program split at midnight is not announced as coming up.
+	 *
+	 * @see docs/known-issues.md K52
+	 */
+	public function test_second_half_of_program_split_at_midnight_is_not_coming_up() {
+		$schedule = array(
+			'monday'  => array( self::slot( 1, '22:00', '00:00' ) ),
+			'tuesday' => array( self::slot( 1, '00:00', '02:00' ) ),
+		);
+
+		$result = $this->resolve( $schedule, '2026-10-19 23:55' );
+
+		$this->assertSame( '22:00-00:00', $result['current']['time_range'] );
+		$this->assertNull( $result['upcoming'] );
+	}
+
+	/**
+	 * K52: another program starting when the current one ends is still coming up.
+	 */
+	public function test_other_program_starting_at_the_end_is_coming_up() {
+		$schedule = array(
+			'monday'  => array( self::slot( 1, '22:00', '00:00' ) ),
+			'tuesday' => array( self::slot( 2, '00:00', '02:00' ) ),
+		);
+
+		$result = $this->resolve( $schedule, '2026-10-19 23:55' );
+
+		$this->assertSame( '1', $result['current']['id'] );
+		$this->assertSame( '2', $result['upcoming']['id'] );
+	}
+
+	/**
+	 * K52: the same program starting later than the end of the current one is still coming up.
+	 */
+	public function test_same_program_after_a_gap_is_coming_up() {
+		$schedule = array(
+			'monday' => array(
+				self::slot( 1, '22:00', '23:55' ),
+				self::slot( 1, '23:58', '01:00' ),
+			),
+		);
+
+		$result = $this->resolve( $schedule, '2026-10-19 23:54' );
+
+		$this->assertSame( '22:00-23:55', $result['current']['time_range'] );
+		$this->assertSame( '23:58-01:00', $result['upcoming']['time_range'] );
 	}
 
 	/**

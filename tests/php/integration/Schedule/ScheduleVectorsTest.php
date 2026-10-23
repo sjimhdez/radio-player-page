@@ -61,21 +61,12 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The `resolution` vectors whose 3.4.2 result is the correct one, by ID.
+	 * The `resolution` vectors whose PHP result is the correct one, by ID.
 	 *
 	 * @return array<string, array{array}>
 	 */
 	public function resolution_vectors() {
 		return self::resolution_vectors_where( false );
-	}
-
-	/**
-	 * The `resolution` vectors whose 3.4.2 result is wrong (`currently`), by ID.
-	 *
-	 * @return array<string, array{array}>
-	 */
-	public function currently_resolution_vectors() {
-		return self::resolution_vectors_where( true );
 	}
 
 	/**
@@ -96,34 +87,13 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Each vector gives the 3.4.2 result at its local day and minute.
+	 * Each vector gives its PHP result at its local day and minute.
 	 *
 	 * @dataProvider resolution_vectors
 	 *
 	 * @param array $vector A `resolution` vector.
 	 */
 	public function test_resolution_vector( array $vector ) {
-		$this->assert_vector_result( $vector );
-	}
-
-	/**
-	 * C16: a slot that crosses midnight counts as active in the early morning of its
-	 * own day and hides the previous day's slot (vectors 13, 14 and C3-4).
-	 *
-	 * @see docs/known-issues.md C16
-	 *
-	 * @dataProvider currently_resolution_vectors
-	 *
-	 * @param array $vector A `resolution` vector with `currently`.
-	 */
-	public function test_currently_midnight_slot_is_active_early_on_its_own_day( array $vector ) {
-		$this->assertSame( 'C16', $vector['issue'] );
-		$this->assertNotEquals(
-			array( $vector['current'], $vector['upcoming'] ),
-			array( $vector['correct']['current'], $vector['correct']['upcoming'] ),
-			'A currently vector must differ from its correct result.'
-		);
-
 		$this->assert_vector_result( $vector );
 	}
 
@@ -168,7 +138,9 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * `current` carries the program logo; `upcoming` never has `logo_id`.
+	 * `current` carries the program logo; `upcoming` never has `logo_id`. The second
+	 * slot starts after a gap: right at the end it would go on, not come up (K52;
+	 * approved edit in the phase 1 plan of spec 0009).
 	 */
 	public function test_current_has_logo_and_upcoming_has_none() {
 		$logo    = $this->factory_rpp->image( 'Logo' );
@@ -191,7 +163,7 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 								),
 								array(
 									'program_id' => $with,
-									'start'      => '10:00',
+									'start'      => '10:05',
 									'end'        => '11:00',
 								),
 							),
@@ -248,10 +220,12 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A slot on air today whose program is a draft gives no `current` from today, but
-	 * yesterday's slots that cross midnight are still looked at.
+	 * C10: a slot whose program is a draft is skipped even when it started latest, so
+	 * the published program on air wins (approved edit in the phase 2 plan of spec 0009).
+	 *
+	 * @see docs/known-issues.md C10
 	 */
-	public function test_draft_program_on_air_today_falls_back_to_yesterday() {
+	public function test_draft_program_that_started_latest_is_skipped() {
 		$draft   = $this->factory_rpp->program( 'Draft', array(), 'draft' );
 		$station = $this->factory_rpp->station( 'Station' );
 
@@ -286,16 +260,16 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 					)
 				);
 
-				$this->assertSame( (string) $this->programs['C'], radplapag_get_now_playing_for_station( 0 )['current']['id'] );
+				$this->assertSame( (string) $this->programs['A'], radplapag_get_now_playing_for_station( 0 )['current']['id'] );
 			}
 		);
 	}
 
 	/**
 	 * Malformed entries (stored without the sanitizer) are skipped: entries that are
-	 * not arrays, and slots without a start (or an end, for `current`). A slot on air
-	 * whose program ID is missing or not numeric gives no `current` and stops the
-	 * search, so an overlapping valid slot after it is not reported either.
+	 * not arrays, slots without a start (or an end, for `current`) and slots whose
+	 * program ID is missing or not numeric, so an overlapping valid slot after them is
+	 * on air (C10; approved edit in the phase 2 plan of spec 0009).
 	 */
 	public function test_malformed_entries_are_skipped() {
 		$station = $this->factory_rpp->station( 'Station' );
@@ -347,7 +321,7 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 
 				$result = radplapag_get_now_playing_for_station( 0 );
 
-				$this->assertNull( $result['current'] );
+				$this->assertSame( (string) $this->programs['C'], $result['current']['id'] );
 				$this->assertSame(
 					array(
 						'id'         => (string) $this->programs['B'],
@@ -363,8 +337,9 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Puts the site on the vector's day and minute, stores its grid and compares the
-	 * result with the vector's top-level (3.4.2) `current` and `upcoming`.
+	 * Puts the site on the vector's day and minute, stores its grid (its `unpublished`
+	 * programs as drafts) and compares the result with the vector's top-level `current`
+	 * and `upcoming`.
 	 *
 	 * @param array $vector A `resolution` vector.
 	 */
@@ -374,6 +349,14 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 
 		$station = $this->factory_rpp->station( 'Station' );
 		$grid    = self::vectors()['grids'][ $vector['grid'] ];
+		foreach ( isset( $vector['unpublished'] ) ? $vector['unpublished'] : array() as $key ) {
+			wp_update_post(
+				array(
+					'ID'          => $this->programs[ $key ],
+					'post_status' => 'draft',
+				)
+			);
+		}
 
 		Clock::run(
 			$vector['now']['day'],

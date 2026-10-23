@@ -2,8 +2,8 @@
  * Get current date/time information using timezone offset
  *
  * This function uses the numeric offset (in hours) to calculate the current time
- * in WordPress timezone. The numeric offset is reliable as it's always a number
- * and handles DST automatically from WordPress.
+ * in WordPress timezone. The offset is fixed: pass the one getStationOffset() gives
+ * for the current minute to follow daylight saving time (ADR 0046).
  *
  * @param timezoneOffset Numeric offset in hours from UTC (e.g., -6, 5.5, 0)
  * @returns Object with dayOfWeek (0-6, 0=Sunday) and currentTime (minutes since midnight)
@@ -67,6 +67,51 @@ export function getCurrentTimeInTimezone(timezoneOffset: number): {
 }
 
 /**
+ * Get the station's current offset in hours from UTC
+ *
+ * With the site's IANA zone, the offset is the one that zone has at `now`, so it
+ * follows daylight saving time while the page is open (ADR 0046). Without a zone, or
+ * with one Intl rejects, it is the offset served with the page.
+ *
+ * @param timezone Site IANA zone (e.g., "America/New_York"), undefined with a manual offset
+ * @param timezoneOffset Offset in hours from UTC served with the page (fallback)
+ * @param now Instant to resolve the offset at (default: now)
+ * @returns Offset in hours from UTC, from whole minutes (e.g., -4, 5.75)
+ */
+export function getStationOffset(
+  timezone: string | undefined,
+  timezoneOffset: number,
+  now: Date = new Date(),
+): number {
+  if (!timezone) return timezoneOffset
+
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      hourCycle: 'h23',
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+    }).formatToParts(now)
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      Number(parts.find((p) => p.type === type)?.value)
+
+    // Wall-clock minutes at the station minus UTC minutes, both truncated to the minute.
+    const localMinutes =
+      Date.UTC(part('year'), part('month') - 1, part('day'), part('hour'), part('minute')) / 60000
+    const utcMinutes = Math.floor(now.getTime() / 60000)
+    const offsetMinutes = localMinutes - utcMinutes
+
+    return Number.isFinite(offsetMinutes) ? offsetMinutes / 60 : timezoneOffset
+  } catch {
+    // Intl rejects the zone (RangeError): keep the served offset.
+    return timezoneOffset
+  }
+}
+
+/**
  * Get the browser's timezone offset in hours from UTC
  *
  * Uses the browser's local timezone offset, which automatically handles DST.
@@ -99,7 +144,8 @@ export function getBrowserTimezoneOffset(): number {
  */
 export function getTimezoneDifference(wordPressOffset: number, browserOffset?: number): number {
   const browser = browserOffset ?? getBrowserTimezoneOffset()
-  return wordPressOffset - browser
+  // Subtract in whole minutes so the result carries no floating point noise.
+  return (Math.round(wordPressOffset * 60) - Math.round(browser * 60)) / 60
 }
 
 /**
@@ -164,16 +210,19 @@ export function formatTimeInTimezone(
 /**
  * Format timezone difference for display
  *
- * @param differenceHours Difference in hours (can be decimal for half-hour timezones)
- * @returns Formatted string like "+6", "-3", "+5.5" (number with sign, no units)
+ * @param differenceHours Difference in hours (can be fractional, e.g. 5.75 for 5:45)
+ * @returns Formatted string like "+6", "-3", "+5:30", "-5:45" (sign, hours and minutes, no units)
  */
 export function formatTimezoneDifference(differenceHours: number): string {
-  // Round to 1 decimal place to handle half-hour timezones
-  const rounded = Math.round(differenceHours * 10) / 10
-  const sign = rounded >= 0 ? '+' : ''
+  // Work in whole minutes so the format is exact and symmetric by sign.
+  const totalMinutes = Math.round(Math.abs(differenceHours) * 60)
+  const sign = differenceHours < 0 && totalMinutes !== 0 ? '-' : '+'
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
 
-  // Format with proper decimal handling
-  const formatted = rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1)
+  if (minutes === 0) {
+    return `${sign}${hours}`
+  }
 
-  return `${sign}${formatted}`
+  return `${sign}${hours}:${minutes.toString().padStart(2, '0')}`
 }

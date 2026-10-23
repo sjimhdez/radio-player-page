@@ -186,7 +186,7 @@ WordPress page request
   → Reads manifest.json, loads fingerprinted assets
   → Outputs HTML with:
       window.RADPLAPAG_CONFIG   (streamUrl, siteTitle, themeColor, visualizer,
-                                  backgroundImage, logoImage, introAudioUrl, timezoneOffset)
+                                  backgroundImage, logoImage, introAudioUrl, timezoneOffset, timezone)
       window.RADPLAPAG_PROGRAMS (array of { id, name, description?, extendedDescription?, logoUrl? })
       window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end, is_rerun? }, ...])
   → React: useConfig() → ResolvedConfig
@@ -274,7 +274,7 @@ CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/tes
 
 **JavaScript globals** (set by PHP before React; combined in React via `useConfig()`):
 
-- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `introAudioUrl` (optional welcome audio, played once before the live stream on first play), `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
+- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `introAudioUrl` (optional welcome audio, played once before the live stream on first play), `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC at request time; fallback), `timezone` (the site's IANA zone, or `null` with a manual UTC offset; the player follows its daylight saving time while the page is open).
 - **`window.RADPLAPAG_PROGRAMS`** – Array of `{ id, name, description?, extendedDescription?, logoUrl? }`. Optional.
 - **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end, is_rerun? }], ... }`. `program_id` is the radio show's post ID (as a string), matched against `id` in `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour); `is_rerun` marks the slot as a rerun. Optional.
 

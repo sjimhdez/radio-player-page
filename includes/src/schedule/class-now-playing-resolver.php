@@ -16,26 +16,21 @@ defined( 'ABSPATH' ) || exit;
  * Resolves, from a station schedule, the program on air and the nearest one
  * starting within the upcoming window.
  *
- * The rules are those of radplapag_get_now_playing_for_station() in 3.4.2:
+ * The slots are Week_Interval intervals of the whole week (ADR 0044):
  *
- * - On air: the first active slot of today, else of yesterday's slots that cross
- *   midnight. A slot that crosses midnight is also active early on its own day
- *   (C16 in docs/known-issues.md).
+ * - On air: the active slot that started latest; on a tie, the first one in the
+ *   stored order of its day (D3).
  * - Coming up: the slot that starts soonest, strictly after now and within the
- *   window, later today or (near midnight) early tomorrow; on a tie, the first one.
+ *   window, on any day; on a tie, the first one. Only its start is needed. A slot
+ *   of the program on air that starts just when the slot on air ends is skipped:
+ *   it goes on, it does not come up (K52 in docs/known-issues.md).
  * - A slot whose program is not in the map, or whose program ID is missing or not
- *   numeric, gives a null entry but still ends the search in its day (yesterday's
- *   slots are still looked at) and still takes the window (C10 in
- *   docs/known-issues.md).
+ *   numeric, is skipped: it is neither on air nor coming up, so it does not hide
+ *   another slot (C10 in docs/known-issues.md, ADR 0045).
  *
  * @since 3.5.0
  */
 final class Now_Playing_Resolver {
-
-	/**
-	 * Minutes in a day.
-	 */
-	const DAY_MINUTES = 1440;
 
 	/**
 	 * Resolves the program on air and the one coming up.
@@ -50,51 +45,55 @@ final class Now_Playing_Resolver {
 	 * @return array{current: array{id: string, name: string, logo_id: int, day_label: string, time_range: string, is_rerun: bool}|null, upcoming: array{id: string, name: string, day_label: string, time_range: string, is_rerun: bool}|null}
 	 */
 	public static function resolve( array $schedule, array $programs, array $day_labels, DateTimeImmutable $now, int $window ): array {
-		$local           = Week::local_day_and_minutes( $now );
-		$current_minutes = $local['minutes'];
-		$today_key       = (string) Week::key_for_php_day( $local['day'] );
-		$prev_day_key    = (string) Week::key_for_php_day( ( $local['day'] + 6 ) % 7 );
-		$tomorrow_key    = (string) Week::key_for_php_day( ( $local['day'] + 1 ) % 7 );
+		$minute = Week_Interval::at( $now );
 
-		// On air: today's slots first, then yesterday's slots that cross midnight into now.
-		$current = null;
-		foreach ( array( array( $today_key, false ), array( $prev_day_key, true ) ) as $candidate ) {
-			if ( null !== $current ) {
-				break;
-			}
-			list( $day_key, $is_prev_day_crossing ) = $candidate;
-			foreach ( self::entries( $schedule, $day_key ) as $entry ) {
-				$start = (string) ( $entry['start'] ?? '' );
-				$end   = (string) ( $entry['end'] ?? '' );
-				if ( '' === $start || '' === $end ) {
-					continue;
-				}
-				if ( Time::is_slot_active( $start, $end, $current_minutes, $is_prev_day_crossing ) ) {
-					$current = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
-					break;
-				}
-			}
-		}
-
-		// Coming up: nearest slot starting within the window, later today or just after midnight tomorrow.
-		$upcoming       = null;
-		$upcoming_delta = null;
-		$days           = array( array( $today_key, -$current_minutes ) );
-		if ( self::DAY_MINUTES - $current_minutes <= $window ) {
-			$days[] = array( $tomorrow_key, self::DAY_MINUTES - $current_minutes );
-		}
-		foreach ( $days as $day ) {
-			list( $day_key, $offset ) = $day;
+		// On air: the active slot with the fewest minutes since its start.
+		$current          = null;
+		$current_elapsed  = null;
+		$current_interval = null;
+		$current_program  = null;
+		// Coming up: the slots starting within the window, in stored order.
+		$candidates = array();
+		foreach ( Week::KEYS as $day_key ) {
 			foreach ( self::entries( $schedule, $day_key ) as $entry ) {
 				$start = (string) ( $entry['start'] ?? '' );
 				if ( '' === $start ) {
 					continue;
 				}
-				$delta = $offset + Time::to_minutes( $start );
-				if ( $delta > 0 && $delta <= $window && ( null === $upcoming_delta || $delta < $upcoming_delta ) ) {
-					$upcoming       = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
-					$upcoming_delta = $delta;
+				$end      = (string) ( $entry['end'] ?? '' );
+				$interval = Week_Interval::from_slot( $day_key, $start, $end );
+				$built    = self::build_entry( $entry, $programs, $day_labels[ $day_key ] ?? $day_key );
+				if ( null === $interval || null === $built ) {
+					continue;
 				}
+				if ( '' !== $end && Week_Interval::contains( $interval, $minute ) ) {
+					$elapsed = ( Week_Interval::WEEK - Week_Interval::minutes_until_start( $interval, $minute ) ) % Week_Interval::WEEK;
+					if ( null === $current_elapsed || $elapsed < $current_elapsed ) {
+						$current          = $built;
+						$current_elapsed  = $elapsed;
+						$current_interval = $interval;
+						$current_program  = (string) ( $entry['program_id'] ?? '' );
+					}
+				}
+				$delta = Week_Interval::minutes_until_start( $interval, $minute );
+				if ( $delta > 0 && $delta <= $window ) {
+					$candidates[] = array( $delta, $interval['start'], $entry, $built );
+				}
+			}
+		}
+
+		// Where the slot on air ends, as a minute of the week.
+		$current_end = null === $current_interval ? null : ( $current_interval['start'] + $current_interval['duration'] ) % Week_Interval::WEEK;
+
+		$upcoming       = null;
+		$upcoming_delta = null;
+		foreach ( $candidates as list( $delta, $start_w, $entry, $built ) ) {
+			if ( $start_w === $current_end && (string) ( $entry['program_id'] ?? '' ) === $current_program ) {
+				continue;
+			}
+			if ( null === $upcoming_delta || $delta < $upcoming_delta ) {
+				$upcoming       = $built;
+				$upcoming_delta = $delta;
 			}
 		}
 
@@ -124,7 +123,7 @@ final class Now_Playing_Resolver {
 	}
 
 	/**
-	 * The entry of a slot, or null when its program is unknown.
+	 * The entry of a slot, or null when its program is unknown (the slot is skipped).
 	 *
 	 * @param array<mixed>                                  $entry     Stored slot.
 	 * @param array<int, array{name: string, logo_id: int}> $programs  Program ID => data.

@@ -302,7 +302,7 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 
 	radplapag_e2e_reset();
 
-	// Fixed, without DST: timezoneOffset is 5.5 all year (C9).
+	// Fixed, without DST: timezoneOffset is 5.5 all year and timezone is Asia/Kolkata (C9).
 	update_option( 'timezone_string', 'Asia/Kolkata' );
 	// The admin bar would load the avatar from gravatar.com (no internet in e2e).
 	update_option( 'show_avatars', 0 );

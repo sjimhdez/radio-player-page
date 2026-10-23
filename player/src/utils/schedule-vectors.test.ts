@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import vectors from '../../../tests/fixtures/schedule-vectors.json'
 import type { ProgramDefinition, Schedule } from 'src/types/global'
 import { findActiveProgram, findIncomingProgram } from 'src/utils/program-schedule'
-import { getCurrentTimeInTimezone } from 'src/utils/timezone'
+import { getCurrentTimeInTimezone, getStationOffset } from 'src/utils/timezone'
 
 type VectorSlot = { program: string; start: string; end: string; is_rerun: boolean }
 type VectorCurrent = { program: string; time_range: string; is_rerun: boolean } | null
@@ -17,8 +17,13 @@ type VectorUpcoming = {
 
 const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
-// Program keys double as IDs and names, as in the PHP test.
-const programs: ProgramDefinition[] = vectors.programs.map((key) => ({ id: key, name: key }))
+// Program keys double as IDs and names, as in the PHP test. A vector's
+// unpublished programs are left out (ADR 0045).
+function programsOf(unpublished: string[] = []): ProgramDefinition[] {
+  return vectors.programs
+    .filter((key) => !unpublished.includes(key))
+    .map((key) => ({ id: key, name: key }))
+}
 
 function toSchedule(grid: Record<string, VectorSlot[]>): Schedule {
   const schedule: Record<string, unknown> = {}
@@ -65,6 +70,7 @@ type ResolutionVector = {
   id: string
   grid: string
   now: { day: string; time: string }
+  unpublished?: string[]
   current: VectorCurrent
   upcoming: VectorUpcoming
   currently?: boolean
@@ -81,6 +87,7 @@ describe('schedule vectors: resolution', () => {
     const correct = vector.ts ? vector : vector.correct
     const label = `${result.currently ? 'currently ' : ''}resolves vector ${vector.id} (${vector.now.day} ${vector.now.time})`
     const schedule = toSchedule(grids[vector.grid])
+    const programs = programsOf(vector.unpublished)
     const dayOfWeek = DAYS.indexOf(vector.now.day)
     const currentTime = toMinutes(vector.now.time)
 
@@ -97,19 +104,29 @@ describe('schedule vectors: resolution', () => {
     })
 
     if (result.currently) {
-      // docs/known-issues.md C16: a slot crossing midnight counts as active
-      // early on its own day and hides the previous day's slot.
-      // docs/known-issues.md K8: on a day without slots, the previous day's
-      // slot crossing midnight is not looked at.
+      // A currently vector still differs from its correct result
+      // (docs/known-issues.md, the vector's issue).
       it(`currently differs from the correct result in vector ${vector.id} (${result.issue})`, () => {
         expect(correct, 'Currently vector without a correct result.').toBeDefined()
-        expect(findActiveProgram(schedule, programs, dayOfWeek, currentTime)).not.toEqual(
-          expectedCurrent(correct!.current),
-        )
+        expect({
+          current: findActiveProgram(schedule, programs, dayOfWeek, currentTime),
+          upcoming: findIncomingProgram(schedule, programs, dayOfWeek, currentTime),
+        }).not.toEqual({
+          current: expectedCurrent(correct!.current),
+          upcoming: expectedUpcoming(correct!.upcoming),
+        })
       })
     }
   }
 })
+
+type TzVector = {
+  id: string
+  utc: string
+  timezoneOffset: number
+  timezone?: string
+  expected: { dayOfWeek: number; currentTime: number }
+}
 
 describe('schedule vectors: tz', () => {
   beforeEach(() => {
@@ -120,19 +137,15 @@ describe('schedule vectors: tz', () => {
     vi.useRealTimers()
   })
 
-  for (const vector of vectors.tz) {
-    const label = `${vector.currently ? 'currently ' : ''}resolves ${vector.id} (${vector.utc}, offset ${vector.timezoneOffset})`
+  for (const vector of vectors.tz as TzVector[]) {
+    const label = `resolves ${vector.id} (${vector.utc}, ${vector.timezone ?? 'offset'} ${vector.timezoneOffset})`
 
     it(label, () => {
       vi.setSystemTime(new Date(vector.utc))
 
-      const result = getCurrentTimeInTimezone(vector.timezoneOffset)
+      const offset = getStationOffset(vector.timezone, vector.timezoneOffset)
 
-      expect(result).toEqual(vector.expected)
-      if (vector.currently) {
-        // docs/known-issues.md C9: the offset is fixed when the page is served.
-        expect(result).not.toEqual(vector.correct)
-      }
+      expect(getCurrentTimeInTimezone(offset)).toEqual(vector.expected)
     })
   }
 })

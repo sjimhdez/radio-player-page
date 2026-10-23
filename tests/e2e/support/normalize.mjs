@@ -1,7 +1,7 @@
 /**
  * Normalizes the clean page HTML so its snapshot is stable across runs and
- * environments. `timezoneOffset` is left as is: the seeded zone has no DST, so
- * the value itself is what the snapshot pins (C9).
+ * environments. `timezoneOffset` and `timezone` are left as they are: the seeded
+ * zone has no DST, so the values themselves are what the snapshot pins (C9).
  */
 
 /**

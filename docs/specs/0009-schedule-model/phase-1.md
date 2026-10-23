@@ -1,0 +1,131 @@
+# Spec 0009 · Fase 1 — Modelo y programa en antena
+Estado: cerrada (2026-10-23) · Inicio: 2026-10-23 · ADRs: 0044 (nuevo), 0006, 0017, 0019, 0023, 0028, 0029
+
+## Contexto
+- El modelo «día + minutos» está en `Schedule\Time::is_slot_active()` (lo usan `Now_Playing_Resolver`, `Schedule_View`, `Programs_List_View` y `radplapag_is_slot_active()`), en `player/src/utils/program-schedule.ts` (`isProgramActive()`, `findActiveProgram()`, `findIncomingProgram()`, `getProgramsForDay()`, `getAllProgramsWithSlots()`) y en `admin/js/schedule-rules.js`.
+- **El arreglo de C16 en PHP es una línea** (la rama del día propio de `Time::is_slot_active()`), y las tres clases del núcleo y la integración cambian a la vez: los tests `currently` de C16 de PHP (unit e integración) pasan a regresión en la misma tarea.
+- Los vectores son compartidos. Para que cada commit quede en verde: al corregir C16 en PHP, los vectores 13, 14 y C3-4 pasan a su resultado correcto y ganan un objeto `ts` con el resultado del player (`currently`, `C16`), el mecanismo que ya usa C3-2 (K8). La tarea del player borra esos `ts`. Igual con los vectores nuevos de K52.
+- **Excepciones aprobadas por el usuario (2026-10-23) a «no editar caracterización»:**
+  - `player/src/utils/program-schedule.test.ts` «picks the earliest start when slots overlap» → con D3 gana la que empezó más tarde.
+  - `tests/php/unit/Schedule/NowPlayingResolverTest.php` `test_unknown_program_today_falls_back_to_yesterday` → en la fase 1 espera `null` (gana la franja de hoy, cuyo programa no se conoce); la fase 2 lo pasa a `'1'` al ignorar los desconocidos (C10).
+  - Su gemelo de integración, `tests/php/integration/Schedule/ScheduleVectorsTest.php` `test_draft_program_on_air_today_falls_back_to_yesterday` (aprobado el 2026-10-23, en la 1.6), igual: `null` en la fase 1 y el programa A en la fase 2. Los dos pasan a `test_*_that_started_latest_gives_no_current`.
+  - `tests/php/integration/Schedule/ScheduleVectorsTest.php` `test_current_has_logo_and_upcoming_has_none` (aprobado el 2026-10-23, en la 1.7): usaba el mismo programa en 09:00–10:00 y 10:00–11:00, justo el caso de K52. La segunda franja pasa a 10:05–11:00 y el test sigue probando lo mismo (`upcoming` sin `logo_id`).
+- **La spec decía algo falso:** `a11y.spec.ts` no puede fijar la hora con `page.clock`, porque `now-playing` se pinta en el servidor. Decisión del usuario: sin `page.clock`. Tras K52, el e2e espera un solo `article` a cualquier hora; las 23:55 las cubren `BlockAuditTest` (con `Support/Clock`) y el núcleo. §2 de la spec se corrige en la 1.1.
+- Comprobado que no caen otros tests con D3: `test_first_active_slot_wins` (09:30 gana a 09:00), `test_today_wins_over_yesterday`, `test_today_upcoming_wins_over_tomorrow_on_tie` y los datos de `TimeTest`/`ScheduleHelpersTest` fuera de los `currently`.
+- La resolución de «Coming up» en PHP solo necesita `start` (una franja sin `end` cuenta, `test_malformed_entries_are_skipped`): se conserva.
+
+## Objetivo
+Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado con los vectores `model`; el programa en antena, «en directo» y «Coming up» de PHP y del player resueltos sobre él (C16, C4, K8, K52, D3).
+
+## Criterios de aceptación
+| Criterio | Cómo se verifica |
+|---|---|
+| Modelo en las tres capas con los vectores `model` (cruce de medianoche, domingo → lunes, 24 h, fin a las 00:00) | `WeekIntervalTest.php`, `week-interval.test.ts`, `schedule-rules.test.js` |
+| C16: vectores 13, 14 y C3-4 con su resultado correcto en todas las capas | `TimeTest`, `ScheduleHelpersTest`, `ScheduleVectorsTest` (unit e integración), `ScheduleViewTest`, `ProgramsListViewTest`, `BlockDataTest`, `schedule-vectors.test.ts`, `program-schedule.test.ts`; e2e `schedule.spec.ts` (lunes 00:10 → E) |
+| C4: el modal marca «On Air» en la franja de ayer | `program-schedule.test.ts` (`getProgramsForDay()`); e2e `modals.spec.ts` (martes 01:00, C del lunes) |
+| K8: C3-2 sin `ts`; sábado 01:00 → viernes 22:00–02:00 | `schedule-vectors.test.ts`, `program-schedule.test.ts` |
+| K52: no se anuncia el mismo programa contiguo | `NowPlayingResolverTest`, `BlockAuditTest`, `program-schedule.test.ts`, vectores nuevos; `a11y.spec.ts` «always on air» en verde sin cambios (verificación manual al cerrar, a cualquier hora) |
+| D3: con solapes gana la que empezó más tarde (empate: orden guardado), igual en PHP y player | `NowPlayingResolverTest`, `program-schedule.test.ts` |
+| ADR 0044 y `SPEC.md` §3.1, §3.4, §3.8 | revisión en la 1.1 y en `close-phase` |
+| Filas C16, C4, K8, K52 → «corregido (spec 0009)» | `docs/known-issues.md` |
+| Cobertura: núcleo PHP ≥ 90 %, TS puro ≥ 90 %, JS admin ≥ 85 % | `npm run check`, cobertura de la CI |
+
+## Tareas
+
+### 1.1 ADR 0044 y contrato (≤ 1 h)
+- Qué: `write-adr` «Modelo del horario: intervalos de la semana» (D1, D3, K52, C16 en `radplapag_is_slot_active()`). `SPEC.md` §3.1, §3.4, §3.8. En la spec: §2 K52 sin `page.clock` (el motivo) y las dos excepciones de tests en §4.3.
+- Archivos: `docs/adr/0044-*.md`, `docs/adr/README.md`, `SPEC.md`, `docs/specs/0009-schedule-model/spec.md`
+- Test: — (docs)
+- Verificación: `npm run check`
+- [x] hecha · commit: `7654302`
+
+### 1.2 Vectores `model` y `Schedule\Week_Interval` en PHP (≤ 1 h)
+- Qué: sección `model` en `schedule-vectors.json` (`from_slot`, `contains`, `minutes_until_start`, `overlaps`) y `_doc`. Clase del núcleo con: minuto de la semana de un `DateTimeImmutable` y de (día, «HH:MM»); franja → `{start, duration}`; `contains`; `minutes_until_start`; `overlaps` (con la vuelta de la semana). Usa `Time::to_minutes()`. Entrada en `tests/zip/expected-additions.txt`.
+- Archivos: `includes/src/schedule/class-week-interval.php`, `tests/fixtures/schedule-vectors.json`, `tests/zip/expected-additions.txt`
+- Test: primero (TDD): `tests/php/unit/Schedule/WeekIntervalTest.php`
+- Verificación: `npm run test:php:unit -- --filter WeekInterval && npm run check:zip && npm run lint:phpstan`
+- [x] hecha · commit: `c1241ae`
+
+### 1.3 `utils/week-interval.ts` en el player (≤ 1 h)
+- Qué: las mismas operaciones en TS puro, leyendo los vectores `model`.
+- Archivos: `player/src/utils/week-interval.ts`
+- Test: primero (TDD): `player/src/utils/week-interval.test.ts`
+- Verificación: `npm --prefix player run check`
+- [x] hecha · commit: `6e0c844`
+
+### 1.4 Funciones del modelo en `schedule-rules.js` (≤ 1 h)
+- Qué: las mismas operaciones expuestas en `radplapagScheduleRules`, sin usarlas todavía (las usa la fase 3).
+- Archivos: `admin/js/schedule-rules.js`
+- Test: primero (TDD): `tests/js/admin/schedule-rules.test.js` (bloque nuevo sobre `model`)
+- Verificación: `npm test -- tests/js/admin/schedule-rules.test.js`
+- [x] hecha · commit: `709b3a3`
+
+### 1.5 C16 en PHP (`fix-bug`) (≤ 1 h)
+- Qué: `Time::is_slot_active()` delega en `Week_Interval` (su día propio deja de dar `true` antes del inicio; firma igual). Tests `currently` de C16 → regresión en rojo y luego verde: `TimeTest`, `ScheduleHelpersTest`, `ScheduleViewTest`, `ProgramsListViewTest`, `ScheduleVectorsTest` (unit e integración) y `BlockDataTest` (se quitan los `test_currently_*` con proveedor vacío). Vectores 13, 14 y C3-4 → resultado correcto + objeto `ts` del player (`currently`, `C16`). Fila C16: parte PHP corregida.
+- Archivos: `includes/src/schedule/class-time.php`, `includes/radplapag-schedule-block.php` (docblock `@since`), los tests citados, `tests/fixtures/schedule-vectors.json`, `docs/known-issues.md`
+- Test: regresión (`fix-bug`)
+- Verificación: `npm run test:php:unit && npm run test:php:integration -- --filter 'ScheduleVectors|BlockData|ScheduleHelpers' && npm --prefix player test -- schedule-vectors`
+- Rojo: `npm run test:php:unit` → 13 fallos, todos de C16: `TimeTest` y `ScheduleHelpersTest` (4 casos cada uno, «Failed asserting that true is false»), `ScheduleViewTest` y `ProgramsListViewTest` (lunes 00:10: `[true, true]` en vez de `[false, true]`) y `ScheduleVectorsTest` 13, 14 y C3-4 (sale C o F en vez de E o `null`).
+- Changelog: `radplapag_is_slot_active()` y los bloques ya no dan por activa una franja que cruza la medianoche antes de su fin en su propio día (C16); el programa en antena de la madrugada es el de la franja de ayer.
+- [x] hecha · commit: `8b36477`
+
+### 1.6 `Now_Playing_Resolver` sobre el modelo (D3) (≤ 1 h)
+- Qué: «On Air» = la franja activa que empezó más tarde (empate: orden guardado); «Coming up» = menor `minutes_until_start` en `(0, ventana]`, solo con `start`. Se edita el test aprobado (`null`) y se añaden los de D3 (solape: gana la más tardía; empate: la primera). `Schedule_View` y `Programs_List_View` calculan `is_live` con `Week_Interval::contains()` sin pasar por la rama de ayer (refactor, sus tests como red).
+- Archivos: `includes/src/schedule/class-now-playing-resolver.php`, `class-schedule-view.php`, `class-programs-list-view.php`, `tests/php/unit/Schedule/NowPlayingResolverTest.php`
+- Test: primero (TDD) para D3; caracterización existente como red
+- Verificación: `npm run test:php:unit && npm run test:php:integration -- --filter 'NowPlaying|BlockData|BlockAudit|ScheduleVectors' && npm run lint:phpstan`
+- Rojo: `NowPlayingResolverTest` → 3 fallos (`test_latest_started_slot_wins`, `test_latest_started_slot_wins_among_yesterdays` y el test editado, que daba la franja de ayer); un cuarto, en el minuto de inicio de la franja más tardía (09:30), cazó un error del primer intento (el tiempo desde el inicio salía 10080 y no 0). La integración tumbó el gemelo del test editado, `ScheduleVectorsTest::test_draft_program_on_air_today_falls_back_to_yesterday`: se editó igual con la aprobación del usuario (Contexto).
+- Resultado: una sola pasada por la semana (`Week::KEYS`) para «On Air» y «Coming up»; «Coming up» ya no limita a hoy y mañana, pero con la ventana de 10 minutos da lo mismo. `Schedule_View` y `Programs_List_View`: `is_live = contains( from_slot( día, start, end ), at( now ) )`, sin cambios en sus tests.
+- [x] hecha · commit: `c31a5bc`
+
+### 1.7 K52 en PHP (`fix-bug`) (≤ 1 h)
+- Qué: «Coming up» omite la franja del mismo programa que empieza justo cuando acaba la actual. `test_currently_24_hour_slot_is_coming_up_while_on_air` (`NowPlayingResolverTest`, `BlockAuditTest`) → regresión; test del partido en la medianoche. Vectores de resolución nuevos (24 h diario y lunes 22:00–00:00 + martes 00:00–02:00, a las 23:55) con resultado PHP y `ts` del player (`currently`, `K52`).
+- Archivos: `class-now-playing-resolver.php`, los dos tests, `schedule-vectors.json`, `docs/known-issues.md`
+- Test: regresión (`fix-bug`)
+- Verificación: `npm run test:php:unit && npm run test:php:integration -- --filter 'BlockAudit|ScheduleVectors|BlockData' && npm --prefix player test -- schedule-vectors`
+- Rojo: `NowPlayingResolverTest` → 2 fallos (24 h diario y partido en la medianoche: `upcoming` salía el mismo programa, martes `00:00-00:00` / `00:00-02:00`, en vez de `null`); `ScheduleVectorsTest` (unit) → K52-1 y K52-2; `BlockAuditTest::test_24_hour_slot_is_not_coming_up_while_on_air`, rojo sin el arreglo. Dos tests nuevos de la regla fijan sus límites: otro programa contiguo y el mismo programa tras un hueco sí se anuncian.
+- Resultado: el resolutor recoge los candidatos de «Coming up» y, tras saber cuál suena, salta el del mismo `program_id` que empieza en el minuto de la semana en que acaba la franja actual. En `player/src/utils/schedule-vectors.test.ts`, el test «currently differs» compara `current` y `upcoming` (antes solo `current`, y K52 solo difiere en `upcoming`). La integración tumbó `test_current_has_logo_and_upcoming_has_none`, editado con aprobación (Contexto). `test_draft_program_is_hidden` usa el mismo par contiguo y sigue en verde, pero ahora su `upcoming` es `null` también por K52; lo cubre a fondo la fase 2 (C10).
+- Changelog: «Coming up» ya no anuncia el mismo programa que sigue sonando (un programa de 24 h o partido en la medianoche) (K52).
+- [x] hecha · commit: `62ae06e`
+
+### 1.8 C16 y K8 en el player (`fix-bug`) (≤ 1 h)
+- Qué: `isProgramActive()` (misma firma) y `findActiveProgram()` sobre `week-interval.ts` y D3: mira toda la semana, también ayer con hoy vacío. Tests `currently` de C16 y K8 → regresión; se edita el test aprobado del solape. Se borran los `ts` de 13, 14, C3-4 y C3-2. e2e `schedule.spec.ts` (C16, vector 13) → regresión: el lunes 00:10 se ve E.
+- Archivos: `player/src/utils/program-schedule.ts`, `program-schedule.test.ts`, `schedule-vectors.test.ts`, `schedule-vectors.json`, `tests/e2e/schedule.spec.ts`, `docs/known-issues.md`
+- Test: regresión (`fix-bug`)
+- Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/schedule.spec.ts`
+- [x] hecha · commit: `b6d1e4b`
+- Rojo: Vitest → 7 fallos: `isProgramActive()` el lunes 01:00 con 22:00–02:00 (`true` en vez de `false`, C16), el test aprobado del solape (`morning show` en vez de `News`, D3), K8 (sábado 01:00: `undefined` en vez de `Late Night`) y los vectores 13, 14, C3-2 y C3-4 (C, C, `null` y F en vez de E, `null`, F y `null`). El e2e se pasó en verde con el arreglo ya en `dist/` (no se vio en rojo en la página; el rojo de la lógica lo da Vitest).
+- Changelog: el player ya no da por activa una franja que cruza la medianoche en la madrugada de su propio día (C16), muestra la franja de ayer que sigue sonando aunque hoy no tenga franjas (K8) y, con franjas solapadas, la que empezó más tarde (D3).
+
+### 1.9 C4 en el player (`fix-bug`) (≤ 1 h)
+- Qué: `getProgramsForDay()` marca activa la franja de ayer que sigue sonando (con `contains()` del modelo, no solo «hoy»); `getAllProgramsWithSlots()` sobre el modelo (refactor). Test `currently` de C4 → regresión; e2e `modals.spec.ts` (C4) → regresión.
+- Archivos: `program-schedule.ts`, `program-schedule.test.ts`, `tests/e2e/modals.spec.ts`, `docs/known-issues.md`
+- Test: regresión (`fix-bug`)
+- Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/modals.spec.ts`
+- [x] hecha · commit: `f4adf97`
+- Rojo: Vitest → 1 fallo: `getProgramsForDay()` del lunes, el martes 01:00, da `[false, false, false]` en vez de `[false, false, true]` (Late Night 22:00–02:00). E2E → el del modal del horario falla en Chromium y WebKit (0 «On Air» en vez de 1). `getAllProgramsWithSlots()` pasa a `contains()` sin cambiar su comportamiento (sus tests siguen en verde).
+- Changelog: el modal del horario marca «On Air» en la franja de ayer que cruza la medianoche y sigue sonando.
+
+### 1.10 K52 en el player (`fix-bug`) (≤ 1 h)
+- Qué: `findIncomingProgram()` sobre el modelo con la regla de K52 (y D3 para el actual). Los dos tests `currently` de K52 → regresión; se borran los `ts` de los vectores de K52.
+- Archivos: `program-schedule.ts`, `program-schedule.test.ts`, `schedule-vectors.json`, `docs/known-issues.md`
+- Test: regresión (`fix-bug`)
+- Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/schedule.spec.ts tests/e2e/a11y.spec.ts`
+- [x] hecha · commit: `64a63f5`
+- Rojo: Vitest → 4 fallos: los dos tests de K52 y los vectores K52-1 y K52-2 (sin `ts`) dan «News»/«A» como siguiente en vez de `null` a las 23:55. Se añaden los dos límites de PHP (otro programa al acabar la franja; el mismo programa tras un hueco), en verde desde el principio. `findActiveProgram()` y `findIncomingProgram()` comparten `findActiveSlot()` (D3). E2E de `schedule.spec.ts` y `a11y.spec.ts`: 42/42.
+- Changelog: el player ya no anuncia en «Coming up» el mismo programa que sigue sonando (K52).
+
+## Cierre (2026-10-23)
+- Revisores: solo `spec-conformance-reviewer` y `backcompat-reviewer` (revisión mínima, decisión del usuario); `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` no se pasaron.
+- Arreglado en el cierre: test del empate de D3 en el player (`picks the first saved slot when overlapping slots start together`, visto en rojo con `<=` en `findActiveSlot()`); se recupera la aserción de las 00:45 en `ScheduleViewTest` y `ProgramsListViewTest` (la 1.5 la había sustituido por la de las 23:10); `_doc` de `schedule-vectors.json` al día; hashes de las tareas.
+- K52, verificación manual: `a11y.spec.ts` «blocks page with a program always on air» en verde sin cambios en las dos puntas (pasadas completas del 2026-10-23, de día). Las 23:55 las cubren `BlockAuditTest` y los vectores K52-1 y K52-2.
+- Backcompat: sin roturas. Pendiente para la release: el changelog de `readme.txt` con el cambio de `radplapag_is_slot_active()` (ADR 0044).
+
+## Decisiones abiertas → ADR
+- ADR 0044 (tarea 1.1). Ninguna otra prevista.
+
+## Pasos de proceso (tras aprobar el plan)
+1. `git fetch origin`; ya en `spec/0009-schedule-model`; `git merge origin/trunk` si avanzó.
+2. Guardar este plan en `docs/specs/0009-schedule-model/phase-1.md`, actualizar `docs/status.md` y commit `docs(0009): add phase 1 plan`.
+3. `git push -u origin spec/0009-schedule-model` y `gh pr create --draft --base trunk --title "Spec 0009: Correcciones: horario y programa en antena" --body "<enlaces a spec y plan>"`.
+4. `npm run check` en verde.

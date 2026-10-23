@@ -126,9 +126,9 @@ describe('useConfig', () => {
     expect(resolve().schedule).toBeUndefined()
   })
 
-  // PHP prints an empty schedule as `[]` (wp_json_encode of an empty array); it is
-  // kept and every consumer reads it as a schedule without slots.
-  it('currently keeps an empty array as the schedule', () => {
+  // PHP prints an empty schedule as `{}` (K17, ADR 0045); an older `[]` is still
+  // accepted, kept as is, and every consumer reads it as a schedule without slots.
+  it('keeps an empty array as the schedule', () => {
     setGlobals(CONFIG, PROGRAMS, [])
 
     expect(resolve().schedule).toEqual([])

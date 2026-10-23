@@ -414,44 +414,32 @@ test.describe( 'clean page (HTTP)', () => {
 		}
 	} );
 
-	test( 'currently prints an empty schedule as a JSON array (K17)', async ( {
+	test( 'prints an empty schedule as a JSON object (K17)', async ( {
 		request,
 	} ) => {
 		const html = await getHtml( request, readSeed().urls.minimal );
 		const raw = rawGlobals( html );
 
 		expect( raw.RADPLAPAG_PROGRAMS ).toBe( '[]' );
-		expect( raw.RADPLAPAG_SCHEDULE ).toBe( '[]' );
+		expect( raw.RADPLAPAG_SCHEDULE ).toBe( '{}' );
 	} );
 
 	test( 'skips the raw schedule entries that cannot be printed', async ( {
 		request,
 	} ) => {
-		await withRawSchedule( async ( { a, b, draft } ) => {
+		await withRawSchedule( async ( { a, b } ) => {
 			const html = await getHtml( request, readSeed().urls.minimal );
 
 			// Tuesday is not an array and Wednesday ends up empty: both go.
+			// The slots of a non-numeric ID (a program that does not exist)
+			// and of a draft program go too (C10, ADR 0045).
 			expect( readGlobals( html ).RADPLAPAG_SCHEDULE ).toEqual( {
 				monday: [
-					// Not numeric: sanitize_text_field(); "yes" is a rerun.
-					{
-						program_id: 'tagged id',
-						start: '06:00',
-						end: '07:00',
-						is_rerun: true,
-					},
 					// Numeric with a leading space: cast to int.
 					{
 						program_id: b,
 						start: '07:00',
 						end: '08:00',
-						is_rerun: false,
-					},
-					// The slot of a draft program stays (C10).
-					{
-						program_id: draft,
-						start: '10:00',
-						end: '11:00',
 						is_rerun: false,
 					},
 				],
@@ -467,19 +455,20 @@ test.describe( 'clean page (HTTP)', () => {
 		} );
 	} );
 
-	test( 'currently lists the program of a slot left out of the schedule (K78)', async ( {
+	test( 'lists only the programs of the printed slots (K78)', async ( {
 		request,
 	} ) => {
-		await withRawSchedule( async ( { a, b, c } ) => {
+		await withRawSchedule( async ( { a, b } ) => {
 			const html = await getHtml( request, readSeed().urls.minimal );
 
-			// C only has a slot without start, which RADPLAPAG_SCHEDULE drops;
-			// A's first slot has start '0'. The draft program is left out (C10).
+			// C only has a slot without start, which RADPLAPAG_SCHEDULE drops,
+			// so C is not listed; A's first printed slot is on Friday. The
+			// draft program is left out (C10).
 			expect(
 				readGlobals( html ).RADPLAPAG_PROGRAMS.map(
 					( program ) => program.id
 				)
-			).toEqual( [ b, c, a ] );
+			).toEqual( [ b, a ] );
 		} );
 	} );
 
@@ -503,21 +492,21 @@ test.describe( 'clean page (HTTP)', () => {
 		}
 	} );
 
-	test( 'prints timezoneOffset as a number fixed per request (C9)', async ( {
+	test( 'prints the site timezone next to timezoneOffset (C9)', async ( {
 		request,
 	} ) => {
 		const html = await getHtml( request, readSeed().urls.mp3 );
 
-		// Asia/Kolkata: the offset itself, not the zone or its transitions.
+		// Asia/Kolkata: the offset of the request and the zone, so the player can follow its transitions.
 		expect( rawGlobals( html ).RADPLAPAG_CONFIG ).toContain(
-			'"timezoneOffset":5.5}'
+			'"timezoneOffset":5.5,"timezone":"Asia\\/Kolkata"}'
 		);
 		expect( readGlobals( html ).RADPLAPAG_CONFIG.timezoneOffset ).toBe(
 			5.5
 		);
-		expect(
-			Object.keys( readGlobals( html ).RADPLAPAG_CONFIG )
-		).not.toContain( 'timezone' );
+		expect( readGlobals( html ).RADPLAPAG_CONFIG.timezone ).toBe(
+			'Asia/Kolkata'
+		);
 	} );
 
 	test( 'loads the stylesheet and the entry named in the manifest', async ( {

@@ -176,9 +176,10 @@ describe( 'checkSlot: one row', () => {
 		);
 	} );
 
-	it( 'currently rejects a slot whose start equals its end (C3)', () => {
+	// docs/known-issues.md C3: like the server, start == end is a 24 h slot.
+	it( 'accepts a slot whose start equals its end as a 24 h slot', () => {
 		expect( checkMonday( slot( '501', '08:00', '08:00' ) ) ).toEqual(
-			ownWrite( { code: 'start_equals_end' } )
+			ownWrite( null )
 		);
 	} );
 
@@ -745,7 +746,6 @@ describe( 'message', () => {
 	const STRINGS = {
 		pleaseSelectProgram: 'Elige un programa.',
 		invalidTimeFormat: 'Formato no válido.',
-		startEndSame: 'Inicio y fin iguales',
 		allFieldsRequired: 'Faltan campos.',
 		timeSlotOverlapsWithMessage: 'Se solapa con: %s',
 		unnamedProgram: 'Sin título',
@@ -783,10 +783,6 @@ describe( 'message', () => {
 			{ code: 'format' },
 			'Invalid time format. Times must be in HH:MM format.',
 		],
-		[
-			{ code: 'start_equals_end' },
-			'Start and end times cannot be the same',
-		],
 		[ { code: 'required' }, 'All fields are required.' ],
 		[
 			overlapWith( 'overlap', 'Night Owl' ),
@@ -810,7 +806,6 @@ describe( 'message', () => {
 			'Elige un programa.',
 		],
 		[ { code: 'format' }, 'Formato no válido.' ],
-		[ { code: 'start_equals_end' }, 'Inicio y fin iguales' ],
 		[ { code: 'required' }, 'Faltan campos.' ],
 		[
 			overlapWith( 'overlap', 'Night Owl' ),
@@ -884,6 +879,119 @@ describe( 'message', () => {
 				timeSlotOverlapsWithMessage: '%s / %s',
 			} )
 		).toBe( 'X (Monday, 09:00 - 11:00) / %s' );
+	} );
+} );
+
+// The week-interval model (ADR 0044), with the `model` vectors that PHP and the
+// player read too. Nothing in the admin uses it yet (phase 3 of spec 0009).
+describe( 'model', () => {
+	/**
+	 * Interval of a vector slot.
+	 *
+	 * @param {Object} vectorSlot { day, start, end }.
+	 * @return {Object} { start, duration }.
+	 */
+	function interval( vectorSlot ) {
+		const result = rules.fromSlot(
+			vectorSlot.day,
+			vectorSlot.start,
+			vectorSlot.end
+		);
+		expect( result ).not.toBeNull();
+		return result;
+	}
+
+	/**
+	 * Minute of the week of a vector instant.
+	 *
+	 * @param {Object} instant { day, time }.
+	 * @return {number} The minute of the week.
+	 */
+	function minute( instant ) {
+		const result = rules.minuteOfWeek( instant.day, instant.time );
+		expect( result ).not.toBeNull();
+		return result;
+	}
+
+	it.each( [
+		[ 'monday', '00:00', 0 ],
+		[ 'monday', '23:59', 1439 ],
+		[ 'tuesday', '00:00', 1440 ],
+		[ 'thursday', '15:30', 3 * 1440 + 930 ],
+		[ 'sunday', '23:59', 10079 ],
+		[ 'friday', '7:5', 4 * 1440 + 425 ],
+	] )( 'gives %s %s as minute %i of the week', ( day, time, expected ) => {
+		expect( rules.minuteOfWeek( day, time ) ).toBe( expected );
+	} );
+
+	it( 'has no minute and no interval for an unknown day key', () => {
+		expect( rules.minuteOfWeek( 'Monday', '08:00' ) ).toBeNull();
+		expect( rules.fromSlot( 'lunes', '08:00', '10:00' ) ).toBeNull();
+	} );
+
+	it.each( VECTORS.model.from_slot.map( ( v ) => [ v.id, v ] ) )(
+		'from_slot %s',
+		( _id, vector ) => {
+			expect( interval( vector.slot ) ).toEqual( vector.expected );
+		}
+	);
+
+	it.each( VECTORS.model.contains.map( ( v ) => [ v.id, v ] ) )(
+		'contains %s',
+		( _id, vector ) => {
+			expect(
+				rules.contains( interval( vector.slot ), minute( vector.at ) )
+			).toBe( vector.expected );
+		}
+	);
+
+	it.each( VECTORS.model.minutes_until_start.map( ( v ) => [ v.id, v ] ) )(
+		'minutes_until_start %s',
+		( _id, vector ) => {
+			expect(
+				rules.minutesUntilStart(
+					interval( vector.slot ),
+					minute( vector.at )
+				)
+			).toBe( vector.expected );
+		}
+	);
+
+	it.each( VECTORS.model.overlaps.map( ( v ) => [ v.id, v ] ) )(
+		'overlaps %s, in either order',
+		( _id, vector ) => {
+			const a = interval( vector.a );
+			const b = interval( vector.b );
+			expect( rules.overlaps( a, b ), 'a, b' ).toBe( vector.expected );
+			expect( rules.overlaps( b, a ), 'b, a' ).toBe( vector.expected );
+		}
+	);
+
+	// Loose times, never saved: still an interval within the week, as in PHP.
+	it.each( [
+		[ 'sunday', '24:00', '01:00', 0, 60 ],
+		[ 'monday', '-1:30', '01:00', 10050, 90 ],
+		[ 'monday', '22:00', '25:00', 1320, 180 ],
+	] )(
+		'gives %s %s-%s as { start: %i, duration: %i }',
+		( day, start, end, startW, duration ) => {
+			expect( rules.fromSlot( day, start, end ) ).toEqual( {
+				start: startW,
+				duration,
+			} );
+		}
+	);
+
+	it( 'reads an empty or missing time as 00:00', () => {
+		expect( rules.fromSlot( 'monday', '', '01:00' ) ).toEqual( {
+			start: 0,
+			duration: 60,
+		} );
+		expect( rules.fromSlot( 'monday', undefined, null ) ).toEqual( {
+			start: 0,
+			duration: 1440,
+		} );
+		expect( rules.minuteOfWeek( 'monday', 'abc' ) ).toBe( 0 );
 	} );
 } );
 
