@@ -1,12 +1,12 @@
 # Estado
-Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: cerrada (1–3, el 2026-10-23; PR listo, pendiente de merge en `trunk`) · Plan: [`phase-3.md`](specs/0008-migration-and-core-fixes/phase-3.md) · Actualizado: 2026-10-23
+Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 1 por planificar · Plan: — · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)) cerrada el 2026-10-23 (fases 1–3); PR de `spec/0008-migration-and-core-fixes` listo para revisión. El merge lo decide el usuario.
-- Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
+- Spec 0009 ([`spec.md`](specs/0009-schedule-model/spec.md)) propuesta el 2026-10-23 en la rama `spec/0009-schedule-model` (sin push): modelo de intervalos de la semana en PHP, player y admin; 4 fases.
+- Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tras el merge de la 0008, sesión de diseño → `write-spec` de la 0009 (horario y programa en antena; notas en la hoja de ruta).
+1. Sesión nueva → `start-phase` de la fase 1 de la 0009 (modelo y programa en antena).
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario).
 
