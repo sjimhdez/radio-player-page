@@ -37,7 +37,7 @@ El player sigue la zona horaria del sitio (y su horario de verano) mientras la p
 - Archivos: `docs/adr/0046-site-timezone-reaches-the-player.md`, `docs/adr/README.md`, `SPEC.md`
 - Test: — (documentación)
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («docs(0009): add ADR 0046 on the site timezone reaching the player (4.1)»)
 
 ### 4.2 `timezone` en `RADPLAPAG_CONFIG` (PHP + e2e, `fix-bug` C9, parte PHP) (≤ 1 h)
 - Qué: rojo primero: `GlobalsBuilderTest::test_timezone` (proveedor: `UTC`, `Asia/Kolkata`, `America/New_York` → la zona; `-03:30`, `+00:00` → `null`), `test_config_with_a_full_station` con la clave, `SiteTimezoneTest` (zona y `null`) y la regresión de `clean-page.spec.ts`. Después `Globals_Builder::config()` (clave, docblock y `@return`). Snapshots `mp3.html` y `minimal.html` regenerados; comentarios de `seed-e2e.php` y `normalize.mjs`.

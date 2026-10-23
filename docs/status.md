@@ -6,11 +6,11 @@ Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 4 en c
 - Fase 1 (modelo y programa en antena: C16, C4, K8, K52) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
 - Fase 2 (programas no publicados: C10, K41, K88, K78, K17; ADR 0045) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
 - Fase 3 (validación sobre el modelo: C3) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
-- Fase 4 (zona horaria: C9, K10; ADR 0046) en curso desde el 2026-10-23: 6 tareas; es la última y cierra la spec.
+- Fase 4 (zona horaria: C9, K10; ADR 0046) en curso desde el 2026-10-23: 6 tareas; es la última y cierra la spec. Hecha la 4.1 (ADR 0046 aceptado, `SPEC.md` §3.3 y §3.8).
 - Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tareas 4.1–4.6 de la fase 4 de la 0009 y `close-phase` (última fase: cierre de la spec y PR listo).
+1. Tareas 4.2–4.6 de la fase 4 de la 0009 y `close-phase` (última fase: cierre de la spec y PR listo).
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario). Tampoco `wp-security-reviewer`, `wporg-reviewer` ni `a11y-reviewer` en las fases 1 a 3 de la 0009 (la 2 toca el meta box y su aviso; la 3, la validación del horario en PHP y en el admin). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044 y 0045).
 
