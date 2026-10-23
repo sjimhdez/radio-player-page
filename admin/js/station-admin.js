@@ -452,8 +452,22 @@
 		);
 	}
 
+	// The highest index + 1, not the row count: after a removal the count
+	// would reuse the field names of a kept row (K15).
 	function nextIndex( dayWrapper ) {
-		return dayWrapper.querySelectorAll( '.radplapag-program-row' ).length;
+		let next = 0;
+		dayWrapper
+			.querySelectorAll( '.radplapag-program-row' )
+			.forEach( function ( row ) {
+				const index = parseInt(
+					row.getAttribute( 'data-program-index' ),
+					10
+				);
+				if ( index >= next ) {
+					next = index + 1;
+				}
+			} );
+		return next;
 	}
 
 	function buildProgramRow( day, index ) {

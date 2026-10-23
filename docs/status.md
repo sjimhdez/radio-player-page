@@ -2,11 +2,11 @@
 Spec activa: 0010 — Correcciones: admin · Fase: 1 en curso · Plan: [phase-1.md](specs/0010-admin-fixes/phase-1.md) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0010 (admin: K15 alta; editor de franjas, accesibilidad del horario y guardado; ADRs previstos 0047 y 0048), rama `spec/0010-admin-fixes`. Fase 1 (editor de franjas: §4.2, K15, K16, K39, K44, K74, K75 y K38) planificada el 2026-10-23; siguiente tarea, la 1.1. Refactor dirigido, no reescritura (usuario, 2026-10-23).
+- Spec 0010 (admin: K15 alta; editor de franjas, accesibilidad del horario y guardado; ADRs previstos 0047 y 0048), rama `spec/0010-admin-fixes`. Fase 1 (editor de franjas: §4.2, K15, K16, K39, K44, K74, K75 y K38) planificada el 2026-10-23; 1.1–1.3 hechas (K15 corregido), siguiente tarea, la 1.4. Refactor dirigido, no reescritura (usuario, 2026-10-23).
 - Spec 0009 cerrada y fusionada en `trunk` (PR #43, 2026-10-23).
 
 ## Siguiente (máx. 5)
-1. Tareas 1.1–1.9 de la fase 1 de la 0010 y `close-phase`.
+1. Tareas 1.4–1.9 de la fase 1 de la 0010 y `close-phase`.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente) y `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0009 (meta box y su aviso, validación del horario, `timezone` impreso, reloj en `±H:MM`). No se pasaron al cerrarlas (decisión del usuario). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044, 0045 y 0046).
 

@@ -267,7 +267,7 @@ const VALIDATION_STREAM = 'http://localhost:8901/tone.mp3';
 
 /**
  * Adds a Monday slot from the schedule meta box. The new row is found by its
- * index (the number of rows before the click), because leaving a row sorts
+ * index (the highest index of the day + 1), because leaving a row sorts
  * the day by start time.
  *
  * @param page  Station edit screen.
@@ -570,7 +570,7 @@ test.describe( 'admin: validation and notices', () => {
 		);
 	} );
 
-	test( 'currently loses a slot and mixes another after removing a middle row and adding one (K15)', async ( {
+	test( 'keeps every slot after removing a middle row and adding one (K15)', async ( {
 		page,
 	} ) => {
 		const monday = page.locator(
@@ -582,10 +582,9 @@ test.describe( 'admin: validation and notices', () => {
 		// The link only takes the pointer while its row is hovered.
 		await middle.hover();
 		await middle.getByText( 'Remove Time Slot' ).click();
-		// Two rows left (indexes 0 and 2): the new one gets index 2 again.
-		const added = await addMondaySlot( page, 2 );
-		await expect( added ).toHaveCount( 2 );
-		const row = added.last();
+		// Two rows left (indexes 0 and 2): the new one gets index 3.
+		const row = await addMondaySlot( page, 3 );
+		await expect( row ).toHaveCount( 1 );
 		await row.locator( '.radplapag-program-id' ).selectOption( programId );
 		await row.locator( '.radplapag-program-start' ).fill( '14:00' );
 		await row.locator( '.radplapag-program-end' ).fill( '15:00' );
@@ -593,8 +592,6 @@ test.describe( 'admin: validation and notices', () => {
 		await page.locator( '#publish' ).click();
 		await page.waitForURL( /post\.php\?post=\d+&action=edit&message=/ );
 
-		// 12:00–13:00 is gone without a notice, and 14:00–15:00 keeps the
-		// rerun flag of the row whose names it reused.
 		await expect( page.locator( '.notice-error:visible' ) ).toHaveCount(
 			0
 		);
@@ -608,9 +605,15 @@ test.describe( 'admin: validation and notices', () => {
 				},
 				{
 					program_id: Number( programId ),
+					start: '12:00',
+					end: '13:00',
+					is_rerun: true,
+				},
+				{
+					program_id: Number( programId ),
 					start: '14:00',
 					end: '15:00',
-					is_rerun: true,
+					is_rerun: false,
 				},
 			],
 		} );

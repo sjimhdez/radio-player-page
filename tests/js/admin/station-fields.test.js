@@ -397,10 +397,9 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		expect( screen.rows( 'monday' ) ).toEqual( [ morning ] );
 	} );
 
-	// docs/known-issues.md K15: the next index is the row count, not the
-	// highest index + 1, so the new row reuses the names of a kept row and
-	// PHP keeps only one of the two slots.
-	it( 'currently reuses the index of a kept row after a removal (K15)', async () => {
+	// docs/known-issues.md K15: the row count reused the names of a kept row
+	// and PHP kept only one of the two slots.
+	it( 'uses the highest index + 1 after a removal (K15)', async () => {
 		const screen = await mount();
 		const [ morning, night ] = screen.rows( 'monday' );
 		expect( morning.getAttribute( 'data-program-index' ) ).toBe( '1' );
@@ -409,9 +408,9 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		addButton( screen, 'monday' ).click();
 
 		const added = screen.rows( 'monday' )[ 1 ];
-		expect( added.getAttribute( 'data-program-index' ) ).toBe( '1' );
+		expect( added.getAttribute( 'data-program-index' ) ).toBe( '2' );
 		expect( added.querySelector( '.radplapag-program-start' ).name ).toBe(
-			morning.querySelector( '.radplapag-program-start' ).name
+			'radplapag_station_schedule[monday][2][start]'
 		);
 	} );
 

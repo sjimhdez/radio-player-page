@@ -47,7 +47,9 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `admin/js/station-admin.js`, `tests/js/admin/station-fields.test.js`, `tests/e2e/admin.spec.ts` (`addMondaySlot( page, 3 )` y el `schedule()` esperado), `docs/known-issues.md`
 - Test: primero (regresión en rojo): `station-fields.test.js` «uses the highest index + 1 after a removal (K15)» + «starts at 0 in an empty day»; `admin.spec.ts` «keeps every slot after removing a middle row and adding one (K15)».
 - Verificación: `npm test -- tests/js/admin/station-fields.test.js && npx playwright test tests/e2e/admin.spec.ts -g K15`
-- [ ] hecha · commit: —
+- Rojo: Vitest `expected '1' to be '2'`; e2e (Chromium y WebKit) sin fila `data-program-index="3"` tras quitar la del medio. «Starts at 0 in an empty day» ya existía (`starts at index 0 on an empty day`) y no cambia.
+- Changelog: al quitar una franja y añadir otra ya no se pierde ni se mezcla ninguna al guardar (K15).
+- [x] hecha · commit: ver `git log` («fix(0010): number a new slot after the day's highest index (1.3)»)
 
 ### 1.4 K16: el borrado revalida con la vuelta de la semana (≤ 30 min) — `fix-bug`
 - Qué: el borrado llama a `revalidateAround()` sin `legacyRemoval`; el parámetro desaparece. Además de la vuelta, los vecinos saltan las filas ocultas, como al salir de una fila (§2: «con la misma función»).
