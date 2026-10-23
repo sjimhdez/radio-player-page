@@ -1229,6 +1229,36 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * When the migration throws (here from another plugin's save_post), the exception
+	 * leaves the function and the visitor and its kses filters are restored.
+	 *
+	 * @see docs/known-issues.md K87
+	 */
+	public function test_user_and_kses_are_restored_when_the_migration_throws() {
+		$this->legacy_settings();
+		wp_set_current_user( 0 );
+		kses_init();
+		add_action(
+			'save_post_radplapag_program',
+			static function () {
+				throw new \RuntimeException( 'save_post failed' );
+			}
+		);
+
+		$thrown = null;
+		try {
+			radplapag_run_legacy_migration_if_needed();
+		} catch ( \RuntimeException $e ) {
+			$thrown = $e;
+		}
+
+		$this->assertInstanceOf( \RuntimeException::class, $thrown );
+		$this->assertSame( 'save_post failed', $thrown->getMessage() );
+		$this->assertSame( 0, get_current_user_id() );
+		$this->assertSame( 10, has_filter( 'title_save_pre', 'wp_filter_kses' ) );
+	}
+
+	/**
 	 * The writer slashes the legacy values it passes to wp_insert_post() and
 	 * update_post_meta(), which unslash them: backslashes are kept.
 	 *

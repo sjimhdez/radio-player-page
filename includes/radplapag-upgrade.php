@@ -101,7 +101,7 @@ function radplapag_maybe_clear_migration_conflict_flag(): void {
  *
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). Once taken, the posts left pending by a cut migration are deleted. Once taken, the version and the legacy data are checked again, and the writer renews the lock before each post; a migration that lost it stops without a notice (ADR 0040). After a failed write the lock is held for 900 s and the error notice lasts as long. The success notice stores the migrator's summary.
- * @since 3.5.0 Runs on any request, also hooked on init at 100, without an administrator in front: as the first administrator and without kses, restoring the current user and its kses filters. Clears the conflict flag only in the admin. The success notice does not expire (ADR 0041).
+ * @since 3.5.0 Runs on any request, also hooked on init at 100, without an administrator in front: as the first administrator and without kses, restoring the current user and its kses filters, also when the migrator throws. Clears the conflict flag only in the admin. The success notice does not expire (ADR 0041).
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed(): void {
@@ -148,10 +148,12 @@ function radplapag_run_legacy_migration_if_needed(): void {
 
 	require_once __DIR__ . '/migration/class-radplapag-migrator-settings-to-cpt.php';
 
-	$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
-
-	wp_set_current_user( $prev_user );
-	kses_init();
+	try {
+		$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
+	} finally {
+		wp_set_current_user( $prev_user );
+		kses_init();
+	}
 
 	if ( is_wp_error( $result ) && 'radplapag_migration_lock_lost' === $result->get_error_code() ) {
 		return;

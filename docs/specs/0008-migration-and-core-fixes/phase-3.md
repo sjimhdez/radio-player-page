@@ -121,7 +121,8 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `includes/radplapag-upgrade.php`, `tests/php/integration/Migration/UpgradeFlowTest.php`, `docs/known-issues.md`.
 - Test: primero (en rojo): `UpgradeFlowTest`.
 - Verificación: `npm run test:php:integration -- --filter UpgradeFlowTest`
-- [ ] hecha · commit: —
+- Rojo: `Failed asserting that 1 is identical to 0.` (la excepción sale, pero el usuario actual sigue siendo el primer administrador).
+- [x] hecha · commit: ver `git log` (3.8)
 
 ### 3.9 Huecos de test de la fase 2: kses con el usuario 0 y un post en `inherit` (≤ 1 h)
 - Qué:
