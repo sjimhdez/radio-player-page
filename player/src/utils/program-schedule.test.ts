@@ -236,11 +236,11 @@ describe('getProgramsForDay', () => {
     expect(day.some((entry) => entry.isActive)).toBe(false)
   })
 
-  // docs/known-issues.md C4 (the util; the schedule modal is confirmed in e2e).
-  it('currently does not mark the previous day slot crossing midnight as active', () => {
+  // docs/known-issues.md C4 (the util; the schedule modal is covered in e2e).
+  it('marks the previous day slot crossing midnight as active', () => {
     const monday = getProgramsForDay(schedule, programs, MONDAY, TUESDAY, at('01:00'))
 
-    expect(monday.find((entry) => entry.programName === 'Late Night')?.isActive).toBe(false)
+    expect(monday.map((entry) => entry.isActive)).toEqual([false, false, true])
   })
 })
 

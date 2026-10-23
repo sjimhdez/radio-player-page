@@ -13,6 +13,7 @@
 
 import type { Schedule, ScheduleEntry, ProgramDefinition } from 'src/types/global'
 import { at, contains, DAY, fromSlot, minutesUntilStart, WEEK } from 'src/utils/week-interval'
+import type { WeekInterval } from 'src/utils/week-interval'
 
 /** Program name and time range for display (resolved from schedule + programs) */
 export interface CurrentProgram {
@@ -220,7 +221,8 @@ export interface ProgramForDay {
 
 /**
  * Get all program entries for a given day, sorted by start time, with name/logo resolved
- * and isActive set when that day is "today" and the entry is currently active.
+ * and isActive set when the entry is currently active as an interval of the week
+ * (ADR 0044), so a previous day slot crossing midnight is active while it still plays.
  *
  * @param schedule - Weekly schedule (relational)
  * @param programs - Program definitions to resolve name/logo by program_id
@@ -244,11 +246,12 @@ export function getProgramsForDay(
   if (!dayEntries || dayEntries.length === 0) return []
 
   const sorted = [...dayEntries].sort((a, b) => parseToMinutes(a.start) - parseToMinutes(b.start))
-  const isToday = dayOfWeek === currentDayOfWeek
+  const minute = at(currentDayOfWeek, currentTime)
 
   return sorted.map((entry) => {
     const { name, description, logoUrl } = resolveProgram(programs, entry.program_id)
-    const active = isToday && isProgramActive(entry, currentTime, false)
+    const interval = fromSlot(dayKey, entry.start, entry.end)
+    const active = interval !== null && contains(interval, minute)
     return {
       programName: name,
       programDescription: description,
@@ -328,7 +331,7 @@ export function getProgramsForWeekOrdered(
 /**
  * Get all programs with every slot they have in the week, sorted alphabetically by name.
  * Used by the "all programs" modal. Each program includes isLive when any of its slots
- * is currently active (today or previous day crossing midnight).
+ * is currently active as an interval of the week (ADR 0044).
  *
  * @param schedule - Weekly schedule (relational)
  * @param programs - Program definitions to resolve name/logo by program_id
@@ -351,7 +354,7 @@ export function getAllProgramsWithSlots(
     extendedDescription: string | null
     logoUrl: string | null
     slots: ProgramSlotDisplay[]
-    entries: Array<{ dayOfWeek: number; entry: ScheduleEntry }>
+    intervals: WeekInterval[]
   }
   const byId = new Map<string, Accum>()
 
@@ -369,23 +372,20 @@ export function getAllProgramsWithSlots(
           programs,
           programId,
         )
-        acc = { name, description, extendedDescription, logoUrl, slots: [], entries: [] }
+        acc = { name, description, extendedDescription, logoUrl, slots: [], intervals: [] }
         byId.set(programId, acc)
       }
       acc.slots.push(slot)
-      acc.entries.push({ dayOfWeek, entry })
+      const interval = fromSlot(dayKey, entry.start, entry.end)
+      if (interval !== null) acc.intervals.push(interval)
     }
   }
 
-  const prevDayOfWeek = (currentDayOfWeek - 1 + 7) % 7
+  const minute = at(currentDayOfWeek, currentTime)
 
   const result: ProgramWithSlots[] = []
   for (const [programId, acc] of byId.entries()) {
-    const isLive = acc.entries.some(
-      ({ dayOfWeek, entry }) =>
-        (dayOfWeek === currentDayOfWeek && isProgramActive(entry, currentTime, false)) ||
-        (dayOfWeek === prevDayOfWeek && isProgramActive(entry, currentTime, true)),
-    )
+    const isLive = acc.intervals.some((interval) => contains(interval, minute))
     result.push({
       programId,
       programName: acc.name,

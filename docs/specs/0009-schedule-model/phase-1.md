@@ -102,7 +102,9 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `program-schedule.ts`, `program-schedule.test.ts`, `tests/e2e/modals.spec.ts`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/modals.spec.ts`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («fix(0009): mark the previous day slot still on air in the schedule modal (1.9)»)
+- Rojo: Vitest → 1 fallo: `getProgramsForDay()` del lunes, el martes 01:00, da `[false, false, false]` en vez de `[false, false, true]` (Late Night 22:00–02:00). E2E → el del modal del horario falla en Chromium y WebKit (0 «On Air» en vez de 1). `getAllProgramsWithSlots()` pasa a `contains()` sin cambiar su comportamiento (sus tests siguen en verde).
+- Changelog: el modal del horario marca «On Air» en la franja de ayer que cruza la medianoche y sigue sonando.
 
 ### 1.10 K52 en el player (`fix-bug`) (≤ 1 h)
 - Qué: `findIncomingProgram()` sobre el modelo con la regla de K52 (y D3 para el actual). Los dos tests `currently` de K52 → regresión; se borran los `ts` de los vectores de K52.
