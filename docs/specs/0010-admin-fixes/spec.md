@@ -91,7 +91,7 @@ No cambian las meta keys, las opciones, los transients (los avisos de K37 van en
 
 ### 4.2 Qué se unifica en `station-admin.js` (antes de las correcciones, sin cambiar comportamiento)
 
-- Una función `revalidateDay( day )` y una `revalidateAround( day )` (el día y sus vecinos, con la vuelta de la semana). La usan la salida de una fila y el borrado; las dos copias de hoy (`revalidateAdjacentDays()` y el bloque del borrado, que no da la vuelta) desaparecen. El borrado conserva su comportamiento de hoy hasta K16 (sin la vuelta), así que este paso deja la diferencia en un parámetro que K16 quita.
+- Una función `revalidateDay( scheduleWrapper, day, options )` (el día) y una `revalidateAround( scheduleWrapper, day, options )` (sus vecinos, con la vuelta de la semana). La usan la salida de una fila y el borrado; las dos copias de hoy (`revalidateAdjacentDays()` y el bloque del borrado, que no da la vuelta) desaparecen. El borrado conserva su comportamiento de hoy hasta K16 (sin la vuelta), así que este paso deja la diferencia en un parámetro que K16 quita.
 - `nextIndex( dayWrapper )` (comportamiento de hoy hasta K15).
 - `setRowError( row, message )` / `clearRowError( row )` como único punto de pintado del error (donde entran el `id` y el ARIA de K45).
 - La lista de días, una sola vez (hoy hay tres: `dayMap`, `prevDayMap` y el array del borrado).

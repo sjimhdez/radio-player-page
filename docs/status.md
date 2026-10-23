@@ -1,14 +1,14 @@
 # Estado
-Spec activa: 0010 — Correcciones: admin · Fase: 1 en curso · Plan: [phase-1.md](specs/0010-admin-fixes/phase-1.md) · Actualizado: 2026-10-23
+Spec activa: 0010 — Correcciones: admin · Fase: 2 por empezar · Plan anterior: [phase-1.md](specs/0010-admin-fixes/phase-1.md) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0010 (admin: K15 alta; editor de franjas, accesibilidad del horario y guardado; ADRs previstos 0047 y 0048), rama `spec/0010-admin-fixes`. Fase 1 (editor de franjas: §4.2, K15, K16, K39, K44, K74, K75 y K38) planificada el 2026-10-23; 1.1–1.9 hechas (K15, K16, K39, K44, K74, K75 y K38 corregidos); siguiente, `close-phase`. Refactor dirigido, no reescritura (usuario, 2026-10-23).
+- Spec 0010 (admin: K15 alta; editor de franjas, accesibilidad del horario y guardado; ADRs previstos 0047 y 0048), rama `spec/0010-admin-fixes`. Fase 1 (editor de franjas) cerrada el 2026-10-23. Siguiente, la fase 2 (accesibilidad del horario: K45, AX3, AX4, AX5, K20 y el meta box contraído). Refactor dirigido, no reescritura (usuario, 2026-10-23).
 - Spec 0009 cerrada y fusionada en `trunk` (PR #43, 2026-10-23).
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 1 de la 0010.
+1. `start-phase` de la fase 2 de la 0010, en una sesión nueva.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
-3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente) y `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0009 (meta box y su aviso, validación del horario, `timezone` impreso, reloj en `±H:MM`). No se pasaron al cerrarlas (decisión del usuario). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044, 0045 y 0046).
+3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente) y `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0009 (meta box y su aviso, validación del horario, `timezone` impreso, reloj en `±H:MM`). Y `backcompat-reviewer`, `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la fase 1 de la 0010 (editor de franjas: foco, `Slot_Validator`); al cerrarla solo se pasó `spec-conformance-reviewer`. No se pasaron al cerrarlas (decisión del usuario). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044, 0045 y 0046).
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrige y en qué spec K83 (baja, 2026-10-22): durante el reintento de C1 el controlador publica `error` sin `loading`; no se ve con `useState`, pero impide volver a `useSyncExternalStore` (ADR 0030).
