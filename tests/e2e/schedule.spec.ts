@@ -32,7 +32,7 @@ async function openAt( page: Page, day: StationDay, time: string ) {
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
 	await expect(
 		page.getByText( 'Broadcast Timezone', { exact: true } ).locator( '..' )
-	).toHaveText( `Broadcast Timezone${ time }+5.5` );
+	).toHaveText( `Broadcast Timezone${ time }+5:30` );
 }
 
 /**

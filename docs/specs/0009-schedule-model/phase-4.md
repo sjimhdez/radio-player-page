@@ -76,7 +76,8 @@ El player sigue la zona horaria del sitio (y su horario de verano) mientras la p
 - Archivos: `player/src/utils/timezone.ts`, `player/src/utils/timezone.test.ts`, `docs/known-issues.md`, `docs/specs/README.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run check`
-- [ ] hecha · commit: —
+- Rojo visto: `formatTimezoneDifference` daba `+5.5`, `-9.5` y `+5.8` (45 minutos); `getTimezoneDifference(0.1 + 0.2, 0)` daba `0.30000000000000004`. Nota para el changelog: el reloj pinta `+5:30` donde antes `+5.5` (ya en la nota de la release de `docs/specs/README.md`). Caracterización editada con aprobación del usuario (2026-10-23): `transmission-time.test.ts` «ignores differences under the 0.01 h threshold» espera `timeDifference: 0` (antes `0.005`) con un desfase de 18 s, porque la diferencia va en minutos enteros. También aprobado: el ayudante `openAt()` de `tests/e2e/schedule.spec.ts` espera `+5:30` en vez de `+5.5` (el cambio visible de K10).
+- [x] hecha · commit: ver `git log` («fix(0009): format the clock difference in hours and minutes (4.6)»)
 
 ## Decisiones abiertas → ADR
 - La de esta fase es el ADR 0046 (4.1). Sin otras.

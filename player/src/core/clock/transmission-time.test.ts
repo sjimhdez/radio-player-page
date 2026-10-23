@@ -102,8 +102,9 @@ describe('getTransmissionTime', () => {
   })
 
   it('ignores differences under the 0.01 h threshold', () => {
+    // K10: the difference is in whole minutes, so 18 seconds is no difference.
     expect(at('UTC', '2026-10-19T14:05:30Z', 0.005)).toMatchObject({
-      timeDifference: 0.005,
+      timeDifference: 0,
       hasDifference: false,
     })
     expect(at('UTC', '2026-10-19T14:05:30Z', -0.02).hasDifference).toBe(true)

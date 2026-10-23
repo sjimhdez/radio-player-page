@@ -144,7 +144,8 @@ export function getBrowserTimezoneOffset(): number {
  */
 export function getTimezoneDifference(wordPressOffset: number, browserOffset?: number): number {
   const browser = browserOffset ?? getBrowserTimezoneOffset()
-  return wordPressOffset - browser
+  // Subtract in whole minutes so the result carries no floating point noise.
+  return (Math.round(wordPressOffset * 60) - Math.round(browser * 60)) / 60
 }
 
 /**
@@ -209,16 +210,19 @@ export function formatTimeInTimezone(
 /**
  * Format timezone difference for display
  *
- * @param differenceHours Difference in hours (can be decimal for half-hour timezones)
- * @returns Formatted string like "+6", "-3", "+5.5" (number with sign, no units)
+ * @param differenceHours Difference in hours (can be fractional, e.g. 5.75 for 5:45)
+ * @returns Formatted string like "+6", "-3", "+5:30", "-5:45" (sign, hours and minutes, no units)
  */
 export function formatTimezoneDifference(differenceHours: number): string {
-  // Round to 1 decimal place to handle half-hour timezones
-  const rounded = Math.round(differenceHours * 10) / 10
-  const sign = rounded >= 0 ? '+' : ''
+  // Work in whole minutes so the format is exact and symmetric by sign.
+  const totalMinutes = Math.round(Math.abs(differenceHours) * 60)
+  const sign = differenceHours < 0 && totalMinutes !== 0 ? '-' : '+'
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
 
-  // Format with proper decimal handling
-  const formatted = rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1)
+  if (minutes === 0) {
+    return `${sign}${hours}`
+  }
 
-  return `${sign}${formatted}`
+  return `${sign}${hours}:${minutes.toString().padStart(2, '0')}`
 }

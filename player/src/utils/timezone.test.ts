@@ -174,6 +174,12 @@ describe('getTimezoneDifference', () => {
 
     expect(getTimezoneDifference(-5)).toBe(-10.5)
   })
+
+  // docs/known-issues.md K10.
+  it('subtracts in whole minutes, without floating point noise', () => {
+    expect(getTimezoneDifference(0.1 + 0.2, 0)).toBe(0.3)
+    expect(getTimezoneDifference(5.75, 1 / 3)).toBe(325 / 60)
+  })
 })
 
 describe('formatTimeInTimezone', () => {
@@ -226,16 +232,16 @@ describe('formatTimezoneDifference', () => {
     [-3, '-3'],
     [0, '+0'],
     [-0, '+0'],
-    [5.5, '+5.5'],
-    [-9.5, '-9.5'],
+    [5.5, '+5:30'],
+    [-9.5, '-9:30'],
   ])('formats %s as %s', (difference, expected) => {
     expect(formatTimezoneDifference(difference)).toBe(expected)
   })
 
-  // docs/known-issues.md K10: rounded to one decimal, and Math.round rounds
-  // halves up, so a 45-minute difference gives different magnitudes by sign.
-  it('currently rounds 45-minute differences asymmetrically', () => {
-    expect(formatTimezoneDifference(5.75)).toBe('+5.8')
-    expect(formatTimezoneDifference(-5.75)).toBe('-5.7')
+  // docs/known-issues.md K10.
+  it('formats 45-minute differences exactly and symmetrically', () => {
+    expect(formatTimezoneDifference(5.75)).toBe('+5:45')
+    expect(formatTimezoneDifference(-5.75)).toBe('-5:45')
+    expect(formatTimezoneDifference(12.75)).toBe('+12:45')
   })
 })
