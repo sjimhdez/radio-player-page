@@ -699,6 +699,32 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Each day is a fieldset named by its legend, and the program, start and end of
+	 * each slot have a screen reader label tied by `for`/`id`; the names do not
+	 * change (AX3, AX4 and the meta box part of AX2 in docs/known-issues.md).
+	 */
+	public function test_schedule_box_names_each_slot_field() {
+		$program = $this->factory_rpp->program( 'Morning Show' );
+		$station = $this->station_with_slot( $program );
+
+		$html = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
+
+		$this->assertSame( 7, preg_match_all( '/<fieldset class="radplapag-schedule-day" data-day="[a-z]+">\s*<legend class="radplapag-schedule-day-legend">/', $html ) );
+		$this->assertStringContainsString( '<legend class="radplapag-schedule-day-legend">Monday</legend>', $html );
+		$this->assertStringNotContainsString( '<h4', $html );
+		$fields = array(
+			'program' => array( 'Radio Show', '<select name="radplapag_station_schedule[monday][0][program_id]"' ),
+			'start'   => array( 'Start time', '<input type="time" name="radplapag_station_schedule[monday][0][start]"' ),
+			'end'     => array( 'End time', '<input type="time" name="radplapag_station_schedule[monday][0][end]"' ),
+		);
+		foreach ( $fields as $field => list( $label, $control ) ) {
+			$id = 'radplapag-slot-monday-0-' . $field;
+			$this->assertSame( 1, substr_count( $html, '<label class="screen-reader-text" for="' . $id . '">' . $label . '</label>' ), $field );
+			$this->assertSame( 1, preg_match( '#' . preg_quote( $control, '#' ) . '[^>]* id="' . $id . '">#', $html ), $field );
+		}
+	}
+
+	/**
 	 * The station list: the published and draft programs, then the program of each
 	 * saved slot in any other status, once; each with its label and whether it is
 	 * public. Slots of programs that do not exist or are not programs add nothing.

@@ -488,8 +488,8 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 					}
 				);
 				?>
-				<div class="radplapag-schedule-day" data-day="<?php echo esc_attr( $day_key ); ?>">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;"><?php echo esc_html( $day_label ); ?></h4>
+				<fieldset class="radplapag-schedule-day" data-day="<?php echo esc_attr( $day_key ); ?>">
+					<legend class="radplapag-schedule-day-legend"><?php echo esc_html( $day_label ); ?></legend>
 					<div class="radplapag-programs-list">
 						<?php
 						foreach ( $day_programs as $prog_index => $program ) :
@@ -498,9 +498,11 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 							$prog_start    = isset( $program['start'] ) ? esc_attr( $program['start'] ) : '';
 							$prog_end      = isset( $program['end'] ) ? esc_attr( $program['end'] ) : '';
 							$prog_is_rerun = ! empty( $program['is_rerun'] );
+							$field_id      = 'radplapag-slot-' . $day_key . '-' . $prog_index . '-';
 							?>
 							<div class="radplapag-program-row" data-program-index="<?php echo esc_attr( $prog_index ); ?>">
-								<select name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'program' ); ?>"><?php esc_html_e( 'Radio Show', 'radio-player-page' ); ?></label>
+								<select name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="<?php echo esc_attr( $field_id . 'program' ); ?>">
 									<option value=""><?php esc_html_e( 'Select Radio Show', 'radio-player-page' ); ?></option>
 									<?php
 									foreach ( $cpt_programs as $p ) :
@@ -509,9 +511,11 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 										<option value="<?php echo esc_attr( $p_id ); ?>" <?php selected( $prog_id_int > 0 && $prog_id_int === $p_id ); ?>><?php echo esc_html( $p['label'] ); ?></option>
 									<?php endforeach; ?>
 								</select>
-								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" value="<?php echo esc_attr( $prog_start ); ?>" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'start' ); ?>"><?php esc_html_e( 'Start time', 'radio-player-page' ); ?></label>
+								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" value="<?php echo esc_attr( $prog_start ); ?>" class="radplapag-program-start" style="width: 100px; margin-right: 5px;" id="<?php echo esc_attr( $field_id . 'start' ); ?>">
 								<span style="margin-right: 5px;"> <?php esc_html_e( 'to', 'radio-player-page' ); ?> </span>
-								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" value="<?php echo esc_attr( $prog_end ); ?>" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'end' ); ?>"><?php esc_html_e( 'End time', 'radio-player-page' ); ?></label>
+								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" value="<?php echo esc_attr( $prog_end ); ?>" class="radplapag-program-end" style="width: 100px; margin-right: 10px;" id="<?php echo esc_attr( $field_id . 'end' ); ?>">
 								<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;">
 									<input type="checkbox" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][is_rerun]" value="1" <?php checked( $prog_is_rerun ); ?> class="radplapag-program-is-rerun">
 									<?php esc_html_e( 'Rerun', 'radio-player-page' ); ?>
@@ -529,7 +533,7 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 					<button type="button" class="button radplapag-add-program" data-day="<?php echo esc_attr( $day_key ); ?>" style="margin-top: 5px; margin-bottom: 15px;">
 						<?php esc_html_e( 'Add Time Slot', 'radio-player-page' ); ?>
 					</button>
-				</div>
+				</fieldset>
 			<?php endforeach; ?>
 		</div>
 	</div>

@@ -40,7 +40,12 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Archivos: `includes/radplapag-station-cpt.php`, `admin/css/admin.css`, `tests/php/integration/Admin/AdminScreensTest.php`, `tests/fixtures/admin/station-meta-box.html` (regenerada, con su diff aquí), `tests/e2e/a11y-baseline.json`, `docs/known-issues.md` (AX2 reducida a los modales)
 - Test: primero `AdminScreensTest::test_schedule_box_names_each_slot_field` (rojo: sin `fieldset`, sin `label for`).
 - Verificación: `npm run test:php:integration -- --filter AdminScreensTest && RADPLAPAG_UPDATE_SNAPSHOTS=1 npm run test:php:integration -- --filter test_station_meta_box_fixture && npm test && npx playwright test tests/e2e/a11y.spec.ts -g "meta boxes"`. Las entradas `label`, `select-name` y `heading-order` de «station meta boxes» (escena del servidor) salen con `RADPLAPAG_UPDATE_A11Y_BASELINE=1`, pasando los dos proyectos.
-- [ ] hecha · commit: —
+- Rojo: `Failed asserting that 0 is identical to 7` (ningún `fieldset` con su `legend`).
+- El `id` va al final de cada etiqueta: `test_schedule_box_keeps_a_slot_whose_program_is_trashed` fija `name="…[start]" value="07:00"` seguidos y el ayudante `select()` busca `<select name=`, y no se editan.
+- La variable de entorno no llega al contenedor con `npm run`: la fixture se regenera con el comando de `tests/php/integration/Support/Snapshot.php` (`npx wp-env … run cli … env … RADPLAPAG_UPDATE_SNAPSHOTS=1 vendor/bin/phpunit …`). Su diff: `div`/`h4` → `fieldset`/`legend` en los siete días y, en cada fila, los tres `label.screen-reader-text` y los `id`; nada más.
+- Aspecto: un `legend` dibujado ignora su margen superior, así que el `fieldset` lleva los 10 px del `h4` (`margin: 10px 0 0`) y el `legend`, `0 0 5px`. Capturas del meta box antes y después (Chromium, 1280 px) idénticas byte a byte.
+- Línea base: salen todas las entradas `heading-order`, `label` y `select-name` de las filas del servidor en las tres escenas (66). Quedan las de las filas que añade el JS («added slot»: 3; «validation errors»: 3, para la 2.3) y las dos `color-contrast` (AX5, 2.6).
+- [x] hecha · commit: ver `git log` («fix(0010): name the schedule days and slot fields in the meta box (2.2)»)
 
 ### 2.3 AX3 + AX4 en el JS: las filas añadidas (≤ 1 h) — `fix-bug`
 - Qué: tres cadenas nuevas en `radplapag_get_admin_strings()` (`programLabel` «Radio Show», `startTimeLabel` «Start time», `endTimeLabel` «End time»). `STRING_KEYS` las añade (excepción aprobada). `buildProgramRow()` pinta los tres `label.screen-reader-text` con `for` y los `id` de D4, con el mismo orden que PHP y `decodeEntities()`, como el resto de textos. Las filas nuevas salen de la línea base («added slot» y «validation errors»). AX3 y AX4 pasan a «corregido (spec 0010)».
