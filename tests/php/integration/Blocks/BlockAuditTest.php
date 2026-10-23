@@ -297,15 +297,17 @@ final class BlockAuditTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K48: now playing decides its editor notice with REST_REQUEST, which every REST
-	 * request defines: an anonymous `GET /wp/v2/pages/<id>` gets the notice in
-	 * `content.rendered`, where the front end prints nothing. Runs in its own process
+	 * K48 (fixed in spec 0013): the editor notice of an empty now playing only goes to
+	 * the editor preview (the block renderer). `content.rendered` of
+	 * `GET /wp/v2/pages/<id>` prints nothing, as the front end does, for an anonymous
+	 * reader and for an editor. The route is set in `query_vars['rest_route']` by hand,
+	 * as the real routing does (rest_do_request() does not). Runs in its own process
 	 * because REST_REQUEST is a constant.
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_currently_rest_content_carries_the_editor_notice() {
+	public function test_rest_content_has_no_editor_notice() {
 		$this->factory_rpp->station( 'Main' );
 		$page_id = self::factory()->post->create(
 			array(
@@ -314,18 +316,24 @@ final class BlockAuditTest extends WP_UnitTestCase {
 				'post_content' => '<!-- wp:radplapag/now-playing /-->',
 			)
 		);
-
-		$this->assertSame( '', trim( do_blocks( get_post( $page_id )->post_content ) ) );
+		$editor  = self::factory()->user->create( array( 'role' => 'editor' ) );
 
 		define( 'REST_REQUEST', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WordPress core constant.
-		wp_set_current_user( 0 );
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wp/v2/pages/' . $page_id;
 
-		$response = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id ) );
-
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertStringContainsString(
-			'Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.',
-			$response->get_data()['content']['rendered']
+		$readers = array(
+			0       => 'view',
+			$editor => 'edit',
 		);
+		foreach ( $readers as $user_id => $context ) {
+			wp_set_current_user( $user_id );
+			$request = new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id );
+			$request->set_param( 'context', $context );
+
+			$response = rest_do_request( $request );
+
+			$this->assertSame( 200, $response->get_status(), $context );
+			$this->assertSame( '', trim( $response->get_data()['content']['rendered'] ), $context );
+		}
 	}
 }

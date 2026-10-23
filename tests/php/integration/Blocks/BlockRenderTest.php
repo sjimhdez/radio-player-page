@@ -11,6 +11,7 @@ use RadioPlayerPage\Tests\Integration\Support\Clock;
 use RadioPlayerPage\Tests\Integration\Support\Factory;
 use RadioPlayerPage\Tests\Integration\Support\Snapshot;
 use WP_Block_Type_Registry;
+use WP_REST_Request;
 use WP_UnitTestCase;
 
 /**
@@ -38,7 +39,8 @@ use WP_UnitTestCase;
  *   showSchedule (16 snapshots); invalid index → «No radio shows» message;
  * - now playing: showLogo × «Main» (logo, link, upcoming rerun) and «Second» (no
  *   logo, no link) (4 snapshots); nothing on air or invalid index → empty on the
- *   front; with REST_REQUEST → the editor placeholder;
+ *   front and in other REST responses; in the block renderer route → the editor
+ *   placeholder;
  * - registration: apiVersion, attributes and defaults, supports, render callback and
  *   editor script handle;
  * - editor data: `{ stations: [ { label } ] }`, with «Radio Station N» for untitled
@@ -414,18 +416,28 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * In a REST request (the editor preview), an empty now playing prints a placeholder.
-	 * Runs in its own process because REST_REQUEST is a constant.
+	 * In the editor preview (the block renderer route), an empty now playing prints a
+	 * placeholder. The route is set in `query_vars['rest_route']` by hand, as the real
+	 * routing does (rest_do_request() does not). Runs in its own process because
+	 * REST_REQUEST is a constant.
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_now_playing_empty_in_rest_request() {
+	public function test_now_playing_empty_in_block_renderer() {
 		define( 'REST_REQUEST', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WordPress core constant.
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wp/v2/block-renderer/radplapag/now-playing';
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-renderer/radplapag/now-playing' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', array( 'stationIndex' => 99 ) );
 
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame(
 			'<div class="wp-block-radplapag-now-playing is-empty"><div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;"><p><em>Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.</em></p></div></div>',
-			self::render( 'now-playing', array( 'stationIndex' => 99 ) )
+			self::unique_wrapper_classes( $response->get_data()['rendered'] )
 		);
 	}
 

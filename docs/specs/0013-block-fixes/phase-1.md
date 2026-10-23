@@ -44,7 +44,10 @@ Los tres bloques eligen la emisora por ID (`stationId`) con `stationIndex` de re
 - Archivos: `blocks/now-playing/render.php`, `tests/php/integration/Blocks/{BlockAuditTest,BlockRenderTest}.php`, `docs/known-issues.md`.
 - Test: regresión (`fix-bug`).
 - Verificación: `npm run test:php:integration -- --filter 'rest_content|block_renderer'` y `npm run test:e2e -- blocks.spec.ts` con `env:start:min` y con `env:start:latest`
-- [ ] hecha · commit: —
+- Rojo: `test_rest_content_has_no_editor_notice` falla en `view` (anónimo): `content.rendered` trae el `<div class="wp-block-radplapag-now-playing is-empty">…Now Playing: nothing to show…</div>` en lugar de `''`.
+- D5 comprobada: `blocks.spec.ts` (6/6, Chromium y WebKit, con la vista previa que muestra «Now Playing: nothing to show») en WP 7.1.3 y en WP 6.6.10 + PHP 7.4; integración en verde en las dos. Sin callback.
+- Changelog: el aviso del editor de `now-playing` vacío ya no sale en el `content.rendered` de la API REST.
+- [x] hecha · commit: ver `git log` («fix(0013): show the now playing notice only in the block renderer (1.2)»)
 
 ### 1.3 D1: `Stations::block_index()` (≤ 1 h)
 - Qué: TDD en el núcleo puro. `block_index( array $rows, int $station_id, int $station_index ): int`: con ID > 0, índice de la fila con ese `id` (comparado con `(int)`), o −1; con 0 (o negativo), `$station_index`. Casos: ID presente en otra posición, ausente, 0 con índice, filas sin `id` o no arrays.

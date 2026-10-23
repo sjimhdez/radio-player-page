@@ -33,7 +33,9 @@ defined( 'ABSPATH' ) || exit;
 	$now_playing   = radplapag_get_now_playing_for_station( $station_index );
 
 	if ( null === $now_playing || null === $now_playing['current'] ) {
-		if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST ) {
+		// Only the editor preview gets the notice; other REST responses print nothing, as the front does (K48).
+		$rest_route = isset( $GLOBALS['wp']->query_vars['rest_route'] ) ? (string) $GLOBALS['wp']->query_vars['rest_route'] : '';
+		if ( ! defined( 'REST_REQUEST' ) || ! REST_REQUEST || 0 !== strpos( $rest_route, '/wp/v2/block-renderer/radplapag/now-playing' ) ) {
 			return;
 		}
 
