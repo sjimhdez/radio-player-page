@@ -6,13 +6,15 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 3.6 de la 0008: K25, `map_meta_cap` con un `WP_Post` (`fix-bug`; 3.1–3.5 hechas). El entorno de tests monta `tests/e2e/mu-plugins/` (hay que reiniciarlo con `env:start:min|latest` para que lo vea).
+1. Tarea 3.7 de la 0008: K86, leer el bloqueo antes de intentar tomarlo (`fix-bug`; 3.1–3.6 hechas). El entorno de tests monta `tests/e2e/mu-plugins/` (hay que reiniciarlo con `env:start:min|latest` para que lo vea).
 2. Al cerrar la fase 3 (última de la spec), pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). Las fases 1 y 2 se cerraron solo con `spec-conformance-reviewer` y `backcompat-reviewer` (decisión del usuario).
 3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` sin uso; propuesta: 0010 admin).
 - Decidir si se corrige y en qué spec K83 (baja, 2026-10-22): durante el reintento de C1 el controlador publica `error` sin `loading`; no se ve con `useState`, pero impide volver a `useSyncExternalStore` (ADR 0030).
+
+- Decidir cómo arreglar los 2 fallos de `HooksTest` en la integración (desde la 3.1, vistos en la 3.6): el *mu-plugin* e2e engancha `radplapag_e2e_maybe_rtl` en `init` y el test del contrato de hooks lo ve. Propuesta, como en la 3.5 con `PublicApiTest`: que el test cuente solo los callbacks definidos en los archivos del plugin.
 
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Volvió en la 3.10, en Chromium + WP 6.6 (el `waitForResponse` de la vista previa de `schedule` agota los 30 s); aislado, 10/10. Si vuelve, mirar su traza en `test-results/e2e`.
