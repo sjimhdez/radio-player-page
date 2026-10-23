@@ -64,7 +64,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `admin/admin-strings.php`, `admin/js/station-admin.js`, `tests/php/integration/Admin/AdminScreensTest.php`, `tests/js/admin/station-fields.test.js`, `tests/e2e/admin.spec.ts`, `docs/known-issues.md` (K42 corregido)
 - Test: primero, en `station-fields.test.js`, «rejects a URL whose scheme is not http or https (K42)» (sustituye a «accepts any URL scheme…», D5) y «rejects host:port/path without a scheme (K42)». Después, `admin.spec.ts` «blocks a stream URL without a scheme with its message (K42)».
 - Verificación: `npm test -- tests/js/admin && npm run test:php:integration -- --filter test_admin_strings_keys && npx playwright test tests/e2e/admin.spec.ts -g K42`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): los dos de Vitest no bloquean el envío (`blocked` es `false`) y uno nuevo de «live clearing» («keeps the URL error on input with a URL that is not http or https») ve el error borrado al escribir `host:port/path`; `test_admin_strings_keys` falla por la clave que falta y el e2e recibe `""` en el mensaje del campo. Verde: Vitest de admin 263/263, `test_admin_strings_keys` y los 4 e2e de la URL en Chromium y WebKit.
+- Changelog: «The station screen now asks for a stream URL that starts with http:// or https://.»
+- [x] hecha · commit: ver `git log` («fix(0010): require http or https in the stream URL on the client (3.3)»)
 
 ### 3.4 K37: el adjunto rechazado conserva su valor y avisa (≤ 1 h) — `fix-bug`
 - Qué (D7): `Station\Field_Sanitizer` devuelve `null` en el valor del adjunto rechazado y añade, tras los códigos de hoy, `background_not_image`, `logo_not_image` e `intro_not_mp3` (en el orden de escritura). Un 0 enviado (quitar) se sigue escribiendo. `Station_Meta_Saver` no escribe la meta `null` y traduce los tres mensajes:

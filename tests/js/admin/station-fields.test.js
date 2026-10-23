@@ -23,6 +23,7 @@ const FIELD_STRINGS = {
 	playerPageAlreadyAssigned: '[player_page_assigned]',
 	streamUrlRequired: '[stream_url_required]',
 	streamUrlInvalid: '[stream_url_invalid]',
+	streamUrlScheme: '[stream_url_scheme]',
 	selectProgram: '[select_program]',
 	to: '[to]',
 	removeTimeSlot: '[remove]',
@@ -170,11 +171,25 @@ describe( 'station-admin.js: required station fields', () => {
 		);
 	} );
 
-	it( 'accepts any URL scheme `new URL()` parses', async () => {
+	it( 'rejects a URL whose scheme is not http or https (K42)', async () => {
 		const screen = await mount();
 		screen.streamUrl.value = 'ftp://stream.example.test/live.mp3';
 
-		expect( screen.submit().blocked ).toBe( false );
+		expect( screen.submit().blocked ).toBe( true );
+		expect( screen.fieldError( 'stream_url' ).message ).toBe(
+			'[stream_url_scheme]'
+		);
+	} );
+
+	it( 'rejects host:port/path without a scheme (K42)', async () => {
+		const screen = await mount();
+		// `new URL()` reads `radio.example.com` as the scheme.
+		screen.streamUrl.value = 'radio.example.com:8000/stream';
+
+		expect( screen.submit().blocked ).toBe( true );
+		expect( screen.fieldError( 'stream_url' ).message ).toBe(
+			'[stream_url_scheme]'
+		);
 	} );
 
 	it( 'reports only the page when both fields are wrong', async () => {
@@ -254,6 +269,17 @@ describe( 'station-admin.js: required station fields', () => {
 			screen.streamUrl.dispatchEvent( new window.Event( 'input' ) );
 
 			expect( screen.fieldError( 'stream_url' ) ).toEqual( NO_ERROR );
+		} );
+
+		it( 'keeps the URL error on input with a URL that is not http or https (K42)', async () => {
+			const screen = await mount();
+			screen.streamUrl.value = 'not a url';
+			screen.submit();
+
+			screen.streamUrl.value = 'radio.example.com:8000/stream';
+			screen.streamUrl.dispatchEvent( new window.Event( 'input' ) );
+
+			expect( screen.fieldError( 'stream_url' ).marked ).toBe( true );
 		} );
 
 		it( 'keeps the URL error on input with another invalid URL', async () => {

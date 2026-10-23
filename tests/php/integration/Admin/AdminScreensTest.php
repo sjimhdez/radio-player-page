@@ -28,6 +28,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'changeImage',
 		'streamUrlRequired',
 		'streamUrlInvalid',
+		'streamUrlScheme',
 		'playerPageRequired',
 		'playerPageAlreadyAssigned',
 		'monday',

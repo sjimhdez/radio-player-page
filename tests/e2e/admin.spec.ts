@@ -607,19 +607,25 @@ test.describe( 'admin: validation and notices', () => {
 
 	// `new URL()` and the browser's `type="url"` take `host:port/path` as a URL
 	// with the scheme `radio.example.com`; esc_url_raw() returns '' for it.
-	test( 'currently reports a stream URL without a scheme as missing (K42)', async ( {
+	test( 'blocks a stream URL without a scheme with its message (K42)', async ( {
 		page,
 	} ) => {
+		// The browser's `type="url"` reads `radio.example.com` as the scheme.
 		await page
 			.locator( '#radplapag_station_stream_url' )
 			.fill( 'radio.example.com:8000/stream' );
+		await watchSubmit( page );
 
 		await page.locator( '#publish' ).click();
-		await page.waitForURL( /post\.php\?post=\d+&action=edit&message=/ );
 
-		await expect( page.locator( '.notice-error:visible p' ) ).toHaveText( [
-			'Validation failed: Streaming URL is required.',
-		] );
+		await expect(
+			page.locator(
+				'[data-field="stream_url"] .radplapag-field-error-message'
+			)
+		).toHaveText(
+			'Please enter a URL that starts with http:// or https://.'
+		);
+		expect( await submitOutcome( page ) ).toBe( 'blocked' );
 		expect( meta( stationId, 'radplapag_station_stream_url' ) ).toBe(
 			VALIDATION_STREAM
 		);

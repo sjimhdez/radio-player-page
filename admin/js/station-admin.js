@@ -60,10 +60,9 @@
 						clearFieldError( streamUrlWrap );
 						return;
 					}
-					try {
-						new URL( val );
+					if ( streamUrlProblem( val ) === null ) {
 						clearFieldError( streamUrlWrap );
-					} catch {}
+					}
 				} );
 			}
 		}
@@ -219,6 +218,25 @@
 		}
 	}
 
+	/**
+	 * What is wrong with a non-empty stream URL (K42). `new URL()` reads
+	 * `host:port/path` as a URL with the host as its scheme.
+	 *
+	 * @param {string} value Trimmed field value.
+	 * @return {?string} `'invalid'`, `'scheme'` or null when it is fine.
+	 */
+	function streamUrlProblem( value ) {
+		let url;
+		try {
+			url = new URL( value );
+		} catch {
+			return 'invalid';
+		}
+		return url.protocol === 'http:' || url.protocol === 'https:'
+			? null
+			: 'scheme';
+	}
+
 	function clearFieldError( fieldWrap ) {
 		if ( ! fieldWrap ) {
 			return;
@@ -286,13 +304,22 @@
 			}
 			return { valid: false, firstErrorElement: streamUrlWrap };
 		}
-		try {
-			new URL( streamUrlVal );
-		} catch {
+		const urlProblem = streamUrlProblem( streamUrlVal );
+		if ( urlProblem === 'invalid' ) {
 			if ( streamUrlWrap ) {
 				showFieldError(
 					streamUrlWrap,
 					s.streamUrlInvalid || 'Please enter a valid URL.'
+				);
+			}
+			return { valid: false, firstErrorElement: streamUrlWrap };
+		}
+		if ( urlProblem === 'scheme' ) {
+			if ( streamUrlWrap ) {
+				showFieldError(
+					streamUrlWrap,
+					s.streamUrlScheme ||
+						'Please enter a URL that starts with http:// or https://.'
 				);
 			}
 			return { valid: false, firstErrorElement: streamUrlWrap };
