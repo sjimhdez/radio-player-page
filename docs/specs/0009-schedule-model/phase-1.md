@@ -111,7 +111,9 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `program-schedule.ts`, `program-schedule.test.ts`, `schedule-vectors.json`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/schedule.spec.ts tests/e2e/a11y.spec.ts`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («fix(0009): skip the same program's contiguous slot in the player's coming up (1.10)»)
+- Rojo: Vitest → 4 fallos: los dos tests de K52 y los vectores K52-1 y K52-2 (sin `ts`) dan «News»/«A» como siguiente en vez de `null` a las 23:55. Se añaden los dos límites de PHP (otro programa al acabar la franja; el mismo programa tras un hueco), en verde desde el principio. `findActiveProgram()` y `findIncomingProgram()` comparten `findActiveSlot()` (D3). E2E de `schedule.spec.ts` y `a11y.spec.ts`: 42/42.
+- Changelog: el player ya no anuncia en «Coming up» el mismo programa que sigue sonando (K52).
 
 ## Decisiones abiertas → ADR
 - ADR 0044 (tarea 1.1). Ninguna otra prevista.

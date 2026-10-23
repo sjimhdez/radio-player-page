@@ -331,26 +331,47 @@ describe('getAllProgramsWithSlots', () => {
 
 // Audit of zone 5 (spec 0002, task 4.6).
 describe('a program announcing itself in "Coming up" (K52)', () => {
-  it('currently announces a 24-hour slot as its own next program', () => {
+  it('does not announce a 24-hour slot as its own next program', () => {
     const allDay: Schedule = {
       monday: [slot('news', '00:00', '00:00')],
       tuesday: [slot('news', '00:00', '00:00')],
     }
 
     expect(findActiveProgram(allDay, programs, MONDAY, at('23:55'))?.programName).toBe('News')
-    expect(findIncomingProgram(allDay, programs, MONDAY, at('23:55'))?.programName).toBe('News')
+    expect(findIncomingProgram(allDay, programs, MONDAY, at('23:55'))).toBeNull()
   })
 
-  it('currently announces the second half of a program split at midnight', () => {
+  it('does not announce the second half of a program split at midnight', () => {
     const split: Schedule = {
       monday: [slot('news', '22:00', '00:00')],
       tuesday: [slot('news', '00:00', '02:00')],
     }
 
-    expect(findActiveProgram(split, programs, MONDAY, at('23:55'))?.programName).toBe('News')
-    expect(findIncomingProgram(split, programs, MONDAY, at('23:55'))).toMatchObject({
-      programName: 'News',
+    expect(findActiveProgram(split, programs, MONDAY, at('23:55'))?.timeRange).toBe('22:00-00:00')
+    expect(findIncomingProgram(split, programs, MONDAY, at('23:55'))).toBeNull()
+  })
+
+  it('announces another program starting when the current one ends', () => {
+    const handover: Schedule = {
+      monday: [slot('news', '22:00', '00:00')],
+      tuesday: [slot('late', '00:00', '02:00')],
+    }
+
+    expect(findIncomingProgram(handover, programs, MONDAY, at('23:55'))).toMatchObject({
+      programName: 'Late Night',
       minutesUntil: 5,
+    })
+  })
+
+  it('announces the same program starting after a gap', () => {
+    const gap: Schedule = {
+      monday: [slot('news', '22:00', '23:55'), slot('news', '23:58', '01:00')],
+    }
+
+    expect(findActiveProgram(gap, programs, MONDAY, at('23:54'))?.timeRange).toBe('22:00-23:55')
+    expect(findIncomingProgram(gap, programs, MONDAY, at('23:54'))).toMatchObject({
+      timeRange: '23:58-01:00',
+      minutesUntil: 4,
     })
   })
 })

@@ -92,6 +92,36 @@ function resolveProgram(
   }
 }
 
+/** The active slot and its interval of the week */
+interface ActiveSlot {
+  entry: ScheduleEntry
+  interval: WeekInterval
+}
+
+/**
+ * Find the active slot over the whole week (ADR 0044): the one that started
+ * latest wins; on a tie, the first one in the stored order of its day, from Monday (D3).
+ */
+function findActiveSlot(schedule: Schedule, minute: number): ActiveSlot | null {
+  let current: ActiveSlot | null = null
+  let currentElapsed = WEEK
+
+  for (let i = 1; i <= 7; i++) {
+    const dayKey = DAY_MAP[i % 7]
+    for (const entry of schedule[dayKey] ?? []) {
+      const interval = fromSlot(dayKey, entry.start, entry.end)
+      if (interval === null || !contains(interval, minute)) continue
+      const elapsed = (WEEK - minutesUntilStart(interval, minute)) % WEEK
+      if (elapsed < currentElapsed) {
+        current = { entry, interval }
+        currentElapsed = elapsed
+      }
+    }
+  }
+
+  return current
+}
+
 /**
  * Find the currently active program.
  *
@@ -112,31 +142,16 @@ export function findActiveProgram(
 ): CurrentProgram | null {
   if (!schedule) return null
 
-  const minute = at(dayOfWeek, currentTime)
-  let current: ScheduleEntry | null = null
-  let currentElapsed = WEEK
+  const active = findActiveSlot(schedule, at(dayOfWeek, currentTime))
+  if (active === null) return null
 
-  for (let i = 1; i <= 7; i++) {
-    const dayKey = DAY_MAP[i % 7]
-    for (const entry of schedule[dayKey] ?? []) {
-      const interval = fromSlot(dayKey, entry.start, entry.end)
-      if (interval === null || !contains(interval, minute)) continue
-      const elapsed = (WEEK - minutesUntilStart(interval, minute)) % WEEK
-      if (elapsed < currentElapsed) {
-        current = entry
-        currentElapsed = elapsed
-      }
-    }
-  }
-
-  if (current === null) return null
-
-  const { name, logoUrl } = resolveProgram(programs, current.program_id)
+  const { entry } = active
+  const { name, logoUrl } = resolveProgram(programs, entry.program_id)
   return {
     programName: name,
-    timeRange: `${current.start}-${current.end}`,
+    timeRange: `${entry.start}-${entry.end}`,
     programLogoUrl: logoUrl,
-    isRerun: !!current.is_rerun,
+    isRerun: !!entry.is_rerun,
   }
 }
 
@@ -147,7 +162,10 @@ const INCOMING_WINDOW_MINUTES = 10
  * Find the first incoming program (next program that starts within 10 minutes from now).
  *
  * Calculated relative to current time, not to the active program, so the incoming
- * program is shown even when there is no program currently active.
+ * program is shown even when there is no program currently active. Slots are
+ * intervals of the whole week (ADR 0044); on a tie, the first one in stored order,
+ * from Monday. A slot of the program on air that starts just when the slot on air
+ * ends is skipped: it goes on, it does not come up (K52 in docs/known-issues.md).
  *
  * @param schedule - Weekly schedule (relational: program_id is unique string ID)
  * @param programs - Program definitions to resolve name/logo by program_id (unique string ID)
@@ -165,46 +183,39 @@ export function findIncomingProgram(
     return null
   }
 
-  const dayKey = DAY_MAP[dayOfWeek]
-  const dayEntries = schedule[dayKey] ?? []
-  const nextDayKey = DAY_MAP[(dayOfWeek + 1) % 7]
-  const nextDayEntries = schedule[nextDayKey] ?? []
+  const minute = at(dayOfWeek, currentTime)
+  const active = findActiveSlot(schedule, minute)
+  const activeEnd =
+    active === null ? null : (active.interval.start + active.interval.duration) % WEEK
 
-  const candidates: Array<{ entry: ScheduleEntry; startTime: number }> = []
+  let incoming: ScheduleEntry | null = null
+  let incomingMinutes = 0
 
-  // Today: programs that start after current time
-  for (const entry of dayEntries) {
-    const start = parseToMinutes(entry.start)
-    if (start > currentTime) {
-      candidates.push({ entry, startTime: start })
-    }
-  }
-
-  // Next day: all programs (their start is "tomorrow" in same timeline)
-  for (const entry of nextDayEntries) {
-    candidates.push({
-      entry,
-      startTime: parseToMinutes(entry.start) + 1440,
-    })
-  }
-
-  candidates.sort((a, b) => a.startTime - b.startTime)
-
-  for (const { entry, startTime } of candidates) {
-    const minutesUntil = startTime - currentTime
-    if (minutesUntil > 0 && minutesUntil <= INCOMING_WINDOW_MINUTES) {
-      const { name, logoUrl } = resolveProgram(programs, entry.program_id)
-      return {
-        programName: name,
-        timeRange: `${entry.start}-${entry.end}`,
-        minutesUntil,
-        programLogoUrl: logoUrl,
-        isRerun: !!entry.is_rerun,
+  for (let i = 1; i <= 7; i++) {
+    const dayKey = DAY_MAP[i % 7]
+    for (const entry of schedule[dayKey] ?? []) {
+      const interval = fromSlot(dayKey, entry.start, entry.end)
+      if (interval === null) continue
+      const minutesUntil = minutesUntilStart(interval, minute)
+      if (minutesUntil <= 0 || minutesUntil > INCOMING_WINDOW_MINUTES) continue
+      if (interval.start === activeEnd && entry.program_id === active?.entry.program_id) continue
+      if (incoming === null || minutesUntil < incomingMinutes) {
+        incoming = entry
+        incomingMinutes = minutesUntil
       }
     }
   }
 
-  return null
+  if (incoming === null) return null
+
+  const { name, logoUrl } = resolveProgram(programs, incoming.program_id)
+  return {
+    programName: name,
+    timeRange: `${incoming.start}-${incoming.end}`,
+    minutesUntil: incomingMinutes,
+    programLogoUrl: logoUrl,
+    isRerun: !!incoming.is_rerun,
+  }
 }
 
 /** Resolved program slot for display in the schedule modal (one per day entry) */

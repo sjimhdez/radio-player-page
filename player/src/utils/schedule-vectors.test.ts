@@ -97,8 +97,8 @@ describe('schedule vectors: resolution', () => {
     })
 
     if (result.currently) {
-      // docs/known-issues.md K52: the same program's slot starting when the
-      // current one ends is announced as coming up.
+      // A currently vector still differs from its correct result
+      // (docs/known-issues.md, the vector's issue).
       it(`currently differs from the correct result in vector ${vector.id} (${result.issue})`, () => {
         expect(correct, 'Currently vector without a correct result.').toBeDefined()
         expect({
