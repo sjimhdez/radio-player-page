@@ -116,6 +116,7 @@ function radplapag_enqueue_schedule_block_editor_assets() {
 		$title            = (string) ( $station['station_title'] ?? '' );
 		$station_labels[] = array(
 			'label' => '' !== $title ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+			'id'    => (int) ( $station['id'] ?? 0 ),
 		);
 	}
 	wp_localize_script( $handle, 'radplapagScheduleBlock', array( 'stations' => $station_labels ) );
@@ -152,6 +153,7 @@ function radplapag_enqueue_programs_list_block_editor_assets() {
 		$title            = (string) ( $station['station_title'] ?? '' );
 		$station_labels[] = array(
 			'label' => '' !== $title ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+			'id'    => (int) ( $station['id'] ?? 0 ),
 		);
 	}
 	wp_localize_script( $handle, 'radplapagProgramsListBlock', array( 'stations' => $station_labels ) );
@@ -186,6 +188,7 @@ function radplapag_enqueue_now_playing_block_editor_assets() {
 		$title            = (string) ( $station['station_title'] ?? '' );
 		$station_labels[] = array(
 			'label' => '' !== $title ? $title : ( __( 'Radio Station', 'radio-player-page' ) . ' ' . ( $index + 1 ) ),
+			'id'    => (int) ( $station['id'] ?? 0 ),
 		);
 	}
 	wp_localize_script( $handle, 'radplapagNowPlayingBlock', array( 'stations' => $station_labels ) );

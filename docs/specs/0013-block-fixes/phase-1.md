@@ -71,7 +71,8 @@ Los tres bloques eligen la emisora por ID (`stationId`) con `stationIndex` de re
 - Archivos: `radio-player-page.php`, `tests/php/integration/Blocks/BlockRenderTest.php`.
 - Test: primero: `test_editor_data`.
 - Verificación: `npm run test:php:integration -- --filter test_editor_data`
-- [ ] hecha · commit: —
+- Rojo: `test_editor_data` falla en `schedule`: los datos son `{"label":"Main"}…` sin `id`.
+- [x] hecha · commit: ver `git log` («feat(0013): add the station ID to the block editor data (1.5)»)
 
 ### 1.6 Editor de `schedule`: selector por ID, aviso y ayuda (K47, D2, D3) (≤ 1 h)
 - Qué: `fix-bug` de K47. Selector con valor = ID; opción vacía «Select a radio station» cuando el bloque no resuelve un ID de la lista; `onChange` → `setAttributes( { stationId, stationIndex } )` (índice de ese momento). `Notice` «This radio station no longer exists or is not published. Choose another one.» si `stationId` no está, o si vale 0 y `stationIndex` está fuera de rango. Ayuda (`/* translators: */`) «Showing “%s” by its position in the list of stations. Choose a station to keep it.» con `stationId` 0 e índice válido. Vista previa con los atributos reales (fuera `safeIndex`). Sin `setAttributes` al montar. e2e: `stationIndexOf` → lectura de atributos; `chooseStation` espera `attributes[stationId]=<id>` y comprueba los dos atributos (excepción §4.3: valor del selector como ID); K47 `currently` → regresión (aviso, opción vacía, preview con `stationIndex=999`, bloque vacío); test nuevo de D3; test de D2 con la página nueva «E2E Blocks Legacy» (`<!-- wp:radplapag/schedule /-->`: ayuda visible, `stationId` 0, `isEditedPostDirty()` falso). K47 queda abierta hasta 1.7.

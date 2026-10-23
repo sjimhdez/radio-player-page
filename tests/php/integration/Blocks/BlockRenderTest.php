@@ -45,7 +45,7 @@ use WP_UnitTestCase;
  *   empty block, and a block without it renders by `stationIndex` (K46);
  * - registration: apiVersion, attributes and defaults, supports, render callback and
  *   editor script handle;
- * - editor data: `{ stations: [ { label } ] }`, with «Radio Station N» for untitled
+ * - editor data: `{ stations: [ { label, id } ] }`, with «Radio Station N» for untitled
  *   stations, and nothing when the editor script is not registered.
  */
 final class BlockRenderTest extends WP_UnitTestCase {
@@ -642,7 +642,28 @@ final class BlockRenderTest extends WP_UnitTestCase {
 
 		do_action( 'enqueue_block_editor_assets' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core hook.
 
-		$expected = '{"stations":[{"label":"Main"},{"label":"Second"},{"label":"Silent"},{"label":"Radio Station 4"}]}';
+		$expected = wp_json_encode(
+			array(
+				'stations' => array(
+					array(
+						'label' => 'Main',
+						'id'    => $this->stations['Main'],
+					),
+					array(
+						'label' => 'Second',
+						'id'    => $this->stations['Second'],
+					),
+					array(
+						'label' => 'Silent',
+						'id'    => $this->stations['Silent'],
+					),
+					array(
+						'label' => 'Radio Station 4',
+						'id'    => $untitled,
+					),
+				),
+			)
+		);
 		foreach ( self::BLOCKS as $name => $object ) {
 			$this->assertSame(
 				'var ' . $object . ' = ' . $expected . ';',
