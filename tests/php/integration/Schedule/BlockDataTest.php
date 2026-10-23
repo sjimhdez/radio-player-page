@@ -73,21 +73,12 @@ final class BlockDataTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The `resolution` vectors whose 3.4.2 result is the correct one, by ID.
+	 * The `resolution` vectors whose PHP result is the correct one, by ID.
 	 *
 	 * @return array<string, array{array}>
 	 */
 	public function resolution_vectors() {
 		return self::resolution_vectors_where( false );
-	}
-
-	/**
-	 * The `resolution` vectors whose 3.4.2 result is wrong (`currently`), by ID.
-	 *
-	 * @return array<string, array{array}>
-	 */
-	public function currently_resolution_vectors() {
-		return self::resolution_vectors_where( true );
 	}
 
 	/**
@@ -648,7 +639,7 @@ final class BlockDataTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Each vector marks as live, in both blocks, exactly its 3.4.2 `current` slot.
+	 * Each vector marks as live, in both blocks, exactly its PHP `current` slot.
 	 *
 	 * @dataProvider resolution_vectors
 	 *
@@ -656,26 +647,6 @@ final class BlockDataTest extends WP_UnitTestCase {
 	 */
 	public function test_live_slots_by_vector( array $vector ) {
 		$this->assert_live_slots( $vector, $this->live_expected( array( $vector['current'] ) ) );
-	}
-
-	/**
-	 * C16: in the blocks, a slot that crosses midnight is live in the early morning of
-	 * its own day, alongside the previous day's slot that is really on air (vector 13:
-	 * two live slots; 14 and C3-4: one that should not be).
-	 *
-	 * @see docs/known-issues.md C16
-	 *
-	 * @dataProvider currently_resolution_vectors
-	 *
-	 * @param array $vector A `resolution` vector with `currently`.
-	 */
-	public function test_currently_midnight_slot_is_live_early_on_its_own_day( array $vector ) {
-		$this->assertSame( 'C16', $vector['issue'] );
-
-		$expected = $this->live_expected( array( $vector['current'], $vector['correct']['current'] ) );
-		$this->assertNotSame( $this->live_expected( array( $vector['correct']['current'] ) ), $expected );
-
-		$this->assert_live_slots( $vector, $expected );
 	}
 
 	/**

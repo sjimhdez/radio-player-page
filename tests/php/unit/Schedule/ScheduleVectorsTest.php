@@ -59,21 +59,12 @@ final class ScheduleVectorsTest extends TestCase {
 	}
 
 	/**
-	 * The `resolution` vectors whose 3.4.2 result is the correct one, by ID.
+	 * The `resolution` vectors whose PHP result is the correct one, by ID.
 	 *
 	 * @return array<string, array{array<string, mixed>}>
 	 */
 	public function resolution_vectors() {
 		return self::resolution_vectors_where( false );
-	}
-
-	/**
-	 * The `resolution` vectors whose 3.4.2 result is wrong (`currently`), by ID.
-	 *
-	 * @return array<string, array{array<string, mixed>}>
-	 */
-	public function currently_resolution_vectors() {
-		return self::resolution_vectors_where( true );
 	}
 
 	/**
@@ -101,27 +92,6 @@ final class ScheduleVectorsTest extends TestCase {
 	 * @param array<string, mixed> $vector A `resolution` vector.
 	 */
 	public function test_resolution_vector( array $vector ) {
-		$this->assert_resolution( $vector );
-	}
-
-	/**
-	 * C16: a slot that crosses midnight counts as active in the early morning of its
-	 * own day and hides the previous day's slot (vectors 13, 14 and C3-4).
-	 *
-	 * @see docs/known-issues.md C16
-	 *
-	 * @dataProvider currently_resolution_vectors
-	 *
-	 * @param array<string, mixed> $vector A `resolution` vector with `currently`.
-	 */
-	public function test_currently_midnight_slot_is_active_early_on_its_own_day( array $vector ) {
-		$this->assertSame( 'C16', $vector['issue'] );
-		$this->assertNotEquals(
-			array( $vector['current'], $vector['upcoming'] ),
-			array( $vector['correct']['current'], $vector['correct']['upcoming'] ),
-			'A currently vector must differ from its correct result.'
-		);
-
 		$this->assert_resolution( $vector );
 	}
 

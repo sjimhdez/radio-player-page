@@ -40,10 +40,12 @@ function radplapag_parse_time_to_minutes( $time ): int {
  * Checks if a schedule slot is currently active (by start/end only).
  *
  * Mirrors the logic in player/src/utils/program-schedule.ts (isProgramActive).
- * Handles slots that cross midnight (end <= start).
+ * Handles slots that cross midnight (end <= start) as intervals of the week.
  *
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Time::is_slot_active().
+ *              A slot crossing midnight is no longer active before its end on its
+ *              own day, only from its start (C16, ADR 0044).
  * @param string $start              Start time HH:MM.
  * @param string $end                End time HH:MM.
  * @param int    $current_minutes    Current time as minutes since midnight (0-1439).

@@ -14,8 +14,8 @@ defined( 'ABSPATH' ) || exit;
  * "HH:MM" times as minutes since midnight, and whether a slot is on air.
  *
  * The rules are the loose ones of 3.4.2: nothing is rejected here (validation
- * happens on save), and a slot with end <= start crosses midnight (C16 in
- * docs/known-issues.md).
+ * happens on save), and a slot with end <= start crosses midnight (Week_Interval,
+ * ADR 0044).
  *
  * @since 3.5.0
  */
@@ -43,9 +43,11 @@ final class Time {
 	/**
 	 * Checks if a slot is active at the given minute, by its start and end only.
 	 *
-	 * Mirrors isProgramActive() in player/src/utils/program-schedule.ts. A slot
-	 * with end <= start crosses midnight: on its own day it is active from its
-	 * start or before its end; as the previous day's slot, before its end.
+	 * Mirrors isProgramActive() in player/src/utils/program-schedule.ts. The slot
+	 * is a Week_Interval on a Monday and the minute is on that Monday, or on the
+	 * Tuesday for the previous day's slot: a slot with end <= start crosses
+	 * midnight, so on its own day it is active from its start (not before its
+	 * end, C16) and as the previous day's slot, before its end.
 	 *
 	 * @since 3.5.0
 	 *
@@ -56,17 +58,9 @@ final class Time {
 	 * @return bool True if the slot is active.
 	 */
 	public static function is_slot_active( $start, $end, int $current_minutes, bool $is_prev_day_crossing = false ): bool {
-		$start_min = self::to_minutes( $start );
-		$end_min   = self::to_minutes( $end );
+		$interval = Week_Interval::from_slot( 'monday', $start, $end );
+		$minute   = ( $is_prev_day_crossing ? Week_Interval::DAY : 0 ) + $current_minutes;
 
-		if ( $is_prev_day_crossing ) {
-			return $end_min <= $start_min && $current_minutes < $end_min;
-		}
-
-		if ( $end_min <= $start_min ) {
-			return $current_minutes >= $start_min || $current_minutes < $end_min;
-		}
-
-		return $current_minutes >= $start_min && $current_minutes < $end_min;
+		return null !== $interval && Week_Interval::contains( $interval, $minute );
 	}
 }

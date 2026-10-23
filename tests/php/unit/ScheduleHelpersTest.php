@@ -112,26 +112,26 @@ final class ScheduleHelpersTest extends TestCase {
 	}
 
 	/**
-	 * Currently, a slot crossing midnight also counts as active in the early morning of its own day.
+	 * A slot crossing midnight is not active in the early morning of its own day.
 	 *
-	 * Correct: inactive (that part belongs to the previous week's occurrence). See C16 in docs/known-issues.md.
+	 * That part belongs to the previous day's occurrence (C16 in docs/known-issues.md, ADR 0044).
 	 *
-	 * @dataProvider data_currently_slot_crossing_midnight_is_active_early_on_its_own_day
+	 * @dataProvider data_slot_crossing_midnight_is_not_active_early_on_its_own_day
 	 *
 	 * @param string $start Start.
 	 * @param string $end   End.
 	 * @param int    $now   Current minutes.
 	 */
-	public function test_currently_slot_crossing_midnight_is_active_early_on_its_own_day( $start, $end, $now ) {
-		$this->assertTrue( radplapag_is_slot_active( $start, $end, $now ) );
+	public function test_slot_crossing_midnight_is_not_active_early_on_its_own_day( $start, $end, $now ) {
+		$this->assertFalse( radplapag_is_slot_active( $start, $end, $now ) );
 	}
 
 	/**
-	 * Inputs for test_currently_slot_crossing_midnight_is_active_early_on_its_own_day().
+	 * Inputs for test_slot_crossing_midnight_is_not_active_early_on_its_own_day().
 	 *
 	 * @return array
 	 */
-	public function data_currently_slot_crossing_midnight_is_active_early_on_its_own_day() {
+	public function data_slot_crossing_midnight_is_not_active_early_on_its_own_day() {
 		return array(
 			'vector 13: C on monday 00:10' => array( '22:00', '02:00', 10 ),
 			'vector 14: C on monday 00:30' => array( '22:00', '02:00', 30 ),

@@ -363,19 +363,19 @@ final class ScheduleViewTest extends TestCase {
 	}
 
 	/**
-	 * C16: a slot that crosses midnight is live in the early morning of its own day,
-	 * alongside yesterday's slot that is really on air (vector 13: Monday 00:10).
+	 * A slot that crosses midnight is not live in the early morning of its own day;
+	 * only yesterday's slot, really on air, is (vector 13: Monday 00:10).
 	 *
 	 * @see docs/known-issues.md C16
 	 */
-	public function test_currently_midnight_slot_is_live_early_on_its_own_day() {
+	public function test_midnight_slot_is_not_live_early_on_its_own_day() {
 		$schedule = array(
 			'sunday' => array( self::slot( 1, '23:00', '01:00' ) ),
 			'monday' => array( self::slot( 2, '23:00', '00:30' ) ),
 		);
 
-		$this->assertSame( array( true, true ), $this->live( $schedule, '2026-10-19 00:10' ) );
-		$this->assertSame( array( false, true ), $this->live( $schedule, '2026-10-19 00:45' ) );
+		$this->assertSame( array( false, true ), $this->live( $schedule, '2026-10-19 00:10' ) );
+		$this->assertSame( array( true, false ), $this->live( $schedule, '2026-10-19 23:10' ) );
 	}
 
 	/**

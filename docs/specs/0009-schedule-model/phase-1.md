@@ -56,14 +56,16 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `admin/js/schedule-rules.js`
 - Test: primero (TDD): `tests/js/admin/schedule-rules.test.js` (bloque nuevo sobre `model`)
 - Verificación: `npm test -- tests/js/admin/schedule-rules.test.js`
-- [x] hecha · commit: este
+- [x] hecha · commit: `709b3a3`
 
 ### 1.5 C16 en PHP (`fix-bug`) (≤ 1 h)
 - Qué: `Time::is_slot_active()` delega en `Week_Interval` (su día propio deja de dar `true` antes del inicio; firma igual). Tests `currently` de C16 → regresión en rojo y luego verde: `TimeTest`, `ScheduleHelpersTest`, `ScheduleViewTest`, `ProgramsListViewTest`, `ScheduleVectorsTest` (unit e integración) y `BlockDataTest` (se quitan los `test_currently_*` con proveedor vacío). Vectores 13, 14 y C3-4 → resultado correcto + objeto `ts` del player (`currently`, `C16`). Fila C16: parte PHP corregida.
 - Archivos: `includes/src/schedule/class-time.php`, `includes/radplapag-schedule-block.php` (docblock `@since`), los tests citados, `tests/fixtures/schedule-vectors.json`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm run test:php:unit && npm run test:php:integration -- --filter 'ScheduleVectors|BlockData|ScheduleHelpers' && npm --prefix player test -- schedule-vectors`
-- [ ] hecha · commit: —
+- Rojo: `npm run test:php:unit` → 13 fallos, todos de C16: `TimeTest` y `ScheduleHelpersTest` (4 casos cada uno, «Failed asserting that true is false»), `ScheduleViewTest` y `ProgramsListViewTest` (lunes 00:10: `[true, true]` en vez de `[false, true]`) y `ScheduleVectorsTest` 13, 14 y C3-4 (sale C o F en vez de E o `null`).
+- Changelog: `radplapag_is_slot_active()` y los bloques ya no dan por activa una franja que cruza la medianoche antes de su fin en su propio día (C16); el programa en antena de la madrugada es el de la franja de ayer.
+- [x] hecha · commit: este
 
 ### 1.6 `Now_Playing_Resolver` sobre el modelo (D3) (≤ 1 h)
 - Qué: «On Air» = la franja activa que empezó más tarde (empate: orden guardado); «Coming up» = menor `minutes_until_start` en `(0, ventana]`, solo con `start`. Se edita el test aprobado (`null`) y se añaden los de D3 (solape: gana la más tardía; empate: la primera). `Schedule_View` y `Programs_List_View` calculan `is_live` con `Week_Interval::contains()` sin pasar por la rama de ayer (refactor, sus tests como red).
