@@ -1,6 +1,7 @@
 <?php
 /**
- * Characterization of radplapag_save_station_meta() and
+ * Characterization of radplapag_save_station_meta(),
+ * radplapag_station_redirect_without_message() and
  * radplapag_station_schedule_errors_notice() (3.4.2).
  *
  * @package radio-player-page
@@ -623,6 +624,66 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 				'setted_transient:radplapag_station_schedule_errors_' . $this->station,
 			),
 			$writes
+		);
+	}
+
+	// Redirect after saving: core's "Post published." / "Post updated." goes away
+	// when an error notice follows (D9, ADR 0048).
+
+	/**
+	 * The edit link core redirects to after saving a post.
+	 *
+	 * @param int $post_id Post saved.
+	 * @return string
+	 */
+	private static function redirect_location( $post_id ) {
+		return admin_url( 'post.php?post=' . $post_id . '&action=edit&message=6' );
+	}
+
+	/**
+	 * With field errors, the redirect drops core's message.
+	 */
+	public function test_redirect_drops_core_message_with_field_errors() {
+		set_transient( 'radplapag_station_field_errors_' . $this->station, 'Field error', 45 );
+
+		$this->assertSame(
+			admin_url( 'post.php?post=' . $this->station . '&action=edit' ),
+			radplapag_station_redirect_without_message( self::redirect_location( $this->station ), $this->station )
+		);
+	}
+
+	/**
+	 * With schedule errors, the redirect drops core's message.
+	 */
+	public function test_redirect_drops_core_message_with_schedule_errors() {
+		set_transient( 'radplapag_station_schedule_errors_' . $this->station, 'Schedule error', 45 );
+
+		$this->assertSame(
+			admin_url( 'post.php?post=' . $this->station . '&action=edit' ),
+			radplapag_station_redirect_without_message( self::redirect_location( $this->station ), $this->station )
+		);
+	}
+
+	/**
+	 * Without errors, the redirect keeps core's message.
+	 */
+	public function test_redirect_keeps_core_message_without_errors() {
+		$this->assertSame(
+			self::redirect_location( $this->station ),
+			radplapag_station_redirect_without_message( self::redirect_location( $this->station ), $this->station )
+		);
+	}
+
+	/**
+	 * A post of another type keeps core's message, even with a transient of its ID.
+	 */
+	public function test_redirect_ignores_other_post_types() {
+		$page = $this->factory_rpp->page( 'Page' );
+		set_transient( 'radplapag_station_field_errors_' . $page, 'Field error', 45 );
+
+		$this->assertSame(
+			self::redirect_location( $page ),
+			radplapag_station_redirect_without_message( self::redirect_location( $page ), $page )
 		);
 	}
 

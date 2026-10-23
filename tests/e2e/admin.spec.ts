@@ -546,10 +546,33 @@ test.describe( 'admin: validation and notices', () => {
 		 * @param page Station edit screen.
 		 */
 		async function save( page: Page ) {
+			// With an error the redirect has no `&message=` (D9): wait for the
+			// edit screen that the POST redirects to, and its load.
+			const redirected = page.waitForResponse(
+				( response ) =>
+					response.request().method() === 'GET' &&
+					/post\.php\?post=\d+&action=edit/.test( response.url() ) &&
+					response.request().redirectedFrom()?.method() === 'POST'
+			);
 			await page.locator( '#publish' ).click();
-			await page.waitForURL( /post\.php\?post=\d+&action=edit&message=/ );
+			await redirected;
+			await page.waitForLoadState( 'load' );
 			return page.locator( '.notice-error:visible' );
 		}
+
+		test( 'shows the server notice without core\'s "Post published."', async ( {
+			page,
+		} ) => {
+			await page.locator( '#radplapag_station_stream_url' ).fill( '' );
+
+			const notices = await save( page );
+
+			await expect( notices ).toHaveText( [
+				'Validation failed: Streaming URL is required.',
+			] );
+			expect( page.url() ).not.toContain( 'message=' );
+			await expect( page.locator( '#message' ) ).toHaveCount( 0 );
+		} );
 
 		test( 'an empty stream URL shows its notice once and keeps the saved URL', async ( {
 			page,

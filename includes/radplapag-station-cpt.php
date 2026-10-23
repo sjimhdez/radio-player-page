@@ -661,6 +661,28 @@ function radplapag_station_schedule_errors_notice() {
 }
 
 /**
+ * Drops core's "Post published." / "Post updated." from the redirect after saving a
+ * station that left an error notice (ADR 0048).
+ *
+ * The station is still published or updated; only the notice changes.
+ *
+ * @since 3.5.0
+ * @param string $location The destination URL.
+ * @param int    $post_id  The saved post ID.
+ * @return string
+ */
+function radplapag_station_redirect_without_message( $location, $post_id ) {
+	if ( get_post_type( $post_id ) !== 'radplapag_station' ) {
+		return $location;
+	}
+	if ( false === get_transient( 'radplapag_station_field_errors_' . $post_id ) && false === get_transient( 'radplapag_station_schedule_errors_' . $post_id ) ) {
+		return $location;
+	}
+
+	return remove_query_arg( 'message', $location );
+}
+
+/**
  * Returns page IDs that are assigned as Player Page by other stations (excluding the given post).
  *
  * Used by admin to disable those options in the Player Page select and validate on submit.
@@ -693,4 +715,5 @@ if ( is_admin() ) {
 	add_action( 'save_post_radplapag_station', 'radplapag_save_station_meta' );
 	add_action( 'admin_notices', 'radplapag_station_schedule_errors_notice' );
 	add_action( 'admin_enqueue_scripts', 'radplapag_station_edit_scripts' );
+	add_filter( 'redirect_post_location', 'radplapag_station_redirect_without_message', 10, 2 );
 }

@@ -85,6 +85,9 @@ final class HooksTest extends WP_UnitTestCase {
 		'use_block_editor_for_post_type' => array(
 			'radplapag_station_use_classic_editor' => array( 10, 2 ),
 		),
+		'redirect_post_location'         => array(
+			'radplapag_station_redirect_without_message' => array( 10, 2 ),
+		),
 	);
 
 	/**

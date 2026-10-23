@@ -136,7 +136,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `includes/radplapag-station-cpt.php`, `tests/php/integration/Station/SaveStationMetaTest.php`, `tests/php/integration/Admin/HooksTest.php`, `tests/e2e/admin.spec.ts`, `docs/known-issues.md` (fila nueva corregida o nota de 5.7)
 - Test: primero `SaveStationMetaTest::test_redirect_drops_core_message_with_field_errors`, `…_with_schedule_errors`, `…_keeps_it_without_errors` y `…_ignores_other_post_types`, más `HooksTest`, en rojo. Después, e2e: «shows the server notice without core's "Post published."».
 - Verificación: `npm run test:php:integration -- --filter 'SaveStationMetaTest|HooksTest' && npx playwright test tests/e2e/admin.spec.ts -g server`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): los cuatro de `SaveStationMetaTest` con «Call to undefined function radplapag_station_redirect_without_message()» y tres de `HooksTest` (falta el callback en `redirect_post_location`); el e2e nuevo recibe `…&action=edit&message=1` junto al aviso del servidor. «…keeps_core_message_without_errors» e «…ignores_other_post_types» son guardas (rojas solo por la función que faltaba). El ayudante `save()` del grupo «server» espera la respuesta GET redirigida desde el POST y la carga (excepción de la 3.1). La función nueva entra en `PublicApiTest` (contrato que crece por ADR 0048, como en la 0009, 2.8). Fila nueva K90, corregida. Verde: `SaveStationMetaTest` y `HooksTest` 52/52, integración completa 1006/1006 y los grupos «server» y «create and save» de `admin.spec.ts` en Chromium y WebKit (16/16).
+- Changelog: «After saving a station with errors, the screen no longer says "Post published." next to the error notice.»
+- [x] hecha · commit: ver `git log` («fix(0010): drop core's saved message when a station save leaves errors (3.10)»)
 
 ### 3.11 K76: fuera las dos cadenas sin uso (≤ 30 min) — `fix-bug`
 - Qué: se quitan `completeTimeFields` y `startEndSame` de `radplapag_get_admin_strings()` y de `STRING_KEYS` (§4.3). Antes, `grep` confirma que no se usan en `admin/js` ni en `tests/js`.
