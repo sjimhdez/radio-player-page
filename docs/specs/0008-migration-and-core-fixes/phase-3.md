@@ -74,7 +74,8 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `radio-player-page.php`, `tests/e2e/clean-page.spec.ts`, `docs/known-issues.md`.
 - Test: primero (regresión en rojo): `tests/e2e/clean-page.spec.ts`.
 - Verificación: `npm run test:e2e -- clean-page.spec.ts`
-- [ ] hecha · commit: —
+- Resultado (2026-10-23): en rojo antes del arreglo, los tres «does not serve the player on the page's feed/ | embed/ | trackback/ (K26)» (el HTML del player con `RADPLAPAG_CONFIG`); «still serves the player on the page itself (K26)» ya pasaba. Tras el arreglo, `clean-page.spec.ts` 30/30 en Chromium: `feed/` responde 200 con XML, `embed/` 200 con la plantilla de embed y `trackback/` una redirección a la página. Changelog: la página del reproductor ya no tapa el feed, el embed ni el trackback de su página.
+- [x] hecha · commit: —
 
 ### 3.5 K24: la emisora de la página actual solo en una página (D13) (≤ 1 h)
 - Qué:

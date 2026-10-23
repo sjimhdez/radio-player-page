@@ -721,19 +721,38 @@ test.describe( 'clean page feed, embed and trackback (HTTP)', () => {
 		'HTTP only: the response does not depend on the browser'
 	);
 
-	for ( const suffix of [ 'feed/', 'embed/', 'trackback/' ] ) {
-		test( `currently serves the player on the page's ${ suffix } (K26)`, async ( {
+	// WordPress answers each one itself: the feed as XML, the embed template
+	// and, for a GET of trackback/, a redirect to the page.
+	const SUFFIXES = [
+		{ suffix: 'feed/', own: /xml/ },
+		{ suffix: 'embed/', own: /text\/html/ },
+		{ suffix: 'trackback/', own: null },
+	];
+
+	for ( const { suffix, own } of SUFFIXES ) {
+		test( `does not serve the player on the page's ${ suffix } (K26)`, async ( {
 			request,
 		} ) => {
-			const html =
-				await // A GET of trackback/ redirects to the page once it is not intercepted.
-				(
-					await request.get( readSeed().urls.mp3 + suffix, {
-						maxRedirects: 0,
-					} )
-				).text();
+			const response = await request.get( readSeed().urls.mp3 + suffix, {
+				maxRedirects: 0,
+			} );
 
-			expect( html ).toContain( 'RADPLAPAG_CONFIG' );
+			expect( await response.text() ).not.toContain( 'RADPLAPAG_CONFIG' );
+			if ( own ) {
+				expect( response.status() ).toBe( 200 );
+				expect( response.headers()[ 'content-type' ] ).toMatch( own );
+			} else {
+				expect( response.status() ).toBeGreaterThanOrEqual( 300 );
+				expect( response.status() ).toBeLessThan( 400 );
+			}
 		} );
 	}
+
+	test( 'still serves the player on the page itself (K26)', async ( {
+		request,
+	} ) => {
+		const html = await getHtml( request, readSeed().urls.mp3 );
+
+		expect( html ).toContain( 'RADPLAPAG_CONFIG' );
+	} );
 } );

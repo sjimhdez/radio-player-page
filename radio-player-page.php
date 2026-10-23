@@ -231,7 +231,7 @@ function radplapag_get_station_for_current_page() {
  * @return void Exits execution after outputting HTML.
  */
 function radplapag_output_clean_page() {
-	if ( ! is_page() ) {
+	if ( ! is_page() || is_feed() || is_embed() || is_trackback() ) {
 		return;
 	}
 
