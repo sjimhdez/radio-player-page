@@ -469,6 +469,52 @@ test.describe( 'admin: validation and notices', () => {
 			).toHaveText( 'All fields are required.' );
 			expect( await submitOutcome( page ) ).toBe( 'blocked' );
 		} );
+
+		test.describe( 'with the schedule box collapsed', () => {
+			test.afterEach( () => {
+				// WordPress saves the collapsed state per user over AJAX.
+				try {
+					wpCli(
+						'user',
+						'meta',
+						'delete',
+						'admin',
+						'closedpostboxes_radplapag_station'
+					);
+				} catch {
+					// Not saved yet: nothing to clean up.
+				}
+			} );
+
+			test( 'currently blocks the submit without a visible message when the schedule box is collapsed (K89)', async ( {
+				page,
+			} ) => {
+				const row = await addMondaySlot( page, 3 );
+				await row
+					.locator( '.radplapag-program-id' )
+					.selectOption( programId );
+				await row.locator( '.radplapag-program-start' ).fill( '10:30' );
+				await row.locator( '.radplapag-program-end' ).fill( '11:30' );
+				const box = page.locator( '#radplapag_station_schedule' );
+				await box.locator( '.handlediv' ).click();
+				await expect( box ).toHaveClass( /\bclosed\b/ );
+				await watchSubmit( page );
+
+				await page.locator( '#publish' ).click();
+
+				// The row gets its error and the submit stops, but the closed
+				// box hides `.inside`, so nothing on screen says why.
+				const message = row.locator(
+					'.radplapag-program-error-message.show'
+				);
+				await expect( message ).toHaveText(
+					`This time slot overlaps with: ${ VALIDATION.program } (Monday, 10:00 - 11:00)`
+				);
+				expect( await submitOutcome( page ) ).toBe( 'blocked' );
+				await expect( message ).toBeHidden();
+				await expect( box ).toHaveClass( /\bclosed\b/ );
+			} );
+		} );
 	} );
 
 	test.describe( 'server, without the client validation', () => {

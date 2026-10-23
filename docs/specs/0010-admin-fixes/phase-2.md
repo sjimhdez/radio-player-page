@@ -32,7 +32,8 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Archivos: `tests/e2e/admin.spec.ts`, `docs/known-issues.md`
 - Test: caracterización (`admin.spec.ts`).
 - Verificación: `npx playwright test tests/e2e/admin.spec.ts -g "collapsed"`
-- [ ] hecha · commit: —
+- Se confirma (Chromium y WebKit): el envío se bloquea, la fila tiene el error y el mensaje no se ve; el meta box sigue contraído. K89, baja. La 2.5 sigue en pie. Mutación: con `toBeVisible` el test falla (`Received: hidden`).
+- [x] hecha · commit: ver `git log` («test(0010): pin the submit blocked by a collapsed schedule box (2.1)»)
 
 ### 2.2 AX3 + AX4 en PHP: `fieldset`/`legend` y etiquetas (≤ 1 h) — `fix-bug`
 - Qué: `div.radplapag-schedule-day` pasa a `fieldset.radplapag-schedule-day[data-day]` (misma clase y mismo `data-day`, así que el JS y los selectores de los tests siguen valiendo). El `h4` pasa a `legend.radplapag-schedule-day-legend`. En `admin.css`, el `fieldset` sin borde, *padding*, margen ni `min-width`, y el `legend` con el aspecto del `h4` de hoy. Antes del `select` y de cada hora va un `label.screen-reader-text` con `esc_html_e()`: «Radio Show», «Start time» y «End time». El `id` de cada campo es `radplapag-slot-{día}-{índice}-{program|start|end}`. Se regenera la fixture y la línea base de las escenas del servidor. Capturas del meta box antes y después (Playwright, Chromium) para el riesgo 3.
