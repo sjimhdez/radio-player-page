@@ -42,7 +42,7 @@ Al cerrar la spec, todas las filas de §2 están corregidas con su test de regre
 **Accesibilidad del horario (fase 2)**
 
 - **Meta box contraído (5.7):** primero un e2e en `admin.spec.ts` que contrae el meta box del horario, deja una franja con error y envía. Si el envío se bloquea sin mensaje visible (se confirma), el JS abre el meta box (`.postbox.closed`) antes de llevar el foco al error, y el test pasa a regresión. Si no se reproduce, el test se queda como test normal, se anota «no se reproduce» y no se cambia nada.
-- **AX3 + AX4:** cada día es un `fieldset` con su `legend` (el nombre del día, con el mismo aspecto que el `h4` de hoy), y el `select`, las dos horas y la reemisión de cada franja tienen nombre accesible con etiquetas `screen-reader-text` («Radio Show», «Start time», «End time»), en las filas de PHP y en las que añade el JS. Los `name` no cambian. `a11y.spec.ts`: las entradas `label` y `select-name` de «station meta boxes», «added slot» y «validation errors» salen de `a11y-baseline.json`.
+- **AX3 + AX4:** cada día es un `fieldset` con su `legend` (el nombre del día, con el mismo aspecto que el `h4` de hoy), y el `select`, las dos horas y la reemisión de cada franja tienen nombre accesible con etiquetas `screen-reader-text` («Radio Show», «Start time», «End time»), en las filas de PHP y en las que añade el JS. Los `name` no cambian. `a11y.spec.ts`: las entradas `label`, `select-name` y `heading-order` (la parte del meta box de AX2, D11) de «station meta boxes», «added slot» y «validation errors» salen de `a11y-baseline.json`.
 - **K45:** el mensaje de error de una franja tiene un `id` estable; el `select` y las horas de la fila reciben `aria-invalid="true"` y `aria-describedby` con ese `id`, y los pierden al limpiar el error. Al enviar con errores, el foco va al primer campo con error (además del `scrollIntoView` de hoy). `station-validation.test.js` (K45 a regresión) y un e2e en `a11y.spec.ts` (el foco tras el envío).
 - **AX5:** el mensaje de error y «Remove Time Slot» en *hover* sobre una fila con error usan `#b32d2e`. `a11y.spec.ts`: la entrada `color-contrast` de «validation errors» sale de la línea base.
 - **K20:** «Remove Time Slot» es visible y alcanzable cuando la fila tiene el foco (`:focus-within`), como la etiqueta de reemisión. `a11y.spec.ts` (K20 a regresión).
@@ -88,6 +88,7 @@ No cambian las meta keys, las opciones, los transients (los avisos de K37 van en
 | D8 | K42 en el servidor: con `stream_url_required`, no se escribe la URL; con `player_page_required` o la página ocupada, no se escribe la página; el resto igual. El orden de los mensajes del transient no cambia | K42 |
 | D9 | «Entrada publicada»: `radplapag_station_redirect_without_message( $location, $post_id )` en `redirect_post_location` (10, 2). Si el post es una emisora y hay transient de errores de campos u horario, `remove_query_arg( 'message', $location )` | 5.7 |
 | D10 | K5: `mb_substr` (WordPress trae su reserva si falta mbstring). Los límites siguen siendo 256 y 512, ahora en caracteres | K5 |
+| D11 | El `legend` sustituye al `h4` del día: la parte del meta box de AX2 (`heading-order`) se corrige aquí; los modales del player siguen en la 0011. Las etiquetas de las filas del JS salen de tres claves nuevas de `radplapagAdmin.strings` (`programLabel`, `startTimeLabel`, `endTimeLabel`) | usuario, 2026-10-23 |
 
 ### 4.2 Qué se unifica en `station-admin.js` (antes de las correcciones, sin cambiar comportamiento)
 
@@ -104,7 +105,7 @@ No cambian las meta keys, las opciones, los transients (los avisos de K37 van en
   - `station-fields.test.js` «accepts any URL scheme `new URL()` parses» (K42, D5);
   - `SaveStationMetaTest::test_invalid_attachments_become_zero` y `StationMetaSaverTest::test_wrong_attachments_go_to_zero` (K37, D7); `SaveStationMetaTest::test_writes_order_with_field_errors_and_valid_schedule` y los que fijen «con un error de campo no se escribe ni la URL ni la página» (K42, D8). El plan los lista;
   - `SaveProgramMetaTest::test_truncation_counts_bytes_not_characters` (K5, D10);
-  - `AdminScreensTest::test_admin_strings_keys` (K76) y `HooksTest` (el callback de D9).
+  - `AdminScreensTest::test_admin_strings_keys`: en la fase 2 se añaden las claves de D11 (AX3, AX4); en la fase 3 se quitan las de K76. `HooksTest` (el callback de D9).
 - Fase 1 empieza por §4.2 con los tests de hoy como red; cada paso, en verde sin editarlos.
 - Los adaptadores se prueban con happy-dom sobre la fixture real (`mount-station-screen.js`); el foco, la visibilidad con `:focus-within` y el contraste solo con e2e (Chromium y WebKit).
 - C13 en e2e: el entorno es `http`. Si no se puede simular `https` sin tocar el entorno, el e2e comprueba que no hay aviso en `http` y el caso `https` lo cubren `AdminScreensTest` (filtro de `home_url`) y Vitest.
