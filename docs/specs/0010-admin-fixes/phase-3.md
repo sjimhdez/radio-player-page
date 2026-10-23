@@ -55,7 +55,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `includes/src/wp/class-station-meta-saver.php`, `tests/php/integration/Station/StationMetaSaverTest.php`, `tests/php/integration/Station/SaveStationMetaTest.php`
 - Test: primero `StationMetaSaverTest::test_invalid_url_still_writes_a_valid_page (K42)` y `test_taken_page_still_writes_a_valid_url (K42)`, en rojo. Las dos excepciones del contexto pasan a afirmar el comportamiento nuevo.
 - Verificación: `npm run test:php:integration -- --filter 'StationMetaSaverTest|SaveStationMetaTest'`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): 4 fallos por la razón esperada. Los dos nuevos no escriben la meta válida (falta `added_post_meta:radplapag_station_player_page` / `…_stream_url` tras el transient); `test_page_of_another_station_is_reported` conserva `old.mp3` y el de la CLI conserva la página anterior. Verde tras el arreglo: 57/57 y la integración completa, 993/993.
+- Changelog: «Saving a station with an invalid stream URL now keeps the player page, and the other way round.»
+- [x] hecha · commit: ver `git log` («fix(0010): write the stream URL and the page each one if valid (3.2)»)
 
 ### 3.3 K42 cliente: solo `http://` o `https://` (≤ 1 h) — `fix-bug`
 - Qué: cadena nueva `streamUrlScheme` en `admin-strings.php` (más `STRING_KEYS`). En el envío y al escribir, una URL válida para `new URL()` cuyo `protocol` no es `http:`/`https:` da ese mensaje y bloquea; la que no se parsea sigue con `streamUrlInvalid` (D5). El e2e `currently` de K42 pasa a esperar el envío bloqueado con el mensaje nuevo y la URL guardada intacta.

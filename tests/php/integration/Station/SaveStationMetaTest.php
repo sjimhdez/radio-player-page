@@ -187,9 +187,9 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 
 	/**
 	 * In the CLI the URL in $_POST is never read: it is reported as missing and
-	 * neither the URL nor the page are written, even if both are valid.
+	 * keeps its saved value, and the valid page is still written (K42, ADR 0048).
 	 */
-	public function test_cli_never_reads_stream_url_so_url_and_page_are_kept() {
+	public function test_cli_never_reads_stream_url_so_url_is_kept_and_page_written() {
 		$old_page = $this->factory_rpp->page( 'Old page' );
 		$new_page = $this->factory_rpp->page( 'New page' );
 		update_post_meta( $this->station, 'radplapag_station_stream_url', 'https://old.example/stream' );
@@ -204,7 +204,7 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 
 		$this->assertSame( self::URL_REQUIRED, $this->field_errors() );
 		$this->assertSame( 'https://old.example/stream', $this->meta( 'stream_url' ) );
-		$this->assertSame( (string) $old_page, $this->meta( 'player_page' ) );
+		$this->assertSame( (string) $new_page, $this->meta( 'player_page' ) );
 	}
 
 	/**

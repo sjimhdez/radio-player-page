@@ -204,7 +204,8 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A page of another station is reported and the URL and page are kept.
+	 * A page of another station is reported and kept, and the valid URL is written
+	 * (K42, ADR 0048).
 	 */
 	public function test_page_of_another_station_is_reported() {
 		update_post_meta( $this->station, 'radplapag_station_stream_url', 'https://radio.test/old.mp3' );
@@ -219,8 +220,74 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 		);
 
 		$this->assertSame( self::PAGE_TAKEN, $this->field_errors() );
-		$this->assertSame( 'https://radio.test/old.mp3', $this->meta( 'stream_url' ) );
+		$this->assertSame( 'https://radio.test/live.mp3', $this->meta( 'stream_url' ) );
 		$this->assertSame( '', $this->meta( 'player_page' ) );
+	}
+
+	/**
+	 * A URL that fails keeps its saved value and does not stop a valid page from
+	 * being written, in the order of a valid save (K42).
+	 */
+	public function test_invalid_url_still_writes_a_valid_page() {
+		update_post_meta( $this->station, 'radplapag_station_stream_url', 'https://radio.test/old.mp3' );
+
+		$writes = $this->save_and_record_writes(
+			array(
+				'stream_url'  => 'radio.example.com:8000/stream',
+				'player_page' => (string) $this->page,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'setted_transient:radplapag_station_field_errors_' . $this->station,
+				'added_post_meta:radplapag_station_player_page',
+				'added_post_meta:radplapag_station_background_id',
+				'added_post_meta:radplapag_station_logo_id',
+				'added_post_meta:radplapag_station_intro_audio_id',
+				'added_post_meta:radplapag_station_theme_color',
+				'added_post_meta:radplapag_station_visualizer',
+				'added_post_meta:radplapag_station_schedule',
+			),
+			$writes
+		);
+		$this->assertSame( self::URL_REQUIRED, $this->field_errors() );
+		$this->assertSame( 'https://radio.test/old.mp3', $this->meta( 'stream_url' ) );
+		$this->assertSame( (string) $this->page, $this->meta( 'player_page' ) );
+	}
+
+	/**
+	 * A page of another station keeps the saved page and does not stop a valid URL
+	 * from being written (K42).
+	 */
+	public function test_taken_page_still_writes_a_valid_url() {
+		$old_page = $this->factory_rpp->page( 'Old page' );
+		update_post_meta( $this->station, 'radplapag_station_player_page', $old_page );
+		$this->factory_rpp->station( 'Other', array( 'player_page' => $this->page ) );
+
+		$writes = $this->save_and_record_writes(
+			array(
+				'stream_url'  => 'https://radio.test/live.mp3',
+				'player_page' => (string) $this->page,
+			)
+		);
+
+		$this->assertSame(
+			array(
+				'setted_transient:radplapag_station_field_errors_' . $this->station,
+				'added_post_meta:radplapag_station_stream_url',
+				'added_post_meta:radplapag_station_background_id',
+				'added_post_meta:radplapag_station_logo_id',
+				'added_post_meta:radplapag_station_intro_audio_id',
+				'added_post_meta:radplapag_station_theme_color',
+				'added_post_meta:radplapag_station_visualizer',
+				'added_post_meta:radplapag_station_schedule',
+			),
+			$writes
+		);
+		$this->assertSame( self::PAGE_TAKEN, $this->field_errors() );
+		$this->assertSame( 'https://radio.test/live.mp3', $this->meta( 'stream_url' ) );
+		$this->assertSame( (string) $old_page, $this->meta( 'player_page' ) );
 	}
 
 	/**

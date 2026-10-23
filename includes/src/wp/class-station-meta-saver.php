@@ -23,9 +23,9 @@ final class Station_Meta_Saver {
 	/**
 	 * Saves the station fields and the schedule.
 	 *
-	 * Writes in the order of 3.4.2: the field errors transient (set, or deleted
-	 * together with writing the URL and the player page), the five other metas, and
-	 * the schedule through radplapag_sanitize_station_schedule().
+	 * Writes in the order of 3.4.2: the field errors transient (set, or deleted),
+	 * the URL and the player page each one if it is valid (ADR 0048), the five
+	 * other metas, and the schedule through radplapag_sanitize_station_schedule().
 	 *
 	 * @since 3.5.0
 	 *
@@ -53,11 +53,16 @@ final class Station_Meta_Saver {
 		);
 		$values = $result['values'];
 
-		if ( array() !== $result['errors'] ) {
-			set_transient( 'radplapag_station_field_errors_' . $post_id, implode( ' ', array_map( array( self::class, 'message' ), $result['errors'] ) ), 45 );
+		$errors = $result['errors'];
+		if ( array() !== $errors ) {
+			set_transient( 'radplapag_station_field_errors_' . $post_id, implode( ' ', array_map( array( self::class, 'message' ), $errors ) ), 45 );
 		} else {
 			delete_transient( 'radplapag_station_field_errors_' . $post_id );
+		}
+		if ( ! in_array( 'stream_url_required', $errors, true ) ) {
 			update_post_meta( $post_id, 'radplapag_station_stream_url', $values['stream_url'] );
+		}
+		if ( array() === array_intersect( array( 'player_page_required', 'player_page_taken' ), $errors ) ) {
 			update_post_meta( $post_id, 'radplapag_station_player_page', $values['player_page'] );
 		}
 
