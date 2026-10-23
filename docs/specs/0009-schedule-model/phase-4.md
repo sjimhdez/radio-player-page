@@ -44,7 +44,8 @@ El player sigue la zona horaria del sitio (y su horario de verano) mientras la p
 - Archivos: `includes/src/player/class-globals-builder.php`, `tests/php/unit/Player/GlobalsBuilderTest.php`, `tests/php/integration/Schedule/SiteTimezoneTest.php`, `tests/e2e/clean-page.spec.ts`, `tests/e2e/snapshots/{mp3,minimal}.html`, `tests/e2e/fixtures/seed-e2e.php`, `tests/e2e/support/normalize.mjs`
 - Test: primero (regresión): los de arriba
 - Verificación: `npm run test:php:unit -- --filter GlobalsBuilder && npm run test:php:integration -- --filter SiteTimezone && npm run lint:phpstan && npx playwright test tests/e2e/clean-page.spec.ts`
-- [ ] hecha · commit: —
+- Rojo visto: `GlobalsBuilderTest` (`Undefined array key "timezone"` en los 5 casos de `test_timezone`; a `test_config_with_a_full_station` le falta `'timezone' => 'UTC'`), `SiteTimezoneTest` (`Undefined array key "timezone"` en los dos tests nuevos) y `clean-page.spec.ts` C9 (el `toContain` de `"timezoneOffset":5.5,"timezone":"Asia\/Kolkata"}`). La fila C9 de `known-issues.md` se queda abierta hasta la 4.5 (parte del player).
+- [x] hecha · commit: ver `git log` («fix(0009): print the site timezone in RADPLAPAG_CONFIG (4.2)»)
 
 ### 4.3 `read-config.ts`: `timezone` (≤ 1 h)
 - Qué: TDD en `read-config.test.ts`: zona válida → la zona; `null`, ausente, `''`, número, `'Not/AZone'` → `undefined`. `PluginConfig.timezone?: string | null` y `ResolvedConfig.timezone?: string` en `types/global.ts`. La validación con `try { new Intl.DateTimeFormat('en-US', { timeZone }) }`.

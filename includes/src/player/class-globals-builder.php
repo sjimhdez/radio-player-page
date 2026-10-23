@@ -59,7 +59,9 @@ final class Globals_Builder {
 	 * An empty station title falls back to the site title, and the title is decoded
 	 * (K21: kses stores `&` as `&amp;`). Theme and visualizer go
 	 * through sanitize_key() and the whitelists; falsy media URLs are null. The offset
-	 * is the one of $now in hours, an integer when exact.
+	 * is the one of $now in hours, an integer when exact. The zone is the IANA name of
+	 * $now, or null when it is a manual offset (`±HH:MM`), so the player can follow
+	 * daylight saving time with the page open and keep the offset as a fallback (C9, ADR 0046).
 	 *
 	 * @since 3.5.0
 	 *
@@ -68,7 +70,7 @@ final class Globals_Builder {
 	 * @param string               $site_title   Site title.
 	 * @param DateTimeImmutable    $now          Now, in the site timezone.
 	 * @param callable             $sanitize_key sanitize_key().
-	 * @return array{streamUrl: mixed, siteTitle: mixed, backgroundImage: mixed, logoImage: mixed, introAudioUrl: mixed, themeColor: string, visualizer: string, timezoneOffset: int|float}
+	 * @return array{streamUrl: mixed, siteTitle: mixed, backgroundImage: mixed, logoImage: mixed, introAudioUrl: mixed, themeColor: string, visualizer: string, timezoneOffset: int|float, timezone: string|null}
 	 */
 	public static function config( array $station, array $media, string $site_title, DateTimeImmutable $now, callable $sanitize_key ): array {
 		$theme_color = isset( $station['theme_color'] ) ? $sanitize_key( $station['theme_color'] ) : Station::THEMES[0];
@@ -90,6 +92,7 @@ final class Globals_Builder {
 			'themeColor'      => $theme_color,
 			'visualizer'      => $visualizer,
 			'timezoneOffset'  => $now->getOffset() / 3600,
+			'timezone'        => self::zone_name( $now ),
 		);
 	}
 
@@ -182,6 +185,19 @@ final class Globals_Builder {
 	public static function printable_schedule( array $schedule, callable $sanitize_text ) {
 		$result = self::schedule( $schedule, $sanitize_text );
 		return empty( $result ) ? new stdClass() : $result;
+	}
+
+	/**
+	 * IANA name of the timezone of a time, or null for an offset such as `-03:30`.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param DateTimeImmutable $now Now, in the site timezone.
+	 * @return string|null
+	 */
+	private static function zone_name( DateTimeImmutable $now ): ?string {
+		$name = $now->getTimezone()->getName();
+		return in_array( $name[0], array( '+', '-' ), true ) ? null : $name;
 	}
 
 	/**

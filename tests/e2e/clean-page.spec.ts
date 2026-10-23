@@ -492,21 +492,21 @@ test.describe( 'clean page (HTTP)', () => {
 		}
 	} );
 
-	test( 'prints timezoneOffset as a number fixed per request (C9)', async ( {
+	test( 'prints the site timezone next to timezoneOffset (C9)', async ( {
 		request,
 	} ) => {
 		const html = await getHtml( request, readSeed().urls.mp3 );
 
-		// Asia/Kolkata: the offset itself, not the zone or its transitions.
+		// Asia/Kolkata: the offset of the request and the zone, so the player can follow its transitions.
 		expect( rawGlobals( html ).RADPLAPAG_CONFIG ).toContain(
-			'"timezoneOffset":5.5}'
+			'"timezoneOffset":5.5,"timezone":"Asia\\/Kolkata"}'
 		);
 		expect( readGlobals( html ).RADPLAPAG_CONFIG.timezoneOffset ).toBe(
 			5.5
 		);
-		expect(
-			Object.keys( readGlobals( html ).RADPLAPAG_CONFIG )
-		).not.toContain( 'timezone' );
+		expect( readGlobals( html ).RADPLAPAG_CONFIG.timezone ).toBe(
+			'Asia/Kolkata'
+		);
 	} );
 
 	test( 'loads the stylesheet and the entry named in the manifest', async ( {

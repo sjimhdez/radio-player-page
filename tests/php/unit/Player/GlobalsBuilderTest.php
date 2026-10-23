@@ -109,6 +109,7 @@ final class GlobalsBuilderTest extends TestCase {
 				'themeColor'      => 'blue',
 				'visualizer'      => 'bars',
 				'timezoneOffset'  => 0,
+				'timezone'        => 'UTC',
 			),
 			self::config( self::station(), self::media() )
 		);
@@ -198,6 +199,33 @@ final class GlobalsBuilderTest extends TestCase {
 			'new york summer'      => array( 'America/New_York', '2026-07-15 12:00:00', -4 ),
 			'madrid before change' => array( 'Europe/Madrid', '2026-03-29 01:59:00', 1 ),
 			'madrid after change'  => array( 'Europe/Madrid', '2026-03-29 03:00:00', 2 ),
+		);
+	}
+
+	/**
+	 * The zone is the IANA name of now, or null when the site uses a manual offset (C9, ADR 0046).
+	 *
+	 * @dataProvider zones
+	 *
+	 * @param string      $zone     Timezone name or offset.
+	 * @param string|null $expected Zone printed for the player.
+	 */
+	public function test_timezone( string $zone, ?string $expected ) {
+		$this->assertSame( $expected, self::config( self::station(), array(), self::now( $zone ) )['timezone'] );
+	}
+
+	/**
+	 * Named zones and manual offsets, as wp_timezone() gives them.
+	 *
+	 * @return array<string, array{string, string|null}>
+	 */
+	public static function zones(): array {
+		return array(
+			'utc'           => array( 'UTC', 'UTC' ),
+			'kolkata'       => array( 'Asia/Kolkata', 'Asia/Kolkata' ),
+			'new york'      => array( 'America/New_York', 'America/New_York' ),
+			'manual -03:30' => array( '-03:30', null ),
+			'manual +00:00' => array( '+00:00', null ),
 		);
 	}
 
