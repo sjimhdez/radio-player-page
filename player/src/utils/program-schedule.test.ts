@@ -106,6 +106,20 @@ describe('findActiveProgram', () => {
     expect(findActiveProgram(overlapping, programs, FRIDAY, at('09:30'))?.programName).toBe('News')
   })
 
+  it('picks the first saved slot when overlapping slots start together', () => {
+    const newsFirst: Schedule = {
+      friday: [slot('news', '09:00', '11:00'), slot('morning', '09:00', '10:00')],
+    }
+    const morningFirst: Schedule = {
+      friday: [slot('morning', '09:00', '10:00'), slot('news', '09:00', '11:00')],
+    }
+
+    expect(findActiveProgram(newsFirst, programs, FRIDAY, at('09:30'))?.programName).toBe('News')
+    expect(findActiveProgram(morningFirst, programs, FRIDAY, at('09:30'))?.programName).toBe(
+      'morning show',
+    )
+  })
+
   it('returns the previous day slot crossing midnight', () => {
     const tuesday: Schedule = { ...schedule, tuesday: [slot('news', '08:00', '09:00')] }
 

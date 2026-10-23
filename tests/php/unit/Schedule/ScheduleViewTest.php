@@ -375,6 +375,7 @@ final class ScheduleViewTest extends TestCase {
 		);
 
 		$this->assertSame( array( false, true ), $this->live( $schedule, '2026-10-19 00:10' ) );
+		$this->assertSame( array( false, true ), $this->live( $schedule, '2026-10-19 00:45' ) );
 		$this->assertSame( array( true, false ), $this->live( $schedule, '2026-10-19 23:10' ) );
 	}
 

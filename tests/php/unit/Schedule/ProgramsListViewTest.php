@@ -384,6 +384,7 @@ final class ProgramsListViewTest extends TestCase {
 
 		// Program 2 first: it appears on Monday.
 		$this->assertSame( array( false, true ), $this->live( $schedule, '2026-10-19 00:10' ) );
+		$this->assertSame( array( false, true ), $this->live( $schedule, '2026-10-19 00:45' ) );
 		$this->assertSame( array( true, false ), $this->live( $schedule, '2026-10-19 23:10' ) );
 	}
 

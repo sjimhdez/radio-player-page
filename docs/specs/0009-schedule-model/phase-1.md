@@ -1,5 +1,5 @@
 # Spec 0009 · Fase 1 — Modelo y programa en antena
-Estado: en curso · Inicio: 2026-10-23 · ADRs: 0044 (nuevo), 0006, 0017, 0019, 0023, 0028, 0029
+Estado: cerrada (2026-10-23) · Inicio: 2026-10-23 · ADRs: 0044 (nuevo), 0006, 0017, 0019, 0023, 0028, 0029
 
 ## Contexto
 - El modelo «día + minutos» está en `Schedule\Time::is_slot_active()` (lo usan `Now_Playing_Resolver`, `Schedule_View`, `Programs_List_View` y `radplapag_is_slot_active()`), en `player/src/utils/program-schedule.ts` (`isProgramActive()`, `findActiveProgram()`, `findIncomingProgram()`, `getProgramsForDay()`, `getAllProgramsWithSlots()`) y en `admin/js/schedule-rules.js`.
@@ -76,7 +76,7 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Verificación: `npm run test:php:unit && npm run test:php:integration -- --filter 'NowPlaying|BlockData|BlockAudit|ScheduleVectors' && npm run lint:phpstan`
 - Rojo: `NowPlayingResolverTest` → 3 fallos (`test_latest_started_slot_wins`, `test_latest_started_slot_wins_among_yesterdays` y el test editado, que daba la franja de ayer); un cuarto, en el minuto de inicio de la franja más tardía (09:30), cazó un error del primer intento (el tiempo desde el inicio salía 10080 y no 0). La integración tumbó el gemelo del test editado, `ScheduleVectorsTest::test_draft_program_on_air_today_falls_back_to_yesterday`: se editó igual con la aprobación del usuario (Contexto).
 - Resultado: una sola pasada por la semana (`Week::KEYS`) para «On Air» y «Coming up»; «Coming up» ya no limita a hoy y mañana, pero con la ventana de 10 minutos da lo mismo. `Schedule_View` y `Programs_List_View`: `is_live = contains( from_slot( día, start, end ), at( now ) )`, sin cambios en sus tests.
-- [x] hecha · commit: este
+- [x] hecha · commit: `c31a5bc`
 
 ### 1.7 K52 en PHP (`fix-bug`) (≤ 1 h)
 - Qué: «Coming up» omite la franja del mismo programa que empieza justo cuando acaba la actual. `test_currently_24_hour_slot_is_coming_up_while_on_air` (`NowPlayingResolverTest`, `BlockAuditTest`) → regresión; test del partido en la medianoche. Vectores de resolución nuevos (24 h diario y lunes 22:00–00:00 + martes 00:00–02:00, a las 23:55) con resultado PHP y `ts` del player (`currently`, `K52`).
@@ -86,14 +86,14 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Rojo: `NowPlayingResolverTest` → 2 fallos (24 h diario y partido en la medianoche: `upcoming` salía el mismo programa, martes `00:00-00:00` / `00:00-02:00`, en vez de `null`); `ScheduleVectorsTest` (unit) → K52-1 y K52-2; `BlockAuditTest::test_24_hour_slot_is_not_coming_up_while_on_air`, rojo sin el arreglo. Dos tests nuevos de la regla fijan sus límites: otro programa contiguo y el mismo programa tras un hueco sí se anuncian.
 - Resultado: el resolutor recoge los candidatos de «Coming up» y, tras saber cuál suena, salta el del mismo `program_id` que empieza en el minuto de la semana en que acaba la franja actual. En `player/src/utils/schedule-vectors.test.ts`, el test «currently differs» compara `current` y `upcoming` (antes solo `current`, y K52 solo difiere en `upcoming`). La integración tumbó `test_current_has_logo_and_upcoming_has_none`, editado con aprobación (Contexto). `test_draft_program_is_hidden` usa el mismo par contiguo y sigue en verde, pero ahora su `upcoming` es `null` también por K52; lo cubre a fondo la fase 2 (C10).
 - Changelog: «Coming up» ya no anuncia el mismo programa que sigue sonando (un programa de 24 h o partido en la medianoche) (K52).
-- [x] hecha · commit: este
+- [x] hecha · commit: `62ae06e`
 
 ### 1.8 C16 y K8 en el player (`fix-bug`) (≤ 1 h)
 - Qué: `isProgramActive()` (misma firma) y `findActiveProgram()` sobre `week-interval.ts` y D3: mira toda la semana, también ayer con hoy vacío. Tests `currently` de C16 y K8 → regresión; se edita el test aprobado del solape. Se borran los `ts` de 13, 14, C3-4 y C3-2. e2e `schedule.spec.ts` (C16, vector 13) → regresión: el lunes 00:10 se ve E.
 - Archivos: `player/src/utils/program-schedule.ts`, `program-schedule.test.ts`, `schedule-vectors.test.ts`, `schedule-vectors.json`, `tests/e2e/schedule.spec.ts`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/schedule.spec.ts`
-- [x] hecha · commit: ver `git log` («fix(0009): resolve the player's program on air on the week-interval model (1.8)»)
+- [x] hecha · commit: `b6d1e4b`
 - Rojo: Vitest → 7 fallos: `isProgramActive()` el lunes 01:00 con 22:00–02:00 (`true` en vez de `false`, C16), el test aprobado del solape (`morning show` en vez de `News`, D3), K8 (sábado 01:00: `undefined` en vez de `Late Night`) y los vectores 13, 14, C3-2 y C3-4 (C, C, `null` y F en vez de E, `null`, F y `null`). El e2e se pasó en verde con el arreglo ya en `dist/` (no se vio en rojo en la página; el rojo de la lógica lo da Vitest).
 - Changelog: el player ya no da por activa una franja que cruza la medianoche en la madrugada de su propio día (C16), muestra la franja de ayer que sigue sonando aunque hoy no tenga franjas (K8) y, con franjas solapadas, la que empezó más tarde (D3).
 
@@ -102,7 +102,7 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `program-schedule.ts`, `program-schedule.test.ts`, `tests/e2e/modals.spec.ts`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/modals.spec.ts`
-- [x] hecha · commit: ver `git log` («fix(0009): mark the previous day slot still on air in the schedule modal (1.9)»)
+- [x] hecha · commit: `f4adf97`
 - Rojo: Vitest → 1 fallo: `getProgramsForDay()` del lunes, el martes 01:00, da `[false, false, false]` en vez de `[false, false, true]` (Late Night 22:00–02:00). E2E → el del modal del horario falla en Chromium y WebKit (0 «On Air» en vez de 1). `getAllProgramsWithSlots()` pasa a `contains()` sin cambiar su comportamiento (sus tests siguen en verde).
 - Changelog: el modal del horario marca «On Air» en la franja de ayer que cruza la medianoche y sigue sonando.
 
@@ -111,9 +111,15 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `program-schedule.ts`, `program-schedule.test.ts`, `schedule-vectors.json`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/schedule.spec.ts tests/e2e/a11y.spec.ts`
-- [x] hecha · commit: ver `git log` («fix(0009): skip the same program's contiguous slot in the player's coming up (1.10)»)
+- [x] hecha · commit: `64a63f5`
 - Rojo: Vitest → 4 fallos: los dos tests de K52 y los vectores K52-1 y K52-2 (sin `ts`) dan «News»/«A» como siguiente en vez de `null` a las 23:55. Se añaden los dos límites de PHP (otro programa al acabar la franja; el mismo programa tras un hueco), en verde desde el principio. `findActiveProgram()` y `findIncomingProgram()` comparten `findActiveSlot()` (D3). E2E de `schedule.spec.ts` y `a11y.spec.ts`: 42/42.
 - Changelog: el player ya no anuncia en «Coming up» el mismo programa que sigue sonando (K52).
+
+## Cierre (2026-10-23)
+- Revisores: solo `spec-conformance-reviewer` y `backcompat-reviewer` (revisión mínima, decisión del usuario); `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` no se pasaron.
+- Arreglado en el cierre: test del empate de D3 en el player (`picks the first saved slot when overlapping slots start together`, visto en rojo con `<=` en `findActiveSlot()`); se recupera la aserción de las 00:45 en `ScheduleViewTest` y `ProgramsListViewTest` (la 1.5 la había sustituido por la de las 23:10); `_doc` de `schedule-vectors.json` al día; hashes de las tareas.
+- K52, verificación manual: `a11y.spec.ts` «blocks page with a program always on air» en verde sin cambios en las dos puntas (pasadas completas del 2026-10-23, de día). Las 23:55 las cubren `BlockAuditTest` y los vectores K52-1 y K52-2.
+- Backcompat: sin roturas. Pendiente para la release: el changelog de `readme.txt` con el cambio de `radplapag_is_slot_active()` (ADR 0044).
 
 ## Decisiones abiertas → ADR
 - ADR 0044 (tarea 1.1). Ninguna otra prevista.
