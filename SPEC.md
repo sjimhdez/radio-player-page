@@ -159,13 +159,17 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 
 | Bloque | Atributos (por defecto) | Datos del editor |
 |---|---|---|
-| `radplapag/schedule` | `stationIndex` (0), `dayOrder` (`"current_first"`), `showDescription` (true), `showExtendedDescription` (false) | `radplapagScheduleBlock` |
-| `radplapag/programs-list` | `stationIndex` (0), `showImage` (true), `showDescription` (true), `showExtendedDescription` (true), `showSchedule` (true) | `radplapagProgramsListBlock` |
-| `radplapag/now-playing` | `stationIndex` (0), `showLogo` (true) | `radplapagNowPlayingBlock` |
+| `radplapag/schedule` | `stationId` (0), `stationIndex` (0), `headingLevel` (2), `dayOrder` (`"current_first"`), `showDescription` (true), `showExtendedDescription` (false) | `radplapagScheduleBlock` |
+| `radplapag/programs-list` | `stationId` (0), `stationIndex` (0), `headingLevel` (2), `showImage` (true), `showDescription` (true), `showExtendedDescription` (true), `showSchedule` (true) | `radplapagProgramsListBlock` |
+| `radplapag/now-playing` | `stationId` (0), `stationIndex` (0), `headingLevel` (2), `showLogo` (true) | `radplapagNowPlayingBlock` |
 
-- `stationIndex` es la posición en `radplapag_get_stations()`. Los datos del editor son `{ stations: [ etiquetas ] }`.
+- `stationId` es el ID de la emisora (spec 0013, ADR 0049). Con `stationId > 0` el bloque pinta esa emisora si está publicada; si no, pinta lo mismo que con un índice fuera de rango (nada de otra emisora). Con 0 usa `stationIndex`, la posición en `radplapag_get_stations()`, como respaldo. Los bloques guardados sin `stationId` no se migran: pasan a ID cuando se elige la emisora en el editor, que guarda `stationId` y el `stationIndex` de ese momento.
+- Los datos del editor son `{ stations: [ { label, id } ] }`, en el orden de `radplapag_get_stations()`.
+- `headingLevel` (2–6; fuera de rango se pinta como 2) fija la etiqueta `<hN>` de los encabezados: el del día en `schedule` (`wp-block-heading`), el del programa en `programs-list` y «On Air» y «Coming up» en `now-playing` (`wp-block-title`), con sus clases y estilos en línea. Desde la 0013 no son `<header>` (K53, ADR 0049).
 - Se preservan los atributos y **el markup** del render (clases, `data-program-id`, estilos en línea): los temas pueden depender de ellos. El render se fija con snapshots en la spec 0002.
-- `now-playing` no imprime nada en el front si no hay programa en antena.
+- `now-playing` no imprime nada si no hay programa en antena; el aviso «Now Playing: nothing to show…» solo sale en la vista previa del editor (`/wp/v2/block-renderer/radplapag/now-playing`), no en otras respuestas REST (K48, ADR 0049). Sin enlace, imprime «On Air: » antes del nombre, como «Coming up:» (K49).
+- El enlace a la página del reproductor (`now-playing` y la franja en antena del horario) solo sale si esa página se sirve (§3.3: publicada, sin contraseña y no la de entradas con `show_on_front = 'page'`; K50).
+- La descripción extendida conserva sus saltos de línea con `<br />` dentro del mismo `<p class="wp-block-paragraph">` (K51).
 - Los tres bloques solo pintan las franjas de programas públicos (§3.3, ADR 0045): la franja de un borrador no sale, ni con «—». El markup de lo que sí sale no cambia.
 
 ### 3.6 Admin
@@ -266,3 +270,4 @@ Después vacía la caché de objetos. Lo que se añada a §3.1 se añade tambié
 | 0009 (fase 3) | §3.6: el admin calcula los solapes con el modelo de intervalos de la semana, como el servidor, y acepta `start == end` como 24 h (antes lo rechazaba con «Start and end times cannot be the same.»); `radplapagAdmin.strings.startEndSame` sigue y queda sin uso (K76). Corrige C3. | 0044 |
 | 0009 (fase 4) | §3.3: `RADPLAPAG_CONFIG` gana `timezone` (zona IANA del sitio o `null` con desfase manual); `timezoneOffset` se queda como reserva. §3.8: la hora de la emisora sigue el horario de verano con la página abierta (C9) y la diferencia del reloj sale en horas y minutos exactos (`+5:30`, `-5:45`). Corrige C9 y K10. | 0046 |
 | 0010 | §3.4: callback nuevo `radplapag_station_redirect_without_message` en `redirect_post_location` (10, 2). §3.6: el contenido de `radplapagAdmin` es interno (fuera `completeTimeFields` y `startEndSame`); guardado de la emisora campo a campo (la URL y la página, cada una si es válida; un adjunto rechazado conserva el anterior y avisa; con errores, la redirección sin el `message` de core); el selector de «Player Page» lista la asignada no publicada con su estado y excluye la página de entradas; aviso de contenido mixto. Corrige K15, K16, K39, K44, K74, K75, K38, AX3, AX4, K45, K89, AX5, K20, C13, K42, K37, K36, K27, K5, K34, K90 y K76. | 0047, 0048 |
+| 0013 | §3.5: atributo `stationId` (manda sobre `stationIndex`, que queda de respaldo; un ID no publicado no cae en otra emisora; sin migración de los bloques guardados) y datos del editor con `id`; el aviso de `now-playing` vacío solo en el `block-renderer` del editor; atributo `headingLevel` y encabezados `<hN>` en lugar de `<header>`, con las mismas clases y estilos; «On Air: » también sin enlace; sin enlace a una página del reproductor que no se sirve; saltos de línea de la descripción extendida con `<br />`. Corrige K46, K47, K48, K53, K49, K50, K51, K6 y K54. | 0049 |

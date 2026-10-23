@@ -37,7 +37,7 @@ Los tres bloques eligen la emisora por ID (`stationId`) con `stationIndex` de re
 - Archivos: `docs/adr/0049-blocks-choose-station-by-id-and-print-headings.md`, `docs/adr/README.md`, `SPEC.md`.
 - Test: — (docs).
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («docs(0013): add ADR 0049 (1.1)»)
 
 ### 1.2 K48: aviso solo en la vista previa del editor (D5) (≤ 1 h)
 - Qué: `fix-bug`. Primero comprueba D5. `test_currently_rest_content_carries_the_editor_notice` → regresión (con `query_vars['rest_route'] = '/wp/v2/pages/<id>'`, anónimo y editor: sin aviso), en rojo. `test_now_playing_empty_in_rest_request` → `test_now_playing_empty_in_block_renderer` (ruta del `block-renderer` fijada: con aviso; excepción §4.3). Arreglo en `blocks/now-playing/render.php`: `REST_REQUEST` **y** la ruta empieza por `/wp/v2/block-renderer/radplapag/now-playing`. Se corre el e2e de la vista previa (`blocks.spec.ts`, el test que ya comprueba «Now Playing: nothing to show») en WP 6.6 y en la última. **Si no vale en una punta: se para y se pregunta** (alternativa de D5 con callback en `rest_request_before_callbacks`, ampliando el ADR 0049). K48 → «corregido (spec 0013)».
