@@ -52,7 +52,8 @@ El player sigue la zona horaria del sitio (y su horario de verano) mientras la p
 - Archivos: `player/src/core/config/read-config.ts`, `player/src/core/config/read-config.test.ts`, `player/src/types/global.ts`
 - Test: primero (TDD): `read-config.test.ts`
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Rojo visto: las tres zonas válidas (`UTC`, `Asia/Kolkata`, `America/New_York`) daban `undefined`; los casos rechazados ya pasaban.
+- [x] hecha · commit: ver `git log` («feat(0009): read the site timezone in readConfig (4.3)»)
 
 ### 4.4 C9 en el núcleo del player (`fix-bug`) (≤ 1 h)
 - Qué: rojo primero: `timezone.test.ts` C9 → «follows daylight saving time with the site zone» (`getStationOffset('America/New_York', -5)` a las 08:30Z da −4; `04:30`) más casos de `getStationOffset()` (sin zona, zona inválida, +5:45, −3:30, `TZ` del navegador distinta, inicio y fin del DST); `now-playing.test.ts` C9 → `getNowPlaying(schedule, PROGRAMS, -5, 'America/New_York')` da «News»; vector `tz-dst-start` a `correct` (sin `currently`/`issue`/`correct`, con `timezone`) y vectores nuevos `tz-zone-dst-end`, `tz-zone-kathmandu`, `tz-zone-st-johns-dst`; `_doc` de `tz`. `schedule-vectors.test.ts` y `WeekTest::data_tz_vectors()` leen `timezone`. Después: `getStationOffset()` en `utils/timezone.ts` (docblocks de lo que decía «handles DST automatically») y `getNowPlaying(…, timezone?)`.

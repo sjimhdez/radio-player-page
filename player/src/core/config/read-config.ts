@@ -20,6 +20,21 @@ const VALID_THEMES = [
 const VALID_VISUALIZERS = ['oscilloscope', 'bars', 'particles', 'waterfall'] as const
 
 /**
+ * Whether Intl accepts the value as an IANA time zone (C9, ADR 0046).
+ */
+function isValidTimezone(timezone: unknown): timezone is string {
+  if (typeof timezone !== 'string' || timezone === '') {
+    return false
+  }
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: timezone })
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
  * The window.RADPLAPAG_* globals as WordPress prints them, before validation.
  */
 export interface RawGlobals {
@@ -62,6 +77,9 @@ export function readConfig({ config, programs, schedule }: RawGlobals): Resolved
       ? config.timezoneOffset
       : 0 // Default to UTC (0) if invalid
 
+  // The site zone; without it the player falls back to timezoneOffset (ADR 0046)
+  const timezone = isValidTimezone(config?.timezone) ? config.timezone : undefined
+
   // An empty array passes as an object (K17)
   const resolvedSchedule = schedule && typeof schedule === 'object' ? schedule : undefined
 
@@ -74,6 +92,7 @@ export function readConfig({ config, programs, schedule }: RawGlobals): Resolved
     themeColor,
     visualizer,
     timezoneOffset,
+    timezone,
     programs: Array.isArray(programs) ? programs : undefined,
     schedule: resolvedSchedule,
   }
