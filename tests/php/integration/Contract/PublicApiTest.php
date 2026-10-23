@@ -194,8 +194,9 @@ final class PublicApiTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * No radplapag_* function exists outside the table (uninstall.php aside: another test
-	 * may have loaded it).
+	 * No radplapag_* function exists outside the table. Only the plugin's own files count:
+	 * not uninstall.php (another test may have loaded it), tests/ or anything outside the
+	 * plugin, such as the e2e mu-plugin the tests environment mounts.
 	 */
 	public function test_no_other_radplapag_function_is_defined() {
 		$expected = array();
@@ -209,7 +210,9 @@ final class PublicApiTest extends WP_UnitTestCase {
 				continue;
 			}
 			$function = new ReflectionFunction( $name );
-			if ( 'uninstall.php' !== self::relative( (string) $function->getFileName() ) ) {
+			$file     = (string) $function->getFileName();
+			$relative = self::relative( $file );
+			if ( $relative !== $file && 'uninstall.php' !== $relative && 0 !== strpos( $relative, 'tests/' ) ) {
 				$defined[] = $function->getName();
 			}
 		}
