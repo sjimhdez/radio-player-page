@@ -118,7 +118,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `includes/radplapag-station-cpt.php`, `tests/php/integration/Admin/AdminScreensTest.php`, `docs/known-issues.md`
 - Test: primero `test_details_box_leaves_out_the_posts_page (K27)` y `test_details_box_warns_when_the_assigned_page_is_the_posts_page (K27)`, en rojo. Más uno con `show_on_front = 'posts'` (se lista y no avisa).
 - Verificación: `npm run test:php:integration -- --filter AdminScreensTest`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): «…leaves_out_the_posts_page» (la página de entradas sale en el `select`) y «…warns_when_the_assigned_page_is_the_posts_page» (sin aviso). El de `show_on_front = 'posts'` es guarda y ya pasaba. La página asignada que es la de entradas ya estaba en la lista (publicada): solo se añade el aviso, sin enlace ARIA, como el de K36. Diff de la fixture: solo espacio en blanco tras el `select` (el `if` nuevo). Verde: `AdminScreensTest` 42/42, integración completa 1002/1002 y `npm run check`.
+- Changelog: «The Player Page select leaves out the posts page, and warns if a station already uses it.»
+- [x] hecha · commit: ver `git log` («fix(0010): leave the posts page out of the player page select (3.8)»)
 
 ### 3.9 K5 + K34: descripciones del programa (≤ 45 min) — `fix-bug`
 - Qué: `truncate()` con `mb_strlen`/`mb_substr` (`'UTF-8'`). Las constantes pasan a `*_MAX_CHARS` (la clase es interna). `Program_Meta_Saver` hace `wp_slash()` de las dos descripciones antes de `update_post_meta()`.

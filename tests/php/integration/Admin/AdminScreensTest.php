@@ -619,6 +619,57 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * With a static front page, the posts page never shows the player, so the
+	 * select leaves it out (K27).
+	 */
+	public function test_details_box_leaves_out_the_posts_page() {
+		$posts_page = $this->factory_rpp->page( 'Blog' );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', $posts_page );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM' ) );
+
+		$this->assertStringNotContainsString( 'value="' . $posts_page . '"', $this->select( $html, 'radplapag_station_player_page' ) );
+		$this->assertStringNotContainsString( 'This page is the posts page', $html );
+	}
+
+	/**
+	 * A station already assigned to the posts page keeps it, selected, with a
+	 * notice that the player is not shown on it (K27).
+	 */
+	public function test_details_box_warns_when_the_assigned_page_is_the_posts_page() {
+		$posts_page = $this->factory_rpp->page( 'Blog' );
+		$station    = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $posts_page ) );
+		update_option( 'show_on_front', 'page' );
+		update_option( 'page_for_posts', $posts_page );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertSame( array( (string) $posts_page ), $this->selected( $html, 'radplapag_station_player_page' ) );
+		$this->assertSame( 1, substr_count( $this->select( $html, 'radplapag_station_player_page' ), 'value="' . $posts_page . '"' ) );
+		$this->assertStringContainsString(
+			'<span class="radplapag-field-notice">This page is the posts page; the player is not shown on it.</span>',
+			$html
+		);
+	}
+
+	/**
+	 * With the latest posts on the front page, page_for_posts is not the posts
+	 * page, so it is listed like any other, without the notice (K27).
+	 */
+	public function test_details_box_lists_page_for_posts_when_the_front_page_shows_posts() {
+		$posts_page = $this->factory_rpp->page( 'Blog' );
+		$station    = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $posts_page ) );
+		update_option( 'show_on_front', 'posts' );
+		update_option( 'page_for_posts', $posts_page );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertSame( array( (string) $posts_page ), $this->selected( $html, 'radplapag_station_player_page' ) );
+		$this->assertStringNotContainsString( 'This page is the posts page', $html );
+	}
+
+	/**
 	 * On an https site, a saved http stream shows the mixed content notice next to
 	 * the URL, tied to the input with aria-describedby (C13).
 	 */

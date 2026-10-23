@@ -342,6 +342,20 @@ function radplapag_render_station_details_meta_box( $post ) {
 	$pages = get_pages( array( 'post_status' => 'publish' ) );
 	$pages = is_array( $pages ) ? $pages : array();
 
+	// The posts page never shows the player, so it is left out unless already assigned (K27).
+	$posts_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
+	if ( $posts_page > 0 && $posts_page !== $player_page ) {
+		$pages = array_values(
+			array_filter(
+				$pages,
+				function ( $page ) use ( $posts_page ) {
+					return $posts_page !== $page->ID;
+				}
+			)
+		);
+	}
+	$is_posts_page = $posts_page > 0 && $posts_page === $player_page;
+
 	// An assigned page that is not published stays listed, with its status (K36).
 	$unpublished_page  = null;
 	$unpublished_label = '';
@@ -384,6 +398,9 @@ function radplapag_render_station_details_meta_box( $post ) {
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
 			<?php if ( $unpublished_page ) : ?>
 				<span class="radplapag-field-notice"><?php esc_html_e( 'This page is not published; the player is not shown until it is.', 'radio-player-page' ); ?></span>
+			<?php endif; ?>
+			<?php if ( $is_posts_page ) : ?>
+				<span class="radplapag-field-notice"><?php esc_html_e( 'This page is the posts page; the player is not shown on it.', 'radio-player-page' ); ?></span>
 			<?php endif; ?>
 		</p>
 		<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="<?php echo esc_attr( $site_scheme ); ?>">
