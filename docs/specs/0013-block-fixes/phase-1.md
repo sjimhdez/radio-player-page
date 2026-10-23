@@ -88,7 +88,11 @@ Los tres bloques eligen la emisora por ID (`stationId`) con `stationIndex` de re
 - Archivos: `blocks/programs-list/src/index.js`, `blocks/now-playing/src/edit.js`, `tests/e2e/blocks.spec.ts`, `docs/known-issues.md`.
 - Test: e2e (los de 1.6 extendidos).
 - Verificación: `npm --prefix blocks/programs-list run check && npm --prefix blocks/now-playing run check && npm run test:e2e -- blocks.spec.ts`
-- [ ] hecha · commit: —
+- Hecho: sin `BY_ID` (los tres eligen por ID en `chooseStation`); los dos K47 y el D3 se repiten por bloque (`insertBlock`, vista previa vacía por bloque en `EMPTY_PREVIEW`). El D3 de `now-playing` no mira la vista previa (depende del reloj): basta la petición con `stationId` que espera `chooseStation`. El D2 sigue solo en `schedule` (la página «E2E Blocks Legacy»).
+- Rojo: el código es el de 1.6 repetido, así que no se vio en rojo aparte; la regresión de K47 ya se vio fallar en la 1.6 con el mismo test.
+- *Flaky* encontrado y corregido en el test: si se elige la emisora antes de que llegue la primera vista previa, `ServerSideRender` pierde la siguiente (los atributos sí cambian). Salió 3 veces de 48 en el D3 (también podía tocarle a `schedule`); el D3 espera ahora la primera respuesta, como los K47. En verde: `blocks.spec.ts` 72/72 (`--repeat-each 3`, Chromium y WebKit, WP 6.6.10).
+- Changelog: el editor de los tres bloques avisa cuando la emisora del bloque ya no existe o no está publicada, previsualiza lo mismo que el front y deja elegir otra (amplía la línea de la 1.6).
+- [x] hecha · commit: ver `git log` («fix(0013): pick the programs list and now playing station by ID in the editor (1.7)»)
 
 ### 1.8 K54: registro solo con `{ edit }` (≤ 1 h)
 - Qué: `fix-bug`. Primero el e2e en rojo: un filtro `gettext` en el mu-plugin de test (detrás de la cabecera `X-Radplapag-E2e-Translate: 1`, como los otros interruptores) traduce los tres títulos del `block.json` y el *inserter* los muestra traducidos (hoy fallan `schedule` y `programs-list`). Luego `registerBlockType( metadata.name, { edit: Edit } )` en los dos. K54 → corregido.

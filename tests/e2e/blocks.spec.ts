@@ -100,11 +100,12 @@ async function editorCanvas( page: Page ): Promise< Page | FrameLocator > {
 		: page;
 }
 
-/**
- * Blocks whose select picks the station by ID (K47, spec 0013); the other two
- * still pick it by position until task 1.7.
- */
-const BY_ID: readonly string[] = [ 'radplapag/schedule' ];
+/** What each block previews for a station that is gone (K47). */
+const EMPTY_PREVIEW: Record< ( typeof BLOCKS )[ number ], string > = {
+	'radplapag/now-playing': 'Now Playing: nothing to show',
+	'radplapag/schedule': 'No radio schedule for this station.',
+	'radplapag/programs-list': 'No radio shows for this station.',
+};
 
 const MISSING_NOTICE =
 	'This radio station no longer exists or is not published. Choose another one.';
@@ -169,19 +170,27 @@ function insertBlocks( page: Page ) {
 }
 
 /**
- * Inserts a schedule block with the given attributes and returns its client ID.
+ * Inserts a block with the given attributes and returns its client ID.
  *
  * @param page       Editor page.
+ * @param name       Block name.
  * @param attributes Block attributes.
  */
-function insertSchedule( page: Page, attributes: Record< string, number > ) {
-	return page.evaluate( ( attrs ) => {
-		// @ts-expect-error -- wp is the editor global.
-		const { blocks, data } = window.wp;
-		const block = blocks.createBlock( 'radplapag/schedule', attrs );
-		data.dispatch( 'core/block-editor' ).insertBlocks( [ block ] );
-		return block.clientId as string;
-	}, attributes );
+function insertBlock(
+	page: Page,
+	name: string,
+	attributes: Record< string, number >
+) {
+	return page.evaluate(
+		( [ blockName, attrs ] ) => {
+			// @ts-expect-error -- wp is the editor global.
+			const { blocks, data } = window.wp;
+			const block = blocks.createBlock( blockName, attrs );
+			data.dispatch( 'core/block-editor' ).insertBlocks( [ block ] );
+			return block.clientId as string;
+		},
+		[ name, attributes ] as const
+	);
 }
 
 /**
@@ -271,8 +280,7 @@ async function inspectBlock( page: Page, clientId: string ) {
 
 /**
  * Selects a block and picks a station in its inspector, then checks the
- * attributes landed on this block: the ID and the index of that moment for the
- * blocks that pick by ID (D3), the index for the others.
+ * attributes landed on this block: the ID and the index of that moment (D3).
  *
  * @param page     Editor page.
  * @param clientId Block client ID.
@@ -281,10 +289,7 @@ async function inspectBlock( page: Page, clientId: string ) {
 async function chooseStation( page: Page, clientId: string, station: string ) {
 	const { name, select } = await inspectBlock( page, clientId );
 	const expected = await editorStation( page, station );
-	const byId = BY_ID.includes( name );
-	const attribute = byId
-		? `attributes[stationId]=${ expected.stationId }&`
-		: `attributes[stationIndex]=${ expected.stationIndex }&`;
+	const attribute = `attributes[stationId]=${ expected.stationId }&`;
 	// ServerSideRender fetches the preview debounced; leaving the block before
 	// the request goes out loses it (WP 6.6), so wait for this block's request.
 	const preview = page.waitForResponse( ( response ) => {
@@ -298,10 +303,8 @@ async function chooseStation( page: Page, clientId: string, station: string ) {
 	await preview;
 	await expect
 		.poll( () => stationAttributesOf( page, clientId ) )
-		.toEqual( byId ? expected : { ...expected, stationId: 0 } );
-	await expect( select ).toHaveValue(
-		String( byId ? expected.stationId : expected.stationIndex )
-	);
+		.toEqual( expected );
+	await expect( select ).toHaveValue( String( expected.stationId ) );
 }
 
 test.describe( 'blocks: editor', () => {
@@ -363,66 +366,88 @@ test.describe( 'blocks: editor', () => {
 	// K47: a station that is gone (an unknown ID, or no ID and an index past the
 	// last station) gets a notice and the empty option, and the preview shows
 	// what the front end prints, never another station.
-	for ( const [ label, attributes, query ] of [
-		[
-			'an out-of-range station index',
-			{ stationIndex: 999 },
-			'attributes[stationIndex]=999&',
-		],
-		[
-			'an unknown station ID',
-			{ stationId: 999999, stationIndex: 0 },
-			'attributes[stationId]=999999&',
-		],
-	] as const ) {
-		test( `warns and previews the empty block for ${ label } (K47)`, async ( {
+	for ( const name of BLOCKS ) {
+		for ( const [ label, attributes, query ] of [
+			[
+				'an out-of-range station index',
+				{ stationIndex: 999 },
+				'attributes[stationIndex]=999&',
+			],
+			[
+				'an unknown station ID',
+				{ stationId: 999999, stationIndex: 0 },
+				'attributes[stationId]=999999&',
+			],
+		] as const ) {
+			test( `${ name } warns and previews the empty block for ${ label } (K47)`, async ( {
+				page,
+			} ) => {
+				await openNewPost( page );
+				const preview = page.waitForResponse( ( response ) =>
+					decodeURIComponent( response.url() ).includes(
+						`/block-renderer/${ name }?`
+					)
+				);
+				const clientId = await insertBlock( page, name, attributes );
+
+				expect(
+					decodeURIComponent( ( await preview ).url() )
+				).toContain( query );
+				const { inspector, select } = await inspectBlock(
+					page,
+					clientId
+				);
+				await expect( inspector ).toContainText( MISSING_NOTICE );
+				await expect( select ).toHaveValue( '' );
+				const canvas = await editorCanvas( page );
+				await expect(
+					canvas.locator( `[data-type="${ name }"] .is-empty` )
+				).toContainText( EMPTY_PREVIEW[ name ] );
+				expect( await stationAttributesOf( page, clientId ) ).toEqual( {
+					stationId: 0,
+					stationIndex: 0,
+					...attributes,
+				} );
+			} );
+		}
+
+		test( `${ name }: choosing a station from the notice stores its ID and index (D3)`, async ( {
 			page,
 		} ) => {
 			await openNewPost( page );
-			const preview = page.waitForResponse( ( response ) =>
+			// Choosing before the first preview arrives can lose the next one
+			// (ServerSideRender), so wait for it as a user would.
+			const first = page.waitForResponse( ( response ) =>
 				decodeURIComponent( response.url() ).includes(
-					'/block-renderer/radplapag/schedule?'
+					`/block-renderer/${ name }?`
 				)
 			);
-			const clientId = await insertSchedule( page, attributes );
-
-			expect( decodeURIComponent( ( await preview ).url() ) ).toContain(
-				query
-			);
-			const { inspector, select } = await inspectBlock( page, clientId );
-			await expect( inspector ).toContainText( MISSING_NOTICE );
-			await expect( select ).toHaveValue( '' );
-			const canvas = await editorCanvas( page );
-			await expect(
-				canvas.locator( '[data-type="radplapag/schedule"] .is-empty' )
-			).toHaveText( 'No radio schedule for this station.' );
-			expect( await stationAttributesOf( page, clientId ) ).toEqual( {
-				stationId: 0,
-				stationIndex: 0,
-				...attributes,
+			const clientId = await insertBlock( page, name, {
+				stationIndex: 999,
 			} );
+			await first;
+			const { inspector } = await inspectBlock( page, clientId );
+			await expect( inspector ).toContainText( MISSING_NOTICE );
+
+			await chooseStation( page, clientId, SCHEDULED_STATION );
+
+			await expect( inspector ).not.toContainText( MISSING_NOTICE );
+			await expect( inspector ).not.toContainText( 'by its position' );
+			// now-playing depends on the clock: the request with the ID, checked
+			// by chooseStation, is what it previews.
+			const canvas = await editorCanvas( page );
+			const block = canvas.locator( `[data-type="${ name }"]` );
+			if ( name === 'radplapag/schedule' ) {
+				await expect(
+					block.locator( 'section[data-day]' )
+				).toHaveCount( GRID_DAYS.length );
+			} else if ( name === 'radplapag/programs-list' ) {
+				await expect(
+					block.locator( 'article[data-program-id]' )
+				).toHaveCount( LETTERS.length );
+			}
 		} );
 	}
-
-	test( 'choosing a station from the notice stores its ID and index (D3)', async ( {
-		page,
-	} ) => {
-		await openNewPost( page );
-		const clientId = await insertSchedule( page, { stationIndex: 999 } );
-		const { inspector } = await inspectBlock( page, clientId );
-		await expect( inspector ).toContainText( MISSING_NOTICE );
-
-		await chooseStation( page, clientId, SCHEDULED_STATION );
-
-		await expect( inspector ).not.toContainText( MISSING_NOTICE );
-		await expect( inspector ).not.toContainText( 'by its position' );
-		const canvas = await editorCanvas( page );
-		await expect(
-			canvas.locator(
-				'[data-type="radplapag/schedule"] section[data-day]'
-			)
-		).toHaveCount( GRID_DAYS.length );
-	} );
 
 	test( 'a block saved without a station ID shows help and stays unchanged (D2)', async ( {
 		page,

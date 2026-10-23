@@ -10,16 +10,36 @@
 
 import { registerBlockType } from '@wordpress/blocks';
 import { useBlockProps, InspectorControls } from '@wordpress/block-editor';
-import { SelectControl, PanelBody, ToggleControl } from '@wordpress/components';
-import { __ } from '@wordpress/i18n';
+import {
+	Notice,
+	SelectControl,
+	PanelBody,
+	ToggleControl,
+} from '@wordpress/components';
+import { __, sprintf } from '@wordpress/i18n';
 import ServerSideRender from '@wordpress/server-side-render';
 
 import metadata from '../block.json';
 
 const blockName = metadata.name;
 
+/**
+ * Label of a station in the select.
+ *
+ * @param {Object} station Editor data of the station.
+ * @param {number} index   Its position in the list.
+ * @return {string} The label.
+ */
+function stationLabel( station, index ) {
+	return (
+		station.label ||
+		__( 'Radio Station', 'radio-player-page' ) + ' ' + ( index + 1 )
+	);
+}
+
 function Edit( { attributes, setAttributes } ) {
 	const {
+		stationId,
 		stationIndex,
 		showImage,
 		showDescription,
@@ -28,6 +48,15 @@ function Edit( { attributes, setAttributes } ) {
 	} = attributes;
 	const blockProps = useBlockProps();
 	const stations = window.radplapagProgramsListBlock?.stations || [];
+	// The station the front end shows: by ID, or by position without one.
+	const resolvedIndex =
+		stationId > 0
+			? stations.findIndex(
+					( station ) => Number( station.id ) === stationId
+				)
+			: stationIndex;
+	const resolved = stations[ resolvedIndex ];
+	const isMissing = stations.length > 0 && ! resolved;
 	const options =
 		stations.length === 0
 			? [
@@ -36,21 +65,30 @@ function Edit( { attributes, setAttributes } ) {
 							'No Radio Stations configured',
 							'radio-player-page'
 						),
-						value: 0,
+						value: '',
 					},
 				]
 			: stations.map( ( station, index ) => ( {
-					label:
-						station.label ||
-						__( 'Radio Station', 'radio-player-page' ) +
-							' ' +
-							( index + 1 ),
-					value: index,
+					label: stationLabel( station, index ),
+					value: String( station.id ),
 				} ) );
-	const safeIndex = Math.max(
-		0,
-		Math.min( stationIndex, stations.length ? stations.length - 1 : 0 )
-	);
+	if ( stations.length > 0 && ! ( stationId > 0 && resolved ) ) {
+		options.unshift( {
+			label: __( 'Select a radio station', 'radio-player-page' ),
+			value: '',
+		} );
+	}
+	const help =
+		stationId > 0 || ! resolved
+			? undefined
+			: sprintf(
+					/* translators: %s: Radio station title. */
+					__(
+						'Showing “%s” by its position in the list of stations. Choose a station to keep it.',
+						'radio-player-page'
+					),
+					stationLabel( resolved, resolvedIndex )
+				);
 	const showImageValue = showImage !== false;
 	const showDescriptionValue = showDescription !== false;
 	const showExtendedDescriptionValue = showExtendedDescription !== false;
@@ -66,15 +104,33 @@ function Edit( { attributes, setAttributes } ) {
 					) }
 					initialOpen={ true }
 				>
+					{ isMissing && (
+						<Notice status="warning" isDismissible={ false }>
+							{ __(
+								'This radio station no longer exists or is not published. Choose another one.',
+								'radio-player-page'
+							) }
+						</Notice>
+					) }
 					<SelectControl
 						label={ __( 'Radio Station', 'radio-player-page' ) }
-						value={ safeIndex }
-						options={ options }
-						onChange={ ( value ) =>
-							setAttributes( {
-								stationIndex: parseInt( value, 10 ),
-							} )
+						value={
+							stationId > 0 && resolved ? String( stationId ) : ''
 						}
+						options={ options }
+						help={ help }
+						onChange={ ( value ) => {
+							const id = parseInt( value, 10 );
+							const index = stations.findIndex(
+								( station ) => Number( station.id ) === id
+							);
+							if ( index >= 0 ) {
+								setAttributes( {
+									stationId: id,
+									stationIndex: index,
+								} );
+							}
+						} }
 					/>
 					<ToggleControl
 						label={ __(
@@ -122,7 +178,8 @@ function Edit( { attributes, setAttributes } ) {
 				<ServerSideRender
 					block={ blockName }
 					attributes={ {
-						stationIndex: safeIndex,
+						stationId,
+						stationIndex,
 						showImage: showImageValue,
 						showDescription: showDescriptionValue,
 						showExtendedDescription: showExtendedDescriptionValue,
