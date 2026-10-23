@@ -384,6 +384,36 @@ describe( 'station-admin.js: rows and submit', () => {
 		);
 		expect( document.activeElement ).toBe( playerPage );
 	} );
+
+	// docs/known-issues.md K89: a collapsed meta box hid the error that
+	// blocked the submit.
+	it( 'opens the collapsed meta box of the first error on submit (K89)', async () => {
+		const screen = await mountSchedule( {
+			monday: [
+				{ program: 'A', start: '06:00', end: '10:00' },
+				{ program: 'B', start: '09:00', end: '11:00' },
+			],
+		} );
+		const box = document.createElement( 'div' );
+		box.className = 'postbox closed';
+		const toggle = document.createElement( 'button' );
+		toggle.className = 'handlediv';
+		toggle.setAttribute( 'aria-expanded', 'false' );
+		const inside = document.createElement( 'div' );
+		inside.className = 'inside';
+		screen.container.before( box );
+		box.append( toggle, inside );
+		inside.append( screen.container );
+
+		const { firstError } = screen.submit();
+
+		expect( screen.rows( 'monday' ) ).toContain( firstError );
+		expect( box.classList ).not.toContain( 'closed' );
+		expect( toggle.getAttribute( 'aria-expanded' ) ).toBe( 'true' );
+		expect( document.activeElement ).toBe(
+			firstError.querySelector( '.radplapag-program-id' )
+		);
+	} );
 } );
 
 /**

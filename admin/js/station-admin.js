@@ -743,6 +743,15 @@
 			if ( hasErrors ) {
 				e.preventDefault();
 				if ( firstErrorElement ) {
+					// A collapsed meta box would hide the error.
+					const box = firstErrorElement.closest( '.postbox.closed' );
+					if ( box ) {
+						box.classList.remove( 'closed' );
+						const toggle = box.querySelector( '.handlediv' );
+						if ( toggle ) {
+							toggle.setAttribute( 'aria-expanded', 'true' );
+						}
+					}
 					const focusTarget =
 						firstErrorElement.querySelector(
 							'.radplapag-program-id'

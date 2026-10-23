@@ -72,7 +72,10 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Archivos: `admin/js/station-admin.js`, `tests/e2e/admin.spec.ts`, `tests/js/admin/station-validation.test.js`, `docs/known-issues.md`
 - Test: primero el `currently` de 2.1 a regresión (mensaje visible y foco en el `select`) y un Vitest que envuelve el contenedor en `.postbox.closed`.
 - Verificación: `npm test -- tests/js/admin && npx playwright test tests/e2e/admin.spec.ts -g "collapsed"`
-- [ ] hecha · commit: —
+- Rojo: Vitest «opens the collapsed meta box of the first error on submit (K89)» (`expected [ 'postbox', 'closed' ] to not include 'closed'`); e2e «opens the schedule box to show the error that blocks the submit (K89)», Chromium y WebKit (`not.toHaveClass`: `Received string: "postbox closed"`).
+- El foco del e2e no va a la fila añadida sino a la franja guardada de 10:00, que también se solapa y va antes: el test comprueba que hay un `.radplapag-program-id:focus` con `aria-invalid` dentro del meta box, como el de K45.
+- Changelog: al guardar con un error en un meta box contraído, el meta box se abre para mostrarlo.
+- [x] hecha · commit: ver `git log` («fix(0010): open the collapsed meta box of the first error (2.5)»)
 
 ### 2.6 AX5: `#b32d2e` en el error y en «Remove Time Slot» en *hover* (≤ 30 min) — `fix-bug`
 - Qué: en `admin.css`, `.radplapag-program-error-message` y `.radplapag-remove-program:hover` pasan a `#b32d2e`. Los bordes siguen en `#dc3232`, porque como contraste de no texto pasan.

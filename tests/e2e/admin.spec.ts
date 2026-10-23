@@ -486,7 +486,7 @@ test.describe( 'admin: validation and notices', () => {
 				}
 			} );
 
-			test( 'currently blocks the submit without a visible message when the schedule box is collapsed (K89)', async ( {
+			test( 'opens the schedule box to show the error that blocks the submit (K89)', async ( {
 				page,
 			} ) => {
 				const row = await addMondaySlot( page, 3 );
@@ -502,8 +502,6 @@ test.describe( 'admin: validation and notices', () => {
 
 				await page.locator( '#publish' ).click();
 
-				// The row gets its error and the submit stops, but the closed
-				// box hides `.inside`, so nothing on screen says why.
 				const message = row.locator(
 					'.radplapag-program-error-message.show'
 				);
@@ -511,8 +509,19 @@ test.describe( 'admin: validation and notices', () => {
 					`This time slot overlaps with: ${ VALIDATION.program } (Monday, 10:00 - 11:00)`
 				);
 				expect( await submitOutcome( page ) ).toBe( 'blocked' );
-				await expect( message ).toBeHidden();
-				await expect( box ).toHaveClass( /\bclosed\b/ );
+				await expect( box ).not.toHaveClass( /\bclosed\b/ );
+				await expect( box.locator( '.handlediv' ) ).toHaveAttribute(
+					'aria-expanded',
+					'true'
+				);
+				await expect( message ).toBeVisible();
+				// The saved 10:00 slot overlaps too and comes first.
+				const focused = box.locator( '.radplapag-program-id:focus' );
+				await expect( focused ).toHaveCount( 1 );
+				await expect( focused ).toHaveAttribute(
+					'aria-invalid',
+					'true'
+				);
 			} );
 		} );
 	} );
