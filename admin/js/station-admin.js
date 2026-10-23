@@ -127,9 +127,9 @@
 		writes.forEach( function ( item ) {
 			const row = rows[ item.day ][ item.index ];
 			if ( item.error ) {
-				showProgramError( row, rules.message( item.error, s ) );
+				setRowError( row, rules.message( item.error, s ) );
 			} else {
-				clearProgramError( row );
+				clearRowError( row );
 			}
 		} );
 	}
@@ -152,15 +152,11 @@
 		return { valid: ! writes[ writes.length - 1 ].error };
 	}
 
-	function showProgramError( programRow, message ) {
-		programRow.classList.add( 'radplapag-error' );
-		const startInput = programRow.querySelector(
-			'.radplapag-program-start'
-		);
-		const endInput = programRow.querySelector( '.radplapag-program-end' );
-		const programIdSelect = programRow.querySelector(
-			'.radplapag-program-id'
-		);
+	function setRowError( row, message ) {
+		row.classList.add( 'radplapag-error' );
+		const startInput = row.querySelector( '.radplapag-program-start' );
+		const endInput = row.querySelector( '.radplapag-program-end' );
+		const programIdSelect = row.querySelector( '.radplapag-program-id' );
 		if ( startInput ) {
 			startInput.classList.add( 'radplapag-error' );
 		}
@@ -170,7 +166,7 @@
 		if ( programIdSelect ) {
 			programIdSelect.classList.add( 'radplapag-error' );
 		}
-		const existingError = programRow.querySelector(
+		const existingError = row.querySelector(
 			'.radplapag-program-error-message'
 		);
 		if ( existingError ) {
@@ -179,16 +175,16 @@
 		const errorMsg = document.createElement( 'div' );
 		errorMsg.className = 'radplapag-program-error-message show';
 		errorMsg.textContent = message;
-		programRow.appendChild( errorMsg );
+		row.appendChild( errorMsg );
 	}
 
-	function clearProgramError( programRow ) {
-		programRow.classList.remove( 'radplapag-error' );
-		const inputs = programRow.querySelectorAll( 'input, select' );
+	function clearRowError( row ) {
+		row.classList.remove( 'radplapag-error' );
+		const inputs = row.querySelectorAll( 'input, select' );
 		inputs.forEach( function ( el ) {
 			el.classList.remove( 'radplapag-error' );
 		} );
-		const errorMsg = programRow.querySelector(
+		const errorMsg = row.querySelector(
 			'.radplapag-program-error-message'
 		);
 		if ( errorMsg ) {
@@ -392,7 +388,7 @@
 		);
 	}
 
-	function buildProgramSelect( day, nextIndex ) {
+	function buildProgramSelect( day, index ) {
 		const selectProgramOpt = s.selectProgram || 'Select Radio Show';
 		const options = [
 			createElement( 'option', { value: '' }, [
@@ -418,7 +414,7 @@
 		return createElement(
 			'select',
 			{
-				name: scheduleFieldName( day, nextIndex, 'program_id' ),
+				name: scheduleFieldName( day, index, 'program_id' ),
 				class: 'radplapag-program-id',
 				style: 'width: 200px; margin-right: 24px;',
 			},
@@ -456,7 +452,11 @@
 		);
 	}
 
-	function buildProgramRow( day, nextIndex ) {
+	function nextIndex( dayWrapper ) {
+		return dayWrapper.querySelectorAll( '.radplapag-program-row' ).length;
+	}
+
+	function buildProgramRow( day, index ) {
 		const toLabel = decodeEntities( s.to || 'to' );
 		const removeTimeSlot = decodeEntities(
 			s.removeTimeSlot || 'Remove Time Slot'
@@ -464,12 +464,12 @@
 		const rerunLabel = decodeEntities( s.scheduleRerun || 'Rerun' );
 		const newRow = document.createElement( 'div' );
 		newRow.className = 'radplapag-program-row';
-		newRow.setAttribute( 'data-program-index', nextIndex );
+		newRow.setAttribute( 'data-program-index', index );
 		newRow.append(
-			buildProgramSelect( day, nextIndex ),
+			buildProgramSelect( day, index ),
 			createElement( 'input', {
 				type: 'time',
-				name: scheduleFieldName( day, nextIndex, 'start' ),
+				name: scheduleFieldName( day, index, 'start' ),
 				value: '',
 				class: 'radplapag-program-start',
 				style: 'width: 100px; margin-right: 5px;',
@@ -479,7 +479,7 @@
 			] ),
 			createElement( 'input', {
 				type: 'time',
-				name: scheduleFieldName( day, nextIndex, 'end' ),
+				name: scheduleFieldName( day, index, 'end' ),
 				value: '',
 				class: 'radplapag-program-end',
 				style: 'width: 100px; margin-right: 10px;',
@@ -493,7 +493,7 @@
 				[
 					createElement( 'input', {
 						type: 'checkbox',
-						name: scheduleFieldName( day, nextIndex, 'is_rerun' ),
+						name: scheduleFieldName( day, index, 'is_rerun' ),
 						value: '1',
 						class: 'radplapag-program-is-rerun',
 					} ),
@@ -617,13 +617,10 @@
 					if ( ! dayWrapper || ! dayProgramsList ) {
 						return;
 					}
-					const existingPrograms = dayProgramsList.querySelectorAll(
-						'.radplapag-program-row'
+					const newRow = buildProgramRow(
+						day,
+						nextIndex( dayWrapper )
 					);
-					const nextIndex = existingPrograms
-						? existingPrograms.length
-						: 0;
-					const newRow = buildProgramRow( day, nextIndex );
 					dayProgramsList.appendChild( newRow );
 					setupGroupValidation( newRow );
 				}

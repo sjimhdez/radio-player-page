@@ -40,7 +40,7 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `admin/js/station-admin.js`
 - Test: caracterización existente, sin editar.
 - Verificación: `npm test && npm run lint:js`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («refactor(0010): add nextIndex() and a single row error painter (1.2)»)
 
 ### 1.3 K15: índice = mayor `data-program-index` del día + 1 (≤ 1 h) — `fix-bug`
 - Qué: `nextIndex()` recorre las filas del día y devuelve el mayor `data-program-index` + 1 (0 si no hay filas).
