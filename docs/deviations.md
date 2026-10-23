@@ -2,6 +2,14 @@
 
 Lo que cada spec hizo distinto de lo escrito, con su motivo y quién lo decidió. Las de la spec activa están en `status.md` y pasan aquí al cerrarla (`close-phase`). Las más recientes van primero.
 
+## Spec 0009
+Detalle en cada `phase-N.md`. Los cambios de contrato van con su ADR (0044–0046).
+
+- Fases 1 a 4 (cierre): solo `spec-conformance-reviewer` y `backcompat-reviewer`, sobre el diff de cada fase; `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` quedan para antes de la release. Decidido por el usuario (2026-10-23).
+- Fase 4 (4.2): D8 decía `get_option( 'timezone_string' )`; la zona sale de `$now->getTimezone()->getName()` (el mismo `$now` de `wp_timezone()` que da `timezoneOffset`), `null` si es un desfase `±HH:MM`. Equivale y no añade un parámetro al núcleo (ADR 0046).
+- Fase 4 (4.4 y 4.5): D6 decía calcular día y hora con `Intl.DateTimeFormat` (`weekday`); en su lugar, `getStationOffset()` da el desfase actual de la zona en cada minuto y se pasa a las funciones de siempre, que conservan su firma (ADR 0046).
+- Fase 4 (4.2): §4.3 decía que, para C9, `Support/Clock` fija `timezone_string`; los tests de `SiteTimezoneTest` usan `update_option()` y `WP\Clock::now()`, porque solo comprueban la zona impresa, no la hora.
+
 ## Spec 0008
 Detalle en el «Resultado» de cada tarea de `phase-1.md`, `phase-2.md` y `phase-3.md`. Los cambios de contrato van con su ADR (0037–0043).
 

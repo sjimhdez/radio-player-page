@@ -1,5 +1,5 @@
 # Spec 0009 · Fase 4 — Zona horaria (C9 y K10) y cierre
-Estado: en curso · Inicio: 2026-10-23 · ADRs: 0046 (nuevo), 0044, 0029, 0019
+Estado: cerrada (2026-10-23) · Inicio: 2026-10-23 · ADRs: 0046 (nuevo), 0044, 0029, 0019
 
 ## Contexto
 - PHP ya sigue el horario de verano en cada petición (`WP\Clock::now()` con `wp_timezone()`; `WeekTest::test_daylight_saving_time`, `SiteTimezoneTest`). C9 es solo del player: `Globals_Builder::config()` imprime `timezoneOffset = $now->getOffset() / 3600` y el player lo usa fijo mientras la página está abierta.

@@ -1,6 +1,6 @@
 # Spec 0009 — Correcciones: horario y programa en antena
 
-> Estado: **propuesta** · Fecha: 2026-10-23 · Rama: `spec/0009-schedule-model` · Depende de: 0005, 0006
+> Estado: **cerrada** (2026-10-23) · Fecha: 2026-10-23 · Rama: `spec/0009-schedule-model` · Depende de: 0005, 0006
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 

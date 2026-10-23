@@ -16,7 +16,7 @@
 | 0006 | [Refactor del player](0006-player-refactor/spec.md) | cerrada (PR #40) | `spec/0006-player-refactor` | 0003 |
 | 0007 | [Correcciones: reproducción](0007-playback-fixes/spec.md) | cerrada (PR #41) | `spec/0007-playback-fixes` | 0006 |
 | 0008 | [Correcciones: migración, actualización, núcleo PHP y desinstalación](0008-migration-and-core-fixes/spec.md) | cerrada (PR #42) | `spec/0008-migration-and-core-fixes` | 0005 |
-| 0009 | [Correcciones: horario y programa en antena](0009-schedule-model/spec.md) | propuesta | `spec/0009-schedule-model` | 0005, 0006 |
+| 0009 | [Correcciones: horario y programa en antena](0009-schedule-model/spec.md) | cerrada | `spec/0009-schedule-model` | 0005, 0006 |
 | 0010 | Correcciones: admin | pendiente de escribir | — | 0005, 0009 |
 | 0011 | Correcciones: interfaz, i18n y accesibilidad del player | pendiente de escribir | — | 0006, 0007 |
 | 0012 | ~~Correcciones: núcleo PHP y desinstalación~~: fusionada en la 0008 (comparten `uninstall.php` y `SPEC.md` §3.7; usuario, 2026-10-22) | fusionada | — | — |

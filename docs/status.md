@@ -1,18 +1,15 @@
 # Estado
-Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 4 en curso · Plan: [`phase-4.md`](specs/0009-schedule-model/phase-4.md) · Actualizado: 2026-10-23
+Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: cerrada (1–4, el 2026-10-23; PR listo, pendiente de merge en `trunk`) · Plan: [`phase-4.md`](specs/0009-schedule-model/phase-4.md) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0009 ([`spec.md`](specs/0009-schedule-model/spec.md)) en curso en la rama `spec/0009-schedule-model` (PR en borrador contra `trunk`): modelo de intervalos de la semana en PHP, player y admin; 4 fases.
-- Fase 1 (modelo y programa en antena: C16, C4, K8, K52) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
-- Fase 2 (programas no publicados: C10, K41, K88, K78, K17; ADR 0045) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
-- Fase 3 (validación sobre el modelo: C3) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
-- Fase 4 (zona horaria: C9, K10; ADR 0046) en curso desde el 2026-10-23: 6 tareas, todas hechas; es la última y cierra la spec. La 4.1 (ADR 0046 aceptado, `SPEC.md` §3.3 y §3.8), la 4.2 (`timezone` en `RADPLAPAG_CONFIG`: PHP, integración, e2e y snapshots), la 4.3 (`readConfig()` valida `timezone` con `Intl`), la 4.4 (`getStationOffset()` y `getNowPlaying(…, timezone)`; vectores `tz` con zona) la 4.5 (reloj, hooks y modales con la zona; C9 corregido) y la 4.6 (diferencia del reloj en `±H:MM`; K10 corregido).
+- Spec 0009 (horario y programa en antena: C16, C4, K8, K52, C10, K41, K88, K78, K17, C3, C9, K10; ADRs 0044–0046) cerrada el 2026-10-23 en la rama `spec/0009-schedule-model`; PR listo contra `trunk`, a la espera del merge del usuario.
 - Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 4 de la 0009 (última fase: cierre de la spec y PR listo).
-2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
-3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario). Tampoco `wp-security-reviewer`, `wporg-reviewer` ni `a11y-reviewer` en las fases 1 a 3 de la 0009 (la 2 toca el meta box y su aviso; la 3, la validación del horario en PHP y en el admin). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044 y 0045).
+1. Merge del PR de la 0009 (lo decide el usuario: merge commit, título `Spec 0009: Correcciones: horario y programa en antena`; antes puede lanzar `/code-review`).
+2. Tras el merge, sesión de diseño → `write-spec` de la 0010 (admin; parte del modelo de la 0009, notas en la hoja de ruta).
+3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
+4. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente) y `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0009 (meta box y su aviso, validación del horario, `timezone` impreso, reloj en `±H:MM`). No se pasaron al cerrarlas (decisión del usuario). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044, 0045 y 0046).
 
 ## Bloqueos / preguntas para el humano
 - Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` y `startEndSame` sin uso; propuesta: 0010 admin).
@@ -26,4 +23,4 @@ Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 4 en c
 - Zona 5 (4.6): en Safari real y en iOS, `play()` fuera del gesto con `hls.js`, el temporizador de sueño con la pantalla bloqueada (K66), en iPhone y iPad reales (también iPad con la web de escritorio) sin deslizador de volumen y con HLS nativo (K13) y los controles con `100vh` bajo la barra de Safari de iOS.
 
 ## Desviaciones de la spec activa (→ ADR)
-Ninguna (las de la 0008 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).
+Ninguna (las de la 0009 ya están en `deviations.md`). Las de las specs cerradas están en [`deviations.md`](deviations.md).
