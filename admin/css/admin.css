@@ -30,6 +30,17 @@
 .radplapag-field-error-message:empty {
 	display: none;
 }
+/* Non-blocking field notice (mixed content, C13): WP's warning color. */
+.radplapag-field-notice {
+	display: block;
+	border-left: 4px solid #dba617;
+	padding-left: 8px;
+	font-size: 12px;
+	margin-top: 4px;
+}
+.radplapag-field-notice[hidden] {
+	display: none;
+}
 
 /* Admin: form fields in a row (reusable) */
 .radplapag-form-row {

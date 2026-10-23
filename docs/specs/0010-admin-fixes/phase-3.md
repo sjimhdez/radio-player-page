@@ -98,7 +98,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `includes/radplapag-station-cpt.php`, `admin/js/station-admin.js`, `admin/css/admin.css`, `tests/php/integration/Admin/AdminScreensTest.php`, `tests/fixtures/admin/station-meta-box.html`, `tests/js/admin/station-fields.test.js`, `tests/e2e/admin.spec.ts`, `docs/known-issues.md`
 - Test: primero `AdminScreensTest::test_details_box_warns_about_an_http_stream_on_an_https_site (C13)` (filtro de `home_url`) y `…_does_not_warn_on_an_http_site`. Después, en `station-fields.test.js`, «shows the mixed content notice while typing an http URL on an https site (C13)» y «hides it for https or on an http site». En el e2e de C13, la aserción del `span` oculto, con un comentario: el entorno es `http`.
 - Verificación: `npm run test:php:integration -- --filter AdminScreensTest && npm test -- tests/js/admin && npx playwright test tests/e2e/admin.spec.ts -g C13` (fixture con el comando de `Support/Snapshot.php`)
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): los 4 casos de `AdminScreensTest` sin `data-site-scheme`; en Vitest, «shows the mixed content notice…» recibe `{ shown: false, described: false }`. Los cuatro «hides it for…» pasaban ya (guardas); una mutación (`notice.hidden = false`) los tumba. Diff de la fixture: `data-site-scheme="http"` y el `span` oculto. Verde: `AdminScreensTest`, Vitest de admin 269/269 y el grupo «create and save» de `admin.spec.ts` en Chromium y WebKit (con `-g C13` solo, el test agota los 30 s: depende del programa que crea el anterior del grupo en serie, así que se pasa con `-g "create and save"`).
+- Changelog: «The station screen now warns when an http:// stream would not play on an https:// site.»
+- [x] hecha · commit: ver `git log` («fix(0010): warn about an http stream on an https site (3.6)»)
 
 ### 3.7 K36: la página asignada no publicada sigue en el selector (≤ 1 h) — `fix-bug`
 - Qué:

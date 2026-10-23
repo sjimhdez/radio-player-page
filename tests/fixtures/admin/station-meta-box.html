@@ -14,10 +14,11 @@
 							</select>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
 		</p>
-		<p class="radplapag-field-wrap" data-field="stream_url">
+		<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="http">
 			<label for="radplapag_station_stream_url"><strong>Streaming URL <span class="required">*</span></strong></label><br>
 			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="https://stream.example.test/live.mp3" class="large-text radplapag-field-input radplapag-stream-url" placeholder="https://my.station.com:8000/stream">
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
+			<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice" hidden>This stream uses http:// and this site uses https://; browsers block it, so it will not play.</span>
 		</p>
 	</div>
 	<div class="radplapag-form-row">

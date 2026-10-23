@@ -604,6 +604,69 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * On an https site, a saved http stream shows the mixed content notice next to
+	 * the URL, tied to the input with aria-describedby (C13).
+	 */
+	public function test_details_box_warns_about_an_http_stream_on_an_https_site() {
+		add_filter( 'home_url', array( $this, 'https_home_url' ) );
+		$station = $this->factory_rpp->station( 'Test FM', array( 'stream_url' => 'http://stream.example.test/live.mp3' ) );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertStringContainsString( '<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="https">', $html );
+		$this->assertStringContainsString( 'aria-describedby="radplapag_station_stream_url_notice"', $html );
+		$this->assertStringContainsString(
+			'<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice">This stream uses http:// and this site uses https://; browsers block it, so it will not play.</span>',
+			$html
+		);
+	}
+
+	/**
+	 * Without an http stream on an https site, the notice is printed hidden, for the
+	 * JS, and the input does not point to it (C13).
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function data_no_mixed_content() {
+		return array(
+			'http stream on an http site'   => array( 'http', 'http://stream.example.test/live.mp3' ),
+			'https stream on an https site' => array( 'https', 'https://stream.example.test/live.mp3' ),
+			'no stream on an https site'    => array( 'https', '' ),
+		);
+	}
+
+	/**
+	 * See data_no_mixed_content().
+	 *
+	 * @dataProvider data_no_mixed_content
+	 *
+	 * @param string $site_scheme Scheme of home_url().
+	 * @param string $stream_url  Saved stream URL.
+	 */
+	public function test_details_box_does_not_warn_on_an_http_site( $site_scheme, $stream_url ) {
+		if ( 'https' === $site_scheme ) {
+			add_filter( 'home_url', array( $this, 'https_home_url' ) );
+		}
+		$station = $this->factory_rpp->station( 'Test FM', array( 'stream_url' => $stream_url ) );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertStringContainsString( 'data-field="stream_url" data-site-scheme="' . $site_scheme . '">', $html );
+		$this->assertStringNotContainsString( 'aria-describedby="radplapag_station_stream_url_notice"', $html );
+		$this->assertStringContainsString( '<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice" hidden>', $html );
+	}
+
+	/**
+	 * Filter for home_url(): the same URL with https.
+	 *
+	 * @param string $url URL.
+	 * @return string
+	 */
+	public function https_home_url( $url ) {
+		return set_url_scheme( $url, 'https' );
+	}
+
+	/**
 	 * Without a schedule, or with invalid JSON, the box prints the seven days, empty,
 	 * inside #radplapag-station-cpt-container.
 	 *

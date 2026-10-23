@@ -330,7 +330,10 @@ function radplapag_render_station_details_meta_box( $post ) {
 	$theme          = get_post_meta( $post->ID, 'radplapag_station_theme_color', true );
 	$visualizer     = get_post_meta( $post->ID, 'radplapag_station_visualizer', true );
 
+	// Mixed content (C13). The notice is printed hidden too, so the JS can show it while typing.
 	$stream_url   = is_string( $stream_url ) ? esc_url( $stream_url ) : '';
+	$site_scheme  = (string) wp_parse_url( home_url(), PHP_URL_SCHEME );
+	$mixed        = 'https' === $site_scheme && 'http' === wp_parse_url( $stream_url, PHP_URL_SCHEME );
 	$valid_themes = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
 	$theme        = in_array( $theme, $valid_themes, true ) ? $theme : 'neutral';
 	$valid_viz    = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
@@ -363,10 +366,11 @@ function radplapag_render_station_details_meta_box( $post ) {
 			</select>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
 		</p>
-		<p class="radplapag-field-wrap" data-field="stream_url">
+		<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="<?php echo esc_attr( $site_scheme ); ?>">
 			<label for="radplapag_station_stream_url"><strong><?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?> <span class="required">*</span></strong></label><br>
-			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>">
+			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>"<?php echo $mixed ? ' aria-describedby="radplapag_station_stream_url_notice"' : ''; ?>>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
+			<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice"<?php echo $mixed ? '' : ' hidden'; ?>><?php esc_html_e( 'This stream uses http:// and this site uses https://; browsers block it, so it will not play.', 'radio-player-page' ); ?></span>
 		</p>
 	</div>
 	<div class="radplapag-form-row">

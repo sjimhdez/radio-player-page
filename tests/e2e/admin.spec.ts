@@ -172,12 +172,21 @@ test.describe( 'admin: create and save', () => {
 		await expect( page.locator( '#message' ) ).toContainText(
 			'Post published.'
 		);
-		// C13: the save never compares the stream scheme with the site's. The
-		// only other visible notice allowed is core's "WordPress X is
-		// available!" (core also prints hidden ones, such as the lost connection).
+		// No notice from the plugin. The only other visible notice allowed is
+		// core's "WordPress X is available!" (core also prints hidden ones, such
+		// as the lost connection).
 		await expect(
 			page.locator( '.notice:not(#message):not(.update-nag):visible' )
 		).toHaveCount( 0 );
+		// C13: the mixed content notice is only for an https site; this
+		// environment is http, so it stays hidden (the https case is in
+		// AdminScreensTest and station-fields.test.js).
+		await expect(
+			page.locator( '#radplapag_station_stream_url_notice' )
+		).toBeHidden();
+		await expect(
+			page.locator( '#radplapag_station_stream_url' )
+		).not.toHaveAttribute( 'aria-describedby' );
 
 		expect( meta( stationId, 'radplapag_station_stream_url' ) ).toBe(
 			'http://localhost:8901/tone.mp3'

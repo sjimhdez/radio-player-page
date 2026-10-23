@@ -297,6 +297,68 @@ describe( 'station-admin.js: required station fields', () => {
 	} );
 } );
 
+describe( 'station-admin.js: mixed content notice (C13)', () => {
+	/**
+	 * Mounts the screen as on a site with the given scheme (the fixture is http).
+	 *
+	 * @param {string} siteScheme `data-site-scheme` of the URL field.
+	 * @return {Promise<Object>} The mounted screen, plus `notice()`.
+	 */
+	async function mountOn( siteScheme ) {
+		const screen = await mount();
+		screen.wrap( 'stream_url' ).dataset.siteScheme = siteScheme;
+		const el = screen.form.querySelector(
+			'#radplapag_station_stream_url_notice'
+		);
+		return {
+			...screen,
+			type( value ) {
+				screen.streamUrl.value = value;
+				screen.streamUrl.dispatchEvent( new window.Event( 'input' ) );
+			},
+			notice: () => ( {
+				shown: ! el.hidden,
+				described:
+					screen.streamUrl.getAttribute( 'aria-describedby' ) ===
+					el.id,
+			} ),
+		};
+	}
+
+	it( 'shows the mixed content notice while typing an http URL on an https site (C13)', async () => {
+		const screen = await mountOn( 'https' );
+
+		screen.type( 'http://stream.example.test/live.mp3' );
+
+		expect( screen.notice() ).toEqual( { shown: true, described: true } );
+	} );
+
+	it.each( [
+		[ 'an https URL on an https site', 'https', 'https://a.test/live' ],
+		[ 'an empty field on an https site', 'https', '' ],
+		[ 'a URL that does not parse on an https site', 'https', 'http//x' ],
+		[ 'an http URL on an http site', 'http', 'http://a.test/live' ],
+	] )( 'hides it for %s', async ( _t, siteScheme, value ) => {
+		const screen = await mountOn( siteScheme );
+		screen.type( 'http://stream.example.test/live.mp3' );
+
+		screen.type( value );
+
+		expect( screen.notice() ).toEqual( {
+			shown: false,
+			described: false,
+		} );
+	} );
+
+	it( 'does not block the submit', async () => {
+		const screen = await mountOn( 'https' );
+
+		screen.type( 'http://stream.example.test/live.mp3' );
+
+		expect( screen.submit().blocked ).toBe( false );
+	} );
+} );
+
 describe( 'station-admin.js: pages assigned to other stations', () => {
 	const disabledPages = ( screen ) =>
 		Array.from( screen.playerPage.options )

@@ -56,6 +56,11 @@
 			if ( streamUrlInputEl ) {
 				streamUrlInputEl.addEventListener( 'input', function () {
 					const val = streamUrlInputEl.value.trim();
+					updateMixedContentNotice(
+						streamUrlWrap,
+						streamUrlInputEl,
+						val
+					);
 					if ( ! val ) {
 						clearFieldError( streamUrlWrap );
 						return;
@@ -235,6 +240,33 @@
 		return url.protocol === 'http:' || url.protocol === 'https:'
 			? null
 			: 'scheme';
+	}
+
+	/**
+	 * Shows the notice printed by PHP when the stream is http and the site
+	 * https, or hides it (C13). It never blocks the submit.
+	 *
+	 * @param {Element} fieldWrap Wrapper with `data-site-scheme`.
+	 * @param {Element} input     Stream URL input.
+	 * @param {string}  value     Trimmed field value.
+	 */
+	function updateMixedContentNotice( fieldWrap, input, value ) {
+		const notice = fieldWrap.querySelector( '.radplapag-field-notice' );
+		if ( ! notice ) {
+			return;
+		}
+		let mixed = false;
+		if ( fieldWrap.getAttribute( 'data-site-scheme' ) === 'https' ) {
+			try {
+				mixed = new URL( value ).protocol === 'http:';
+			} catch {}
+		}
+		notice.hidden = ! mixed;
+		if ( mixed ) {
+			input.setAttribute( 'aria-describedby', notice.id );
+		} else {
+			input.removeAttribute( 'aria-describedby' );
+		}
 	}
 
 	function clearFieldError( fieldWrap ) {
