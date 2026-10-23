@@ -55,7 +55,8 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Archivos: `includes/src/schedule/class-public-slots.php`, `tests/zip/expected-additions.txt`
 - Test: primero (TDD): `tests/php/unit/Schedule/PublicSlotsTest.php`
 - Verificación: `npm run test:php:unit -- --filter PublicSlots && npm run check:zip && npm run lint:phpstan`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («feat(0009): add Schedule\Public_Slots to keep only slots of public programs (2.3)»)
+- `filter( $schedule, int[] $program_ids )`: un día que se queda sin franjas sale vacío (`[]`), no desaparece; las franjas salen tal cual se guardaron (sin normalizar). 7 tests, rojo visto antes de la clase.
 
 ### 2.4 C10 en `Now_Playing_Resolver` (`fix-bug`) (≤ 1 h)
 - Qué: el resolutor ignora las franjas cuyo programa no está en el mapa (ni «On Air» ni ventana de «Coming up»). `test_currently_unknown_program_slot_hides_the_next_upcoming_program` → regresión (anuncia el 1). Ediciones aprobadas: `test_unknown_program_that_started_latest_gives_no_current` → `'1'` (y nombre nuevo), `test_malformed_entries_are_skipped` → `current` 3. Vectores de resolución con programas no publicados (campo `unpublished` por vector; cada capa los deja fuera del mapa) con resultado PHP y `ts` del player (`currently`, C10). Docblock de la clase.

@@ -4,11 +4,11 @@ Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 2 en c
 ## En curso
 - Spec 0009 ([`spec.md`](specs/0009-schedule-model/spec.md)) en curso en la rama `spec/0009-schedule-model` (PR en borrador contra `trunk`): modelo de intervalos de la semana en PHP, player y admin; 4 fases.
 - Fase 1 (modelo y programa en antena: C16, C4, K8, K52) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
-- Fase 2 (programas no publicados: C10, K41, contraseña → K88, K78 y K17) en curso desde el 2026-10-23: 9 tareas, ADR 0045. Excepciones de caracterización aprobadas en el «Contexto» del plan. Hechas la 2.1 (ADR 0045, `SPEC.md` §3.3–§3.6 y §6, excepciones en la §4.3 de la spec) y la 2.2 (K88 confirmado: el programa con contraseña es público).
+- Fase 2 (programas no publicados: C10, K41, contraseña → K88, K78 y K17) en curso desde el 2026-10-23: 9 tareas, ADR 0045. Excepciones de caracterización aprobadas en el «Contexto» del plan. Hechas la 2.1 (ADR 0045, `SPEC.md` §3.3–§3.6 y §6, excepciones en la §4.3 de la spec), la 2.2 (K88 confirmado: el programa con contraseña es público) y la 2.3 (`Schedule\Public_Slots`).
 - Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 2.3 de la fase 2 de la 0009: `Schedule\Public_Slots` en el núcleo (TDD); al terminar las 9, `close-phase`.
+1. Tarea 2.4 de la fase 2 de la 0009: C10 en `Now_Playing_Resolver` (`fix-bug`); al terminar las 9, `close-phase`.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario). Tampoco `wp-security-reviewer`, `wporg-reviewer` ni `a11y-reviewer` en la fase 1 de la 0009. Y el changelog de `readme.txt` con el cambio de `radplapag_is_slot_active()` (ADR 0044).
 
