@@ -112,12 +112,12 @@ final class WeekTest extends TestCase {
 	 * @dataProvider data_tz_vectors
 	 *
 	 * @param string $utc      Instant in UTC (ISO 8601).
-	 * @param string $offset   Station offset, as +HH:MM.
+	 * @param string $timezone Station zone, or its offset as +HH:MM.
 	 * @param int    $day      Expected PHP day number.
 	 * @param int    $minutes  Expected minutes since midnight.
 	 */
-	public function test_tz_vectors( $utc, $offset, $day, $minutes ) {
-		$now = ( new DateTimeImmutable( $utc ) )->setTimezone( new DateTimeZone( $offset ) );
+	public function test_tz_vectors( $utc, $timezone, $day, $minutes ) {
+		$now = ( new DateTimeImmutable( $utc ) )->setTimezone( new DateTimeZone( $timezone ) );
 		$this->assertSame(
 			array(
 				'day'     => $day,
@@ -128,7 +128,7 @@ final class WeekTest extends TestCase {
 	}
 
 	/**
-	 * The "tz" vectors of tests/fixtures/schedule-vectors.json, with their offset in hours as +HH:MM.
+	 * The "tz" vectors of tests/fixtures/schedule-vectors.json, with their zone or, without one, their offset in hours as +HH:MM.
 	 *
 	 * @return array<string, array{string, string, int, int}>
 	 */
@@ -139,8 +139,8 @@ final class WeekTest extends TestCase {
 		$data    = array();
 		foreach ( $vectors['tz'] as $vector ) {
 			$offset_minutes        = (int) round( $vector['timezoneOffset'] * 60 );
-			$offset                = sprintf( '%s%02d:%02d', $offset_minutes < 0 ? '-' : '+', intdiv( abs( $offset_minutes ), 60 ), abs( $offset_minutes ) % 60 );
-			$data[ $vector['id'] ] = array( $vector['utc'], $offset, $vector['expected']['dayOfWeek'], $vector['expected']['currentTime'] );
+			$timezone              = $vector['timezone'] ?? sprintf( '%s%02d:%02d', $offset_minutes < 0 ? '-' : '+', intdiv( abs( $offset_minutes ), 60 ), abs( $offset_minutes ) % 60 );
+			$data[ $vector['id'] ] = array( $vector['utc'], $timezone, $vector['expected']['dayOfWeek'], $vector['expected']['currentTime'] );
 		}
 		return $data;
 	}

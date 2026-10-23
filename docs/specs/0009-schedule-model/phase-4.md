@@ -60,7 +60,8 @@ El player sigue la zona horaria del sitio (y su horario de verano) mientras la p
 - Archivos: `player/src/utils/timezone.ts`, `player/src/utils/timezone.test.ts`, `player/src/core/schedule/now-playing.ts`, `player/src/core/schedule/now-playing.test.ts`, `player/src/utils/schedule-vectors.test.ts`, `tests/fixtures/schedule-vectors.json`, `tests/php/unit/Schedule/WeekTest.php`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run test:php:unit -- --filter WeekTest`
-- [ ] hecha · commit: —
+- Rojo visto: `getStationOffset is not a function` en `timezone.test.ts` (C9 y los casos nuevos) y en los 7 vectores `tz` de `schedule-vectors.test.ts`; `now-playing.test.ts` C9 daba «Morning Show» en vez de «News». `WeekTest` ya pasaba con la zona (C9 es solo del player en PHP). La fila C9 de `known-issues.md` se queda abierta hasta la 4.5 (reloj, hooks y modales).
+- [x] hecha · commit: ver `git log` («fix(0009): follow the site zone in the player schedule core (4.4)»)
 
 ### 4.5 C9 en el reloj, los hooks y los modales (≤ 1 h)
 - Qué: rojo primero: `transmission-time.test.ts` «follows the station daylight saving time with its zone» (`getTransmissionTime(-5, 'America/New_York')`: hora y diferencia con −4); `use-program-schedule.test.tsx` y `use-transmission-time.test.tsx` con `timezone` en la global. Después `getTransmissionTime(timezoneOffset, timezone?)` (calcula `getStationOffset()` una vez por minuto), los dos hooks (pasan `timezone`, también en las dependencias del `useMemo`) y `ScheduleModal`/`AllProgramsModal` (`getCurrentTimeInTimezone(getStationOffset(config.timezone, config.timezoneOffset))`). `known-issues.md` C9 → «corregido (spec 0009)».

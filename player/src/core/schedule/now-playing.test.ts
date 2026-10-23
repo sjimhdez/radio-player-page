@@ -31,9 +31,14 @@ function names(result: NowPlaying) {
   }
 }
 
-function at(utc: string, timezoneOffset = 0, schedule: Schedule | null = SCHEDULE) {
+function at(
+  utc: string,
+  timezoneOffset = 0,
+  schedule: Schedule | null = SCHEDULE,
+  timezone?: string,
+) {
   vi.setSystemTime(new Date(utc))
-  return getNowPlaying(schedule ?? undefined, PROGRAMS, timezoneOffset)
+  return getNowPlaying(schedule ?? undefined, PROGRAMS, timezoneOffset, timezone)
 }
 
 beforeEach(() => {
@@ -103,9 +108,9 @@ describe('getNowPlaying', () => {
     expect(names(at('2026-10-20T05:45:00Z', -6)).active).toBe('Late Night')
   })
 
-  it('currently keeps the served offset after a DST switch with the page open (C9)', () => {
+  it('follows daylight saving time with the site zone (C9)', () => {
     // America/New_York switches to EDT at 2026-03-08T07:00:00Z. Served at -5, the player
-    // still reads 03:30 when the station is at 04:30 EDT. 2026-03-08 is a Sunday.
+    // reads 04:30 EDT with the zone. 2026-03-08 is a Sunday.
     const schedule: Schedule = {
       sunday: [
         { program_id: '1', start: '03:00', end: '04:00' },
@@ -113,6 +118,6 @@ describe('getNowPlaying', () => {
       ],
     }
 
-    expect(names(at('2026-03-08T08:30:00Z', -5, schedule)).active).toBe('Morning Show')
+    expect(names(at('2026-03-08T08:30:00Z', -5, schedule, 'America/New_York')).active).toBe('News')
   })
 })

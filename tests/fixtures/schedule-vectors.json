@@ -5,7 +5,7 @@
 		"Days are schedule keys (monday ... sunday). Times are station-local HH:MM. Program keys refer to \"programs\": each test creates one published program per key, named after it; a key missing from \"programs\" stands for a program that does not exist.",
 		"unpublished (resolution, optional): program keys that are not public in that vector (draft; ADR 0045). Each layer leaves them out of its programs map (or creates them as drafts).",
 		"resolution: \"grid\" names an entry of \"grids\". current/upcoming.day is the day the slot belongs to; current.from is today or yesterday (a slot crossing midnight). upcoming.minutes is minutes until start. A vector where the player (TS) differs from PHP has a \"ts\" object with the player's current/upcoming, \"currently\": true and the issue; its top-level result is then the PHP one, and the correct one.",
-		"tz: instant in UTC plus timezoneOffset (hours) gives the station-local day (0 = Sunday) and minutes since midnight.",
+		"tz: instant in UTC plus the station zone gives the station-local day (0 = Sunday) and minutes since midnight. timezone (optional) is the site IANA zone, whose offset at that instant wins (ADR 0046); timezoneOffset (hours) is the offset served with the page, used when there is no zone.",
 		"validation: \"php\" is radplapag_sanitize_station_schedule(), \"admin\" is admin/js/station-admin.js. error is the code of the first error reported (days Monday to Sunday, rows in order): required, invalid_program, format, overlap (same day), cross_midnight_overlap (slot crossing into the next day). start == end is a 24 h slot. For admin it is the message the first row with an error shows after submit (another row's check can replace it), and slots are typed into <input type=\"time\">, which empties a value that is not a time (24:00).",
 		"model: the week-interval model (ADR 0044) that PHP (Schedule\\Week_Interval), the player (utils/week-interval.ts) and the admin (radplapagScheduleRules) share. A minute of the week is day × 1440 + minute, Monday = 0 (0 ≤ w < 10080). from_slot gives a slot's { start, duration }; contains, minutes_until_start and overlaps take slots as { day, start, end } and instants as { day, time }. Results are the correct ones, the same in every layer."
 	],
@@ -258,13 +258,35 @@
 		},
 		{
 			"id": "tz-dst-start",
-			"_doc": "America/New_York switches to EDT at 2026-03-08T07:00:00Z. The page was served before the switch with timezoneOffset -5 and is still open; the station is at 04:30 EDT.",
+			"_doc": "America/New_York switches to EDT at 2026-03-08T07:00:00Z. The page was served before the switch with timezoneOffset -5 and is still open; the station is at 04:30 EDT (C9, fixed in spec 0009).",
 			"utc": "2026-03-08T08:30:00Z",
 			"timezoneOffset": -5,
-			"expected": { "dayOfWeek": 0, "currentTime": 210 },
-			"currently": true,
-			"issue": "C9",
-			"correct": { "dayOfWeek": 0, "currentTime": 270 }
+			"timezone": "America/New_York",
+			"expected": { "dayOfWeek": 0, "currentTime": 270 }
+		},
+		{
+			"id": "tz-zone-dst-end",
+			"_doc": "America/New_York switches back to EST at 2026-11-01T06:00:00Z. The page was served before the switch with timezoneOffset -4; the station is at 01:30 EST.",
+			"utc": "2026-11-01T06:30:00Z",
+			"timezoneOffset": -4,
+			"timezone": "America/New_York",
+			"expected": { "dayOfWeek": 0, "currentTime": 90 }
+		},
+		{
+			"id": "tz-zone-kathmandu",
+			"_doc": "Asia/Kathmandu is UTC+5:45 all year.",
+			"utc": "2026-10-19T20:00:00Z",
+			"timezoneOffset": 5.75,
+			"timezone": "Asia/Kathmandu",
+			"expected": { "dayOfWeek": 2, "currentTime": 105 }
+		},
+		{
+			"id": "tz-zone-st-johns-dst",
+			"_doc": "America/St_Johns switches from -3:30 to -2:30 at 2026-03-08T05:30:00Z. The page was served before the switch with timezoneOffset -3.5; the station is at 03:30 NDT.",
+			"utc": "2026-03-08T06:00:00Z",
+			"timezoneOffset": -3.5,
+			"timezone": "America/St_Johns",
+			"expected": { "dayOfWeek": 0, "currentTime": 210 }
 		}
 	],
 	"validation": [

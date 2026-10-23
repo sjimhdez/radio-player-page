@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import vectors from '../../../tests/fixtures/schedule-vectors.json'
 import type { ProgramDefinition, Schedule } from 'src/types/global'
 import { findActiveProgram, findIncomingProgram } from 'src/utils/program-schedule'
-import { getCurrentTimeInTimezone } from 'src/utils/timezone'
+import { getCurrentTimeInTimezone, getStationOffset } from 'src/utils/timezone'
 
 type VectorSlot = { program: string; start: string; end: string; is_rerun: boolean }
 type VectorCurrent = { program: string; time_range: string; is_rerun: boolean } | null
@@ -120,6 +120,14 @@ describe('schedule vectors: resolution', () => {
   }
 })
 
+type TzVector = {
+  id: string
+  utc: string
+  timezoneOffset: number
+  timezone?: string
+  expected: { dayOfWeek: number; currentTime: number }
+}
+
 describe('schedule vectors: tz', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -129,19 +137,15 @@ describe('schedule vectors: tz', () => {
     vi.useRealTimers()
   })
 
-  for (const vector of vectors.tz) {
-    const label = `${vector.currently ? 'currently ' : ''}resolves ${vector.id} (${vector.utc}, offset ${vector.timezoneOffset})`
+  for (const vector of vectors.tz as TzVector[]) {
+    const label = `resolves ${vector.id} (${vector.utc}, ${vector.timezone ?? 'offset'} ${vector.timezoneOffset})`
 
     it(label, () => {
       vi.setSystemTime(new Date(vector.utc))
 
-      const result = getCurrentTimeInTimezone(vector.timezoneOffset)
+      const offset = getStationOffset(vector.timezone, vector.timezoneOffset)
 
-      expect(result).toEqual(vector.expected)
-      if (vector.currently) {
-        // docs/known-issues.md C9: the offset is fixed when the page is served.
-        expect(result).not.toEqual(vector.correct)
-      }
+      expect(getCurrentTimeInTimezone(offset)).toEqual(vector.expected)
     })
   }
 })
