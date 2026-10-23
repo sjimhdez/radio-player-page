@@ -92,6 +92,14 @@ function resolveProgram(
   }
 }
 
+/**
+ * Whether a slot's program is in the programs array. A slot of any other program
+ * (not public or deleted) is ignored everywhere (ADR 0045, C10 in docs/known-issues.md).
+ */
+function isKnownProgram(programs: ProgramDefinition[] | undefined, programId: string): boolean {
+  return !!programs?.some((prog) => prog.id === programId)
+}
+
 /** The active slot and its interval of the week */
 interface ActiveSlot {
   entry: ScheduleEntry
@@ -102,13 +110,18 @@ interface ActiveSlot {
  * Find the active slot over the whole week (ADR 0044): the one that started
  * latest wins; on a tie, the first one in the stored order of its day, from Monday (D3).
  */
-function findActiveSlot(schedule: Schedule, minute: number): ActiveSlot | null {
+function findActiveSlot(
+  schedule: Schedule,
+  programs: ProgramDefinition[] | undefined,
+  minute: number,
+): ActiveSlot | null {
   let current: ActiveSlot | null = null
   let currentElapsed = WEEK
 
   for (let i = 1; i <= 7; i++) {
     const dayKey = DAY_MAP[i % 7]
     for (const entry of schedule[dayKey] ?? []) {
+      if (!isKnownProgram(programs, entry.program_id)) continue
       const interval = fromSlot(dayKey, entry.start, entry.end)
       if (interval === null || !contains(interval, minute)) continue
       const elapsed = (WEEK - minutesUntilStart(interval, minute)) % WEEK
@@ -142,7 +155,7 @@ export function findActiveProgram(
 ): CurrentProgram | null {
   if (!schedule) return null
 
-  const active = findActiveSlot(schedule, at(dayOfWeek, currentTime))
+  const active = findActiveSlot(schedule, programs, at(dayOfWeek, currentTime))
   if (active === null) return null
 
   const { entry } = active
@@ -184,7 +197,7 @@ export function findIncomingProgram(
   }
 
   const minute = at(dayOfWeek, currentTime)
-  const active = findActiveSlot(schedule, minute)
+  const active = findActiveSlot(schedule, programs, minute)
   const activeEnd =
     active === null ? null : (active.interval.start + active.interval.duration) % WEEK
 
@@ -194,6 +207,7 @@ export function findIncomingProgram(
   for (let i = 1; i <= 7; i++) {
     const dayKey = DAY_MAP[i % 7]
     for (const entry of schedule[dayKey] ?? []) {
+      if (!isKnownProgram(programs, entry.program_id)) continue
       const interval = fromSlot(dayKey, entry.start, entry.end)
       if (interval === null) continue
       const minutesUntil = minutesUntilStart(interval, minute)
@@ -252,9 +266,11 @@ export function getProgramsForDay(
   if (!schedule) return []
 
   const dayKey = DAY_MAP[dayOfWeek]
-  const dayEntries = schedule[dayKey]
+  const dayEntries = (schedule[dayKey] ?? []).filter((entry) =>
+    isKnownProgram(programs, entry.program_id),
+  )
 
-  if (!dayEntries || dayEntries.length === 0) return []
+  if (dayEntries.length === 0) return []
 
   const sorted = [...dayEntries].sort((a, b) => parseToMinutes(a.start) - parseToMinutes(b.start))
   const minute = at(currentDayOfWeek, currentTime)
@@ -375,6 +391,7 @@ export function getAllProgramsWithSlots(
     if (!dayEntries || dayEntries.length === 0) continue
     for (const entry of dayEntries) {
       const programId = entry.program_id
+      if (!isKnownProgram(programs, programId)) continue
       const timeRange = `${entry.start}-${entry.end}`
       const slot: ProgramSlotDisplay = { dayOfWeek, timeRange }
       let acc = byId.get(programId)

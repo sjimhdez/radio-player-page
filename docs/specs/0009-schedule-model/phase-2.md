@@ -92,7 +92,8 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Archivos: `player/src/utils/program-schedule.ts`, `program-schedule.test.ts`, `tests/fixtures/schedule-vectors.json`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/schedule.spec.ts tests/e2e/modals.spec.ts`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («fix(0009): ignore slots of unknown programs in the player (2.7)»)
+- Rojo visto (7 fallos): los dos tests editados, tres nuevos (la franja que empezó antes sigue en antena, la ventana de «Coming up» y `getProgramsForDay()`) y los vectores C10-1 y C10-2 sin `ts` (`programName: ''` en vez de A / C). Arreglo: `isKnownProgram()` filtra en `findActiveSlot()`, `findIncomingProgram()`, `getProgramsForDay()` (y con ella `getProgramsForWeekOrdered()`) y `getAllProgramsWithSlots()`; con `programs` undefined no queda ninguna franja. `_doc` de los vectores sin la nota del `program ""`. E2E de `schedule.spec.ts` y `modals.spec.ts`: 26/26.
 
 ### 2.8 Admin: el programa de la franja con su estado (K41, C10) (`fix-bug`) (≤ 1 h)
 - Qué: `radplapag_get_station_programs_for_select( $station_id )` (nueva; `radplapag_get_all_programs_for_select()` no cambia): la lista de siempre + el programa de cada franja guardada en cualquier estado, cada uno con `label` («Name (Draft)», «(Trash)», «(Private)», «(Pending)», «(Scheduled)», «(Password protected)»; el nombre solo si es público) y `public`. El meta box la usa e imprime bajo la fila un aviso `.radplapag-program-notice` si el programa no es público. `admin/admin.php` pasa esa lista como `radplapagAdmin.programs`. Textos en `admin/admin-strings.php` (`programNotPublished`). `test_currently_schedule_box_empties_a_slot_whose_program_is_trashed` → regresión; tests del aviso (borrador, contraseña); fixture `station-meta-box.html` regenerado.

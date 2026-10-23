@@ -148,16 +148,21 @@ describe('findActiveProgram', () => {
     )
   })
 
-  it('leaves the name empty for an unknown program', () => {
+  // Regression: docs/known-issues.md C10 (ADR 0045).
+  it('ignores the slot of an unknown program', () => {
     const unknown: Schedule = { monday: [slot('missing', '06:00', '10:00')] }
 
-    expect(findActiveProgram(unknown, programs, MONDAY, at('07:00'))).toEqual({
-      programName: '',
-      timeRange: '06:00-10:00',
-      programLogoUrl: null,
-      isRerun: false,
-    })
-    expect(findActiveProgram(unknown, undefined, MONDAY, at('07:00'))?.programName).toBe('')
+    expect(findActiveProgram(unknown, programs, MONDAY, at('07:00'))).toBeNull()
+    expect(findActiveProgram(unknown, undefined, MONDAY, at('07:00'))).toBeNull()
+  })
+
+  // Regression: docs/known-issues.md C10.
+  it('keeps on air a slot that started earlier than an unknown one', () => {
+    const overlapping: Schedule = {
+      monday: [slot('news', '09:00', '12:00'), slot('missing', '09:30', '10:00')],
+    }
+
+    expect(findActiveProgram(overlapping, programs, MONDAY, at('09:45'))?.programName).toBe('News')
   })
 
   it('returns null between slots', () => {
@@ -192,6 +197,19 @@ describe('findIncomingProgram', () => {
     const weekend: Schedule = { sunday: [slot('news', '00:05', '01:00')] }
 
     expect(findIncomingProgram(weekend, programs, SATURDAY, at('23:58'))?.minutesUntil).toBe(7)
+  })
+
+  // Regression: docs/known-issues.md C10, variant in "Coming up".
+  it('does not let an unknown program hide the next one in the window', () => {
+    const upcoming: Schedule = {
+      monday: [slot('missing', '10:00', '10:05'), slot('news', '10:05', '11:00')],
+    }
+
+    expect(findIncomingProgram(upcoming, programs, MONDAY, at('09:58'))).toMatchObject({
+      programName: 'News',
+      minutesUntil: 7,
+    })
+    expect(findIncomingProgram(upcoming, undefined, MONDAY, at('09:58'))).toBeNull()
   })
 
   it('shows the incoming slot even with no active program', () => {
@@ -255,6 +273,20 @@ describe('getProgramsForDay', () => {
     const monday = getProgramsForDay(schedule, programs, MONDAY, TUESDAY, at('01:00'))
 
     expect(monday.map((entry) => entry.isActive)).toEqual([false, false, true])
+  })
+
+  // Regression: docs/known-issues.md C10.
+  it('leaves out the slots of unknown programs', () => {
+    const mixed: Schedule = {
+      monday: [slot('missing', '06:00', '07:00'), slot('news', '08:00', '09:00')],
+    }
+
+    expect(
+      getProgramsForDay(mixed, programs, MONDAY, MONDAY, at('07:00')).map(
+        (entry) => entry.timeRange,
+      ),
+    ).toEqual(['08:00-09:00'])
+    expect(getProgramsForDay(mixed, undefined, MONDAY, MONDAY, at('07:00'))).toEqual([])
   })
 })
 
@@ -332,14 +364,16 @@ describe('getAllProgramsWithSlots', () => {
     expect(list.some((program) => program.isLive)).toBe(false)
   })
 
-  it('keeps unknown programs with an empty name', () => {
-    const unknown: Schedule = { monday: [slot('missing', '06:00', '10:00')] }
+  // Regression: docs/known-issues.md C10 (ADR 0045).
+  it('leaves out unknown programs', () => {
+    const unknown: Schedule = {
+      monday: [slot('missing', '06:00', '10:00'), slot('news', '10:00', '11:00')],
+    }
 
-    expect(getAllProgramsWithSlots(unknown, programs, MONDAY, at('07:00'))[0]).toMatchObject({
-      programId: 'missing',
-      programName: '',
-      programLogoUrl: null,
-    })
+    expect(
+      getAllProgramsWithSlots(unknown, programs, MONDAY, at('07:00')).map((p) => p.programId),
+    ).toEqual(['news'])
+    expect(getAllProgramsWithSlots(unknown, undefined, MONDAY, at('07:00'))).toEqual([])
   })
 })
 
