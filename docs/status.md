@@ -14,8 +14,6 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` sin uso; propuesta: 0010 admin).
 - Decidir si se corrige y en qué spec K83 (baja, 2026-10-22): durante el reintento de C1 el controlador publica `error` sin `loading`; no se ve con `useState`, pero impide volver a `useSyncExternalStore` (ADR 0030).
 
-- Decidir cómo arreglar los 2 fallos de `HooksTest` en la integración (desde la 3.1, vistos en la 3.6): el *mu-plugin* e2e engancha `radplapag_e2e_maybe_rtl` en `init` y el test del contrato de hooks lo ve. Propuesta, como en la 3.5 con `PublicApiTest`: que el test cuente solo los callbacks definidos en los archivos del plugin.
-
 ## Verificación manual pendiente
 - E2E: la vista previa del editor de bloques en WebKit + WP 6.6 (`blocks.spec.ts`) falló una vez en el suite completo y no se ha reproducido (tarea 2.20). Volvió en la 3.10, en Chromium + WP 6.6 (el `waitForResponse` de la vista previa de `schedule` agota los 30 s); aislado, 10/10. Si vuelve, mirar su traza en `test-results/e2e`.
 - E2E: `intro.spec.ts` «plays the welcome audio once, unpausable, then the live stream» falló una vez en Chromium + última WP al cerrar la fase 0 de la 0007 (`waitForPlayback` agota los 30 s); aislado, 20/20. No volvió al cerrar la fase 1 (ya con C7). Si vuelve, mirar su traza (K63 se corrigió en la fase 2).
