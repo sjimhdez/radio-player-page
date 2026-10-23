@@ -64,6 +64,9 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'removeProgram',
 		'programNameRequired',
 		'programNotPublished',
+		'programLabel',
+		'startTimeLabel',
+		'endTimeLabel',
 	);
 
 	/**

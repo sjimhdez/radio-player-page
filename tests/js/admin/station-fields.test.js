@@ -27,6 +27,9 @@ const FIELD_STRINGS = {
 	to: '[to]',
 	removeTimeSlot: '[remove]',
 	scheduleRerun: '[rerun]',
+	programLabel: '[program_label]',
+	startTimeLabel: '[start_label]',
+	endTimeLabel: '[end_label]',
 };
 
 /**
@@ -351,6 +354,51 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		expect(
 			row.querySelector( '.radplapag-program-is-rerun' ).checked
 		).toBe( false );
+	} );
+
+	// docs/known-issues.md AX3, AX4: the added row's fields had no name.
+	it( 'labels the program and the times of an added slot (AX3, AX4)', async () => {
+		const screen = await mount();
+
+		addButton( screen, 'monday' ).click();
+
+		const row = screen.rows( 'monday' )[ 2 ];
+		const controls = [
+			'.radplapag-program-id',
+			'.radplapag-program-start',
+			'.radplapag-program-end',
+		].map( ( selector ) => row.querySelector( selector ) );
+		expect(
+			controls.map( ( control ) => [
+				control.id,
+				control.previousElementSibling.tagName.toLowerCase(),
+				control.previousElementSibling.className,
+				control.previousElementSibling.getAttribute( 'for' ),
+				control.labels[ 0 ].textContent,
+			] )
+		).toEqual( [
+			[
+				'radplapag-slot-monday-2-program',
+				'label',
+				'screen-reader-text',
+				'radplapag-slot-monday-2-program',
+				'[program_label]',
+			],
+			[
+				'radplapag-slot-monday-2-start',
+				'label',
+				'screen-reader-text',
+				'radplapag-slot-monday-2-start',
+				'[start_label]',
+			],
+			[
+				'radplapag-slot-monday-2-end',
+				'label',
+				'screen-reader-text',
+				'radplapag-slot-monday-2-end',
+				'[end_label]',
+			],
+		] );
 	} );
 
 	it( 'starts at index 0 on an empty day', async () => {

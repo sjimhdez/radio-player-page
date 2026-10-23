@@ -52,7 +52,10 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Archivos: `admin/admin-strings.php`, `admin/js/station-admin.js`, `tests/php/integration/Admin/AdminScreensTest.php` (`STRING_KEYS`), `tests/js/admin/station-fields.test.js`, `tests/e2e/a11y-baseline.json`, `docs/known-issues.md`
 - Test: primero, en `station-fields.test.js`, «labels the program and the times of an added slot (AX3, AX4)» (rojo: sin `label[for]`).
 - Verificación: `npm test -- tests/js/admin && npm run test:php:integration -- --filter test_admin_strings_keys && npx playwright test tests/e2e/a11y.spec.ts -g "meta boxes"` (con la reescritura de la línea base en los dos proyectos)
-- [ ] hecha · commit: —
+- Rojo: `TypeError: Cannot read properties of null (reading 'tagName')` (el `select` no tiene una etiqueta delante).
+- Cayeron dos tests de caracterización que no estaban en §4.3: `admin-dom.test.js` «builds the row with the default strings» y «decodes the entities of names and translations» (spec 0005), que comparan el `outerHTML` de la fila nueva. El usuario aprobó ampliar §4.3 (2026-10-23): `rowHtml()` añade las tres etiquetas y los `id`, y `ENTITY_STRINGS` lleva entidades en las tres cadenas nuevas, así que su decodificación también queda fijada.
+- Línea base: salen las seis entradas `label` y `select-name` de las filas del JS («added slot»: 3; «validation errors»: 3). En «station meta boxes» solo quedan las dos `color-contrast` (AX5, 2.6).
+- [x] hecha · commit: ver `git log` («fix(0010): name the fields of an added schedule slot (2.3)»)
 
 ### 2.4 K45: `id`, `aria-invalid`, `aria-describedby` y el foco al primer error (≤ 1 h) — `fix-bug`
 - Qué: `setRowError()` da al mensaje el `id` `radplapag-slot-{día}-{data-program-index}-error` y pone `aria-invalid="true"` y `aria-describedby` en el `select` y en las dos horas. `clearRowError()` los quita. En el `submit` con errores, el foco va (`focus( { preventScroll: true } )`) al primer campo con error: el `.radplapag-program-id` de la fila, o el `input`/`select` del campo de la emisora. Después, el `scrollIntoView` de hoy.

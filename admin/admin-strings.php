@@ -62,6 +62,9 @@ function radplapag_get_admin_strings(): array {
 			'removeProgram'               => __( 'Remove Radio Show', 'radio-player-page' ),
 			'programNameRequired'         => __( 'Radio Show Name is required. Enter a name to use this Radio Show in the schedule.', 'radio-player-page' ),
 			'programNotPublished'         => __( 'This program is not published; this time slot is not shown on the site.', 'radio-player-page' ),
+			'programLabel'                => __( 'Radio Show', 'radio-player-page' ),
+			'startTimeLabel'              => __( 'Start time', 'radio-player-page' ),
+			'endTimeLabel'                => __( 'End time', 'radio-player-page' ),
 		),
 	);
 }

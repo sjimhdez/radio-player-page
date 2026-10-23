@@ -462,33 +462,59 @@
 		return next;
 	}
 
+	// The accessible name of a slot field, as the PHP rows print it (AX3, AX4).
+	function buildScreenReaderLabel( id, text ) {
+		return createElement(
+			'label',
+			{ class: 'screen-reader-text', for: id },
+			[ decodeEntities( text ) ]
+		);
+	}
+
 	function buildProgramRow( day, index ) {
 		const toLabel = decodeEntities( s.to || 'to' );
 		const removeTimeSlot = decodeEntities(
 			s.removeTimeSlot || 'Remove Time Slot'
 		);
 		const rerunLabel = decodeEntities( s.scheduleRerun || 'Rerun' );
+		const fieldId = 'radplapag-slot-' + day + '-' + index + '-';
+		const select = buildProgramSelect( day, index );
+		select.id = fieldId + 'program';
 		const newRow = document.createElement( 'div' );
 		newRow.className = 'radplapag-program-row';
 		newRow.setAttribute( 'data-program-index', index );
 		newRow.append(
-			buildProgramSelect( day, index ),
+			buildScreenReaderLabel(
+				fieldId + 'program',
+				s.programLabel || 'Radio Show'
+			),
+			select,
+			buildScreenReaderLabel(
+				fieldId + 'start',
+				s.startTimeLabel || 'Start time'
+			),
 			createElement( 'input', {
 				type: 'time',
 				name: scheduleFieldName( day, index, 'start' ),
 				value: '',
 				class: 'radplapag-program-start',
 				style: 'width: 100px; margin-right: 5px;',
+				id: fieldId + 'start',
 			} ),
 			createElement( 'span', { style: 'margin-right: 5px;' }, [
 				' ' + toLabel + ' ',
 			] ),
+			buildScreenReaderLabel(
+				fieldId + 'end',
+				s.endTimeLabel || 'End time'
+			),
 			createElement( 'input', {
 				type: 'time',
 				name: scheduleFieldName( day, index, 'end' ),
 				value: '',
 				class: 'radplapag-program-end',
 				style: 'width: 100px; margin-right: 10px;',
+				id: fieldId + 'end',
 			} ),
 			createElement(
 				'label',

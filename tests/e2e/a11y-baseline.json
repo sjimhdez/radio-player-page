@@ -111,30 +111,6 @@
 			"webkit"
 		]
 	},
-	"station meta boxes · added slot · label · .radplapag-program-end[value=\"\"][type=\"time\"]": {
-		"impact": "critical",
-		"help": "Form elements must have labels",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
-	"station meta boxes · added slot · label · .radplapag-program-start[value=\"\"][type=\"time\"]": {
-		"impact": "critical",
-		"help": "Form elements must have labels",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
-	"station meta boxes · added slot · select-name · .radplapag-schedule-day[data-day=\"thursday\"] > .radplapag-programs-list > .radplapag-program-row[data-program-index=\"0\"] > .radplapag-program-id": {
-		"impact": "critical",
-		"help": "Select element must have an accessible name",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
 	"station meta boxes · validation errors · color-contrast · .radplapag-program-row.radplapag-error[data-program-index=\"0\"] > .show.radplapag-program-error-message": {
 		"impact": "serious",
 		"help": "Elements must meet minimum color contrast ratio thresholds",
@@ -146,30 +122,6 @@
 	"station meta boxes · validation errors · color-contrast · div[data-program-index=\"3\"] > .show.radplapag-program-error-message": {
 		"impact": "serious",
 		"help": "Elements must meet minimum color contrast ratio thresholds",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
-	"station meta boxes · validation errors · label · .radplapag-program-end.radplapag-error[value=\"\"]": {
-		"impact": "critical",
-		"help": "Form elements must have labels",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
-	"station meta boxes · validation errors · label · .radplapag-program-start.radplapag-error[value=\"\"]": {
-		"impact": "critical",
-		"help": "Form elements must have labels",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
-	"station meta boxes · validation errors · select-name · div[data-program-index=\"3\"] > .radplapag-program-id.radplapag-error": {
-		"impact": "critical",
-		"help": "Select element must have an accessible name",
 		"browsers": [
 			"chromium",
 			"webkit"

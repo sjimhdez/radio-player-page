@@ -106,6 +106,7 @@ No cambian las meta keys, las opciones, los transients (los avisos de K37 van en
   - `SaveStationMetaTest::test_invalid_attachments_become_zero` y `StationMetaSaverTest::test_wrong_attachments_go_to_zero` (K37, D7); `SaveStationMetaTest::test_writes_order_with_field_errors_and_valid_schedule` y los que fijen «con un error de campo no se escribe ni la URL ni la página» (K42, D8). El plan los lista;
   - `SaveProgramMetaTest::test_truncation_counts_bytes_not_characters` (K5, D10);
   - `AdminScreensTest::test_admin_strings_keys`: en la fase 2 se añaden las claves de D11 (AX3, AX4); en la fase 3 se quitan las de K76. `HooksTest` (el callback de D9).
+  - `admin-dom.test.js` «builds the row with the default strings» y «decodes the entities of names and translations» (spec 0005): su `rowHtml()` añade las tres etiquetas y los `id` de la fila nueva (AX3, AX4; usuario, 2026-10-23, tarea 2.3);
 - Fase 1 empieza por §4.2 con los tests de hoy como red; cada paso, en verde sin editarlos.
 - Los adaptadores se prueban con happy-dom sobre la fixture real (`mount-station-screen.js`); el foco, la visibilidad con `:focus-within` y el contraste solo con e2e (Chromium y WebKit).
 - C13 en e2e: el entorno es `http`. Si no se puede simular `https` sin tocar el entorno, el e2e comprueba que no hay aviso en `http` y el caso `https` lo cubren `AdminScreensTest` (filtro de `home_url`) y Vitest.
