@@ -132,7 +132,8 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `tests/php/integration/Migration/UpgradeFlowTest.php`, `tests/php/integration/Uninstall/UninstallTest.php`, `tests/php/integration/Uninstall/UninstallMultisiteTest.php`.
 - Test: nuevo (debe pasar ya).
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|Uninstall' && npm run test:php:integration:ms -- --filter Uninstall`
-- [ ] hecha · commit: —
+- Nota: pasan en verde. Mutaciones que los tumban: sacar `inherit` de los estados de la desinstalación y cambiar el `kses_init()` del `finally` por `kses_remove_filters()` (quitar solo el `kses_init()` no basta: `wp_set_current_user( 0 )` ya lo llama desde `set_current_user`).
+- [x] hecha · commit: ver `git log` (3.9)
 
 Cierre (`close-phase`, última fase de la spec):
 - `SPEC.md` §6 (historial), `known-issues.md`, la hoja de ruta sin las notas de la 0008 y `status.md` → la 0009.

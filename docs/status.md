@@ -2,11 +2,11 @@
 Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y desinstalación · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0008-migration-and-core-fixes/phase-3.md) · Actualizado: 2026-10-23
 
 ## En curso
-- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)). Fases 1 (migración) y 2 (actualización, entidades y desinstalación) cerradas el 2026-10-22 y el 2026-10-23. Fase 3 (página limpia y API: K23 con RTL, K26, K24, K25, más K86, K87 y dos huecos de test de la fase 2) en curso desde el 2026-10-23: tareas 3.1–3.9.
+- Spec 0008 ([`spec.md`](specs/0008-migration-and-core-fixes/spec.md)). Fases 1 (migración) y 2 (actualización, entidades y desinstalación) cerradas el 2026-10-22 y el 2026-10-23. Fase 3 (página limpia y API: K23 con RTL, K26, K24, K25, más K86, K87 y dos huecos de test de la fase 2) en curso desde el 2026-10-23: tareas 3.1–3.9 hechas; falta el cierre.
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 3.9 de la 0008: huecos de test de la fase 2 (kses con el usuario 0 y un post en `inherit` en la desinstalación; tests nuevos que deben pasar ya; 3.1–3.8 hechas). El entorno de tests monta `tests/e2e/mu-plugins/` (hay que reiniciarlo con `env:start:min|latest` para que lo vea).
+1. Cerrar la fase 3 de la 0008 (última de la spec) con `close-phase`: tareas 3.1–3.9 hechas. El entorno de tests monta `tests/e2e/mu-plugins/` (hay que reiniciarlo con `env:start:min|latest` para que lo vea).
 2. Al cerrar la fase 3 (última de la spec), pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). Las fases 1 y 2 se cerraron solo con `spec-conformance-reviewer` y `backcompat-reviewer` (decisión del usuario).
 3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 

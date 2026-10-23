@@ -280,7 +280,8 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Logged out, the migration runs and the visitor stays logged out (ADR 0041).
+	 * Logged out, the migration runs and the visitor stays logged out, with the kses
+	 * filters of user 0 (ADR 0041).
 	 *
 	 * @see docs/known-issues.md K33
 	 */
@@ -293,6 +294,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$this->assertSame( '330', get_option( 'radplapag_db_version' ) );
 		$this->assertSame( 1, $this->count_posts( 'radplapag_station' ) );
 		$this->assertSame( 0, get_current_user_id() );
+		$this->assertSame( 10, has_filter( 'title_save_pre', 'wp_filter_kses' ) );
 	}
 
 	/**

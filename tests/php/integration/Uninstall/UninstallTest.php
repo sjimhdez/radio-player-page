@@ -58,8 +58,8 @@ final class UninstallTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K7 (docs/known-issues.md, fixed in spec 0008): trashed and auto-draft posts go
-	 * too, with their meta.
+	 * K7 (docs/known-issues.md, fixed in spec 0008): trashed, auto-draft and inherit
+	 * posts go too, with their meta.
 	 */
 	public function test_deletes_trashed_and_auto_draft_posts() {
 		$ids = array(
@@ -71,6 +71,7 @@ final class UninstallTest extends WP_UnitTestCase {
 				)
 			),
 			$this->factory_rpp->station( 'Auto draft', array( 'status' => 'auto-draft' ) ),
+			$this->factory_rpp->station( 'Inherit', array( 'status' => 'inherit' ) ),
 			$this->factory_rpp->program( 'Trashed', array( 'description' => 'Text' ), 'trash' ),
 			$this->factory_rpp->program( 'Auto draft', array(), 'auto-draft' ),
 		);
