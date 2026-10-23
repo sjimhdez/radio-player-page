@@ -270,6 +270,24 @@ test.describe( 'clean page (HTTP)', () => {
 		);
 	} );
 
+	test( 'decodes the entities of a title saved through kses (K21)', async ( {
+		request,
+		page,
+	} ) => {
+		const url = readSeed().urls.entities;
+		const html = await getHtml( request, url );
+
+		expect( html ).toContain( '<title>Rock &amp; Roll</title>' );
+		expect( rawGlobals( html ).RADPLAPAG_CONFIG ).toContain(
+			'"siteTitle":"Rock \\u0026 Roll"'
+		);
+
+		await page.goto( url );
+		await expect( page.getByRole( 'heading', { level: 1 } ) ).toHaveText(
+			'Rock & Roll'
+		);
+	} );
+
 	test( 'prints no social image without logo, background or favicon', async ( {
 		request,
 	} ) => {
@@ -617,4 +635,124 @@ test.describe( 'clean page without a usable manifest (HTTP)', () => {
 			}
 		} );
 	}
+} );
+
+/**
+ * Robots and text direction (K23, SPEC.md §3.3). The headers are read by the
+ * test mu-plugin (tests/e2e/mu-plugins/radplapag-e2e.php): one adds a marker
+ * through wp_robots, the other makes the request right-to-left. The theme page
+ * of no-station shows that each switch works.
+ */
+test.describe( 'clean page robots and direction (HTTP)', () => {
+	test.skip(
+		( { browserName } ) => browserName !== 'chromium',
+		'HTTP only: the response does not depend on the browser'
+	);
+
+	const ROBOTS = { 'X-Radplapag-E2e-Robots': '1' };
+	const RTL = { 'X-Radplapag-E2e-Rtl': '1' };
+
+	test( 'prints noindex, nofollow without wp_robots with blog_public = 0 (K23)', async ( {
+		request,
+	} ) => {
+		const seed = readSeed();
+		try {
+			wpCli( 'option', 'update', 'blog_public', '0' );
+			const theme = await (
+				await request.get( seed.urls[ 'no-station' ], {
+					headers: ROBOTS,
+				} )
+			).text();
+			const html = await (
+				await request.get( seed.urls.mp3, { headers: ROBOTS } )
+			).text();
+
+			expect( theme ).toContain( 'noindex, nofollow' );
+			expect( theme ).toContain( 'radplapag-e2e' );
+			expect( html ).toContain( 'RADPLAPAG_CONFIG' );
+			expect( meta( html, 'robots' ) ).toBe( 'noindex, nofollow' );
+			expect( html.match( /name="robots"/g ) ).toHaveLength( 1 );
+			expect( html ).not.toContain( 'radplapag-e2e' );
+		} finally {
+			wpCli( 'option', 'update', 'blog_public', '1' );
+		}
+	} );
+
+	test( 'prints no robots meta with blog_public = 1 (K23)', async ( {
+		request,
+	} ) => {
+		const seed = readSeed();
+		const theme = await (
+			await request.get( seed.urls[ 'no-station' ], { headers: ROBOTS } )
+		).text();
+		const html = await (
+			await request.get( seed.urls.mp3, { headers: ROBOTS } )
+		).text();
+
+		expect( theme ).toContain( 'radplapag-e2e' );
+		expect( html ).toContain( 'RADPLAPAG_CONFIG' );
+		expect( html ).not.toContain( 'name="robots"' );
+		expect( html ).not.toContain( 'radplapag-e2e' );
+	} );
+
+	test( 'prints dir="rtl" on a right-to-left site', async ( { request } ) => {
+		const seed = readSeed();
+		const theme = await (
+			await request.get( seed.urls[ 'no-station' ], { headers: RTL } )
+		).text();
+		const html = await (
+			await request.get( seed.urls.mp3, { headers: RTL } )
+		).text();
+
+		expect( theme ).toMatch( /<html [^>]*dir="rtl"/ );
+		expect( html ).toContain( '<html lang="en-US" dir="rtl"><head>' );
+	} );
+
+	test( 'prints no dir on a left-to-right site', async ( { request } ) => {
+		const html = await getHtml( request, readSeed().urls.mp3 );
+
+		expect( html ).toContain( '<html lang="en-US"><head>' );
+	} );
+} );
+
+test.describe( 'clean page feed, embed and trackback (HTTP)', () => {
+	test.skip(
+		( { browserName } ) => browserName !== 'chromium',
+		'HTTP only: the response does not depend on the browser'
+	);
+
+	// WordPress answers each one itself: the feed as XML, the embed template
+	// and, for a GET of trackback/, a redirect to the page.
+	const SUFFIXES = [
+		{ suffix: 'feed/', own: /xml/ },
+		{ suffix: 'embed/', own: /text\/html/ },
+		{ suffix: 'trackback/', own: null },
+	];
+
+	for ( const { suffix, own } of SUFFIXES ) {
+		test( `does not serve the player on the page's ${ suffix } (K26)`, async ( {
+			request,
+		} ) => {
+			const response = await request.get( readSeed().urls.mp3 + suffix, {
+				maxRedirects: 0,
+			} );
+
+			expect( await response.text() ).not.toContain( 'RADPLAPAG_CONFIG' );
+			if ( own ) {
+				expect( response.status() ).toBe( 200 );
+				expect( response.headers()[ 'content-type' ] ).toMatch( own );
+			} else {
+				expect( response.status() ).toBeGreaterThanOrEqual( 300 );
+				expect( response.status() ).toBeLessThan( 400 );
+			}
+		} );
+	}
+
+	test( 'still serves the player on the page itself (K26)', async ( {
+		request,
+	} ) => {
+		const html = await getHtml( request, readSeed().urls.mp3 );
+
+		expect( html ).toContain( 'RADPLAPAG_CONFIG' );
+	} );
 } );

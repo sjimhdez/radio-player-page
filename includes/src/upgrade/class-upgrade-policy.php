@@ -24,8 +24,9 @@ final class Upgrade_Policy {
 	/**
 	 * Whether the legacy option has a non-empty stations list.
 	 *
-	 * Any list counts, even one without array stations (K32 in docs/known-issues.md);
-	 * the flat 1.0.x–1.1.x option has no stations key (K4).
+	 * Any list counts, even one without array stations: it migrates none, the option is
+	 * deleted and the notice says so (K32 in docs/known-issues.md, ADR 0037); the flat
+	 * 1.0.x–1.1.x option has no stations key (K4).
 	 *
 	 * @since 3.5.0
 	 *
@@ -78,6 +79,40 @@ final class Upgrade_Policy {
 	 */
 	public static function should_clear_conflict( $flag, int $published ): bool {
 		return (bool) $flag && 0 === $published;
+	}
+
+	/**
+	 * Whether the conflict notice shows: the conflict is flagged and not dismissed.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param mixed $flag Value of radplapag_migration_skipped_cpt_conflict ('1' or 'dismissed').
+	 * @return bool
+	 */
+	public static function shows_conflict_notice( $flag ): bool {
+		return '1' === $flag;
+	}
+
+	/**
+	 * Whether the migration lock is held: its expiration time is still ahead.
+	 *
+	 * Anything that is not an integer time (no option, an empty or unknown value)
+	 * does not hold the lock, so it can be taken (ADR 0037).
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param mixed $stored Value of the radplapag_migrating option.
+	 * @param int   $now    Current Unix time.
+	 * @return bool
+	 */
+	public static function is_lock_held( $stored, int $now ): bool {
+		if ( is_int( $stored ) ) {
+			return $stored > $now;
+		}
+		if ( ! is_string( $stored ) || 1 !== preg_match( '/\A\d+\z/', $stored ) ) {
+			return false;
+		}
+		return (int) $stored > $now;
 	}
 
 	/**

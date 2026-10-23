@@ -11,8 +11,8 @@ use RadioPlayerPage\Tests\Integration\Support\Factory;
 use WP_UnitTestCase;
 
 /**
- * Pins what uninstalling removes (both post types with their meta, two options) and
- * what it leaves behind.
+ * Pins what uninstalling removes (both post types with their meta, the options, the
+ * transients and the pending migration meta) and what it leaves behind.
  */
 final class UninstallTest extends WP_UnitTestCase {
 
@@ -58,10 +58,10 @@ final class UninstallTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K7 (docs/known-issues.md): `post_status => 'any'` leaves out the statuses
-	 * excluded from search, so trashed and auto-draft posts survive with their meta.
+	 * K7 (docs/known-issues.md, fixed in spec 0008): trashed, auto-draft and inherit
+	 * posts go too, with their meta.
 	 */
-	public function test_currently_keeps_trashed_and_auto_draft_posts() {
+	public function test_deletes_trashed_and_auto_draft_posts() {
 		$ids = array(
 			$this->factory_rpp->station(
 				'Trashed',
@@ -71,6 +71,7 @@ final class UninstallTest extends WP_UnitTestCase {
 				)
 			),
 			$this->factory_rpp->station( 'Auto draft', array( 'status' => 'auto-draft' ) ),
+			$this->factory_rpp->station( 'Inherit', array( 'status' => 'inherit' ) ),
 			$this->factory_rpp->program( 'Trashed', array( 'description' => 'Text' ), 'trash' ),
 			$this->factory_rpp->program( 'Auto draft', array(), 'auto-draft' ),
 		);
@@ -78,9 +79,9 @@ final class UninstallTest extends WP_UnitTestCase {
 		self::uninstall();
 
 		foreach ( $ids as $id ) {
-			$this->assertNotNull( get_post( $id ), "Post $id" );
+			$this->assertNull( get_post( $id ), "Post $id" );
+			$this->assertSame( array(), self::meta_rows( $id ), "Meta of post $id" );
 		}
-		$this->assertSame( 'https://example.com/a.mp3', get_post_meta( $ids[0], 'radplapag_station_stream_url', true ) );
 	}
 
 	/**
@@ -112,25 +113,38 @@ final class UninstallTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * C11 (docs/known-issues.md): the legacy option and the transients survive.
+	 * C11 (docs/known-issues.md, fixed in spec 0008): the legacy option, the migration
+	 * lock, every transient (the legacy one and those of a trashed station included)
+	 * and the pending migration meta go too.
 	 */
-	public function test_currently_keeps_the_legacy_settings_and_the_transients() {
+	public function test_deletes_the_legacy_settings_and_the_transients() {
 		$station = $this->factory_rpp->station( 'Station' );
+		$trashed = $this->factory_rpp->station( 'Trashed', array( 'status' => 'trash' ) );
+		$post    = self::factory()->post->create();
 		update_option( 'radplapag_settings', array( 'stations' => array() ) );
+		update_option( 'radplapag_migrating', time() + 120 );
 		foreach ( self::TRANSIENTS as $transient ) {
 			set_transient( $transient, '1', 60 );
 		}
-		set_transient( 'radplapag_station_field_errors_' . $station, 'Error', 45 );
-		set_transient( 'radplapag_station_schedule_errors_' . $station, 'Error', 45 );
+		foreach ( array( $station, $trashed ) as $id ) {
+			set_transient( 'radplapag_station_field_errors_' . $id, 'Error', 45 );
+			set_transient( 'radplapag_station_schedule_errors_' . $id, 'Error', 45 );
+		}
+		update_post_meta( $post, '_radplapag_migration_pending', '1' );
 
 		self::uninstall();
 
-		$this->assertSame( array( 'stations' => array() ), get_option( 'radplapag_settings' ) );
+		$this->assertFalse( get_option( 'radplapag_settings' ) );
+		$this->assertFalse( get_option( 'radplapag_migrating' ) );
 		foreach ( self::TRANSIENTS as $transient ) {
-			$this->assertSame( '1', get_transient( $transient ), $transient );
+			$this->assertFalse( get_transient( $transient ), $transient );
 		}
-		$this->assertSame( 'Error', get_transient( 'radplapag_station_field_errors_' . $station ) );
-		$this->assertSame( 'Error', get_transient( 'radplapag_station_schedule_errors_' . $station ) );
+		foreach ( array( $station, $trashed ) as $id ) {
+			$this->assertFalse( get_transient( 'radplapag_station_field_errors_' . $id ), "Station $id" );
+			$this->assertFalse( get_transient( 'radplapag_station_schedule_errors_' . $id ), "Station $id" );
+		}
+		$this->assertNotNull( get_post( $post ) );
+		$this->assertNotContains( '_radplapag_migration_pending', self::meta_rows( $post ) );
 	}
 
 	/**

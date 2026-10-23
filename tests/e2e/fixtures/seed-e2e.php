@@ -3,7 +3,7 @@
  * E2E seeder for Radio Player Page (spec 0002, phase 2).
  *
  * Creates one page + station per e2e variant (MP3, live, cut, HLS, DASH, no
- * CORS, intro, each visualizer, minimal, always on air), the pages the plugin
+ * CORS, intro, each visualizer, minimal, entities, always on air), the pages the plugin
  * must not intercept, and two pages with the three blocks (the MP3 grid, and
  * the always-on-air station so that now-playing always renders). Every post it creates carries
  * its own tag, so a run first removes everything the previous run created.
@@ -298,6 +298,8 @@ function radplapag_e2e_station( $title, $name, $page_id, array $meta ) {
  * @return void
  */
 function radplapag_e2e_seed( $media, $media_nocors ) {
+	global $wpdb;
+
 	radplapag_e2e_reset();
 
 	// Fixed, without DST: timezoneOffset is 5.5 all year (C9).
@@ -385,6 +387,12 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 			'title' => 'E2E Minimal <>&\'"',
 			'meta'  => array( 'stream_url' => "{$media}/tone.mp3" ),
 		),
+		// K21: the title as kses leaves it for an author without unfiltered_html.
+		'entities'     => array(
+			'title'        => 'Rock & Roll',
+			'stored_title' => 'Rock &amp; Roll',
+			'meta'         => array( 'stream_url' => "{$media}/tone.mp3" ),
+		),
 		'always'       => array(
 			'title' => 'E2E Always On Air',
 			'meta'  => array(
@@ -421,7 +429,7 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 	}
 
 	foreach ( $variants as $key => $variant ) {
-		$page_id = radplapag_e2e_insert(
+		$page_id    = radplapag_e2e_insert(
 			array(
 				'post_type'     => isset( $variant['post_type'] ) ? $variant['post_type'] : 'page',
 				'post_title'    => $variant['title'],
@@ -430,7 +438,12 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 			),
 			"page-{$key}"
 		);
-		radplapag_e2e_station( $variant['title'], "station-{$key}", $page_id, $variant['meta'] );
+		$station_id = radplapag_e2e_station( $variant['title'], "station-{$key}", $page_id, $variant['meta'] );
+		if ( isset( $variant['stored_title'] ) ) {
+			// Straight to the table: no save filter must touch the stored title.
+			$wpdb->update( $wpdb->posts, array( 'post_title' => $variant['stored_title'] ), array( 'ID' => $station_id ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Seeder, run once per e2e suite.
+			clean_post_cache( $station_id );
+		}
 		radplapag_e2e_record( $key, get_permalink( $page_id ) );
 	}
 

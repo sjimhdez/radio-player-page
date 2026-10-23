@@ -294,12 +294,11 @@ final class SaveProgramMetaTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, the sanitizers store a `<` glued to the next character as `&lt;`
-	 * (wp_pre_kses_less_than()). The player prints the descriptions of
-	 * RADPLAPAG_PROGRAMS as text, so it shows `I &lt;3 jazz`. K43 of
-	 * docs/known-issues.md.
+	 * The sanitizers store a `<` glued to the next character as `&lt;`
+	 * (wp_pre_kses_less_than()); only the player globals decode it
+	 * (Player\Globals_Builder). K43 of docs/known-issues.md.
 	 */
-	public function test_currently_less_than_is_stored_as_an_entity() {
+	public function test_less_than_is_stored_as_an_entity() {
 		$this->save(
 			array(
 				'description'          => 'I <3 jazz',

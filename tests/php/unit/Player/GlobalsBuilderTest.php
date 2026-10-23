@@ -475,25 +475,39 @@ final class GlobalsBuilderTest extends TestCase {
 	}
 
 	/**
-	 * K21 and K43: titles and descriptions saved with entities reach the player as they are.
+	 * K21 and K43: titles and descriptions saved with entities reach the player decoded.
+	 * Empty descriptions stay null.
 	 */
-	public function test_currently_titles_and_descriptions_keep_their_entities() {
+	public function test_titles_and_descriptions_are_decoded() {
 		$station                  = self::station();
 		$station['station_title'] = 'Rock &amp; Roll';
-		$this->assertSame( 'Rock &amp; Roll', self::config( $station )['siteTitle'] );
+		$this->assertSame( 'Rock & Roll', self::config( $station )['siteTitle'] );
+
+		$station['station_title'] = '';
+		$this->assertSame( 'Tom &amp; Jerry', Globals_Builder::config( $station, array(), 'Tom &amp;amp; Jerry', self::now( 'UTC' ), self::sanitize_key() )['siteTitle'] );
 
 		$programs = Globals_Builder::programs(
 			array(
 				4 => array(
 					'name'                 => 'Jazz &amp; Blues',
 					'description'          => 'I &lt;3 jazz',
+					'extended_description' => 'Rock &#039;n&#039; roll, &quot;live&quot;',
+					'logo_id'              => 0,
+					'logo_url'             => null,
+				),
+				5 => array(
+					'name'                 => 'Plain',
+					'description'          => '',
 					'extended_description' => '',
 					'logo_id'              => 0,
 					'logo_url'             => null,
 				),
 			)
 		);
-		$this->assertSame( 'Jazz &amp; Blues', $programs[0]['name'] );
-		$this->assertSame( 'I &lt;3 jazz', $programs[0]['description'] );
+		$this->assertSame( 'Jazz & Blues', $programs[0]['name'] );
+		$this->assertSame( 'I <3 jazz', $programs[0]['description'] );
+		$this->assertSame( 'Rock \'n\' roll, "live"', $programs[0]['extendedDescription'] );
+		$this->assertNull( $programs[1]['description'] );
+		$this->assertNull( $programs[1]['extendedDescription'] );
 	}
 }

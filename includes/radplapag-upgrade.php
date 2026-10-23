@@ -22,6 +22,7 @@ if ( ! defined( 'RADPLAPAG_DB_VERSION' ) ) {
  *
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::has_migratable_stations().
+ * @phpstan-impure Reads radplapag_settings, which another request may delete.
  * @return bool
  */
 function radplapag_legacy_has_migratable_stations(): bool {
@@ -96,17 +97,14 @@ function radplapag_maybe_clear_migration_conflict_flag(): void {
 }
 
 /**
- * Runs legacy migration if needed (idempotent; uses transient lock).
+ * Runs legacy migration if needed (idempotent; uses an atomic lock).
  *
  * @since 3.3.0
- * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current().
+ * @since 3.5.0 Delegates to RadioPlayerPage\Upgrade\Upgrade_Policy::is_current(); returns without counting the stations while the conflict flag is set ('1' or 'dismissed'). The lock is the radplapag_migrating option of RadioPlayerPage\WP\Migration_Lock, taken before counting the published stations; the legacy transient is ignored (ADR 0037). Once taken, the posts left pending by a cut migration are deleted. Once taken, the version and the legacy data are checked again, and the writer renews the lock before each post; a migration that lost it stops without a notice (ADR 0040). After a failed write the lock is held for 900 s and the error notice lasts as long. The success notice stores the migrator's summary.
+ * @since 3.5.0 Runs on any request, also hooked on init at 100, without an administrator in front: as the first administrator and without kses, restoring the current user and its kses filters, also when the migrator throws. Clears the conflict flag only in the admin. The success notice does not expire (ADR 0041).
  * @return void
  */
 function radplapag_run_legacy_migration_if_needed(): void {
-	if ( ! is_admin() || ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
-		return;
-	}
-
 	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::is_current( get_option( 'radplapag_db_version' ), RADPLAPAG_DB_VERSION ) ) {
 		return;
 	}
@@ -114,41 +112,65 @@ function radplapag_run_legacy_migration_if_needed(): void {
 		return;
 	}
 
-	radplapag_maybe_clear_migration_conflict_flag();
+	// On the front, a site with the conflict flag returns without counting the stations.
+	if ( is_admin() ) {
+		radplapag_maybe_clear_migration_conflict_flag();
+	}
+
+	if ( get_option( 'radplapag_migration_skipped_cpt_conflict' ) ) {
+		return;
+	}
+
+	if ( ! \RadioPlayerPage\WP\Migration_Lock::acquire( time(), \RadioPlayerPage\WP\Migration_Lock::TTL ) ) {
+		return;
+	}
+
+	// Another request may have finished while this one waited for the lock (ADR 0040).
+	$version = get_option( 'radplapag_db_version' );
+	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::is_current( $version, RADPLAPAG_DB_VERSION ) || ! radplapag_legacy_has_migratable_stations() ) {
+		\RadioPlayerPage\WP\Migration_Lock::release();
+		return;
+	}
+
+	\RadioPlayerPage\WP\Migration_Writer::purge_pending();
 
 	if ( radplapag_count_published_stations() > 0 ) {
 		update_option( 'radplapag_migration_skipped_cpt_conflict', '1' );
+		\RadioPlayerPage\WP\Migration_Lock::release();
 		return;
 	}
-
-	if ( get_transient( 'radplapag_migrating' ) ) {
-		return;
-	}
-
-	set_transient( 'radplapag_migrating', '1', 120 );
 
 	$author_id = radplapag_migration_resolve_author_user_id();
 	$prev_user = get_current_user_id();
 	wp_set_current_user( $author_id );
+	// The legacy values were saved by an administrator: kses is not re-run on them (ADR 0041).
+	kses_remove_filters();
 
 	require_once __DIR__ . '/migration/class-radplapag-migrator-settings-to-cpt.php';
 
-	$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
+	try {
+		$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
+	} finally {
+		wp_set_current_user( $prev_user );
+		kses_init();
+	}
 
-	wp_set_current_user( $prev_user );
-	delete_transient( 'radplapag_migrating' );
-
+	if ( is_wp_error( $result ) && 'radplapag_migration_lock_lost' === $result->get_error_code() ) {
+		return;
+	}
 	if ( is_wp_error( $result ) ) {
+		\RadioPlayerPage\WP\Migration_Lock::hold_until( time() + 900 );
 		set_transient(
 			'radplapag_migration_error_notice',
 			$result->get_error_message(),
-			120
+			900
 		);
 		return;
 	}
 
+	\RadioPlayerPage\WP\Migration_Lock::release();
 	delete_option( 'radplapag_migration_skipped_cpt_conflict' );
-	set_transient( 'radplapag_migration_success_notice', '1', 60 );
+	set_transient( 'radplapag_migration_success_notice', $result );
 }
 
 /**
@@ -184,6 +206,7 @@ function radplapag_on_upgrader_process_complete( $upgrader, array $options ): vo
  * Dismisses persistent migration notices when query args and nonce are valid.
  *
  * @since 3.3.0
+ * @since 3.5.0 Marks the conflict flag as 'dismissed' instead of deleting it.
  * @return void
  */
 function radplapag_handle_migration_notice_dismiss(): void {
@@ -198,7 +221,7 @@ function radplapag_handle_migration_notice_dismiss(): void {
 		return;
 	}
 	if ( 'migration_conflict' === $dismiss ) {
-		delete_option( 'radplapag_migration_skipped_cpt_conflict' );
+		update_option( 'radplapag_migration_skipped_cpt_conflict', 'dismissed' );
 	}
 	wp_safe_redirect( remove_query_arg( array( 'radplapag_dismiss', '_wpnonce' ) ) );
 	exit;
@@ -208,6 +231,8 @@ function radplapag_handle_migration_notice_dismiss(): void {
  * Outputs admin notices for migration outcomes.
  *
  * @since 3.3.0
+ * @since 3.5.0 The conflict notice shows only with the flag at '1' and is dismissible.
+ * @since 3.5.0 The success notice is built by RadioPlayerPage\WP\Migration_Notice from the migration summary.
  * @return void
  */
 function radplapag_migration_admin_notices(): void {
@@ -218,7 +243,7 @@ function radplapag_migration_admin_notices(): void {
 	$success = get_transient( 'radplapag_migration_success_notice' );
 	if ( $success ) {
 		delete_transient( 'radplapag_migration_success_notice' );
-		echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__( 'Radio Player Page: Your radio stations and radio shows were migrated from the previous storage format to the new editor. The old settings entry was removed.', 'radio-player-page' ) . '</p></div>';
+		echo wp_kses_post( \RadioPlayerPage\WP\Migration_Notice::success( $success ) );
 	}
 
 	$error = get_transient( 'radplapag_migration_error_notice' );
@@ -227,18 +252,19 @@ function radplapag_migration_admin_notices(): void {
 		echo '<div class="notice notice-error is-dismissible"><p><strong>' . esc_html__( 'Radio Player Page migration error', 'radio-player-page' ) . '</strong></p><p>' . esc_html( $error ) . '</p></div>';
 	}
 
-	if ( get_option( 'radplapag_migration_skipped_cpt_conflict' ) ) {
+	if ( \RadioPlayerPage\Upgrade\Upgrade_Policy::shows_conflict_notice( get_option( 'radplapag_migration_skipped_cpt_conflict' ) ) ) {
 		$dismiss = wp_nonce_url(
 			add_query_arg( 'radplapag_dismiss', 'migration_conflict' ),
 			'radplapag_dismiss_migration_conflict'
 		);
-		echo '<div class="notice notice-warning"><p>' . esc_html__( 'Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.', 'radio-player-page' ) . '</p><p><a href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Dismiss This Notice', 'radio-player-page' ) . '</a></p></div>';
+		echo '<div class="notice notice-warning is-dismissible"><p>' . esc_html__( 'Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.', 'radio-player-page' ) . '</p><p><a href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Dismiss This Notice', 'radio-player-page' ) . '</a></p></div>';
 	}
 }
 
 add_action( 'plugins_loaded', 'radplapag_ensure_schema_version_option', 5 );
 add_action( 'upgrader_process_complete', 'radplapag_on_upgrader_process_complete', 10, 2 );
 add_action( 'admin_init', 'radplapag_maybe_clear_migration_conflict_flag', 5 );
+add_action( 'init', 'radplapag_run_legacy_migration_if_needed', 100 );
 add_action( 'admin_init', 'radplapag_run_legacy_migration_if_needed', 20 );
 add_action( 'admin_init', 'radplapag_handle_migration_notice_dismiss', 15 );
 add_action( 'admin_notices', 'radplapag_migration_admin_notices' );

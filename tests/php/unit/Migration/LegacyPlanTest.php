@@ -8,6 +8,7 @@
 namespace RadioPlayerPage\Tests\Unit\Migration;
 
 use RadioPlayerPage\Migration\Legacy_Plan;
+use RadioPlayerPage\Migration\Slot_Filter;
 use RadioPlayerPage\Schedule\Slot_Validator;
 use Yoast\PHPUnitPolyfills\TestCases\TestCase;
 
@@ -288,11 +289,11 @@ final class LegacyPlanTest extends TestCase {
 	}
 
 	/**
-	 * A migrated slot loses is_rerun.
+	 * The plan does not read is_rerun: the legacy formats never had it.
 	 *
-	 * @see docs/known-issues.md K79
+	 * @see docs/adr/0039-legacy-slots-have-no-is-rerun.md
 	 */
-	public function test_currently_slot_loses_is_rerun() {
+	public function test_slot_ignores_is_rerun() {
 		$station             = self::station( 'One', array( self::program( 'prog_a', 'A' ) ) );
 		$station['schedule'] = array( 'monday' => array( self::slot( 'prog_a', '07:00', '08:00' ) + array( 'is_rerun' => true ) ) );
 
@@ -303,11 +304,12 @@ final class LegacyPlanTest extends TestCase {
 	}
 
 	/**
-	 * A stations list without any array station gives a plan with no stations, not no_data.
+	 * A stations list without any array station gives a plan with no stations, not no_data:
+	 * the option is still deleted and the notice says no station was found.
 	 *
 	 * @see docs/known-issues.md K32
 	 */
-	public function test_currently_stations_without_any_station_give_an_empty_plan() {
+	public function test_stations_without_any_station_give_an_empty_plan() {
 		$this->assertSame(
 			array(
 				'programs'   => array(),
@@ -320,11 +322,11 @@ final class LegacyPlanTest extends TestCase {
 
 	/**
 	 * The plan keeps a 3.2.x slot that crosses midnight into the next day's slot, and the
-	 * validator rejects the schedule.
+	 * slot filter drops the later one (Tuesday's), so the schedule validates.
 	 *
 	 * @see docs/known-issues.md K30
 	 */
-	public function test_currently_cross_day_overlap_is_kept_and_rejected() {
+	public function test_cross_day_overlap_from_3_2_drops_the_later_slot() {
 		$station             = self::station( 'One', array( self::program( 'prog_late', 'Late' ), self::program( 'prog_early', 'Early' ) ) );
 		$station['schedule'] = array(
 			'monday'  => array( self::slot( 'prog_late', '23:00', '02:00' ) ),
@@ -335,8 +337,20 @@ final class LegacyPlanTest extends TestCase {
 
 		$this->assertNotNull( $plan );
 		$this->assertSame( $station['schedule'], $plan['stations'][0]['schedule'] );
-		$errors = self::validate( $plan, 0 )['errors'];
-		$this->assertSame( array( 'cross_midnight_overlap' ), array_column( $errors, 'code' ) );
+		$result = self::filter( $plan, 0 );
+		$this->assertSame( array(), $result['errors'] );
+		$this->assertSame( array( 'monday' ), array_keys( $result['schedule'] ) );
+		$this->assertSame(
+			array(
+				array(
+					'day'     => 'tuesday',
+					'start'   => '01:00',
+					'end'     => '03:00',
+					'program' => 'Early',
+				),
+			),
+			$result['dropped']
+		);
 	}
 
 	/**
@@ -500,12 +514,41 @@ final class LegacyPlanTest extends TestCase {
 	private static function validate( array $plan, $index ) {
 		$post_ids = array();
 		$names    = array();
+		self::number( $plan, $post_ids, $names );
+
+		return Slot_Validator::validate( self::translate( $plan['stations'][ $index ]['schedule'], $post_ids ), $names );
+	}
+
+	/**
+	 * Filters a station's schedule with Slot_Filter and validates what is left, as the
+	 * writer does, with programs numbered 1, 2, … in plan order.
+	 *
+	 * @param array<string, mixed> $plan  Plan.
+	 * @param int                  $index Station index.
+	 * @return array{schedule: array<string, mixed>, errors: list<array<string, mixed>>, dropped: list<array<string, string>>}
+	 */
+	private static function filter( array $plan, $index ) {
+		$post_ids = array();
+		$names    = array();
+		self::number( $plan, $post_ids, $names );
+		$filtered = Slot_Filter::filter( self::translate( $plan['stations'][ $index ]['schedule'], $post_ids ), $names );
+
+		return Slot_Validator::validate( $filtered['schedule'], $names ) + array( 'dropped' => $filtered['dropped'] );
+	}
+
+	/**
+	 * Numbers the plan's programs 1, 2, … in plan order, with the writer's default name.
+	 *
+	 * @param array<string, mixed> $plan     Plan.
+	 * @param array<string, int>   $post_ids Filled with legacy ID → post ID.
+	 * @param array<int, string>   $names    Filled with post ID → name.
+	 * @return void
+	 */
+	private static function number( array $plan, array &$post_ids, array &$names ) {
 		foreach ( $plan['programs'] as $i => $program ) {
 			$post_ids[ $program['id'] ] = $i + 1;
 			$names[ $i + 1 ]            = '' === $program['name'] ? 'Program' : $program['name'];
 		}
-
-		return Slot_Validator::validate( self::translate( $plan['stations'][ $index ]['schedule'], $post_ids ), $names );
 	}
 
 	/**
@@ -570,10 +613,10 @@ final class LegacyPlanTest extends TestCase {
 	}
 
 	/**
-	 * What the migration writes from a plan, in the golden's shape: nothing if a station's
-	 * schedule fails; otherwise the writer's default titles, the attachment checks of the
-	 * registered meta callbacks (an ID that is not an image is 0) and the validated schedule
-	 * as JSON, with post IDs as placeholders.
+	 * What the migration writes from a plan, in the golden's shape: the writer's default
+	 * titles, the attachment checks of the registered meta callbacks (an ID that is not an
+	 * image is 0) and the schedule left by Slot_Filter and validated, as JSON, with post IDs
+	 * as placeholders. Nothing if what is left still fails.
 	 *
 	 * @param array<string, mixed>|null $plan   Plan.
 	 * @param array<int, string>        $names  Fake ID → placeholder.
@@ -614,7 +657,7 @@ final class LegacyPlanTest extends TestCase {
 
 		$stations = array();
 		foreach ( $plan['stations'] as $index => $station ) {
-			$result = self::validate( $plan, $index );
+			$result = self::filter( $plan, $index );
 			if ( array() !== $result['errors'] ) {
 				return $nothing;
 			}

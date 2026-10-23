@@ -84,10 +84,13 @@ final class StationsTest extends TestCase {
 	}
 
 	/**
-	 * With page 0 (nothing queried), a station without a page matches (K24).
+	 * Page 0 or less (nothing queried) never matches, not even a station without a page (K24).
 	 */
-	public function test_currently_for_page_zero_matches_a_station_without_page() {
-		$this->assertSame( 2, Stations::for_page( array( self::station( 1, 10 ), self::station( 2, 0 ) ), 0 )['id'] );
+	public function test_for_page_zero_matches_nothing() {
+		$stations = array( self::station( 1, 10 ), self::station( 2, 0 ), self::station( 3, -1 ) );
+
+		$this->assertFalse( Stations::for_page( $stations, 0 ) );
+		$this->assertFalse( Stations::for_page( $stations, -1 ) );
 	}
 
 	/**

@@ -1,5 +1,5 @@
 {
-	"_source": "3.2.x shape with a malformed time in the second station: the schedule sanitizer rejects it, every created post is rolled back and the legacy option stays",
+	"_source": "3.2.x shape with a malformed time in the second station: that slot is dropped and both stations migrate (K30)",
 	"settings": {
 		"stations": [
 			{

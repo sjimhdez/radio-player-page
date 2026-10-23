@@ -95,11 +95,12 @@ final class Schedule_Messages {
 	 * Returns the translated name of a day key.
 	 *
 	 * @since 3.5.0
+	 * @since 3.5.0 Public, for RadioPlayerPage\WP\Migration_Notice.
 	 *
 	 * @param string $day Day key (monday ... sunday).
 	 * @return string
 	 */
-	private static function day_label( string $day ): string {
+	public static function day_label( string $day ): string {
 		$labels = array(
 			'monday'    => __( 'Monday', 'radio-player-page' ),
 			'tuesday'   => __( 'Tuesday', 'radio-player-page' ),

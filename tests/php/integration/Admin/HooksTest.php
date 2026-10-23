@@ -7,13 +7,15 @@
 
 namespace RadioPlayerPage\Tests\Integration\Admin;
 
+use ReflectionFunction;
 use WP_UnitTestCase;
 
 /**
  * Pins every radplapag_* callback in $wp_filter after the plugin loads: hook,
  * priority and number of arguments, with nothing missing and nothing extra. A third
  * party can unhook any of them with remove_action()/remove_filter(), so they are
- * contract.
+ * contract. Only the plugin's own callbacks count: not those of tests/ or of anything
+ * outside the plugin, such as the e2e mu-plugin the tests environment mounts.
  */
 final class HooksTest extends WP_UnitTestCase {
 
@@ -25,13 +27,14 @@ final class HooksTest extends WP_UnitTestCase {
 			'radplapag_ensure_schema_version_option' => array( 5, 1 ),
 		),
 		'init'                           => array(
-			'radplapag_register_station_post_type'   => array( 10, 1 ),
-			'radplapag_register_program_post_type'   => array( 10, 1 ),
-			'radplapag_register_station_meta'        => array( 20, 1 ),
-			'radplapag_register_program_meta'        => array( 20, 1 ),
-			'radplapag_register_schedule_block'      => array( 10, 1 ),
-			'radplapag_register_programs_list_block' => array( 10, 1 ),
-			'radplapag_register_now_playing_block'   => array( 10, 1 ),
+			'radplapag_register_station_post_type'     => array( 10, 1 ),
+			'radplapag_register_program_post_type'     => array( 10, 1 ),
+			'radplapag_register_station_meta'          => array( 20, 1 ),
+			'radplapag_register_program_meta'          => array( 20, 1 ),
+			'radplapag_register_schedule_block'        => array( 10, 1 ),
+			'radplapag_register_programs_list_block'   => array( 10, 1 ),
+			'radplapag_register_now_playing_block'     => array( 10, 1 ),
+			'radplapag_run_legacy_migration_if_needed' => array( 100, 1 ),
 		),
 		'template_redirect'              => array(
 			'radplapag_output_clean_page' => array( 10, 1 ),
@@ -85,7 +88,24 @@ final class HooksTest extends WP_UnitTestCase {
 	);
 
 	/**
-	 * Every radplapag_* callback in $wp_filter, as hook → callback → [ priority, args ].
+	 * Whether a callback is a radplapag_* function defined in the plugin's own files
+	 * (outside tests/).
+	 *
+	 * @param mixed $callback Callback as stored in $wp_filter.
+	 * @return bool
+	 */
+	private static function is_plugin_callback( $callback ) {
+		if ( ! is_string( $callback ) || 0 !== strpos( $callback, 'radplapag_' ) || ! function_exists( $callback ) ) {
+			return false;
+		}
+		$dir  = dirname( __DIR__, 4 ) . '/';
+		$file = (string) ( new ReflectionFunction( $callback ) )->getFileName();
+
+		return 0 === strpos( $file, $dir ) && 0 !== strpos( $file, $dir . 'tests/' );
+	}
+
+	/**
+	 * Every plugin callback in $wp_filter, as hook → callback → [ priority, args ].
 	 *
 	 * @return array<string, array<string, array{0: int, 1: int}>>
 	 */
@@ -94,7 +114,7 @@ final class HooksTest extends WP_UnitTestCase {
 		foreach ( $GLOBALS['wp_filter'] as $hook => $wp_hook ) {
 			foreach ( $wp_hook->callbacks as $priority => $callbacks ) {
 				foreach ( $callbacks as $callback ) {
-					if ( is_string( $callback['function'] ) && 0 === strpos( $callback['function'], 'radplapag_' ) ) {
+					if ( self::is_plugin_callback( $callback['function'] ) ) {
 						$hooked[ $hook ][ $callback['function'] ] = array( $priority, $callback['accepted_args'] );
 					}
 				}
@@ -173,9 +193,7 @@ final class HooksTest extends WP_UnitTestCase {
 			$names = array_values(
 				array_filter(
 					array_keys( $GLOBALS['wp_filter'][ $hook ]->callbacks[ $priority ] ),
-					static function ( $name ) {
-						return 0 === strpos( $name, 'radplapag_' );
-					}
+					array( self::class, 'is_plugin_callback' )
 				)
 			);
 			$this->assertSame( $expected, $names, "$hook ($priority)" );

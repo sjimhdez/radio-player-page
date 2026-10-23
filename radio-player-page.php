@@ -57,7 +57,7 @@ if ( is_admin() ) {
  * @param array  $caps    Required capabilities (returned by map_meta_cap).
  * @param string $cap     Meta capability being checked (e.g. edit_post, delete_post).
  * @param int    $user_id User ID.
- * @param array  $args    Optional args; [0] is post ID for post meta caps.
+ * @param array  $args    Optional args; [0] is the post (ID or WP_Post) for post meta caps.
  * @return array Mapped capabilities.
  */
 function radplapag_map_cpt_meta_cap( array $caps, string $cap, int $user_id, array $args ): array {
@@ -65,11 +65,12 @@ function radplapag_map_cpt_meta_cap( array $caps, string $cap, int $user_id, arr
 	if ( ! in_array( $cap, $post_meta_caps, true ) ) {
 		return $caps;
 	}
-	$post_id = (int) ( $args[0] ?? 0 );
-	if ( $post_id <= 0 ) {
+	// Without a post, get_post() would fall back to the global post.
+	$post = empty( $args[0] ) ? null : get_post( $args[0] );
+	if ( ! $post ) {
 		return $caps;
 	}
-	$post_type = get_post_type( $post_id );
+	$post_type = $post->post_type;
 	if ( 'radplapag_station' !== $post_type && 'radplapag_program' !== $post_type ) {
 		return $caps;
 	}
@@ -199,12 +200,17 @@ function radplapag_enqueue_now_playing_block_editor_assets() {
  *
  * @since 1.0.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Data\Stations::for_page().
+ * @since 3.5.0 Returns false when the request is not a page (K24).
  *
  * @return array|false Station configuration array with keys: 'stream_url', 'player_page',
  *                     'station_title', 'background_id', 'logo_id', 'theme_color', 'visualizer'.
  *                     Returns false if no matching station is found for the current page.
  */
 function radplapag_get_station_for_current_page() {
+	if ( ! is_page() ) {
+		return false;
+	}
+
 	return \RadioPlayerPage\Data\Stations::for_page( radplapag_get_config()['stations'], get_queried_object_id() );
 }
 
@@ -227,11 +233,12 @@ function radplapag_get_station_for_current_page() {
  *
  * @since 1.0.0
  * @since 3.5.0 Delegates the three globals to RadioPlayerPage\Player\Globals_Builder, with the time of RadioPlayerPage\WP\Clock.
+ * @since 3.5.0 Leaves the page's feed, embed and trackback to WordPress, prints the robots meta when the site discourages search engines and dir="rtl" on right-to-left sites.
  *
  * @return void Exits execution after outputting HTML.
  */
 function radplapag_output_clean_page() {
-	if ( ! is_page() ) {
+	if ( ! is_page() || is_feed() || is_embed() || is_trackback() ) {
 		return;
 	}
 
@@ -298,10 +305,14 @@ function radplapag_output_clean_page() {
 	$display_title = $config['siteTitle'];
 
 	echo '<!DOCTYPE html>';
-	echo '<html lang="' . esc_html( get_bloginfo( 'language' ) ) . '">';
+	echo '<html lang="' . esc_html( get_bloginfo( 'language' ) ) . '"' . ( is_rtl() ? ' dir="rtl"' : '' ) . '>';
 	echo '<head>';
 	echo '<meta charset="utf-8">';
 	echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
+	// Printed directly, without wp_robots() or its filter (ADR 0043).
+	if ( '0' === (string) get_option( 'blog_public' ) ) {
+		echo '<meta name="robots" content="noindex, nofollow">';
+	}
 	echo '<title>' . esc_html( $display_title ) . '</title>';
 	if ( $favicon_url ) {
 		echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';
