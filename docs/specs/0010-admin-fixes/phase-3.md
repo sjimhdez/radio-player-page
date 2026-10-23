@@ -109,7 +109,9 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `includes/src/wp/class-post-status-label.php`, `includes/radplapag-program-cpt.php`, `includes/radplapag-station-cpt.php`, `tests/zip/expected-additions.txt`, `tests/php/integration/Admin/AdminScreensTest.php`, `docs/known-issues.md`
 - Test: primero el `currently` de K36 a «lists an assigned page that is not published, with its status and a notice (K36)», en rojo. `test_station_programs_for_select` sigue en verde.
 - Verificación: `npm run test:php:integration -- --filter AdminScreensTest && npm run check:zip`
-- [ ] hecha · commit: —
+- Rojo (2026-10-23): «…lists_an_assigned_page_that_is_not_published_with_its_status_and_a_notice» sin opción seleccionada (`array()` en lugar de `['4']`). El de la página publicada (una sola opción, sin aviso) es guarda y ya pasaba. Diff de la fixture: solo espacio en blanco tras el `select` y el `p` (los `if` nuevos). El JS de errores reescribe `aria-describedby` del `select`, así que el aviso va sin enlace ARIA, como dice el plan. El servidor no filtra la página por estado: reenviarla la conserva. `get_pages()` se normaliza a array (lo pide `wp_list_pluck()`), y la entrada `foreach.nonIterable` de `radplapag-station-cpt.php` sale de la baseline. Verde: `AdminScreensTest` 39/39, integración completa 999/999, Vitest de admin 269/269, `check:zip` y `npm run check`.
+- Changelog: «The Player Page select keeps a page that is no longer published, with its status and a notice.»
+- [x] hecha · commit: ver `git log` («fix(0010): keep an unpublished player page in the select (3.7)»)
 
 ### 3.8 K27: fuera la página de entradas (≤ 45 min) — `fix-bug`
 - Qué: con `show_on_front = 'page'` y `page_for_posts > 0`, el selector la excluye, salvo que sea la asignada. Entonces sale con el aviso «This page is the posts page; the player is not shown on it.».

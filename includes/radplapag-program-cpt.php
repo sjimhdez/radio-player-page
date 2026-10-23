@@ -210,14 +210,7 @@ function radplapag_get_station_programs_for_select( $station_id ) {
 		$ids = array_values( array_unique( array_merge( $ids, \RadioPlayerPage\Schedule\Schedule_View::program_ids( $schedule ) ) ) );
 	}
 
-	$statuses = array(
-		'draft'   => __( 'Draft', 'radio-player-page' ),
-		'pending' => __( 'Pending', 'radio-player-page' ),
-		'future'  => __( 'Scheduled', 'radio-player-page' ),
-		'private' => __( 'Private', 'radio-player-page' ),
-		'trash'   => __( 'Trash', 'radio-player-page' ),
-	);
-	$out      = array();
+	$out = array();
 	foreach ( $ids as $id ) {
 		$post = get_post( (int) $id );
 		if ( ! $post || 'radplapag_program' !== $post->post_type ) {
@@ -228,10 +221,8 @@ function radplapag_get_station_programs_for_select( $station_id ) {
 		if ( ! $is_public ) {
 			if ( 'publish' === $post->post_status ) {
 				$status = __( 'Password protected', 'radio-player-page' );
-			} elseif ( isset( $statuses[ $post->post_status ] ) ) {
-				$status = $statuses[ $post->post_status ];
 			} else {
-				$status = $post->post_status;
+				$status = \RadioPlayerPage\WP\Post_Status_Label::of( $post->post_status );
 			}
 			/* translators: 1: program name, 2: program status, such as Draft or Trash. */
 			$label = sprintf( __( '%1$s (%2$s)', 'radio-player-page' ), $post->post_title, $status );

@@ -580,13 +580,11 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, when the assigned page stops being published (draft, private,
-	 * scheduled), the select does not list it and selects nothing, without saying so:
-	 * the meta still points to it, but the form shows "Select a Page" and its
-	 * validation asks for one, so any later save (a new stream URL) needs another
-	 * page. K36 of docs/known-issues.md.
+	 * When the assigned page stops being published (draft, private, scheduled), the
+	 * select still lists it, selected, with its status in the label, and a notice
+	 * says the player is not shown until it is published (K36).
 	 */
-	public function test_currently_details_box_drops_an_assigned_page_that_is_not_published() {
+	public function test_details_box_lists_an_assigned_page_that_is_not_published_with_its_status_and_a_notice() {
 		$page    = $this->factory_rpp->page( 'Player' );
 		$station = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $page ) );
 		wp_update_post(
@@ -598,9 +596,26 @@ final class AdminScreensTest extends WP_UnitTestCase {
 
 		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
 
-		$this->assertSame( (string) $page, get_post_meta( $station, 'radplapag_station_player_page', true ) );
-		$this->assertStringNotContainsString( 'value="' . $page . '"', $this->select( $html, 'radplapag_station_player_page' ) );
-		$this->assertSame( array(), $this->selected( $html, 'radplapag_station_player_page' ) );
+		$this->assertSame( array( (string) $page ), $this->selected( $html, 'radplapag_station_player_page' ) );
+		$this->assertStringContainsString( '>Player (Private)</option>', $this->select( $html, 'radplapag_station_player_page' ) );
+		$this->assertStringContainsString(
+			'<span class="radplapag-field-notice">This page is not published; the player is not shown until it is.</span>',
+			$html
+		);
+	}
+
+	/**
+	 * A published assigned page is listed once, without a status or the notice (K36).
+	 */
+	public function test_details_box_does_not_warn_about_a_published_assigned_page() {
+		$page    = $this->factory_rpp->page( 'Player' );
+		$station = $this->factory_rpp->station( 'Test FM', array( 'player_page' => $page ) );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $station );
+
+		$this->assertSame( 1, substr_count( $this->select( $html, 'radplapag_station_player_page' ), 'value="' . $page . '"' ) );
+		$this->assertStringContainsString( '>Player</option>', $html );
+		$this->assertStringNotContainsString( 'This page is not published', $html );
 	}
 
 	/**

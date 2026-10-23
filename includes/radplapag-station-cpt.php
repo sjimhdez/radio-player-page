@@ -339,7 +339,21 @@ function radplapag_render_station_details_meta_box( $post ) {
 	$valid_viz    = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
 	$visualizer   = in_array( $visualizer, $valid_viz, true ) ? $visualizer : 'oscilloscope';
 
-	$pages           = get_pages( array( 'post_status' => 'publish' ) );
+	$pages = get_pages( array( 'post_status' => 'publish' ) );
+	$pages = is_array( $pages ) ? $pages : array();
+
+	// An assigned page that is not published stays listed, with its status (K36).
+	$unpublished_page  = null;
+	$unpublished_label = '';
+	if ( $player_page > 0 && ! in_array( $player_page, wp_list_pluck( $pages, 'ID' ), true ) ) {
+		$assigned = get_post( $player_page );
+		if ( $assigned && 'page' === $assigned->post_type ) {
+			$unpublished_page = $assigned;
+			/* translators: 1: page title, 2: page status, such as Draft or Private. */
+			$unpublished_label = sprintf( __( '%1$s (%2$s)', 'radio-player-page' ), $assigned->post_title, \RadioPlayerPage\WP\Post_Status_Label::of( $assigned->post_status ) );
+		}
+	}
+
 	$bg_url          = $background_id > 0 ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
 	$logo_url        = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
 	$intro_audio_url = $intro_audio_id > 0 ? wp_get_attachment_url( $intro_audio_id ) : '';
@@ -363,8 +377,14 @@ function radplapag_render_station_details_meta_box( $post ) {
 				<?php foreach ( $pages as $page ) : ?>
 					<option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $player_page, $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option>
 				<?php endforeach; ?>
+				<?php if ( $unpublished_page ) : ?>
+					<option value="<?php echo esc_attr( (string) $unpublished_page->ID ); ?>" selected='selected'><?php echo esc_html( $unpublished_label ); ?></option>
+				<?php endif; ?>
 			</select>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
+			<?php if ( $unpublished_page ) : ?>
+				<span class="radplapag-field-notice"><?php esc_html_e( 'This page is not published; the player is not shown until it is.', 'radio-player-page' ); ?></span>
+			<?php endif; ?>
 		</p>
 		<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="<?php echo esc_attr( $site_scheme ); ?>">
 			<label for="radplapag_station_stream_url"><strong><?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?> <span class="required">*</span></strong></label><br>
