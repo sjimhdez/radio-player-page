@@ -19,6 +19,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Programs_List_View, with the time of RadioPlayerPage\WP\Clock.
+ * @since 3.5.0 Leaves out the programs that are not public: not published, password-protected or missing (ADR 0045).
  * @param int $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
  * @return array|null List of programs, each with 'id', 'name', 'logo_id' (attachment ID or 0), 'description', 'extended_description', 'slots'. Null if station invalid or index out of range.
  */
@@ -34,7 +35,9 @@ function radplapag_get_programs_list_for_station( $station_index ) {
 	}
 	$station = $stations[ $idx ];
 
-	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$schedule_raw    = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$public_programs = \RadioPlayerPage\WP\Program_Repository::public_programs( $schedule_raw );
+	$schedule_raw    = \RadioPlayerPage\Schedule\Public_Slots::filter( $schedule_raw, array_keys( $public_programs ) );
 
 	$programs = array();
 	foreach ( \RadioPlayerPage\Schedule\Programs_List_View::program_ids_in_order( $schedule_raw ) as $post_id ) {

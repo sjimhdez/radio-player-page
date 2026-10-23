@@ -234,6 +234,7 @@ function radplapag_get_station_for_current_page() {
  * @since 1.0.0
  * @since 3.5.0 Delegates the three globals to RadioPlayerPage\Player\Globals_Builder, with the time of RadioPlayerPage\WP\Clock.
  * @since 3.5.0 Leaves the page's feed, embed and trackback to WordPress, prints the robots meta when the site discourages search engines and dir="rtl" on right-to-left sites.
+ * @since 3.5.0 RADPLAPAG_SCHEDULE and RADPLAPAG_PROGRAMS leave out the slots of programs that are not public: not published, password-protected or missing (C10, ADR 0045).
  *
  * @return void Exits execution after outputting HTML.
  */
@@ -345,8 +346,10 @@ function radplapag_output_clean_page() {
 	echo '<meta name="twitter:title" content="' . esc_attr( $display_title ) . '">';
 	echo '<meta name="twitter:description" content="' . esc_attr( $meta_description ) . '">';
 
-	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
-	$program_data = array();
+	$schedule_raw    = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$public_programs = \RadioPlayerPage\WP\Program_Repository::public_programs( $schedule_raw );
+	$schedule_raw    = \RadioPlayerPage\Schedule\Public_Slots::filter( $schedule_raw, array_keys( $public_programs ) );
+	$program_data    = array();
 	foreach ( \RadioPlayerPage\Player\Globals_Builder::program_ids( $schedule_raw ) as $post_id ) {
 		$program_data[ $post_id ] = radplapag_get_program_data( $post_id, true );
 	}

@@ -72,7 +72,11 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Archivos: `includes/src/wp/class-program-repository.php`, `radio-player-page.php`, `includes/radplapag-{schedule,programs-list,now-playing}-block.php`, los tests citados, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm run test:php:integration -- --filter 'BlockData|BlockAudit|ScheduleVectors|PublicApi' && npm run lint:phpstan`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («fix(0009): leave out slots of non-public programs in the public entry points (2.5)»)
+- Rojo visto (4 fallos en `BlockDataTest`): `test_unknown_program_slot_is_left_out` y `test_draft_program_slot_is_left_out` (la franja seguía con nombre vacío), `test_password_protected_program_is_not_public` (`data()` devolvía «Locked») y el vector C10-1 de `test_live_slots_by_vector` (el bloque de horario marcaba en directo `monday  09:30-10:00`). Se borra `test_currently_unpublished_slot_is_live_in_the_schedule_block` y el parámetro `$schedule_expected` que solo usaba él.
+- `Program_Repository::public_programs()` sigue el orden de `Schedule_View::program_ids()`. `radplapag_get_now_playing_for_station()` arma su mapa con esos datos (el bucle propio quedó redundante y PHPStan lo marcaba). Docblock de `radplapag_get_program_data()` con la contraseña.
+- La página limpia ya filtra, así que la edición aprobada de `clean-page.spec.ts` «skips the raw schedule entries that cannot be printed» (sin la franja del borrador ni la de `'tagged id'`) se adelanta de la 2.6. K78 sigue igual (`[b, c, a]`).
+- Changelog: ya anotado en la 2.1 (programas con contraseña y C10).
 
 ### 2.6 K78 y K17 en la página limpia (`fix-bug`) (≤ 1 h)
 - Qué: el envoltorio imprime `program_ids()` del horario ya impreso (K78) y `Globals_Builder::printable_schedule()` (`stdClass` vacío si no hay franjas; `schedule()` sigue devolviendo array). Regresión: `GlobalsBuilderTest` K17 (sobre `printable_schedule()`), `clean-page.spec.ts` K17 (`{}`) y K78 (`[b, a]`), edición aprobada de «skips the raw schedule entries…», snapshot `minimal.html`. Player: `read-config.test.ts` y `use-config.test.tsx` pierden `currently` (mismo comportamiento).

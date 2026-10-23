@@ -23,12 +23,12 @@ use WP_UnitTestCase;
  *   empty descriptions → null, logo URL;
  * - schedule: invalid index → null; `natural` keeps Monday to Sunday, `current_first`
  *   (and only it) starts with today; slots sorted by start; incomplete entries
- *   skipped; unknown or draft program → slot with an empty name (C10); empty
+ *   skipped; slots of unknown or draft programs left out (C10); empty
  *   descriptions → '' in the slot; `station_page_url`; `is_live` per vector (C16);
  * - programs list: invalid index → null; programs in order of first appearance
  *   (Monday to Sunday); slots by day and start; drafts, unknown and non-numeric
  *   program IDs out; empty descriptions → null; `is_live` per vector (C16).
- * - password-protected program: public in its data, both blocks and the program on air (K88).
+ * - password-protected program: not public, neither in its data, both blocks nor the program on air (K88).
  */
 final class BlockDataTest extends WP_UnitTestCase {
 
@@ -74,19 +74,12 @@ final class BlockDataTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The `resolution` vectors whose PHP result is the correct one, by ID. Those with
-	 * unpublished programs run in
-	 * test_currently_unpublished_slot_is_live_in_the_schedule_block() (C10).
+	 * The `resolution` vectors whose PHP result is the correct one, by ID.
 	 *
 	 * @return array<string, array{array}>
 	 */
 	public function resolution_vectors() {
-		return array_filter(
-			self::resolution_vectors_where( false ),
-			function ( $args ) {
-				return empty( $args[0]['unpublished'] );
-			}
-		);
+		return self::resolution_vectors_where( false );
 	}
 
 	/**
@@ -432,10 +425,9 @@ final class BlockDataTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A slot whose program does not exist stays in the schedule with an empty name
-	 * (the block prints "—").
+	 * The slot of a program that does not exist is left out of the schedule (C10, ADR 0045).
 	 */
-	public function test_unknown_program_slot_has_empty_name() {
+	public function test_unknown_program_slot_is_left_out() {
 		$station = $this->factory_rpp->station( 'Station' );
 
 		$this->store_schedule(
@@ -452,19 +444,18 @@ final class BlockDataTest extends WP_UnitTestCase {
 		);
 
 		$result = radplapag_get_schedule_for_station( 0, 'natural' );
-		$slot   = $this->day( $result, 'monday' )['slots'][0];
 
-		$this->assertSame( array( '999999', '', '', '' ), array( $slot['program_id'], $slot['program_name'], $slot['program_description'], $slot['program_extended_description'] ) );
+		$this->assertSame( array(), $this->day( $result, 'monday' )['slots'] );
 		$this->assertSame( array(), $result['programs'] );
 	}
 
 	/**
-	 * C10: a slot whose program is a draft stays in the schedule block with an empty
-	 * name (printed as "—"), while the programs list and the program on air hide it.
+	 * C10: the slot of a draft program is left out of the schedule block, as it is of
+	 * the programs list.
 	 *
 	 * @see docs/known-issues.md C10
 	 */
-	public function test_currently_draft_program_slot_stays_with_empty_name() {
+	public function test_draft_program_slot_is_left_out() {
 		$draft   = $this->factory_rpp->program( 'Draft', array( 'description' => 'Hidden' ), 'draft' );
 		$station = $this->factory_rpp->station( 'Station' );
 
@@ -482,22 +473,20 @@ final class BlockDataTest extends WP_UnitTestCase {
 		);
 
 		$result = radplapag_get_schedule_for_station( 0, 'natural' );
-		$slot   = $this->day( $result, 'monday' )['slots'][0];
 
-		$this->assertSame( (string) $draft, $slot['program_id'] );
-		$this->assertSame( '', $slot['program_name'] );
-		$this->assertSame( '', $slot['program_description'] );
+		$this->assertSame( array(), $this->day( $result, 'monday' )['slots'] );
 		$this->assertSame( array(), $result['programs'] );
 		$this->assertSame( array(), radplapag_get_programs_list_for_station( 0 ) );
 	}
 
 	/**
-	 * K88: a published program with a password counts as public: its data, its slot
-	 * in the schedule block, its entry in the programs list and the program on air.
+	 * K88: a published program with a password is not public (ADR 0045): no data when
+	 * publication is required, no slot in the schedule block, no entry in the programs
+	 * list and not on air.
 	 *
 	 * @see docs/known-issues.md K88
 	 */
-	public function test_currently_password_protected_program_is_public() {
+	public function test_password_protected_program_is_not_public() {
 		$program = $this->factory_rpp->program( 'Locked', array( 'description' => 'Secret' ) );
 		wp_update_post(
 			array(
@@ -507,7 +496,8 @@ final class BlockDataTest extends WP_UnitTestCase {
 		);
 		$station = $this->factory_rpp->station( 'Station' );
 
-		$this->assertSame( 'Locked', radplapag_get_program_data( $program, true )['name'] );
+		$this->assertNull( radplapag_get_program_data( $program, true ) );
+		$this->assertSame( 'Locked', radplapag_get_program_data( $program, false )['name'] );
 
 		Clock::run(
 			'monday',
@@ -528,10 +518,9 @@ final class BlockDataTest extends WP_UnitTestCase {
 					)
 				);
 
-				$slot = $this->day( radplapag_get_schedule_for_station( 0, 'natural' ), $clock->rotate_day( 'monday' ) )['slots'][0];
-				$this->assertSame( array( 'Locked', 'Secret' ), array( $slot['program_name'], $slot['program_description'] ) );
-				$this->assertSame( array( 'Locked' ), array_column( radplapag_get_programs_list_for_station( 0 ), 'name' ) );
-				$this->assertSame( (string) $program, radplapag_get_now_playing_for_station( 0 )['current']['id'] );
+				$this->assertSame( array(), $this->day( radplapag_get_schedule_for_station( 0, 'natural' ), $clock->rotate_day( 'monday' ) )['slots'] );
+				$this->assertSame( array(), radplapag_get_programs_list_for_station( 0 ) );
+				$this->assertNull( radplapag_get_now_playing_for_station( 0 )['current'] );
 			}
 		);
 	}
@@ -703,30 +692,14 @@ final class BlockDataTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * C10: with the program of a slot as a draft (vector C10-1), the programs list marks
-	 * as live only the vector's `current` slot, but the schedule block keeps the draft
-	 * slot, live and with an empty name.
-	 *
-	 * @see docs/known-issues.md C10
-	 */
-	public function test_currently_unpublished_slot_is_live_in_the_schedule_block() {
-		$vectors = array_column( self::vectors()['resolution'], null, 'id' );
-		$vector  = $vectors['C10-1'];
-		$correct = $this->live_expected( array( $vector['current'] ) );
-
-		$this->assert_live_slots( $vector, $correct, array_merge( array( 'monday  09:30-10:00' ), $correct ) );
-	}
-
-	/**
 	 * Puts the site on the vector's day and minute, stores its grid (its `unpublished`
 	 * programs as drafts) and compares the live slots of both blocks with $expected
 	 * (vector days).
 	 *
-	 * @param array         $vector            A `resolution` vector.
-	 * @param string[]      $expected          Sorted "day program time_range" entries.
-	 * @param string[]|null $schedule_expected Those of the schedule block, when they differ.
+	 * @param array    $vector   A `resolution` vector.
+	 * @param string[] $expected Sorted "day program time_range" entries.
 	 */
-	private function assert_live_slots( array $vector, array $expected, $schedule_expected = null ) {
+	private function assert_live_slots( array $vector, array $expected ) {
 		$station = $this->factory_rpp->station( 'Station' );
 		$grid    = self::vectors()['grids'][ $vector['grid'] ];
 		foreach ( isset( $vector['unpublished'] ) ? $vector['unpublished'] : array() as $key ) {
@@ -741,7 +714,7 @@ final class BlockDataTest extends WP_UnitTestCase {
 		Clock::run(
 			$vector['now']['day'],
 			$vector['now']['time'],
-			function ( Clock $clock ) use ( $station, $grid, $expected, $schedule_expected ) {
+			function ( Clock $clock ) use ( $station, $grid, $expected ) {
 				$schedule = array();
 				foreach ( $grid as $day => $slots ) {
 					foreach ( $slots as $slot ) {
@@ -759,7 +732,7 @@ final class BlockDataTest extends WP_UnitTestCase {
 					}
 				}
 				sort( $live );
-				$this->assertSame( null === $schedule_expected ? $expected : $schedule_expected, $live, 'schedule' );
+				$this->assertSame( $expected, $live, 'schedule' );
 
 				$live = array();
 				foreach ( radplapag_get_programs_list_for_station( 0 ) as $program ) {

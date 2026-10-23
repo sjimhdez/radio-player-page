@@ -156,8 +156,9 @@ add_action( 'init', 'radplapag_register_program_meta', 20 );
  *
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\WP\Program_Repository::data().
+ * @since 3.5.0 With $require_published, a password-protected program gives null (K88, ADR 0045).
  * @param int  $post_id          Post ID of radplapag_program.
- * @param bool $require_published Optional. Whether to require published status. Default false.
+ * @param bool $require_published Optional. Whether to require a public program: published and without password. Default false.
  * @return array{name: string, description: string, extended_description: string, logo_id: int, logo_url: string|null}|null Name, description, extended description, logo ID and logo URL; null if invalid or not found.
  */
 function radplapag_get_program_data( $post_id, $require_published = false ) {

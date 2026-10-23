@@ -427,31 +427,19 @@ test.describe( 'clean page (HTTP)', () => {
 	test( 'skips the raw schedule entries that cannot be printed', async ( {
 		request,
 	} ) => {
-		await withRawSchedule( async ( { a, b, draft } ) => {
+		await withRawSchedule( async ( { a, b } ) => {
 			const html = await getHtml( request, readSeed().urls.minimal );
 
 			// Tuesday is not an array and Wednesday ends up empty: both go.
+			// The slots of a non-numeric ID (a program that does not exist)
+			// and of a draft program go too (C10, ADR 0045).
 			expect( readGlobals( html ).RADPLAPAG_SCHEDULE ).toEqual( {
 				monday: [
-					// Not numeric: sanitize_text_field(); "yes" is a rerun.
-					{
-						program_id: 'tagged id',
-						start: '06:00',
-						end: '07:00',
-						is_rerun: true,
-					},
 					// Numeric with a leading space: cast to int.
 					{
 						program_id: b,
 						start: '07:00',
 						end: '08:00',
-						is_rerun: false,
-					},
-					// The slot of a draft program stays (C10).
-					{
-						program_id: draft,
-						start: '10:00',
-						end: '11:00',
 						is_rerun: false,
 					},
 				],

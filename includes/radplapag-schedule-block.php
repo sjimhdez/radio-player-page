@@ -89,12 +89,15 @@ function radplapag_get_schedule_day_keys_and_labels(): array {
  *
  * @since 3.3.0
  * @since 3.5.0 The program IDs come from RadioPlayerPage\Schedule\Schedule_View::program_ids().
+ * @since 3.5.0 Only public programs count: published and without password (ADR 0045).
  * @param array $station Station array with 'schedule' key.
  * @return array Associative array program_id (string) => [ 'name' => string, 'description' => string|null, 'extended_description' => string|null, 'logo_url' => string|null ].
  */
 function radplapag_build_programs_map( array $station ): array {
-	$map          = array();
-	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$map             = array();
+	$schedule_raw    = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$public_programs = \RadioPlayerPage\WP\Program_Repository::public_programs( $schedule_raw );
+	$schedule_raw    = \RadioPlayerPage\Schedule\Public_Slots::filter( $schedule_raw, array_keys( $public_programs ) );
 	foreach ( \RadioPlayerPage\Schedule\Schedule_View::program_ids( $schedule_raw ) as $post_id ) {
 		$data = radplapag_get_program_data( $post_id, true );
 		if ( $data ) {
@@ -118,6 +121,7 @@ function radplapag_build_programs_map( array $station ): array {
  *
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Schedule_View::days(), with the time of RadioPlayerPage\WP\Clock.
+ * @since 3.5.0 Leaves out the slots of programs that are not public: not published, password-protected or missing (C10, ADR 0045).
  * @param int    $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
  * @param string $day_order     Optional. 'current_first' (default) = start with today; 'natural' = Monday to Sunday.
  * @return array|null Associative array with 'programs', 'days', 'station_page_url' (permalink for station's player page, or empty string),
@@ -133,9 +137,11 @@ function radplapag_get_schedule_for_station( $station_index, string $day_order =
 	if ( $idx < 0 || $idx >= count( $stations ) ) {
 		return null;
 	}
-	$station      = $stations[ $idx ];
-	$programs_map = radplapag_build_programs_map( $station );
-	$schedule_raw = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$station         = $stations[ $idx ];
+	$programs_map    = radplapag_build_programs_map( $station );
+	$schedule_raw    = isset( $station['schedule'] ) && is_array( $station['schedule'] ) ? $station['schedule'] : array();
+	$public_programs = \RadioPlayerPage\WP\Program_Repository::public_programs( $schedule_raw );
+	$schedule_raw    = \RadioPlayerPage\Schedule\Public_Slots::filter( $schedule_raw, array_keys( $public_programs ) );
 
 	$day_data = radplapag_get_schedule_day_keys_and_labels();
 	$days_out = \RadioPlayerPage\Schedule\Schedule_View::days(
