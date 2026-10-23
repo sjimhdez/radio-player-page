@@ -54,7 +54,8 @@ Los tres bloques eligen la emisora por ID (`stationId`) con `stationIndex` de re
 - Archivos: `includes/src/data/class-stations.php`, `tests/php/unit/Data/StationsTest.php`.
 - Test: primero (TDD): `StationsTest.php`.
 - Verificación: `npm run test:php:unit -- --filter StationsTest`
-- [ ] hecha · commit: —
+- Rojo: los cuatro tests nuevos (`test_block_index_*`) fallan con «Call to undefined method Stations::block_index()».
+- [x] hecha · commit: ver `git log` («feat(0013): add Stations::block_index() (1.3)»)
 
 ### 1.4 K46: `stationId` en los tres bloques (≤ 1 h)
 - Qué: `fix-bug`. `test_currently_station_index_follows_the_title_order` → regresión con `stationId`: una emisora nueva que va antes y despublicar otra no mueven el bloque; la emisora despublicada da «No radio shows…» (en rojo). `block.json` de los tres con `stationId` (`number`, 0). En cada `render`: `$index = $station_id > 0 ? Stations::block_index( radplapag_get_stations(), $station_id, $station_index ) : $station_index` y la función de siempre. `BlockRenderTest`: `registered_blocks()` con `stationId`; casos de render con `stationId` (los tres bloques, incluido uno no publicado) y el bloque viejo sin él. Builds regenerados (hook). Snapshots: se corren; si cambian, se para. K46 → corregido.
