@@ -171,13 +171,6 @@
 		) {
 			return { code: 'format' };
 		}
-		if (
-			slot.start &&
-			slot.end &&
-			timeToMinutes( slot.start ) === timeToMinutes( slot.end )
-		) {
-			return { code: 'start_equals_end' };
-		}
 		if ( ! slot.start || ! slot.end ) {
 			return { code: 'required' };
 		}
@@ -401,11 +394,6 @@
 				return (
 					strings.invalidTimeFormat ||
 					'Invalid time format. Times must be in HH:MM format.'
-				);
-			case 'start_equals_end':
-				return (
-					strings.startEndSame ||
-					'Start and end times cannot be the same'
 				);
 			case 'required':
 				return strings.allFieldsRequired || 'All fields are required.';

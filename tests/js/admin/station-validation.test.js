@@ -96,29 +96,6 @@ describe( 'station-admin.js: validation vectors', () => {
 			rowMarked: ! vector.admin.valid,
 		} );
 	} );
-
-	const currentlyVectors = VECTORS.validation
-		.filter( ( vector ) => vector.admin && vector.admin.currently )
-		.map( ( vector ) => [
-			`${ vector.id } (${ vector.admin.issue })`,
-			vector,
-		] );
-
-	it.each( currentlyVectors )(
-		'currently differs from the correct result in %s',
-		( _title, vector ) => {
-			expect( vector.admin.correct ).toBeDefined();
-			expect( {
-				valid: vector.admin.valid,
-				error: vector.admin.valid ? null : vector.admin.error,
-			} ).not.toEqual( {
-				valid: vector.admin.correct.valid,
-				error: vector.admin.correct.valid
-					? null
-					: vector.admin.correct.error,
-			} );
-		}
-	);
 } );
 
 describe( 'station-admin.js: rows and submit', () => {
@@ -238,13 +215,14 @@ describe( 'station-admin.js: rows and submit', () => {
 		screen.submit();
 		const [ row ] = screen.rows( 'monday' );
 		row.querySelector( '.radplapag-program-end' ).value = '06:00';
+		row.querySelector( '.radplapag-program-id' ).value = '';
 
 		screen.submit();
 
 		expect(
 			row.querySelectorAll( '.radplapag-program-error-message' )
 		).toHaveLength( 1 );
-		expect( rowErrorCode( row ) ).toBe( 'start_equals_end' );
+		expect( rowErrorCode( row ) ).toBe( 'invalid_program' );
 	} );
 
 	it( 'clears the error of a row once it is valid', async () => {
@@ -279,18 +257,16 @@ describe( 'station-admin.js: rows and submit', () => {
 		).toBe( 'Please select a valid program.' );
 	} );
 
-	// docs/known-issues.md C3: the server keeps start == end as a 24 h slot.
-	it( 'currently rejects a slot whose start equals its end (C3)', async () => {
+	// docs/known-issues.md C3: like the server, start == end is a 24 h slot.
+	it( 'accepts a slot whose start equals its end as a 24 h slot', async () => {
 		const screen = await mountSchedule( {
 			tuesday: [ { program: 'F', start: '08:00', end: '08:00' } ],
 		} );
 
 		const { blocked } = screen.submit();
 
-		expect( blocked ).toBe( true );
-		expect( rowErrorCode( screen.rows( 'tuesday' )[ 0 ] ) ).toBe(
-			'start_equals_end'
-		);
+		expect( blocked ).toBe( false );
+		expect( rowErrorCode( screen.rows( 'tuesday' )[ 0 ] ) ).toBeNull();
 	} );
 
 	// docs/known-issues.md K44: String.prototype.replace() reads `$` patterns
@@ -411,11 +387,6 @@ describe( 'station-admin.js: built-in English messages', () => {
 			'an end time that is not HH:MM',
 			{ programId: '201', start: '08:00', end: '10:00:30' },
 			'Invalid time format. Times must be in HH:MM format.',
-		],
-		[
-			'a start equal to the end',
-			{ programId: '201', start: '08:00', end: '08:00' },
-			'Start and end times cannot be the same',
 		],
 		[
 			'a missing time',

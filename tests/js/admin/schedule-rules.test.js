@@ -176,9 +176,10 @@ describe( 'checkSlot: one row', () => {
 		);
 	} );
 
-	it( 'currently rejects a slot whose start equals its end (C3)', () => {
+	// docs/known-issues.md C3: like the server, start == end is a 24 h slot.
+	it( 'accepts a slot whose start equals its end as a 24 h slot', () => {
 		expect( checkMonday( slot( '501', '08:00', '08:00' ) ) ).toEqual(
-			ownWrite( { code: 'start_equals_end' } )
+			ownWrite( null )
 		);
 	} );
 
@@ -745,7 +746,6 @@ describe( 'message', () => {
 	const STRINGS = {
 		pleaseSelectProgram: 'Elige un programa.',
 		invalidTimeFormat: 'Formato no válido.',
-		startEndSame: 'Inicio y fin iguales',
 		allFieldsRequired: 'Faltan campos.',
 		timeSlotOverlapsWithMessage: 'Se solapa con: %s',
 		unnamedProgram: 'Sin título',
@@ -783,10 +783,6 @@ describe( 'message', () => {
 			{ code: 'format' },
 			'Invalid time format. Times must be in HH:MM format.',
 		],
-		[
-			{ code: 'start_equals_end' },
-			'Start and end times cannot be the same',
-		],
 		[ { code: 'required' }, 'All fields are required.' ],
 		[
 			overlapWith( 'overlap', 'Night Owl' ),
@@ -810,7 +806,6 @@ describe( 'message', () => {
 			'Elige un programa.',
 		],
 		[ { code: 'format' }, 'Formato no válido.' ],
-		[ { code: 'start_equals_end' }, 'Inicio y fin iguales' ],
 		[ { code: 'required' }, 'Faltan campos.' ],
 		[
 			overlapWith( 'overlap', 'Night Owl' ),

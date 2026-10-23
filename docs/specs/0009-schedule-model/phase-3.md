@@ -15,6 +15,7 @@ Estado: en curso · Inicio: 2026-10-23 · ADRs: 0044, 0028
   - `tests/js/admin/support/mount-station-screen.js`: fuera `startEndSame` de las cadenas del soporte.
   - Vectores `c3-*` de `validation`: pierden `currently`/`issue`/`correct`; la `note` de `c3-start-equals-end-next-day-conflict` se reescribe (ya no hay `start_equals_end` previo); `_doc` sin `start_equals_end (admin only)`.
 - Cualquier otro test de caracterización que caiga: se para y se pregunta.
+  - Aprobado en la 3.3 (2026-10-23): `station-validation.test.js` «built-in English messages» pierde la fila «a start equal to the end» (cayó con el arreglo; el caso de 24 h ya lo cubre la regresión).
 
 ## Objetivo
 La validación del horario en PHP y en el admin calcula los solapes con el modelo de intervalos de la semana sin cambiar ningún código, mensaje, orden ni escritura, y el admin acepta `start == end` como 24 h, igual que el servidor.
@@ -50,7 +51,8 @@ La validación del horario en PHP y en el admin calcula los solapes con el model
 - Archivos: `admin/js/schedule-rules.js`, `tests/js/admin/schedule-rules.test.js`, `tests/js/admin/station-validation.test.js`, `tests/js/admin/support/mount-station-screen.js`, `tests/fixtures/schedule-vectors.json`, `tests/php/unit/Schedule/SlotValidatorTest.php`, `tests/php/integration/Schedule/SanitizeScheduleTest.php`, `SPEC.md`, `docs/known-issues.md`
 - Test: regresión (`fix-bug`)
 - Verificación: `npm test && npm run test:php:unit && npm run test:php:integration -- --filter 'SanitizeSchedule|ScheduleVectors' && npm run check`
-- [ ] hecha · commit: —
+- Rojo (antes del arreglo): `npx vitest run tests/js/admin` → 8 fallan, todos por `start_equals_end`: las dos regresiones `accepts a slot whose start equals its end as a 24 h slot` y los vectores `c3-start-equals-end`, `c3-start-equals-end-same-day-conflict` y `c3-24h-at-midnight-touches-next-day` en `checkSchedule` y en `station-admin.js`. Tras el arreglo cae además «built-in English messages › for a start equal to the end» (edición aprobada, ver «Contexto»).
+- [x] hecha · commit: ver `git log` («fix(0009): accept a slot whose start equals its end as 24 h in the admin (3.3)»)
 - Changelog: en el admin, una franja con la misma hora de inicio y de fin se guarda como 24 h.
 
 ## Decisiones abiertas → ADR

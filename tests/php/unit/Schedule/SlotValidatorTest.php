@@ -397,12 +397,11 @@ final class SlotValidatorTest extends TestCase {
 	}
 
 	/**
-	 * Currently, `start == end` is accepted and stored as given (a 24 h slot), while the
-	 * admin JS rejects it. The proposal keeps this behavior.
+	 * `start == end` is accepted and stored as given (a 24 h slot), as in the admin JS.
 	 *
 	 * @see docs/known-issues.md C3
 	 */
-	public function test_currently_accepts_start_equals_end() {
+	public function test_accepts_start_equals_end() {
 		$result = $this->validate( array( 'tuesday' => array( $this->row( 6, '08:00', '08:00' ) ) ) );
 
 		$this->assertSame(

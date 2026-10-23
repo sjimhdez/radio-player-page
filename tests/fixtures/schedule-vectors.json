@@ -6,7 +6,7 @@
 		"unpublished (resolution, optional): program keys that are not public in that vector (draft; ADR 0045). Each layer leaves them out of its programs map (or creates them as drafts).",
 		"resolution: \"grid\" names an entry of \"grids\". current/upcoming.day is the day the slot belongs to; current.from is today or yesterday (a slot crossing midnight). upcoming.minutes is minutes until start. A vector where the player (TS) differs from PHP has a \"ts\" object with the player's current/upcoming, \"currently\": true and the issue; its top-level result is then the PHP one, and the correct one.",
 		"tz: instant in UTC plus timezoneOffset (hours) gives the station-local day (0 = Sunday) and minutes since midnight.",
-		"validation: \"php\" is radplapag_sanitize_station_schedule(), \"admin\" is admin/js/station-admin.js. error is the code of the first error reported (days Monday to Sunday, rows in order): required, invalid_program, format, overlap (same day), cross_midnight_overlap (slot crossing into the next day), start_equals_end (admin only). For admin it is the message the first row with an error shows after submit (another row's check can replace it), and slots are typed into <input type=\"time\">, which empties a value that is not a time (24:00).",
+		"validation: \"php\" is radplapag_sanitize_station_schedule(), \"admin\" is admin/js/station-admin.js. error is the code of the first error reported (days Monday to Sunday, rows in order): required, invalid_program, format, overlap (same day), cross_midnight_overlap (slot crossing into the next day). start == end is a 24 h slot. For admin it is the message the first row with an error shows after submit (another row's check can replace it), and slots are typed into <input type=\"time\">, which empties a value that is not a time (24:00).",
 		"model: the week-interval model (ADR 0044) that PHP (Schedule\\Week_Interval), the player (utils/week-interval.ts) and the admin (radplapagScheduleRules) share. A minute of the week is day × 1440 + minute, Monday = 0 (0 ≤ w < 10080). from_slot gives a slot's { start, duration }; contains, minutes_until_start and overlaps take slots as { day, start, end } and instants as { day, time }. Results are the correct ones, the same in every layer."
 	],
 	"programs": [ "A", "B", "C", "D", "E", "F", "G", "H" ],
@@ -340,13 +340,7 @@
 			"id": "c3-start-equals-end",
 			"schedule": "c3",
 			"php": { "valid": true },
-			"admin": {
-				"valid": false,
-				"error": "start_equals_end",
-				"currently": true,
-				"issue": "C3",
-				"correct": { "valid": true }
-			}
+			"admin": { "valid": true }
 		},
 		{
 			"id": "c3-start-equals-end-same-day-conflict",
@@ -357,13 +351,7 @@
 				]
 			},
 			"php": { "valid": false, "error": "overlap" },
-			"admin": {
-				"valid": false,
-				"error": "start_equals_end",
-				"currently": true,
-				"issue": "C3",
-				"correct": { "valid": false, "error": "overlap" }
-			}
+			"admin": { "valid": false, "error": "overlap" }
 		},
 		{
 			"id": "c3-start-equals-end-next-day-conflict",
@@ -375,8 +363,17 @@
 			"admin": {
 				"valid": false,
 				"error": "cross_midnight_overlap",
-				"note": "Tuesday fails start_equals_end first; Wednesday's previous-day check then replaces its message."
+				"note": "Tuesday's 24 h slot runs until Wednesday 08:00, so Wednesday's 07:00 slot overlaps it."
 			}
+		},
+		{
+			"id": "c3-24h-at-midnight-touches-next-day",
+			"schedule": {
+				"tuesday": [ { "program": "F", "start": "00:00", "end": "00:00" } ],
+				"wednesday": [ { "program": "H", "start": "00:00", "end": "01:00" } ]
+			},
+			"php": { "valid": true },
+			"admin": { "valid": true }
 		}
 	],
 	"model": {

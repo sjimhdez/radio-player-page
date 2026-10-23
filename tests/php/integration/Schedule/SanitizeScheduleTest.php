@@ -338,12 +338,12 @@ final class SanitizeScheduleTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, the server accepts `start == end` and stores it as given (a 24 h
-	 * slot), while the admin JS rejects it. The proposal keeps the server behavior.
+	 * The server accepts `start == end` and stores it as given (a 24 h slot), as
+	 * the admin JS does.
 	 *
 	 * @see docs/known-issues.md C3
 	 */
-	public function test_currently_accepts_start_equals_end() {
+	public function test_accepts_start_equals_end() {
 		$result = radplapag_sanitize_station_schedule(
 			array( 'tuesday' => array( $this->row( 'F', '08:00', '08:00' ) ) )
 		);
