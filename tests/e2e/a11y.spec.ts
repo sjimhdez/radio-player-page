@@ -318,13 +318,13 @@ test.describe( 'a11y: meta boxes', () => {
 		await remove.focus();
 
 		await expect( remove ).toBeFocused();
-		await expect(
-			page
-				.locator(
-					'#radplapag_station_schedule .radplapag-schedule-remove-cell'
-				)
-				.first()
-		).toHaveCSS( 'opacity', '1' );
+		const cell = page
+			.locator(
+				'#radplapag_station_schedule .radplapag-schedule-remove-cell'
+			)
+			.first();
+		await expect( cell ).toHaveCSS( 'opacity', '1' );
+		await expect( cell ).toHaveCSS( 'pointer-events', 'auto' );
 	} );
 
 	// ADR 0023 gap: rows added by JS. The day has no slots, so the row is new.

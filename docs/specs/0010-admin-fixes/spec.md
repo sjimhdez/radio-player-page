@@ -128,7 +128,7 @@ Cada fase termina con la CI en verde, sus criterios verificados y `close-phase`.
 ### Fase 3 — Campos y guardado (C13, K42, K37, K36, K27, K5, K34, «Entrada publicada» y K76)
 
 - ADRs 0047 y 0048 primero (con `SPEC.md` §3.4 y §3.6). Después K42 y K37 (núcleo + saver), C13, K36 y K27 (meta box de detalles), K5 y K34 (programa), D9 y K76.
-- Cierre de la spec: `SPEC.md` §6, la nota de la release en la hoja de ruta (changelog: K15, K42, K37, C13, «Entrada publicada»; `== Upgrade Notice ==`: K37 conserva el adjunto anterior), PR listo.
+- Cierre de la spec: `SPEC.md` §6, la nota de la release en la hoja de ruta (changelog: K15, K42, K37, C13, «Entrada publicada», y de la fase 2: AX3 + AX4 (días y campos del horario con nombre), K45 (errores atados a sus campos y foco al primero), K89 (el meta box contraído se abre con el error), AX5 (rojo más oscuro) y K20 («Remove Time Slot» visible con el foco); `== Upgrade Notice ==`: K37 conserva el adjunto anterior), PR listo.
 - ✅ **Criterios:** los de campos y guardado y de cierre de §2; `wp-security-reviewer` y `wporg-reviewer` en `close-phase`.
 
 ## 6. Riesgos y preguntas abiertas

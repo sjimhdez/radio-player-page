@@ -1,5 +1,5 @@
 # Spec 0010 · Fase 2 — Accesibilidad del horario
-Estado: en curso · Inicio: 2026-10-23 · ADRs: 0017, 0021, 0023, 0028 (sin ADR nuevo en esta fase)
+Estado: cerrada (2026-10-23) · Inicio: 2026-10-23 · ADRs: 0017, 0021, 0023, 0028 (sin ADR nuevo en esta fase)
 
 ## Contexto
 - La fase 1 está cerrada y no deja nada pendiente. `setRowError()`/`clearRowError()` (`admin/js/station-admin.js`) ya son el único punto de pintado del error, y ahí entran el `id` y el ARIA de K45.
@@ -55,6 +55,7 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Rojo: `TypeError: Cannot read properties of null (reading 'tagName')` (el `select` no tiene una etiqueta delante).
 - Cayeron dos tests de caracterización que no estaban en §4.3: `admin-dom.test.js` «builds the row with the default strings» y «decodes the entities of names and translations» (spec 0005), que comparan el `outerHTML` de la fila nueva. El usuario aprobó ampliar §4.3 (2026-10-23): `rowHtml()` añade las tres etiquetas y los `id`, y `ENTITY_STRINGS` lleva entidades en las tres cadenas nuevas, así que su decodificación también queda fijada.
 - Línea base: salen las seis entradas `label` y `select-name` de las filas del JS («added slot»: 3; «validation errors»: 3). En «station meta boxes» solo quedan las dos `color-contrast` (AX5, 2.6).
+- `FIELD_STRINGS` de `station-fields.test.js` añade las tres claves nuevas para el test nuevo; ninguna aserción de caracterización cambia.
 - [x] hecha · commit: ver `git log` («fix(0010): name the fields of an added schedule slot (2.3)»)
 
 ### 2.4 K45: `id`, `aria-invalid`, `aria-describedby` y el foco al primer error (≤ 1 h) — `fix-bug`
@@ -95,6 +96,7 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Rojo: Chromium y WebKit (`toHaveCSS`: la celda sigue en `opacity` `0` con el enlace enfocado).
 - Verde: el test de K20 y todo «a11y: meta boxes» (18/18 en los dos proyectos; «station with an added slot» sigue en `opacity` `0`: el foco no queda en la fila nueva).
 - Changelog: «Remove Time Slot» se ve cuando la franja tiene el foco del teclado.
+- Al cerrar la fase (`spec-conformance-reviewer`), el test de K20 comprueba también `pointer-events: auto` (el «alcanzable» de la spec); en rojo con la mutación sin `pointer-events: auto`.
 - [x] hecha · commit: ver `git log` («fix(0010): show Remove Time Slot on keyboard focus (2.7)»)
 
 ## Decisiones abiertas → ADR
