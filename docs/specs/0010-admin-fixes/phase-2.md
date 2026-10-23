@@ -92,7 +92,10 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Archivos: `admin/css/admin.css`, `tests/e2e/a11y.spec.ts`, `docs/known-issues.md`
 - Test: primero el `currently` de K20 a «shows "Remove Time Slot" when it has the keyboard focus (K20)» (`opacity` `1`).
 - Verificación: `npx playwright test tests/e2e/a11y.spec.ts -g K20`
-- [ ] hecha · commit: —
+- Rojo: Chromium y WebKit (`toHaveCSS`: la celda sigue en `opacity` `0` con el enlace enfocado).
+- Verde: el test de K20 y todo «a11y: meta boxes» (18/18 en los dos proyectos; «station with an added slot» sigue en `opacity` `0`: el foco no queda en la fila nueva).
+- Changelog: «Remove Time Slot» se ve cuando la franja tiene el foco del teclado.
+- [x] hecha · commit: ver `git log` («fix(0010): show Remove Time Slot on keyboard focus (2.7)»)
 
 ## Decisiones abiertas → ADR
 Ninguna. AX2 (la parte del meta box) y la excepción de `STRING_KEYS` las decidió el usuario y van a la spec como D11 y en §4.3. Si el `fieldset` cambia el aspecto del día de forma visible en las capturas, se para y se pregunta.

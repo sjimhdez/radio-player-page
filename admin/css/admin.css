@@ -72,7 +72,8 @@
 	pointer-events: none;
 	transition: opacity 0.15s ease;
 }
-.radplapag-program-row:hover .radplapag-schedule-remove-cell {
+.radplapag-program-row:hover .radplapag-schedule-remove-cell,
+.radplapag-program-row:focus-within .radplapag-schedule-remove-cell {
 	opacity: 1;
 	pointer-events: auto;
 }

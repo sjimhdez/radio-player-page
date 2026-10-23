@@ -305,7 +305,7 @@ test.describe( 'a11y: meta boxes', () => {
 	} );
 
 	// axe does not check focus visibility (WCAG 2.4.7).
-	test( 'currently keeps "Remove Time Slot" invisible when it has the keyboard focus (K20)', async ( {
+	test( 'shows "Remove Time Slot" when it has the keyboard focus (K20)', async ( {
 		page,
 	} ) => {
 		await page.goto(
@@ -324,7 +324,7 @@ test.describe( 'a11y: meta boxes', () => {
 					'#radplapag_station_schedule .radplapag-schedule-remove-cell'
 				)
 				.first()
-		).toHaveCSS( 'opacity', '0' );
+		).toHaveCSS( 'opacity', '1' );
 	} );
 
 	// ADR 0023 gap: rows added by JS. The day has no slots, so the row is new.
