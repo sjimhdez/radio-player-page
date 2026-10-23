@@ -17,10 +17,10 @@
 | 0007 | [Correcciones: reproducción](0007-playback-fixes/spec.md) | cerrada (PR #41) | `spec/0007-playback-fixes` | 0006 |
 | 0008 | [Correcciones: migración, actualización, núcleo PHP y desinstalación](0008-migration-and-core-fixes/spec.md) | cerrada (PR #42) | `spec/0008-migration-and-core-fixes` | 0005 |
 | 0009 | [Correcciones: horario y programa en antena](0009-schedule-model/spec.md) | cerrada (PR #43) | `spec/0009-schedule-model` | 0005, 0006 |
-| 0010 | [Correcciones: admin](0010-admin-fixes/spec.md) | cerrada | `spec/0010-admin-fixes` | 0005, 0009 |
+| 0010 | [Correcciones: admin](0010-admin-fixes/spec.md) | cerrada (PR #44) | `spec/0010-admin-fixes` | 0005, 0009 |
 | 0011 | Correcciones: interfaz, i18n y accesibilidad del player | pendiente de escribir | — | 0006, 0007 |
 | 0012 | ~~Correcciones: núcleo PHP y desinstalación~~: fusionada en la 0008 (comparten `uninstall.php` y `SPEC.md` §3.7; usuario, 2026-10-22) | fusionada | — | — |
-| 0013 | Correcciones: bloques | pendiente de escribir | — | 0009, 0010 |
+| 0013 | [Correcciones: bloques](0013-block-fixes/spec.md) | propuesta | `spec/0013-block-fixes` | 0009, 0010 |
 | último | Release | pendiente de escribir | — | todas |
 
 Las 0005 y 0006 son independientes entre sí. Se pueden hacer en cualquier orden o en paralelo, cada una en su worktree y con su rama desde `trunk`.
@@ -66,7 +66,6 @@ Las correcciones (0007–0013) salen del triage de la 0002 (fase 5): una spec po
 Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec.
 
 - **Dónde queda cada corrección de WordPress tras la 0005:** la lógica pura vive en `RadioPlayerPage\` (`includes/src/`, ADR 0028) y las funciones `radplapag_*` son envoltorios que no cambian de firma. Una corrección va en el núcleo, con su test unitario (el `test_currently_*` del núcleo pasa a regresión junto al de integración), y el envoltorio solo cambia si cambia lo que lee o escribe en WordPress. La columna de archivo de `known-issues.md` apunta a los dos.
-  - **0013:** el orden de `stationIndex` en `WP\Station_Repository` (K46); los datos de los bloques en `Schedule\Schedule_View`, `Programs_List_View` y `Now_Playing_Resolver`; los enlaces a la página (K50) y el markup siguen en `includes/radplapag-*-block.php` y `blocks/*/render.php`.
 - **Dónde queda cada corrección del player tras la 0006:** la lógica vive en `player/src/core/` (sin React ni MUI, ADR 0029) y los hooks son adaptadores con la misma firma. Una corrección va en el núcleo, con su test (el `currently` del núcleo pasa a regresión junto al del hook o el e2e), y el hook o el componente solo cambian si cambia lo que pintan. La columna de archivo de `known-issues.md` apunta a los dos.
   - **0011:** la interfaz sigue en los componentes de `components/dashboard/` (C6, C15, K56–K61, K69, AX1, AX2, AX6), que solo pintan; i18n en `config/i18n.ts` (K55, K62, K68). El error visible es un valor derivado en `Dashboard` y el foco al cancelar el sueño (K58), en `SleepTimer.tsx` e `index.tsx`.
 - **Correcciones (0007–0013), comunes a todas:**
@@ -81,9 +80,6 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - media: C15 (el canvas no se toca, zona congelada), K57, K59 y AX6 (juntas, región `role="status"`), K60, K68 (al tocarla, quitar `localStorage` y `navigator` del detector de i18next: con `supportedLngs` el navegador ganaría a un idioma del sitio sin traducción, contra el ADR 0025; y corregir el comentario de `player/src/config/i18n.ts`, si la 0006 no lo hizo);
   - baja: C6, K58, K61 (con capturas antes y después, junto al `100vh` de iOS), K62, K69, AX1, AX2 (K71 ya lo corrigió la 0003);
   - K55 no se corrige (manda el idioma del sitio, ADR 0025), pero su test `currently` pasa aquí a test normal.
-- **0013 Bloques** (tras la 0009 y la 0010):
-  - media: K46 (atributo con el ID de la emisora, `stationIndex` de respaldo; cambia `SPEC.md` §3.5 → ADR), K53 (encabezados accesibles; el ADR elige la forma, con `SPEC.md` §3.5);
-  - baja: K6, K47 (con el atributo de K46), K48, K49 y K50 (juntas; K50 coordinada con la página asignada sin publicar de la 0010), K51, K54. K49, K50 y K51 cambian el markup de §3.5: entran en el mismo ADR que K46/K53.
 - **Fuera de las correcciones:** C8 (sin reconexión automática) se replica, mejora futura; C5, K4, K19, K22, K35, K40 y la sospecha del `exit` en `template_redirect` (ADR 0008): no arreglar (motivos en `known-issues.md`).
 - **Release:**
   - Plugin Check sobre el zip, la checklist de las guidelines y la matriz PHP 7.4/8.4 × WP 6.6/última;
