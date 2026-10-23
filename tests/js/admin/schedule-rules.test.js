@@ -845,14 +845,14 @@ describe( 'message', () => {
 		);
 	} );
 
-	// docs/known-issues.md K74.
-	it( 'currently leaves an untitled program empty in an overlap between days (K74)', () => {
-		expect(
-			rules.message(
-				overlapWith( 'cross_midnight_overlap', '' ),
-				STRINGS
-			)
-		).toBe( 'Se solapa con:  (Lunes, 09:00 - 11:00)' );
+	it( 'names an untitled program in an overlap between days (K74)', () => {
+		const error = overlapWith( 'cross_midnight_overlap', '' );
+		expect( rules.message( error, {} ) ).toBe(
+			'This time slot overlaps with: Unnamed program (Monday, 09:00 - 11:00)'
+		);
+		expect( rules.message( error, STRINGS ) ).toBe(
+			'Se solapa con: Sin título (Lunes, 09:00 - 11:00)'
+		);
 	} );
 
 	it( 'keeps `$$` in the program name (K44)', () => {

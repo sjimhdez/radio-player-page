@@ -355,10 +355,10 @@
 		return contains( a, b.start ) || contains( b, a.start );
 	}
 
-	function overlapMessage( name, other, strings ) {
+	function overlapMessage( other, strings ) {
 		const dayLabel = strings[ other.day ] || DAY_LABELS[ other.day ];
 		const description =
-			name +
+			( other.name || strings.unnamedProgram || 'Unnamed program' ) +
 			' (' +
 			dayLabel +
 			', ' +
@@ -398,18 +398,9 @@
 				);
 			case 'required':
 				return strings.allFieldsRequired || 'All fields are required.';
-			case 'overlap':
-				return overlapMessage(
-					error.other.name ||
-						strings.unnamedProgram ||
-						'Unnamed program',
-					error.other,
-					strings
-				);
 			default:
-				// cross_midnight_overlap: no fallback for an untitled
-				// program (docs/known-issues.md K74).
-				return overlapMessage( error.other.name, error.other, strings );
+				// overlap and cross_midnight_overlap.
+				return overlapMessage( error.other, strings );
 		}
 	}
 

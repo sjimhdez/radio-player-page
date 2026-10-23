@@ -83,7 +83,9 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `admin/js/schedule-rules.js`, `tests/js/admin/schedule-rules.test.js`, `tests/js/admin/station-validation.test.js`, `docs/known-issues.md`
 - Test: primero: los `currently` de K74 (`message()` y las cuatro escrituras) a regresión.
 - Verificación: `npm test -- tests/js/admin`
-- [ ] hecha · commit: —
+- Rojo: Vitest `expected 'This time slot overlaps with:  (Monda…' to be 'This time slot overlaps with: Unnamed…'` (`message()`) y, en pantalla, `'[overlap]  (…)'` en vez de `'[overlap] Unnamed program (…)'` en las cuatro escrituras. La función común es `overlapMessage( other, strings )`, que lleva la reserva; `message()` la llama desde `default`.
+- Changelog: en un solape entre días, un programa sin título sale como «Unnamed Radio Show», como en el solape del mismo día (K74).
+- [x] hecha · commit: ver `git log` («fix(0010): name untitled programs in overlaps between days (1.7)»)
 
 ### 1.8 K75: el solape del mismo día ignora filas sin programa (≤ 30 min) — `fix-bug`
 - Qué: `findSameDayOverlap()` salta `other` sin `programId`. Si cambia un vector de `validation` de `schedule-vectors.json`, se para y se pregunta.

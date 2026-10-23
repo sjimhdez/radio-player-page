@@ -667,8 +667,8 @@ describe( 'station-admin.js: overlaps across days', () => {
 		] );
 	} );
 
-	// docs/known-issues.md K74: the same-day check falls back to "Unnamed
-	// program"; the checks across days print the empty name.
+	// docs/known-issues.md K74: the checks across days fall back to "Unnamed
+	// program", like the same-day check.
 	it.each( [
 		[
 			'monday',
@@ -676,7 +676,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'the crossing slot',
 			[
 				'[overlap] Morning Show (Tuesday, 01:00 - 03:00)',
-				'[overlap]  (Monday, 22:00 - 02:00)',
+				'[overlap] Unnamed program (Monday, 22:00 - 02:00)',
 			],
 		],
 		[
@@ -684,7 +684,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'tuesday',
 			'the next-day slot',
 			[
-				'[overlap]  (Tuesday, 01:00 - 03:00)',
+				'[overlap] Unnamed program (Tuesday, 01:00 - 03:00)',
 				'[overlap] Night Owl (Monday, 22:00 - 02:00)',
 			],
 		],
@@ -693,7 +693,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'monday',
 			'the crossing slot',
 			[
-				'[overlap]  (Sunday, 22:00 - 02:00)',
+				'[overlap] Unnamed program (Sunday, 22:00 - 02:00)',
 				'[overlap] Morning Show (Monday, 01:00 - 03:00)',
 			],
 		],
@@ -703,11 +703,11 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'the next-day slot',
 			[
 				'[overlap] Night Owl (Sunday, 22:00 - 02:00)',
-				'[overlap]  (Monday, 01:00 - 03:00)',
+				'[overlap] Unnamed program (Monday, 01:00 - 03:00)',
 			],
 		],
 	] )(
-		'currently leaves the name empty in an overlap from %s into %s, unnamed %s (K74)',
+		'names an untitled program in an overlap from %s into %s, unnamed %s (K74)',
 		async ( from, to, unnamed, messages ) => {
 			const crossing = { programId: '202', start: '22:00', end: '02:00' };
 			const next = { programId: '201', start: '01:00', end: '03:00' };
