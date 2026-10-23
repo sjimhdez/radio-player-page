@@ -21,7 +21,8 @@ final class Stations {
 	 * Returns the first station whose player page is the page and that has a stream URL.
 	 *
 	 * The player page is compared with intval() and the stream URL with
-	 * empty(), as 3.4.2 does: with page 0, a station without page matches (K24).
+	 * empty(), as 3.4.2 does. A page of 0 or less never matches, so a station
+	 * without page is not returned when nothing is queried (K24).
 	 *
 	 * @since 3.5.0
 	 *
@@ -30,6 +31,10 @@ final class Stations {
 	 * @return array<mixed>|false The station row as given, or false.
 	 */
 	public static function for_page( array $stations, int $page_id ) {
+		if ( $page_id <= 0 ) {
+			return false;
+		}
+
 		foreach ( $stations as $station ) {
 			if (
 				is_array( $station ) &&

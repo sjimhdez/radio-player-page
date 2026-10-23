@@ -88,7 +88,8 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `includes/src/data/class-stations.php`, `radio-player-page.php`, `tests/php/unit/Data/StationsTest.php`, `tests/php/integration/Data/ConfigTest.php`, `docs/known-issues.md`.
 - Test: primero (regresión en rojo), unit e integración.
 - Verificación: `npm run test:php:unit -- --filter StationsTest && npm run test:php:integration -- --filter 'ConfigTest|PublicApiTest'`
-- [ ] hecha · commit: —
+- Resultado (2026-10-23): en rojo antes del arreglo, `StationsTest::test_for_page_zero_matches_nothing` (devolvía la emisora 2, sin página) y en `ConfigTest` `…_returns_false_when_nothing_is_queried` y `…_is_false_on_a_term_with_the_page_id` (devolvían la emisora). Tras el arreglo, `StationsTest` 13/13 y `ConfigTest` en verde. `PublicApiTest::test_no_other_radplapag_function_is_defined` falla, también sin este cambio: el *mu-plugin* de la 3.1 (`tests/e2e/mu-plugins/radplapag-e2e.php`) se carga también en la integración y define `radplapag_e2e_*`. Pendiente de la decisión del usuario. `SPEC.md` §3.4 recoge el `false` fuera de una página. Changelog: `radplapag_get_station_for_current_page()` devuelve `false` fuera de una página.
+- [x] hecha · commit: —
 
 ### 3.6 K25: `map_meta_cap` con un `WP_Post` (D14) (≤ 1 h)
 - Qué:

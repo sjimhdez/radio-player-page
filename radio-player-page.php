@@ -199,12 +199,17 @@ function radplapag_enqueue_now_playing_block_editor_assets() {
  *
  * @since 1.0.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Data\Stations::for_page().
+ * @since 3.5.0 Returns false when the request is not a page (K24).
  *
  * @return array|false Station configuration array with keys: 'stream_url', 'player_page',
  *                     'station_title', 'background_id', 'logo_id', 'theme_color', 'visualizer'.
  *                     Returns false if no matching station is found for the current page.
  */
 function radplapag_get_station_for_current_page() {
+	if ( ! is_page() ) {
+		return false;
+	}
+
 	return \RadioPlayerPage\Data\Stations::for_page( radplapag_get_config()['stations'], get_queried_object_id() );
 }
 

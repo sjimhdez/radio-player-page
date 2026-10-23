@@ -116,7 +116,7 @@ Desde la 0008, `siteTitle` (también el nombre del sitio de reserva) y `name`, `
 |---|---|
 | `radplapag_get_config()` | `[ 'stations' => radplapag_get_stations() ]` |
 | `radplapag_get_stations()` | Lista ordenada de emisoras publicadas (array de configs: `id`, `stream_url`, `player_page`, `station_title`, `background_id`, `logo_id`, `theme_color`, `visualizer`, `schedule`, …) |
-| `radplapag_get_station_for_current_page()` | La config de la emisora de la página actual, o `false` |
+| `radplapag_get_station_for_current_page()` | La config de la emisora de la página actual, o `false`. Fuera de una página (`! is_page()`), siempre `false` (K24, spec 0008) |
 | `radplapag_get_now_playing_for_station( $station_index )` | Programa actual y siguiente (si empieza en 10 minutos o menos, `RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES`) de la emisora con ese índice en `radplapag_get_stations()`, o `null` si el índice no existe |
 
 **Regla:** **todas** las funciones globales `radplapag_*`, las clases `Radplapag_*`, las constantes `RADPLAPAG_*` y los callbacks enganchados (con su hook, prioridad y número de argumentos) son contrato, porque un tercero puede llamarlos o desengancharlos con `remove_action`/`remove_filter`. En el refactor quedan como envoltorios finos que delegan en el código nuevo (strangler, ADR 0017). El plugin no expone filtros ni acciones propios.

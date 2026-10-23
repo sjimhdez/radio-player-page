@@ -373,23 +373,22 @@ final class ConfigTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * When nothing is queried (ID 0), a station with a URL and no player page matches.
-	 * The only caller, radplapag_output_clean_page(), returns before on a page ID <= 0.
+	 * When nothing is queried (ID 0), a station with a URL and no player page does
+	 * not match (K24).
 	 */
-	public function test_station_for_current_page_matches_station_without_page_when_nothing_is_queried() {
+	public function test_station_for_current_page_returns_false_when_nothing_is_queried() {
 		$this->factory_rpp->station( 'Station', array( 'stream_url' => self::STREAM ) );
 		$this->go_to( home_url( '/' ) );
 
 		$this->assertSame( 0, get_queried_object_id() );
-		$this->assertSame( 'Station', radplapag_get_station_for_current_page()['station_title'] );
+		$this->assertFalse( radplapag_get_station_for_current_page() );
 	}
 
 	/**
-	 * Outside a page the queried object ID is compared as if it were a page: on a
-	 * category archive whose term ID equals a player page ID, that station is
-	 * returned. K24 of docs/known-issues.md.
+	 * Outside a page nothing matches: on a category archive whose term ID equals
+	 * a player page ID, no station is returned (K24).
 	 */
-	public function test_currently_station_for_current_page_matches_a_term_with_the_page_id() {
+	public function test_station_for_current_page_is_false_on_a_term_with_the_page_id() {
 		$term = self::factory()->category->create( array( 'name' => 'Rock' ) );
 		self::factory()->post->create( array( 'post_category' => array( $term ) ) );
 		$this->factory_rpp->station(
@@ -403,7 +402,7 @@ final class ConfigTest extends WP_UnitTestCase {
 
 		$this->assertTrue( is_category() );
 		$this->assertSame( $term, get_queried_object_id() );
-		$this->assertSame( 'Station', radplapag_get_station_for_current_page()['station_title'] );
+		$this->assertFalse( radplapag_get_station_for_current_page() );
 	}
 
 	// Player pages assigned to other stations.
