@@ -111,7 +111,7 @@
 			"webkit"
 		]
 	},
-	"station meta boxes · validation errors · color-contrast · .radplapag-program-row.radplapag-error[data-program-index=\"0\"] > .show.radplapag-program-error-message": {
+	"station meta boxes · validation errors · color-contrast · #radplapag-slot-monday-0-error": {
 		"impact": "serious",
 		"help": "Elements must meet minimum color contrast ratio thresholds",
 		"browsers": [
@@ -119,7 +119,7 @@
 			"webkit"
 		]
 	},
-	"station meta boxes · validation errors · color-contrast · div[data-program-index=\"3\"] > .show.radplapag-program-error-message": {
+	"station meta boxes · validation errors · color-contrast · #radplapag-slot-monday-3-error": {
 		"impact": "serious",
 		"help": "Elements must meet minimum color contrast ratio thresholds",
 		"browsers": [

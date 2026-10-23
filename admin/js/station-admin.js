@@ -152,20 +152,27 @@
 		return { valid: ! writes[ writes.length - 1 ].error };
 	}
 
+	function rowErrorId( row ) {
+		const dayWrapper = row.closest( '.radplapag-schedule-day' );
+		return (
+			'radplapag-slot-' +
+			( dayWrapper ? dayWrapper.getAttribute( 'data-day' ) : '' ) +
+			'-' +
+			row.getAttribute( 'data-program-index' ) +
+			'-error'
+		);
+	}
+
 	function setRowError( row, message ) {
 		row.classList.add( 'radplapag-error' );
-		const startInput = row.querySelector( '.radplapag-program-start' );
-		const endInput = row.querySelector( '.radplapag-program-end' );
-		const programIdSelect = row.querySelector( '.radplapag-program-id' );
-		if ( startInput ) {
-			startInput.classList.add( 'radplapag-error' );
-		}
-		if ( endInput ) {
-			endInput.classList.add( 'radplapag-error' );
-		}
-		if ( programIdSelect ) {
-			programIdSelect.classList.add( 'radplapag-error' );
-		}
+		const errorId = rowErrorId( row );
+		row.querySelectorAll(
+			'.radplapag-program-id, .radplapag-program-start, .radplapag-program-end'
+		).forEach( function ( el ) {
+			el.classList.add( 'radplapag-error' );
+			el.setAttribute( 'aria-invalid', 'true' );
+			el.setAttribute( 'aria-describedby', errorId );
+		} );
 		const existingError = row.querySelector(
 			'.radplapag-program-error-message'
 		);
@@ -174,6 +181,7 @@
 		}
 		const errorMsg = document.createElement( 'div' );
 		errorMsg.className = 'radplapag-program-error-message show';
+		errorMsg.id = errorId;
 		errorMsg.textContent = message;
 		row.appendChild( errorMsg );
 	}
@@ -183,6 +191,8 @@
 		const inputs = row.querySelectorAll( 'input, select' );
 		inputs.forEach( function ( el ) {
 			el.classList.remove( 'radplapag-error' );
+			el.removeAttribute( 'aria-invalid' );
+			el.removeAttribute( 'aria-describedby' );
 		} );
 		const errorMsg = row.querySelector(
 			'.radplapag-program-error-message'
@@ -733,6 +743,13 @@
 			if ( hasErrors ) {
 				e.preventDefault();
 				if ( firstErrorElement ) {
+					const focusTarget =
+						firstErrorElement.querySelector(
+							'.radplapag-program-id'
+						) || firstErrorElement.querySelector( 'input, select' );
+					if ( focusTarget ) {
+						focusTarget.focus( { preventScroll: true } );
+					}
 					firstErrorElement.scrollIntoView( {
 						behavior: 'smooth',
 						block: 'center',

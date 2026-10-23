@@ -434,6 +434,31 @@ test.describe( 'a11y: meta boxes', () => {
 		).toBeFocused();
 	} );
 
+	// axe does not follow the keyboard focus (WCAG 3.3.1, 2.4.3).
+	test( 'moves the focus to the first slot with an error on submit (K45)', async ( {
+		page,
+	} ) => {
+		await openStation( page );
+		const monday = page.locator(
+			'.radplapag-schedule-day[data-day="monday"]'
+		);
+		await monday.getByRole( 'button', { name: 'Add Time Slot' } ).click();
+		const row = monday.locator( '.radplapag-program-row' ).last();
+		await row
+			.locator( '.radplapag-program-id' )
+			.selectOption( { index: 1 } );
+		await row.locator( '.radplapag-program-start' ).fill( '07:00' );
+		await row.locator( '.radplapag-program-end' ).fill( '08:00' );
+
+		await page.locator( '#publish' ).click();
+
+		const focused = page.locator( '.radplapag-program-id:focus' );
+		await expect( focused ).toHaveCount( 1 );
+		await expect( focused ).toHaveAttribute( 'aria-invalid', 'true' );
+		const errorId = await focused.getAttribute( 'aria-describedby' );
+		await expect( page.locator( `[id="${ errorId }"]` ) ).toBeVisible();
+	} );
+
 	test( 'program', async ( { page }, testInfo ) => {
 		await page.goto(
 			`/wp-admin/post.php?post=${ seededId( 'program-A' ) }&action=edit`

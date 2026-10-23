@@ -62,7 +62,10 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Archivos: `admin/js/station-admin.js`, `tests/js/admin/station-validation.test.js`, `tests/e2e/a11y.spec.ts`, `docs/known-issues.md`
 - Test: primero `station-validation.test.js` «ties a slot error to its fields (K45)» (sustituye al `currently`), «removes the ARIA when the error clears (K45)» y «focuses the first field with an error on submit (K45)»; `a11y.spec.ts` «moves the focus to the first slot with an error on submit (K45)».
 - Verificación: `npm test -- tests/js/admin && npx playwright test tests/e2e/a11y.spec.ts -g K45`
-- [ ] hecha · commit: —
+- Rojo: «ties…» (`expected '' to be 'radplapag-slot-monday-1-error'`) y «focuses the first field…» (`activeElement` era `body`, no el `select`). «removes the ARIA…» pasaba antes del arreglo (no había ARIA que quitar); se vio en rojo con una mutación (sin `removeAttribute( 'aria-describedby' )`). El e2e, en rojo sin la llamada a `focus()` (`toHaveCount`: 0). Se añade un cuarto Vitest, «focuses the control of a station field with an error on submit (K45)», para la otra rama del foco.
+- Línea base de axe: las dos entradas `color-contrast` de «validation errors» (AX5) cambian solo de selector (axe usa ahora el `id` del mensaje, `#radplapag-slot-monday-{0,3}-error`); reescritas con `RADPLAPAG_UPDATE_A11Y_BASELINE=1` en los dos proyectos, sin violaciones nuevas. Salen en la 2.6.
+- Changelog: los errores del horario se anuncian con sus campos y el foco va al primer error al guardar.
+- [x] hecha · commit: ver `git log` («fix(0010): tie slot errors to their fields and focus the first one (2.4)»)
 
 ### 2.5 El meta box contraído se abre con el error (≤ 30 min) — `fix-bug` (solo si 2.1 lo confirma)
 - Qué: antes de llevar el foco, si el primer error está en un `.postbox.closed`, se le quita `closed` y su `.handlediv` pasa a `aria-expanded="true"`. Vale para los dos meta boxes.
