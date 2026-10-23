@@ -43,7 +43,7 @@ La validación del horario en PHP y en el admin calcula los solapes con el model
 - Archivos: `admin/js/schedule-rules.js`
 - Test: caracterización existente (`schedule-rules.test.js`, `station-validation.test.js`) sin editar; mutación temporal.
 - Verificación: `npm test`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («refactor(0009): compute schedule overlaps in schedule-rules.js with the week-interval model (3.2)»)
 
 ### 3.3 C3 en el admin (`fix-bug`) (≤ 1 h)
 - Qué: los dos `currently rejects a slot whose start equals its end (C3)` pasan a regresión (`accepts … as a 24 h slot`) y los vectores `c3-*` a su `correct`, en rojo primero. Después, fuera `start_equals_end` de `checkSlotFields()` y de `message()`. Vector nuevo `c3-24h-at-midnight-touches-next-day`. Ediciones aprobadas del «Contexto». PHP: renombre a `test_accepts_start_equals_end` en unit e integración (docblock sin «Currently»). `SPEC.md` §3.6 y §6 (fila «0009 (fase 3)»); `known-issues.md` C3 → corregido, K76 con `startEndSame`.

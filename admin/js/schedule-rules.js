@@ -62,31 +62,15 @@
 		return { day, index, error };
 	}
 
-	function crossesMidnight( slot ) {
-		return timeToMinutes( slot.end ) <= timeToMinutes( slot.start );
-	}
-
-	// A slot that ends at or before its start runs until the end of its day.
-	function sameDayEnd( slot ) {
-		return crossesMidnight( slot )
-			? MINUTES_PER_DAY
-			: timeToMinutes( slot.end );
-	}
-
 	function findSameDayOverlap( schedule, day, index ) {
 		const slots = slotsOf( schedule, day );
-		const current = slots[ index ];
-		const currentStart = timeToMinutes( current.start );
-		const currentEnd = sameDayEnd( current );
+		const current = intervalOf( day, slots[ index ] );
 		for ( let i = 0; i < slots.length; i++ ) {
 			const other = slots[ i ];
 			if ( i === index || other.hidden || ! other.start || ! other.end ) {
 				continue;
 			}
-			if (
-				currentStart < sameDayEnd( other ) &&
-				currentEnd > timeToMinutes( other.start )
-			) {
+			if ( overlaps( current, intervalOf( day, other ) ) ) {
 				return {
 					code: 'overlap',
 					other: describeSlot( day, other ),
@@ -125,10 +109,7 @@
 
 	function findNextDayOverlap( schedule, day, index ) {
 		const current = slotsOf( schedule, day )[ index ];
-		if ( ! crossesMidnight( current ) ) {
-			return null;
-		}
-		const currentEnd = timeToMinutes( current.end );
+		const interval = intervalOf( day, current );
 		const following = nextDay( day );
 		const slots = slotsOf( schedule, following );
 		for ( let i = 0; i < slots.length; i++ ) {
@@ -136,7 +117,7 @@
 			if ( ! isComplete( other ) ) {
 				continue;
 			}
-			if ( currentEnd > timeToMinutes( other.start ) ) {
+			if ( overlaps( interval, intervalOf( following, other ) ) ) {
 				return crossDayWrites(
 					day,
 					index,
@@ -152,15 +133,15 @@
 
 	function findPrevDayOverlap( schedule, day, index ) {
 		const current = slotsOf( schedule, day )[ index ];
-		const currentStart = timeToMinutes( current.start );
+		const interval = intervalOf( day, current );
 		const previous = prevDay( day );
 		const slots = slotsOf( schedule, previous );
 		for ( let i = 0; i < slots.length; i++ ) {
 			const other = slots[ i ];
-			if ( ! isComplete( other ) || ! crossesMidnight( other ) ) {
+			if ( ! isComplete( other ) ) {
 				continue;
 			}
-			if ( timeToMinutes( other.end ) > currentStart ) {
+			if ( overlaps( interval, intervalOf( previous, other ) ) ) {
 				return crossDayWrites(
 					day,
 					index,
@@ -271,7 +252,7 @@
 	// utils/week-interval.ts in the player; the three pass the `model` vectors.
 	// A minute of the week is day × 1440 + minute (Monday = 0, 0 ≤ w < 10080),
 	// and a slot is { start, duration }: end < start crosses midnight and
-	// end == start lasts 24 hours. Not used yet (phase 3 of spec 0009).
+	// end == start lasts 24 hours. The overlaps of checkSlot() use it.
 	const MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY;
 
 	function mod( value, modulus ) {
@@ -327,6 +308,20 @@
 			MINUTES_PER_DAY
 		);
 		return { start: startW, duration: duration || MINUTES_PER_DAY };
+	}
+
+	// Interval of a row of the schedule, as fromSlot() but with the admin's
+	// own reading of the times (timeToMinutes()).
+	function intervalOf( day, slot ) {
+		const start = timeToMinutes( slot.start );
+		const duration = mod(
+			timeToMinutes( slot.end ) - start,
+			MINUTES_PER_DAY
+		);
+		return {
+			start: DAYS.indexOf( day ) * MINUTES_PER_DAY + start,
+			duration: duration || MINUTES_PER_DAY,
+		};
 	}
 
 	/**

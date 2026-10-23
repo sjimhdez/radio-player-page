@@ -9,7 +9,7 @@ Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 3 en c
 - Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tareas 3.2–3.3 de la fase 3 de la 0009 y `close-phase`; después `start-phase` de la fase 4 (zona horaria: C9, K10) en una sesión nueva.
+1. Tarea 3.3 de la fase 3 de la 0009 y `close-phase`; después `start-phase` de la fase 4 (zona horaria: C9, K10) en una sesión nueva.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario). Tampoco `wp-security-reviewer`, `wporg-reviewer` ni `a11y-reviewer` en las fases 1 y 2 de la 0009 (la 2 toca el meta box y su aviso). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044 y 0045).
 
