@@ -267,6 +267,106 @@
 		return { writes, first };
 	}
 
+	// The week-interval model (ADR 0044), as Schedule\Week_Interval in PHP and
+	// utils/week-interval.ts in the player; the three pass the `model` vectors.
+	// A minute of the week is day × 1440 + minute (Monday = 0, 0 ≤ w < 10080),
+	// and a slot is { start, duration }: end < start crosses midnight and
+	// end == start lasts 24 hours. Not used yet (phase 3 of spec 0009).
+	const MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY;
+
+	function mod( value, modulus ) {
+		return ( ( value % modulus ) + modulus ) % modulus;
+	}
+
+	// Loose like Time::to_minutes() in PHP: a missing, empty or unreadable
+	// part counts as 0 (timeToMinutes() keeps the admin's own reading).
+	function looseMinutes( time ) {
+		if ( typeof time !== 'string' || time === '' ) {
+			return 0;
+		}
+		const parts = time.split( ':' );
+		return (
+			( parseInt( parts[ 0 ], 10 ) || 0 ) * 60 +
+			( parseInt( parts[ 1 ], 10 ) || 0 )
+		);
+	}
+
+	/**
+	 * Minute of the week of a day and a time of day.
+	 *
+	 * @param {string} day  Day key (monday … sunday).
+	 * @param {string} time Time HH:MM; a result out of the week wraps into it.
+	 * @return {number|null} Minute of the week (0-10079), null for an unknown day.
+	 */
+	function minuteOfWeek( day, time ) {
+		const index = DAYS.indexOf( day );
+		if ( index === -1 ) {
+			return null;
+		}
+		return mod(
+			index * MINUTES_PER_DAY + looseMinutes( time ),
+			MINUTES_PER_WEEK
+		);
+	}
+
+	/**
+	 * Interval of a slot.
+	 *
+	 * @param {string} day   Day key of the slot.
+	 * @param {string} start Start time HH:MM.
+	 * @param {string} end   End time HH:MM.
+	 * @return {Object|null} { start, duration }, null for an unknown day.
+	 */
+	function fromSlot( day, start, end ) {
+		const startW = minuteOfWeek( day, start );
+		if ( startW === null ) {
+			return null;
+		}
+		const duration = mod(
+			looseMinutes( end ) - looseMinutes( start ),
+			MINUTES_PER_DAY
+		);
+		return { start: startW, duration: duration || MINUTES_PER_DAY };
+	}
+
+	/**
+	 * Whether an interval contains a minute of the week (start inclusive,
+	 * end exclusive).
+	 *
+	 * @param {Object} interval { start, duration }.
+	 * @param {number} minute   Minute of the week.
+	 * @return {boolean} True if it does.
+	 */
+	function contains( interval, minute ) {
+		return (
+			mod( minute - interval.start, MINUTES_PER_WEEK ) < interval.duration
+		);
+	}
+
+	/**
+	 * Minutes from a minute of the week to the next start of an interval:
+	 * 0 at its start, up to 10079 just after it.
+	 *
+	 * @param {Object} interval { start, duration }.
+	 * @param {number} minute   Minute of the week.
+	 * @return {number} The minutes.
+	 */
+	function minutesUntilStart( interval, minute ) {
+		return mod( interval.start - minute, MINUTES_PER_WEEK );
+	}
+
+	/**
+	 * Whether two intervals share a minute, wrapping at the end of the week.
+	 * Two that only touch (one ends when the other starts) do not.
+	 *
+	 * @param {Object} a { start, duration }.
+	 * @param {Object} b { start, duration }.
+	 * @return {boolean} True if they do.
+	 */
+	function overlaps( a, b ) {
+		return contains( a, b.start ) || contains( b, a.start );
+	}
+
 	// Kept as today: the name goes through replace(), so `$` patterns in it
 	// are read (docs/known-issues.md K44).
 	function overlapMessage( name, other, strings ) {
@@ -338,6 +438,11 @@
 		checkSlot,
 		checkSchedule,
 		message,
+		minuteOfWeek,
+		fromSlot,
+		contains,
+		minutesUntilStart,
+		overlaps,
 	};
 
 	window.radplapagScheduleRules = rules;

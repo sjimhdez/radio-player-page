@@ -49,14 +49,14 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `player/src/utils/week-interval.ts`
 - Test: primero (TDD): `player/src/utils/week-interval.test.ts`
 - Verificación: `npm --prefix player run check`
-- [x] hecha · commit: este
+- [x] hecha · commit: `6e0c844`
 
 ### 1.4 Funciones del modelo en `schedule-rules.js` (≤ 1 h)
 - Qué: las mismas operaciones expuestas en `radplapagScheduleRules`, sin usarlas todavía (las usa la fase 3).
 - Archivos: `admin/js/schedule-rules.js`
 - Test: primero (TDD): `tests/js/admin/schedule-rules.test.js` (bloque nuevo sobre `model`)
 - Verificación: `npm test -- tests/js/admin/schedule-rules.test.js`
-- [ ] hecha · commit: —
+- [x] hecha · commit: este
 
 ### 1.5 C16 en PHP (`fix-bug`) (≤ 1 h)
 - Qué: `Time::is_slot_active()` delega en `Week_Interval` (su día propio deja de dar `true` antes del inicio; firma igual). Tests `currently` de C16 → regresión en rojo y luego verde: `TimeTest`, `ScheduleHelpersTest`, `ScheduleViewTest`, `ProgramsListViewTest`, `ScheduleVectorsTest` (unit e integración) y `BlockDataTest` (se quitan los `test_currently_*` con proveedor vacío). Vectores 13, 14 y C3-4 → resultado correcto + objeto `ts` del player (`currently`, `C16`). Fila C16: parte PHP corregida.
