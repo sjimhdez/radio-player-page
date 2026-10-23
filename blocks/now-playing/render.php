@@ -28,7 +28,9 @@
 defined( 'ABSPATH' ) || exit;
 
 ( function ( $attributes ) {
+	$station_id    = (int) ( $attributes['stationId'] ?? 0 );
 	$station_index = (int) ( $attributes['stationIndex'] ?? 0 );
+	$station_index = $station_id > 0 ? \RadioPlayerPage\Data\Stations::block_index( radplapag_get_stations(), $station_id, $station_index ) : $station_index;
 	$show_logo     = (bool) ( $attributes['showLogo'] ?? true );
 	$now_playing   = radplapag_get_now_playing_for_station( $station_index );
 

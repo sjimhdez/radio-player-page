@@ -41,6 +41,8 @@ use WP_UnitTestCase;
  *   logo, no link) (4 snapshots); nothing on air or invalid index → empty on the
  *   front and in other REST responses; in the block renderer route → the editor
  *   placeholder;
+ * - station: `stationId` wins over `stationIndex`, an unpublished one renders the
+ *   empty block, and a block without it renders by `stationIndex` (K46);
  * - registration: apiVersion, attributes and defaults, supports, render callback and
  *   editor script handle;
  * - editor data: `{ stations: [ { label } ] }`, with «Radio Station N» for untitled
@@ -354,6 +356,58 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * With `stationId`, each block renders that station whatever `stationIndex` says
+	 * (K46); a block saved before 3.5.0, without it, still renders by `stationIndex`.
+	 *
+	 * @dataProvider registered_blocks
+	 *
+	 * @param string $name Block name without the namespace.
+	 */
+	public function test_station_id_picks_the_station( $name ) {
+		$by_index = $this->render_at( $name, array( 'stationIndex' => 1 ) );
+
+		$this->assertNotSame( $by_index, $this->render_at( $name, array( 'stationIndex' => 0 ) ) );
+		$this->assertSame(
+			$by_index,
+			$this->render_at(
+				$name,
+				array(
+					'stationId'    => $this->stations['Second'],
+					'stationIndex' => 0,
+				)
+			)
+		);
+	}
+
+	/**
+	 * A `stationId` that is not a published station renders the empty block, as an
+	 * invalid index does, never the station at `stationIndex` (K46).
+	 *
+	 * @dataProvider registered_blocks
+	 *
+	 * @param string $name Block name without the namespace.
+	 */
+	public function test_unpublished_station_id_renders_empty( $name ) {
+		wp_update_post(
+			array(
+				'ID'          => $this->stations['Second'],
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->assertSame(
+			$this->render_at( $name, array( 'stationIndex' => 99 ) ),
+			$this->render_at(
+				$name,
+				array(
+					'stationId'    => $this->stations['Second'],
+					'stationIndex' => 0,
+				)
+			)
+		);
+	}
+
+	/**
 	 * The function get_block_wrapper_attributes() already adds the generated class
 	 * `wp-block-radplapag-<name>`, and each render passes it again: WP 6.6 prints it twice,
 	 * newer WP (checked on the latest in the CI) once. See K6 in docs/known-issues.md.
@@ -451,6 +505,10 @@ final class BlockRenderTest extends WP_UnitTestCase {
 			'schedule'      => array(
 				'schedule',
 				array(
+					'stationId'               => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
 					'stationIndex'            => array(
 						'type'    => 'number',
 						'default' => 0,
@@ -472,6 +530,10 @@ final class BlockRenderTest extends WP_UnitTestCase {
 			'programs-list' => array(
 				'programs-list',
 				array(
+					'stationId'               => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
 					'stationIndex'            => array(
 						'type'    => 'number',
 						'default' => 0,
@@ -497,6 +559,10 @@ final class BlockRenderTest extends WP_UnitTestCase {
 			'now-playing'   => array(
 				'now-playing',
 				array(
+					'stationId'    => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
 					'stationIndex' => array(
 						'type'    => 'number',
 						'default' => 0,

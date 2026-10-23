@@ -10,6 +10,10 @@
   "editorScript": "file:./build/index.js",
   "render": "file:./render.php",
   "attributes": {
+    "stationId": {
+      "type": "number",
+      "default": 0
+    },
     "stationIndex": {
       "type": "number",
       "default": 0

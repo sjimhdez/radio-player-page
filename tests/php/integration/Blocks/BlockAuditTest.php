@@ -88,26 +88,32 @@ final class BlockAuditTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K46: `stationIndex` is a position in radplapag_get_stations() (menu_order, then
-	 * title; the CPT does not support `page-attributes`). Creating a station whose title
-	 * sorts first moves a saved block to it, and unpublishing one leaves the last index
-	 * out of range.
+	 * K46: `stationId` picks the station whatever its position: creating a station whose
+	 * title sorts first does not move a saved block, and an unpublished station renders
+	 * the empty block, never another station.
 	 */
-	public function test_currently_station_index_follows_the_title_order() {
-		$f    = $this->factory_rpp;
-		$beta = $f->program( 'Beta show' );
-		$f->station( 'Beta', array( 'schedule' => array( 'monday' => array( self::slot( $beta, '09:00', '10:00' ) ) ) ) );
+	public function test_station_id_survives_title_order_and_unpublishing() {
+		$f       = $this->factory_rpp;
+		$beta    = $f->program( 'Beta show' );
+		$beta_id = $f->station( 'Beta', array( 'schedule' => array( 'monday' => array( self::slot( $beta, '09:00', '10:00' ) ) ) ) );
+		$beta_at = array(
+			'stationId'    => $beta_id,
+			'stationIndex' => 0,
+		);
 
-		$this->assertStringContainsString( 'Beta show', self::render( 'programs-list', array( 'stationIndex' => 0 ) ) );
+		$this->assertStringContainsString( 'Beta show', self::render( 'programs-list', $beta_at ) );
 
 		$alpha    = $f->program( 'Alpha show' );
 		$alpha_id = $f->station( 'Alpha', array( 'schedule' => array( 'monday' => array( self::slot( $alpha, '09:00', '10:00' ) ) ) ) );
+		$alpha_at = array(
+			'stationId'    => $alpha_id,
+			'stationIndex' => 0,
+		);
 
-		$first  = self::render( 'programs-list', array( 'stationIndex' => 0 ) );
-		$second = self::render( 'programs-list', array( 'stationIndex' => 1 ) );
-		$this->assertStringContainsString( 'Alpha show', $first );
-		$this->assertStringNotContainsString( 'Beta show', $first );
-		$this->assertStringContainsString( 'Beta show', $second );
+		$first = self::render( 'programs-list', $beta_at );
+		$this->assertStringContainsString( 'Beta show', $first );
+		$this->assertStringNotContainsString( 'Alpha show', $first );
+		$this->assertStringContainsString( 'Alpha show', self::render( 'programs-list', $alpha_at ) );
 
 		wp_update_post(
 			array(
@@ -116,8 +122,8 @@ final class BlockAuditTest extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'Beta show', self::render( 'programs-list', array( 'stationIndex' => 0 ) ) );
-		$this->assertStringContainsString( 'No radio shows for this station.', self::render( 'programs-list', array( 'stationIndex' => 1 ) ) );
+		$this->assertStringContainsString( 'Beta show', self::render( 'programs-list', $beta_at ) );
+		$this->assertStringContainsString( 'No radio shows for this station.', self::render( 'programs-list', $alpha_at ) );
 	}
 
 	/**

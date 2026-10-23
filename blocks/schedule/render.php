@@ -22,7 +22,9 @@ defined( 'ABSPATH' ) || exit;
  * @return string HTML output.
  */
 function radplapag_render_schedule_block( $attributes, $content, $block ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by render_callback.
+	$station_id                = (int) ( $attributes['stationId'] ?? 0 );
 	$station_index             = (int) ( $attributes['stationIndex'] ?? 0 );
+	$station_index             = $station_id > 0 ? \RadioPlayerPage\Data\Stations::block_index( radplapag_get_stations(), $station_id, $station_index ) : $station_index;
 	$day_order                 = ( $attributes['dayOrder'] ?? '' ) === 'natural' ? 'natural' : 'current_first';
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? false );

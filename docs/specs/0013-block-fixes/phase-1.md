@@ -62,7 +62,9 @@ Los tres bloques eligen la emisora por ID (`stationId`) con `stationIndex` de re
 - Archivos: `blocks/*/block.json`, `blocks/*/render.php`, `tests/php/integration/Blocks/{BlockAuditTest,BlockRenderTest}.php`, `docs/known-issues.md`.
 - Test: regresión (`fix-bug`) + nuevos en `BlockRenderTest`.
 - Verificación: `npm run test:php:integration -- --filter 'Block(Audit|Render)Test'`
-- [ ] hecha · commit: —
+- Rojo: `test_station_id_survives_title_order_and_unpublishing` falla al crear «Alpha»: el bloque con `stationId` de «Beta» pinta «Alpha show». Los dos tests nuevos de `BlockRenderTest` se vieron fallar con el arreglo de `schedule` revertido. Snapshots sin cambios.
+- Changelog: los tres bloques guardan la emisora por su ID: crear, renombrar o despublicar otra emisora ya no cambia la de un bloque guardado; una emisora despublicada deja el bloque vacío. Los bloques guardados antes siguen por su posición hasta que se elige la emisora en el editor (D2).
+- [x] hecha · commit: ver `git log` («fix(0013): choose the block station by ID (1.4)»)
 
 ### 1.5 Datos del editor con `id` (≤ 1 h)
 - Qué: los tres `radplapag_enqueue_*_block_editor_assets()` añaden `'id' => (int) $station['id']`. `test_editor_data` con `id` (excepción §4.3), en rojo primero.

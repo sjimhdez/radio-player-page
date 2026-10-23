@@ -9,6 +9,10 @@
   "textdomain": "radio-player-page",
   "editorScript": "file:./build/index.js",
   "attributes": {
+    "stationId": {
+      "type": "number",
+      "default": 0
+    },
     "stationIndex": {
       "type": "number",
       "default": 0
