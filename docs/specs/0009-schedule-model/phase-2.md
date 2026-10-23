@@ -38,7 +38,9 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Archivos: `docs/adr/0045-*.md`, `docs/adr/README.md`, `SPEC.md`, `docs/specs/0009-schedule-model/spec.md`
 - Test: — (docs)
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («docs(0009): add ADR 0045 on the public schedule showing only published programs (2.1)»)
+- ADR 0045 (puntos 1–8: programa público, contraseña, regla única antes de resolver, `RADPLAPAG_PROGRAMS` de las franjas impresas, `{}`, admin). `SPEC.md` §3.3 (globales y párrafo «Programas públicos»), §3.4 (`radplapag_get_program_data()` y `now-playing`), §3.5, §3.6 y §6. Spec §4.3 con las excepciones del plan. `npm run check` en verde.
+- Changelog: los programas con contraseña ya no salen en la página limpia ni en los bloques; `RADPLAPAG_SCHEDULE` vacío es `{}` (también en `== Upgrade Notice ==`, con C10).
 
 ### 2.2 Caracterización de la contraseña (K88) (≤ 1 h)
 - Qué: `test_currently_password_protected_program_is_public` en integración: con `post_password`, `radplapag_get_program_data( $id, true )` devuelve datos, el programa sale en el bloque de horario, en la lista de programas y como `current` de `radplapag_get_now_playing_for_station()`. Fila K88 en `known-issues.md` (decisión: corregir en la 0009, 5.8). Mutación de comprobación.
