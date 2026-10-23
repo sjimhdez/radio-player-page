@@ -79,7 +79,9 @@ Los tres bloques eligen la emisora por ID (`stationId`) con `stationIndex` de re
 - Archivos: `blocks/schedule/src/index.js`, `tests/e2e/blocks.spec.ts`, `tests/e2e/fixtures/seed-e2e.php`.
 - Test: regresión (`fix-bug`) + e2e nuevos.
 - Verificación: `npm --prefix blocks/schedule run check && npm run test:e2e -- blocks.spec.ts`
-- [ ] hecha · commit: —
+- Rojo: los dos K47 (`warns and previews the empty block for …`) fallan en la URL de la vista previa (`stationIndex=23` en lugar de 999; `stationId=0` en lugar de 999999); D3 y D2 no encuentran el aviso ni la ayuda; «the three blocks…» agota los 30 s esperando `attributes[stationId]=<id>`. En verde: `blocks.spec.ts` 12/12, Chromium y WebKit, WP 6.6.10. `chooseStation` usa `BY_ID` (solo `schedule`) mientras `programs-list` y `now-playing` eligen por posición; la 1.7 lo amplía. Con la lista de emisoras vacía no sale el aviso (ya lo dice la opción «No Radio Stations configured»).
+- Changelog: el editor de `schedule` avisa cuando la emisora del bloque ya no existe o no está publicada, previsualiza lo mismo que el front y deja elegir otra; un bloque guardado antes muestra qué emisora usa por su posición.
+- [x] hecha · commit: ver `git log` («fix(0013): pick the schedule block station by ID in the editor (1.6)»)
 
 ### 1.7 Editor de `programs-list` y `now-playing` (K47) (≤ 1 h)
 - Qué: el mismo cambio de 1.6 repetido en cada bloque (ADR 0020, sin código compartido). El e2e de D3 se parametriza a los tres bloques (`chooseStation` ya los recorre en «the three blocks are inserted…»). K47 → corregido.

@@ -4,8 +4,9 @@
  *
  * Creates one page + station per e2e variant (MP3, live, cut, HLS, DASH, no
  * CORS, intro, each visualizer, minimal, entities, always on air), the pages the plugin
- * must not intercept, and two pages with the three blocks (the MP3 grid, and
- * the always-on-air station so that now-playing always renders). Every post it creates carries
+ * must not intercept, two pages with the three blocks (the MP3 grid, and
+ * the always-on-air station so that now-playing always renders) and one with a
+ * schedule block saved without stationId. Every post it creates carries
  * its own tag, so a run first removes everything the previous run created.
  * scripts/fixtures/seed.php (the dev station) is left alone.
  *
@@ -478,6 +479,17 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 		);
 		radplapag_e2e_record( $key, get_permalink( $blocks_id ) );
 	}
+
+	// A block saved before stationId existed: it follows its position (D2, spec 0013).
+	$legacy_id = radplapag_e2e_insert(
+		array(
+			'post_type'    => 'page',
+			'post_title'   => 'E2E Blocks Legacy',
+			'post_content' => '<!-- wp:radplapag/schedule /-->',
+		),
+		'page-blocks-legacy'
+	);
+	radplapag_e2e_record( 'blocks-legacy', get_permalink( $legacy_id ) );
 
 	WP_CLI::line( wp_json_encode( radplapag_e2e_record(), JSON_UNESCAPED_SLASHES ) );
 }

@@ -37,7 +37,8 @@ export type SeedUrlKey =
 	| 'not-a-page'
 	| 'no-station'
 	| 'blocks'
-	| 'blocks-always-on';
+	| 'blocks-always-on'
+	| 'blocks-legacy';
 
 export interface Seed {
 	/** The dev station of scripts/fixtures/seed.php. */
