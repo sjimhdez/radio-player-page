@@ -99,7 +99,7 @@
 	box-shadow: 0 0 2px rgba(220, 50, 50, 0.3);
 }
 .radplapag-program-error-message {
-	color: #dc3232;
+	color: #b32d2e;
 	font-size: 12px;
 	margin-top: 4px;
 	margin-left: 0;
@@ -131,7 +131,7 @@
 	transition: color 0.15s ease;
 }
 .radplapag-program-row .radplapag-remove-program:hover {
-	color: #dc3232;
+	color: #b32d2e;
 }
 .radplapag-program-row .radplapag-program-notice {
 	width: 100%;

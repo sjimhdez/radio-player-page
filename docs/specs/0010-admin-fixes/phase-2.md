@@ -82,7 +82,10 @@ Corregir K45, AX3, AX4, AX5 y K20 con su test de regresión y confirmar o descar
 - Archivos: `admin/css/admin.css`, `tests/e2e/a11y.spec.ts`, `tests/e2e/a11y-baseline.json`, `docs/known-issues.md`
 - Test: primero `a11y.spec.ts` «uses the darker red for "Remove Time Slot" on hover over a row with an error (AX5)» (`toHaveCSS( 'color', 'rgb(179, 45, 46)' )`). La entrada `color-contrast` de «validation errors» sale de la línea base.
 - Verificación: `npx playwright test tests/e2e/a11y.spec.ts -g "meta boxes"`
-- [ ] hecha · commit: —
+- Rojo: Chromium y WebKit (`toHaveCSS`: `Received: "rgb(220, 50, 50)"`).
+- Línea base: salen las dos entradas `color-contrast` de «validation errors» (`#radplapag-slot-monday-{0,3}-error`), reescrita con `RADPLAPAG_UPDATE_A11Y_BASELINE=1` en los dos proyectos, sin violaciones nuevas. En «station meta boxes» ya no queda ninguna entrada.
+- Changelog: los mensajes de error del horario y «Remove Time Slot» en *hover* usan un rojo más oscuro, con contraste suficiente.
+- [x] hecha · commit: ver `git log` («fix(0010): darken the schedule error red (2.6)»)
 
 ### 2.7 K20: «Remove Time Slot» visible con el foco (≤ 30 min) — `fix-bug`
 - Qué: `.radplapag-program-row:focus-within .radplapag-schedule-remove-cell { opacity: 1; pointer-events: auto; }`, como la etiqueta de reemisión.

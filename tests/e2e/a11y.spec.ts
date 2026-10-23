@@ -390,6 +390,35 @@ test.describe( 'a11y: meta boxes', () => {
 		);
 	} );
 
+	// axe does not analyse :hover (WCAG 1.4.3).
+	test( 'uses the darker red for "Remove Time Slot" on hover over a row with an error (AX5)', async ( {
+		page,
+	} ) => {
+		await openStation( page );
+		const monday = page.locator(
+			'.radplapag-schedule-day[data-day="monday"]'
+		);
+		await monday.getByRole( 'button', { name: 'Add Time Slot' } ).click();
+		const row = monday.locator( '.radplapag-program-row' ).last();
+		await row
+			.locator( '.radplapag-program-id' )
+			.selectOption( { index: 1 } );
+		await row.locator( '.radplapag-program-start' ).fill( '07:00' );
+		await row.locator( '.radplapag-program-end' ).fill( '08:00' );
+		await page.locator( '#radplapag_station_stream_url' ).focus();
+		const errorRow = monday
+			.locator( '.radplapag-program-row.radplapag-error' )
+			.first();
+		await expect(
+			errorRow.locator( '.radplapag-program-error-message.show' )
+		).toBeVisible();
+		const remove = errorRow.locator( '.radplapag-remove-program' );
+
+		await remove.hover();
+
+		await expect( remove ).toHaveCSS( 'color', 'rgb(179, 45, 46)' );
+	} );
+
 	// axe does not follow the keyboard focus (WCAG 2.4.3).
 	test( 'keeps the keyboard focus when tabbing into the next slot of the day (K39)', async ( {
 		page,

@@ -110,21 +110,5 @@
 			"chromium",
 			"webkit"
 		]
-	},
-	"station meta boxes · validation errors · color-contrast · #radplapag-slot-monday-0-error": {
-		"impact": "serious",
-		"help": "Elements must meet minimum color contrast ratio thresholds",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
-	"station meta boxes · validation errors · color-contrast · #radplapag-slot-monday-3-error": {
-		"impact": "serious",
-		"help": "Elements must meet minimum color contrast ratio thresholds",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
 	}
 }
