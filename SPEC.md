@@ -93,9 +93,10 @@ Plugin de WordPress, publicado en el directorio de wordpress.org, que da a cada 
 
 ### 3.3 Página del reproductor
 
-- `template_redirect` → `radplapag_output_clean_page()`. Solo intercepta una **página publicada**, sin contraseña, asignada a una emisora (`radplapag_get_station_for_current_page()`). En cualquier otro caso devuelve sin hacer nada y WordPress pinta el tema.
+- `template_redirect` → `radplapag_output_clean_page()`. Solo intercepta una **página publicada**, sin contraseña, asignada a una emisora (`radplapag_get_station_for_current_page()`). No intercepta el feed, el embed ni el trackback de esa página (`is_feed()`, `is_embed()`, `is_trackback()`; K26, spec 0008). En cualquier otro caso devuelve sin hacer nada y WordPress pinta el tema.
 - Imprime un HTML mínimo **sin `wp_head()`/`wp_footer()`** y termina con `exit` (ADR 0008). Se caracteriza por HTTP (ADR 0001).
-- `<head>`: `lang` = idioma del sitio; `<title>` = título de la emisora o, si está vacío, el nombre del sitio; favicon = icono del sitio; `description` «Listen to %s live» (traducible); Open Graph (`og:title`, `og:description`, `og:url`, `og:type=website`, `og:site_name`, `og:locale`) y Twitter Card. La imagen social es el logo, si no el fondo, si no el favicon (`summary_large_image`); sin imagen, `summary`.
+- `<html>`: `lang` = idioma del sitio y `dir="rtl"` si `is_rtl()` (en LTR, sin `dir`; ADR 0043).
+- `<head>`: con `blog_public = 0`, `<meta name="robots" content="noindex, nofollow">` impreso directamente, sin `wp_robots()` ni su filtro; con `1`, ninguna meta `robots` (ADR 0043). `<title>` = título de la emisora o, si está vacío, el nombre del sitio; favicon = icono del sitio; `description` «Listen to %s live» (traducible); Open Graph (`og:title`, `og:description`, `og:url`, `og:type=website`, `og:site_name`, `og:locale`) y Twitter Card. La imagen social es el logo, si no el fondo, si no el favicon (`summary_large_image`); sin imagen, `summary`.
 - Assets: lee `player/dist/manifest.json` y su entrada `src/main.tsx`. Sin manifiesto, o sin el JS de esa entrada, `wp_die()` con un mensaje traducible. Nombres: `radio-player-page-<versión>[-<chunk>].min.js` y `.css` (versión de `player/package.json`). El JS se carga como `<script type="module">` y monta en `<div id="root">`.
 - **Globales JS**, en un `<script>` antes del player, con `wp_json_encode()` y `JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT`:
 

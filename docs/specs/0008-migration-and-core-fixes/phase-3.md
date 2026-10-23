@@ -43,7 +43,7 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `tests/e2e/mu-plugins/radplapag-e2e-text-direction.php`, `.wp-env.tests.json`, `tests/e2e/clean-page.spec.ts`, `docs/known-issues.md`.
 - Test: caracterización: `tests/e2e/clean-page.spec.ts`. Cada uno se valida con una mutación temporal (`dir` y `robots` impresos a mano; `is_feed()` añadido).
 - Verificación: `npm run env:start:min && npm run test:e2e -- clean-page.spec.ts`
-- [ ] hecha · commit: —
+- [x] hecha · commit: 113beab
 
 ### 3.2 ADR 0043: robots y `dir` en la página limpia (≤ 1 h)
 - Qué:
@@ -52,7 +52,8 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `docs/adr/0043-clean-page-robots-and-direction.md`, `docs/adr/README.md`, `SPEC.md`.
 - Test: — (documentación).
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- Resultado (2026-10-23): ADR 0043 aceptado. El *mu-plugin* real es `tests/e2e/mu-plugins/radplapag-e2e.php` (no `radplapag-e2e-text-direction.php`); el ADR cita ese. `SPEC.md` §3.3 recoge `dir`, `robots` y K26; la fila de §6 la añade `close-phase`.
+- [x] hecha · commit: —
 
 ### 3.3 K23 y `dir` en RTL (D12) (≤ 1 h)
 - Qué:
