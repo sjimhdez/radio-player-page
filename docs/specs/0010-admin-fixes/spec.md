@@ -104,7 +104,8 @@ No cambian las meta keys, las opciones, los transients (los avisos de K37 van en
   - `tests/e2e/a11y-baseline.json`: salen las entradas de AX3, AX4 y AX5 (fase 2);
   - `station-fields.test.js` «accepts any URL scheme `new URL()` parses» (K42, D5);
   - `SaveStationMetaTest::test_invalid_attachments_become_zero` y `StationMetaSaverTest::test_wrong_attachments_go_to_zero` (K37, D7); `SaveStationMetaTest::test_writes_order_with_field_errors_and_valid_schedule` y los que fijen «con un error de campo no se escribe ni la URL ni la página» (K42, D8). El plan los lista;
-  - `SaveProgramMetaTest::test_truncation_counts_bytes_not_characters` (K5, D10);
+  - ampliación de la tarea 3.1 (fase 3, ADR 0048): `StationMetaSaverTest::test_page_of_another_station_is_reported` (la URL válida sí se escribe) y `SaveStationMetaTest::test_cli_never_reads_stream_url_so_url_and_page_are_kept` (en la CLI la página válida sí se escribe) (K42, D8); `program-admin.test.js` «…audio frame…» (`library: { type: 'audio' }` → `'audio/mpeg'`, K37, D7); el ayudante `save()` del grupo «server, without the client validation» de `admin.spec.ts` espera la respuesta del POST y la carga, no `&message=` (D9);
+  - `SaveProgramMetaTest::test_truncation_counts_bytes_not_characters` y su gemelo del núcleo `tests/php/unit/Program/FieldSanitizerTest.php::test_truncation_counts_bytes_not_characters` (K5, D10);
   - `AdminScreensTest::test_admin_strings_keys`: en la fase 2 se añaden las claves de D11 (AX3, AX4); en la fase 3 se quitan las de K76. `HooksTest` (el callback de D9).
   - `admin-dom.test.js` «builds the row with the default strings» y «decodes the entities of names and translations» (spec 0005): su `rowHtml()` añade las tres etiquetas y los `id` de la fila nueva (AX3, AX4; usuario, 2026-10-23, tarea 2.3);
 - Fase 1 empieza por §4.2 con los tests de hoy como red; cada paso, en verde sin editarlos.

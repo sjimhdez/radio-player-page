@@ -151,6 +151,7 @@ Callbacks enganchados hoy:
 | `map_meta_cap` | `radplapag_map_cpt_meta_cap` (10, 4 args) |
 | `user_has_cap` | `radplapag_grant_station_caps_to_manage_options`, `radplapag_grant_program_caps_to_manage_options` (10, 4 args) |
 | `use_block_editor_for_post_type` | `radplapag_station_use_classic_editor` (10, 2 args) |
+| `redirect_post_location` | `radplapag_station_redirect_without_message` (10, 2 args; solo en el admin; spec 0010, ADR 0048) |
 
 ### 3.5 Bloques
 
@@ -172,9 +173,10 @@ Bloques dinámicos, apiVersion 3, renderizados en el servidor. Comparten `suppor
 - Menú «RPP» con las emisoras y los programas (`radplapag_admin_menu`).
 - Meta boxes de emisora (detalles y horario, `#radplapag-station-cpt-container`) y de programa, con nonces `radplapag_station_meta` / `radplapag_program_meta`.
 - Validación en el cliente (`admin/js/station-admin.js`: solapes, franjas que cruzan la medianoche) y en el servidor, las dos sobre el modelo de intervalos de la semana (§3.1, ADR 0044): `start == end` es una franja de 24 h válida en las dos (C3). Los errores del servidor se muestran como avisos tras guardar (transients de §3.1).
-- Las páginas ya asignadas a otra emisora se desactivan en el selector (`radplapag_get_player_pages_assigned_to_other_stations()`).
+- Las páginas ya asignadas a otra emisora se desactivan en el selector (`radplapag_get_player_pages_assigned_to_other_stations()`). La página asignada que no está publicada se lista con su estado entre paréntesis y un aviso (K36); con `show_on_front = 'page'`, la página de entradas (`page_for_posts`) se excluye salvo que sea la asignada, que sale con un aviso (K27; ADR 0048).
+- Guardado de la emisora (ADR 0048): la URL y la página se escriben **cada una si es válida**; la que falla conserva su valor guardado y avisa en `radplapag_station_field_errors_<id>` (K42). Un fondo o logo que no es imagen o una bienvenida que no es `audio/mpeg` conserva el adjunto guardado y avisa; nunca se pone a 0 en silencio (un 0 enviado lo quita; K37). El selector de la bienvenida solo ofrece `audio/mpeg`. Con un transient de errores (campos u horario), la redirección tras guardar no lleva el `message` de core («Post published.» / «Post updated.»), aunque la emisora se publica igual. Con un sitio `https` y un stream `http`, un aviso no bloqueante junto al campo (C13).
 - Selector de programa de cada franja y `radplapagAdmin.programs`: `radplapag_get_station_programs_for_select( $station_id )`, los programas `publish` y `draft` más el de cada franja guardada en cualquier estado, con `label` (el nombre y, si no es público, su estado: «(Draft)», «(Pending)», «(Scheduled)», «(Private)», «(Trash)», «(Password protected)») y `public`. Una franja de un programa no público conserva su programa y muestra, al pintar y al elegirlo, el aviso «This program is not published; this time slot is not shown on the site.» (`.radplapag-program-notice`), que no bloquea el guardado; el servidor acepta la franja (C10, K41, ADR 0045). Los `name` del formulario no cambian.
-- Cadenas del JS en `admin/admin-strings.php` (`radplapag_get_admin_strings()`), localizadas como `radplapagAdmin`.
+- Cadenas del JS en `admin/admin-strings.php` (`radplapag_get_admin_strings()`), localizadas como `radplapagAdmin`. El contenido de `radplapagAdmin` (claves de `strings`, `programs`, `assignedPlayerPages`) es **interno** y puede cambiar sin aviso; `radplapag_get_admin_strings()` conserva su firma (ADR 0047).
 - Reglas del horario del admin en el script `radplapag-schedule-rules` (`admin/js/schedule-rules.js`, desde la 0005), dependencia de `radplapag-station-admin`, que expone `window.radplapagScheduleRules` (**interno**, no es contrato; ADR 0028). Los handles existentes no cambian.
 
 ### 3.7 Desinstalación

@@ -48,7 +48,7 @@ Corregir C13, K42, K37, K36, K27, K5, K34, «Entrada publicada con error» y K76
 - Archivos: `docs/adr/0047-*.md`, `docs/adr/0048-*.md`, `docs/adr/README.md`, `SPEC.md`, `docs/specs/0010-admin-fixes/spec.md`
 - Test: — (documentación)
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («docs(0010): add ADRs 0047 and 0048 (3.1)»)
 
 ### 3.2 K42 servidor: la URL y la página, cada una si es válida (≤ 1 h) — `fix-bug`
 - Qué: en `Station_Meta_Saver::save()`, el transient se pone si hay errores y se borra si no. La URL se escribe sin `stream_url_required` y la página sin `player_page_required` ni `player_page_taken`. El orden de las escrituras y de los mensajes no cambia.
