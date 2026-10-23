@@ -111,7 +111,10 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Archivos: `admin/js/station-admin.js`, `tests/js/admin/station-validation.test.js`, `tests/js/admin/support/mount-station-screen.js` (si hace falta `public`), `tests/php/unit/Schedule/SlotValidatorTest.php`, `tests/php/integration/Schedule/SanitizeScheduleTest.php`, `docs/known-issues.md`
 - Test: primero (TDD): `station-validation.test.js` (aviso al elegir un borrador; con él, el envío no se bloquea)
 - Verificación: `npm test && npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («fix(0009): show the notice for a program that is not public when it is chosen in the station meta box (2.9)»)
+- Rojo visto (5 fallos): las opciones de una fila nueva con `name` en vez de `label` y el aviso, que no salía ni se iba al cambiar el selector. «saves a slot whose program is not public» ya pasaba (desde la 2.8 la lista incluye los no públicos); mutación: `programIds()` sin los no públicos → falla.
+- Hecho: `buildProgramSelect()` usa `label` (o `name` si falta); `updateProgramNotice()` en el evento `change` del contenedor (vale para filas nuevas) pone o quita `.radplapag-program-notice` con `textContent` y `decodeEntities()` (`programNotPublished`, con el texto inglés de respaldo); un programa sin `public` cuenta como público. `adminData()` del soporte con la forma de `radplapag_get_station_programs_for_select()` (los tres programas del fixture), así que `admin-dom.test.js` «builds the row with the default strings» gana la opción «Draft Show (Draft)» (excepción aprobada del «Contexto»). `test_currently_accepts_draft_program` → `test_accepts_draft_program` en unit e integración; comentario de `radplapag_sanitize_station_schedule()`.
+- Changelog: ya anotado en la 2.8.
 
 ## Decisiones abiertas → ADR
 - ADR 0045 (tarea 2.1). Ninguna otra prevista.

@@ -260,7 +260,8 @@ add_action( 'init', 'radplapag_register_station_meta', 20 );
  * @return array|WP_Error Sanitized schedule array keyed by day, or WP_Error on validation failure.
  */
 function radplapag_sanitize_station_schedule( $schedule_input ) {
-	// Names of the programs the rows use; drafts are valid (C10 in docs/known-issues.md).
+	// Names of the programs the rows use, in any status: the meta box warns about the
+	// ones that are not public (ADR 0045).
 	$program_names = array();
 	if ( is_array( $schedule_input ) ) {
 		foreach ( $schedule_input as $day_rows ) {

@@ -41,7 +41,8 @@ export const MARKER_STRINGS = {
 
 /**
  * `window.radplapagAdmin` as `admin/admin.php` localizes it: the shape of
- * `radplapag_get_admin_strings()` plus `assignedPlayerPages`.
+ * `radplapag_get_admin_strings()` plus `assignedPlayerPages`, with the programs
+ * of `radplapag_get_station_programs_for_select()` (those of the fixture).
  *
  * @param {Object} overrides Keys to replace.
  * @return {Object} Localized data.
@@ -49,8 +50,19 @@ export const MARKER_STRINGS = {
 export function adminData( overrides = {} ) {
 	return {
 		programs: [
-			{ id: 201, name: 'Morning Show' },
-			{ id: 202, name: 'Night Owl' },
+			{
+				id: 203,
+				name: 'Draft Show',
+				label: 'Draft Show (Draft)',
+				public: false,
+			},
+			{
+				id: 201,
+				name: 'Morning Show',
+				label: 'Morning Show',
+				public: true,
+			},
+			{ id: 202, name: 'Night Owl', label: 'Night Owl', public: true },
 		],
 		strings: MARKER_STRINGS,
 		// 102 belongs to Other FM in the fixture.

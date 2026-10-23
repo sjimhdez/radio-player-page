@@ -424,13 +424,13 @@ final class SlotValidatorTest extends TestCase {
 	}
 
 	/**
-	 * Currently, any program in the names map is accepted, and the wrapper puts drafts
-	 * in it (radplapag_get_program_data() finds them): a draft is accepted in a slot
-	 * without any warning, although drafts are never shown.
+	 * Any program in the names map is accepted, and the wrapper puts drafts in it
+	 * (radplapag_get_program_data() finds them): a slot keeps a program that is not
+	 * public, and the meta box warns about it (ADR 0045).
 	 *
 	 * @see docs/known-issues.md C10
 	 */
-	public function test_currently_accepts_draft_program() {
+	public function test_accepts_draft_program() {
 		$draft  = 42;
 		$result = Slot_Validator::validate(
 			array( 'monday' => array( $this->row( $draft, '06:00', '10:00' ) ) ),

@@ -780,3 +780,148 @@ describe( 'station-admin.js: overlaps across days', () => {
 		] );
 	} );
 } );
+
+// docs/known-issues.md C10 and K41 (spec 0009, ADR 0045): a slot may keep a
+// program that is not public; the screen says so and the station still saves.
+describe( 'station-admin.js: programs that are not public', () => {
+	const NOTICE =
+		'This program is not published; this time slot is not shown on the site.';
+
+	/**
+	 * Notice text a row shows, or `null`.
+	 *
+	 * @param {HTMLElement} row Program row.
+	 * @return {string|null} Notice text.
+	 */
+	function rowNotice( row ) {
+		const notices = row.querySelectorAll( '.radplapag-program-notice' );
+		expect( notices.length ).toBeLessThanOrEqual( 1 );
+		return notices.length ? notices[ 0 ].textContent : null;
+	}
+
+	/**
+	 * Selects a program in a row as the user does.
+	 *
+	 * @param {HTMLElement} row       Program row.
+	 * @param {string}      programId Option value.
+	 */
+	function choose( row, programId ) {
+		const select = row.querySelector( '.radplapag-program-id' );
+		select.value = programId;
+		select.dispatchEvent( new window.Event( 'change', { bubbles: true } ) );
+	}
+
+	it( 'lists each program of a new row by its label', async () => {
+		const screen = await mountStationScreen();
+
+		screen
+			.dayWrapper( 'sunday' )
+			.querySelector( '.radplapag-add-program' )
+			.click();
+
+		const select = screen
+			.rows( 'sunday' )
+			.pop()
+			.querySelector( '.radplapag-program-id' );
+		expect(
+			Array.from( select.options ).map( ( o ) => [ o.value, o.text ] )
+		).toEqual( [
+			[ '', 'Select Radio Show' ],
+			[ '203', 'Draft Show (Draft)' ],
+			[ '201', 'Morning Show' ],
+			[ '202', 'Night Owl' ],
+		] );
+	} );
+
+	it( 'shows the notice when a program that is not public is chosen, and removes it for a public one', async () => {
+		const screen = await mountStationScreen(
+			adminData( {
+				strings: {
+					...MARKER_STRINGS,
+					programNotPublished: '[not_public]',
+				},
+			} )
+		);
+		const row = screen.rows( 'monday' )[ 0 ];
+		expect( rowNotice( row ) ).toBeNull();
+
+		choose( row, '203' );
+		expect( rowNotice( row ) ).toBe( '[not_public]' );
+
+		choose( row, '203' );
+		expect( rowNotice( row ) ).toBe( '[not_public]' );
+
+		choose( row, '202' );
+		expect( rowNotice( row ) ).toBeNull();
+	} );
+
+	it( 'shows the notice in a new row, as text', async () => {
+		const screen = await mountStationScreen(
+			adminData( {
+				strings: {
+					...MARKER_STRINGS,
+					programNotPublished: '<b>Not</b> &amp; public',
+				},
+			} )
+		);
+		const row = screen.addSlot( 'sunday', {
+			programId: '',
+			start: '',
+			end: '',
+		} );
+
+		choose( row, '203' );
+
+		// Entities decoded and tags dropped, as with the other translations.
+		expect( rowNotice( row ) ).toBe( 'Not & public' );
+		expect( row.querySelector( '.radplapag-program-notice b' ) ).toBeNull();
+	} );
+
+	it( 'uses its built-in English notice without a translation', async () => {
+		const screen = await mountStationScreen();
+		const row = screen.rows( 'monday' )[ 0 ];
+
+		choose( row, '203' );
+
+		expect( rowNotice( row ) ).toBe( NOTICE );
+	} );
+
+	it( 'removes the notice the meta box printed when a public program is chosen', async () => {
+		const screen = await mountStationScreen();
+		const row = screen.rows( 'monday' )[ 0 ];
+		const printed = document.createElement( 'div' );
+		printed.className = 'radplapag-program-notice';
+		printed.textContent = NOTICE;
+		row.appendChild( printed );
+
+		choose( row, '201' );
+
+		expect( rowNotice( row ) ).toBeNull();
+	} );
+
+	it( 'treats a program without `public` as public', async () => {
+		const screen = await mountStationScreen(
+			adminData( { programs: [ { id: 201, name: 'Morning Show' } ] } )
+		);
+		const row = screen.rows( 'monday' )[ 0 ];
+
+		choose( row, '201' );
+
+		expect( rowNotice( row ) ).toBeNull();
+	} );
+
+	it( 'saves a slot whose program is not public', async () => {
+		const screen = await mountStationScreen();
+		screen.clearSchedule();
+		const row = screen.addSlot( 'monday', {
+			programId: '203',
+			start: '06:00',
+			end: '10:00',
+		} );
+
+		const { blocked } = screen.submit();
+
+		expect( blocked ).toBe( false );
+		expect( rowErrorCode( row ) ).toBeNull();
+	} );
+} );

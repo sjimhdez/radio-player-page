@@ -364,12 +364,12 @@ final class SanitizeScheduleTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, a draft program is accepted in a slot without any warning, although
-	 * drafts are never shown.
+	 * A draft program is accepted in a slot: the slot keeps it, and the meta box warns
+	 * that it is not shown on the site (ADR 0045).
 	 *
 	 * @see docs/known-issues.md C10
 	 */
-	public function test_currently_accepts_draft_program() {
+	public function test_accepts_draft_program() {
 		$draft = ( new Factory() )->program( 'Draft', array(), 'draft' );
 
 		$result = radplapag_sanitize_station_schedule(
