@@ -2,6 +2,16 @@
 
 Lo que cada spec hizo distinto de lo escrito, con su motivo y quién lo decidió. Las de la spec activa están en `status.md` y pasan aquí al cerrarla (`close-phase`). Las más recientes van primero.
 
+## Spec 0010
+Detalle en cada `phase-N.md`. Los cambios de contrato van con su ADR (0047 y 0048).
+
+- Fases 1 a 3 (cierre): solo `spec-conformance-reviewer`, sobre el diff de cada fase; `backcompat-reviewer`, `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` quedan para antes de la release. Decidido por el usuario (2026-10-23).
+- Fase 3 (3.4): `FieldSanitizerTest::test_values_with_errors`, fuera de la lista de §4.3, espera `null` en los adjuntos rechazados. Aprobado por el usuario (2026-10-23) y anotado en §4.3.
+- Fase 3 (3.7 y 3.8): los avisos de K36 y K27 van sin `aria-describedby` en el `select`, a diferencia del de C13. La spec no lo pide (decisión de alcance); queda para `a11y-reviewer` antes de la release.
+- Fase 3 (3.9): los `currently` de K5 pasan a regresión con la entrada `'éé'` en vez de `'a'×255 . 'é'`, para que el corte caiga entre caracteres.
+- Fase 3 (3.10): `PublicApiTest` (caracterización, fuera de §4.3) añade `radplapag_station_redirect_without_message`: el contrato crece por el ADR 0048, como en la 0008 y la 0009.
+- Fase 3 (3.11): el soporte `mount-station-screen.js` pierde el marcador `completeTimeFields`, sin uso.
+
 ## Spec 0009
 Detalle en cada `phase-N.md`. Los cambios de contrato van con su ADR (0044–0046).
 

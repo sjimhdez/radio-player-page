@@ -707,7 +707,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	 * @param string $site_scheme Scheme of home_url().
 	 * @param string $stream_url  Saved stream URL.
 	 */
-	public function test_details_box_does_not_warn_on_an_http_site( $site_scheme, $stream_url ) {
+	public function test_details_box_hides_the_notice_without_mixed_content( $site_scheme, $stream_url ) {
 		if ( 'https' === $site_scheme ) {
 			add_filter( 'home_url', array( $this, 'https_home_url' ) );
 		}

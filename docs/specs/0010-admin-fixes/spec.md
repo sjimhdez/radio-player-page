@@ -1,6 +1,6 @@
 # Spec 0010 — Correcciones: admin
 
-> Estado: **propuesta** · Fecha: 2026-10-23 · Rama: `spec/0010-admin-fixes` · Depende de: 0005, 0009
+> Estado: **cerrada** (2026-10-23) · Fecha: 2026-10-23 · Rama: `spec/0010-admin-fixes` · Depende de: 0005, 0009
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 
