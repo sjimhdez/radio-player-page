@@ -56,7 +56,9 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `admin/js/station-admin.js`, `tests/js/admin/station-fields.test.js`, `docs/known-issues.md`
 - Test: primero: «revalidates Monday after removing the Sunday slot (K16)».
 - Verificación: `npm test -- tests/js/admin/station-fields.test.js`
-- [ ] hecha · commit: —
+- Rojo: Vitest `expected 'cross_midnight_overlap' to be null` (el lunes conserva el error tras quitar la franja del domingo). Ningún otro test fijaba que el borrado validara las filas ocultas de los vecinos.
+- Changelog: al quitar una franja, el aviso de solape del día siguiente o anterior se actualiza también entre domingo y lunes (K16).
+- [x] hecha · commit: ver `git log` («fix(0010): revalidate the neighbour days across the week on removal (1.4)»)
 
 ### 1.5 K39: el foco no se pierde al reordenar ni al quitar (≤ 1 h) — `fix-bug`
 - Qué: `sortProgramsByStartTime()` guarda `document.activeElement` si está en la lista y, tras los `appendChild`, si ya no es el activo, le devuelve el foco con `focus( { preventScroll: true } )` (D3). Al quitar: antes de `remove()`, la fila siguiente del día (`nextElementSibling`); después de revalidar, foco a su `.radplapag-program-id` o, si no hay, a `.radplapag-add-program` del día.

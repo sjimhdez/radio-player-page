@@ -457,9 +457,7 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		expect( rowErrorCode( tuesday ) ).toBeNull();
 	} );
 
-	// docs/known-issues.md K16: removal walks Monday → Sunday without
-	// wrapping, unlike the focusout revalidation.
-	it( 'currently leaves Monday stale after removing the Sunday slot (K16)', async () => {
+	it( 'revalidates Monday after removing the Sunday slot (K16)', async () => {
 		const screen = await mount();
 		screen.clearSchedule();
 		const sunday = screen.addSlot( 'sunday', {
@@ -477,9 +475,6 @@ describe( 'station-admin.js: adding and removing slots', () => {
 
 		screen.remove( sunday );
 
-		expect( rowErrorCode( monday ) ).toBe( 'cross_midnight_overlap' );
-		// The next submit revalidates every row and clears it.
-		expect( screen.submit().blocked ).toBe( false );
 		expect( rowErrorCode( monday ) ).toBeNull();
 	} );
 } );

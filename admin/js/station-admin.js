@@ -329,23 +329,15 @@
 	 *
 	 * @param {Element} scheduleWrapper Element that holds the schedule days.
 	 * @param {string}  day             Day key.
-	 * @param {Object}  [options]       legacyRemoval: as the removal does today,
-	 *                                  no wrap and hidden rows too (K16).
 	 */
-	function revalidateAround( scheduleWrapper, day, options ) {
+	function revalidateAround( scheduleWrapper, day ) {
 		const rules = scheduleRules();
-		const index = rules.DAYS.indexOf( day );
-		if ( index === -1 ) {
+		if ( rules.DAYS.indexOf( day ) === -1 ) {
 			return;
 		}
-		const legacyRemoval = !! ( options && options.legacyRemoval );
-		const neighbour = { skipHidden: ! legacyRemoval };
-		if ( ! legacyRemoval || index < rules.DAYS.length - 1 ) {
-			revalidateDay( scheduleWrapper, rules.nextDay( day ), neighbour );
-		}
-		if ( ! legacyRemoval || index > 0 ) {
-			revalidateDay( scheduleWrapper, rules.prevDay( day ), neighbour );
-		}
+		const neighbour = { skipHidden: true };
+		revalidateDay( scheduleWrapper, rules.nextDay( day ), neighbour );
+		revalidateDay( scheduleWrapper, rules.prevDay( day ), neighbour );
 	}
 
 	// Text as the HTML strings of 3.4 showed it: entities decoded (risk 1 of spec
@@ -657,9 +649,7 @@
 						if ( scheduleWrapper && dayWrapper ) {
 							const day = dayWrapper.getAttribute( 'data-day' );
 							revalidateDay( scheduleWrapper, day );
-							revalidateAround( scheduleWrapper, day, {
-								legacyRemoval: true,
-							} );
+							revalidateAround( scheduleWrapper, day );
 						}
 					}
 				}
