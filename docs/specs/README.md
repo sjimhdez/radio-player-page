@@ -95,6 +95,6 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
   - Plugin Check sobre el zip, la checklist de las guidelines y la matriz PHP 7.4/8.4 × WP 6.6/última;
   - verificación manual: iOS y Android, una emisora real y una actualización desde la 3.4.2;
   - changelog y `== Upgrade Notice ==` (incluye el soporte efectivo de navegadores del player, Safari 17+, ADR 0027);
-  - changelog y `== Upgrade Notice ==` de la 0009: `RADPLAPAG_SCHEDULE` vacío es `{}` (K17), las franjas de programas no publicados o con contraseña dejan de mostrarse (C10), la clave `timezone` de `RADPLAPAG_CONFIG` (C9) y el cambio de `radplapag_is_slot_active()` (C16);
+  - changelog y `== Upgrade Notice ==` de la 0009: `RADPLAPAG_SCHEDULE` vacío es `{}` (K17), las franjas de programas no publicados o con contraseña dejan de mostrarse (C10) y `radplapag_get_program_data( $id, true )` devuelve `null` para un programa con contraseña (ADR 0045), el meta box conserva la franja de un programa no publicado con su estado y un aviso (C10, K41), la clave `timezone` de `RADPLAPAG_CONFIG` (C9) y el cambio de `radplapag_is_slot_active()` (C16);
   - del triage de la 0002: K3 (los textos se revisan con el estado final) y K28 (`readme.txt`); comprobar que la petición a terceros de `dashjs` está corregida (verificación, no asignación: la fila es de la 0007);
   - merge en `trunk`, PR `trunk` → `main`, tag `vX.Y.Z` y pasos de SVN para el usuario.

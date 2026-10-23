@@ -1,5 +1,5 @@
 # Spec 0009 · Fase 2 — Programas no publicados (C10, K41, contraseña, K78, K17)
-Estado: en curso · Inicio: 2026-10-23 · ADRs: 0045 (nuevo), 0044, 0019, 0028, 0029
+Estado: cerrada (2026-10-23) · Inicio: 2026-10-23 · ADRs: 0045 (nuevo), 0044, 0019, 0028, 0029
 
 ## Contexto
 - Hoy cada punto de entrada carga los programas con `radplapag_get_program_data( $id, true )` (solo `publish`, **acepta contraseña**) pero resuelve sobre el horario crudo: página limpia (`radio-player-page.php:348`), bloque de horario (`radplapag_build_programs_map()` + `radplapag_get_schedule_for_station()`), lista de programas (`radplapag_get_programs_list_for_station()`) y `radplapag_get_now_playing_for_station()` (que alimenta `now-playing`). De ahí C10: la franja del borrador se queda (bloque con «—», `RADPLAPAG_SCHEDULE`, ventana de «Coming up»).
@@ -14,6 +14,8 @@ Estado: en curso · Inicio: 2026-10-23 · ADRs: 0045 (nuevo), 0044, 0019, 0028, 
   - `clean-page.spec.ts` «skips the raw schedule entries that cannot be printed»: desaparecen la franja del borrador y la de `'tagged id'` (un ID no numérico es un programa que no existe).
   - Admin: el estado va en el texto de la opción («Draft Show (Draft)») para todo programa no público del selector; el fixture `tests/fixtures/admin/station-meta-box.html` se regenera con su test.
   - `BlockDataTest::test_unknown_program_slot_has_empty_name` (integración) pasa a «la franja de un programa que no existe no sale», literal de §2 («o no existe … ni con “—”») (aprobado con el plan).
+  - `ScheduleVectorsTest::test_malformed_entries_are_skipped` (integración): gemelo de la unit, `current` C (aprobado en la 2.4, 2026-10-23).
+  - `admin-dom.test.js` «builds the row with the default strings»: gana la opción «Draft Show (Draft)» por los datos del soporte (2.9; dentro de la excepción del selector).
   - `AdminScreensTest::test_station_screen_localizes_radplapag_admin`: `radplapagAdmin.programs` es `radplapag_get_station_programs_for_select( $post_id )` (con `label` y `public`), no `radplapag_get_admin_strings()['programs']` (aprobado en la 2.8, 2026-10-23).
 - Cualquier otro test de caracterización que caiga: se para y se pregunta.
 
@@ -103,7 +105,7 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Verificación: `npm run test:php:integration -- --filter AdminScreens && npm test`
 - [x] hecha · commit: ver `git log` («fix(0009): keep the program of each slot with its status and warn when it is not public in the station meta box (2.8)»)
 - Rojo: `Call to undefined function radplapag_get_station_programs_for_select()`; la franja del programa en la papelera, sin selección (`Array ()`); el borrador y el de contraseña, `>Night Owl</option>` sin estado.
-- Hecho: `radplapag_get_station_programs_for_select()` (lista de siempre por título y después los programas de las franjas en otro estado, por orden de aparición; descarta IDs que no son programas), el meta box con `label` y el aviso `<div class="radplapag-program-notice">` dentro de la fila, tras el mensaje de error; `radplapagAdmin.programs` con esa lista; `programNotPublished`; la función nueva en `PublicApiTest`; una regla de `admin/css/admin.css` para el aviso (ancho completo en la fila flex). Excepción aprobada: `test_station_screen_localizes_radplapag_admin` (ver «Contexto»). El JS de `station-admin.js` aún construye las opciones con `name` (2.9).
+- Hecho: `radplapag_get_station_programs_for_select()` (lista de siempre por título y después los programas de las franjas en otro estado, por orden de aparición; descarta IDs que no son programas), el meta box con `label` y el aviso `<div class="radplapag-program-notice">` dentro de la fila, tras el mensaje de error; `radplapagAdmin.programs` con esa lista; `programNotPublished`; la función nueva en `PublicApiTest`; una regla de `admin/css/admin.css` para el aviso (ancho completo en la fila flex); el hook de formato reindentó el archivo entero (espacios → tabuladores), sin cambio de comportamiento. Excepción aprobada: `test_station_screen_localizes_radplapag_admin` (ver «Contexto»). El JS de `station-admin.js` aún construye las opciones con `name` (2.9).
 - Changelog: en el admin, la franja de un programa no publicado conserva su programa, con su estado, y avisa de que no sale en el sitio (con la 2.9).
 
 ### 2.9 Admin JS: el aviso al elegir un programa no publicado (≤ 1 h)
@@ -118,3 +120,7 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 
 ## Decisiones abiertas → ADR
 - ADR 0045 (tarea 2.1). Ninguna otra prevista.
+
+## Cierre (2026-10-23)
+- `npm run check` en verde (cobertura incluida: núcleo PHP, TS puro y JS admin sobre sus umbrales). Integración 976/976 y e2e 231/231 en WP 6.6 + PHP 7.4 y en la última WP + PHP 8.4. Builds sin diff, `check:zip` en verde. CI del PR tras el push.
+- Revisión mínima (decisión del usuario): `spec-conformance-reviewer` y `backcompat-reviewer`. Backcompat sin hallazgos de contrato. Conformidad: columnas de `known-issues.md` (Estado/decisión) y referencias a tests corregidas, excepciones aprobadas añadidas a §4.3 de la spec y al «Contexto», nota de release ampliada. `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` quedan para antes de la release (`docs/status.md`).
