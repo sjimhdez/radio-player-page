@@ -855,13 +855,11 @@ describe( 'message', () => {
 		).toBe( 'Se solapa con:  (Lunes, 09:00 - 11:00)' );
 	} );
 
-	// docs/known-issues.md K44: String.prototype.replace() reads `$` patterns
-	// in the replacement.
-	it( 'currently collapses `$$` in the program name (K44)', () => {
+	it( 'keeps `$$` in the program name (K44)', () => {
 		expect(
 			rules.message( overlapWith( 'overlap', 'Money $$ Talk' ), {} )
 		).toBe(
-			'This time slot overlaps with: Money $ Talk (Monday, 09:00 - 11:00)'
+			'This time slot overlaps with: Money $$ Talk (Monday, 09:00 - 11:00)'
 		);
 		expect(
 			rules.message(
@@ -869,7 +867,7 @@ describe( 'message', () => {
 				{}
 			)
 		).toBe(
-			'This time slot overlaps with: Money $ Talk (Monday, 09:00 - 11:00)'
+			'This time slot overlaps with: Money $$ Talk (Monday, 09:00 - 11:00)'
 		);
 	} );
 

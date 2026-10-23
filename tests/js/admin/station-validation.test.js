@@ -269,9 +269,7 @@ describe( 'station-admin.js: rows and submit', () => {
 		expect( rowErrorCode( screen.rows( 'tuesday' )[ 0 ] ) ).toBeNull();
 	} );
 
-	// docs/known-issues.md K44: String.prototype.replace() reads `$` patterns
-	// in the replacement, so `$$` in a program name prints as `$`.
-	it( 'currently collapses `$$` in the program name of an overlap message (K44)', async () => {
+	it( 'keeps `$$` in the program name of an overlap message (K44)', async () => {
 		const screen = await mountStationScreen(
 			adminData( {
 				programs: [
@@ -299,7 +297,7 @@ describe( 'station-admin.js: rows and submit', () => {
 		expect(
 			second.querySelector( '.radplapag-program-error-message' )
 				.textContent
-		).toBe( '[overlap] Money $ Talk (Monday, 06:00 - 10:00)' );
+		).toBe( '[overlap] Money $$ Talk (Monday, 06:00 - 10:00)' );
 	} );
 
 	// docs/known-issues.md K45: nothing ties the message to its fields or

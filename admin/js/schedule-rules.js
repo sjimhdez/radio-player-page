@@ -355,8 +355,6 @@
 		return contains( a, b.start ) || contains( b, a.start );
 	}
 
-	// Kept as today: the name goes through replace(), so `$` patterns in it
-	// are read (docs/known-issues.md K44).
 	function overlapMessage( name, other, strings ) {
 		const dayLabel = strings[ other.day ] || DAY_LABELS[ other.day ];
 		const description =
@@ -371,7 +369,10 @@
 		return (
 			strings.timeSlotOverlapsWithMessage ||
 			'This time slot overlaps with: %s'
-		).replace( '%s', description );
+		).replace( '%s', function () {
+			// A function, so `$` patterns in the name are not read.
+			return description;
+		} );
 	}
 
 	/**

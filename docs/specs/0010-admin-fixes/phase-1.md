@@ -74,7 +74,9 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `admin/js/schedule-rules.js`, `tests/js/admin/schedule-rules.test.js`, `tests/js/admin/station-validation.test.js`, `docs/known-issues.md`
 - Test: primero: los dos `currently` de K44 a «keeps `$$` in the program name … (K44)».
 - Verificación: `npm test -- tests/js/admin`
-- [ ] hecha · commit: —
+- Rojo: Vitest `expected 'This time slot overlaps with: Money $ Talk …' to be '… Money $$ Talk …'` (`message()`) y `expected '[overlap] Money $ Talk …' to be '[overlap] Money $$ Talk …'` (pantalla).
+- Changelog: los avisos de solape muestran el nombre del programa tal cual, también con `$` (K44).
+- [x] hecha · commit: ver `git log` («fix(0010): keep `$` patterns in the overlap message (1.6)»)
 
 ### 1.7 K74: reserva `unnamedProgram` en los cruces entre días (≤ 30 min) — `fix-bug`
 - Qué: `message()` aplica a `cross_midnight_overlap` la misma reserva que a `overlap` (`error.other.name || strings.unnamedProgram || 'Unnamed program'`), en una función común.
