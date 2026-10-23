@@ -298,10 +298,14 @@ function radplapag_output_clean_page() {
 	$display_title = $config['siteTitle'];
 
 	echo '<!DOCTYPE html>';
-	echo '<html lang="' . esc_html( get_bloginfo( 'language' ) ) . '">';
+	echo '<html lang="' . esc_html( get_bloginfo( 'language' ) ) . '"' . ( is_rtl() ? ' dir="rtl"' : '' ) . '>';
 	echo '<head>';
 	echo '<meta charset="utf-8">';
 	echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
+	// Printed directly, without wp_robots() or its filter (ADR 0043).
+	if ( '0' === (string) get_option( 'blog_public' ) ) {
+		echo '<meta name="robots" content="noindex, nofollow">';
+	}
 	echo '<title>' . esc_html( $display_title ) . '</title>';
 	if ( $favicon_url ) {
 		echo '<link rel="icon" href="' . esc_url( $favicon_url ) . '" />';

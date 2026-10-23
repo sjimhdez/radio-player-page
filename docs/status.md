@@ -6,7 +6,7 @@ Spec activa: 0008 — Correcciones: migración, actualización, núcleo PHP y de
 - Spec 0007 cerrada y fusionada en `trunk` (PR #41, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 3.3 de la 0008: K23 y `dir` en RTL (`fix-bug`, ADR 0043; 3.1 y 3.2 hechas). El entorno de tests monta `tests/e2e/mu-plugins/` (hay que reiniciarlo con `env:start:min|latest` para que lo vea).
+1. Tarea 3.4 de la 0008: K26, no interceptar feed, embed ni trackback (`fix-bug`; 3.1–3.3 hechas). El entorno de tests monta `tests/e2e/mu-plugins/` (hay que reiniciarlo con `env:start:min|latest` para que lo vea).
 2. Al cerrar la fase 3 (última de la spec), pasar `wp-security-reviewer` y `wporg-reviewer` sobre el diff completo de la spec (incluye el SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). Las fases 1 y 2 se cerraron solo con `spec-conformance-reviewer` y `backcompat-reviewer` (decisión del usuario).
 3. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 

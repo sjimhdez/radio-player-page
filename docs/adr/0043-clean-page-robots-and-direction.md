@@ -7,7 +7,7 @@
 - **K23.** La página limpia no llama a `wp_head()` (ADR 0008), así que `wp_robots()` no corre. Con «Disuadir a los motores de búsqueda» (`blog_public = 0`) el resto del sitio imprime `<meta name="robots" content="noindex, nofollow">` y la página del reproductor sigue indexable. Las guidelines de WordPress.org piden respetar esa opción.
 - **5.6 (auditoría de la 0002).** `<html>` lleva `lang`, pero no `dir`: en un sitio en un idioma RTL el navegador pinta la página en LTR.
 - Si se llamara a `wp_robots()`, su filtro `wp_robots` dejaría entrar a los plugins de SEO, que es justo lo que el ADR 0008 deja fuera.
-- Caracterizado en `tests/e2e/clean-page.spec.ts` (tarea 3.1): «currently prints no robots meta with blog_public = 0 (K23)» y «currently prints no dir on a right-to-left site». La dirección RTL se simula sin paquete de idioma con el *mu-plugin* de los tests `tests/e2e/mu-plugins/radplapag-e2e.php` y la cabecera `X-Radplapag-Text-Direction: rtl`.
+- Caracterizado en `tests/e2e/clean-page.spec.ts` (tarea 3.1): «currently prints no robots meta with blog_public = 0 (K23)» y «currently prints no dir on a right-to-left site». La dirección RTL se simula sin paquete de idioma con el *mu-plugin* de los tests `tests/e2e/mu-plugins/radplapag-e2e.php` y la cabecera `X-Radplapag-E2e-Rtl: 1`.
 
 Decisión D12 de la spec 0008 (§4.1).
 

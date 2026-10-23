@@ -63,7 +63,8 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `radio-player-page.php`, `tests/e2e/clean-page.spec.ts`, `tests/e2e/mu-plugins/…` (si hace falta un filtro `wp_robots` de prueba tras otra cabecera), `docs/known-issues.md`.
 - Test: primero (regresión en rojo): `tests/e2e/clean-page.spec.ts`.
 - Verificación: `npm run test:e2e -- clean-page.spec.ts`
-- [ ] hecha · commit: —
+- Resultado (2026-10-23): en rojo antes del arreglo, «prints noindex, nofollow without wp_robots with blog_public = 0 (K23)» (sin meta `robots`) y «prints dir="rtl" on a right-to-left site» (`<html lang="en-US"><head>`); los de `blog_public = 1` y LTR ya pasaban. Tras el arreglo, `clean-page.spec.ts` 29/29 en Chromium, *snapshots* sin cambios. El ADR 0043 citaba una cabecera que no existe; ahora cita `X-Radplapag-E2e-Rtl: 1`. Changelog: la página del reproductor respeta «Disuadir a los motores de búsqueda» y lleva `dir="rtl"` en sitios RTL.
+- [x] hecha · commit: —
 
 ### 3.4 K26: no interceptar feed, embed ni trackback (D15) (≤ 1 h)
 - Qué:

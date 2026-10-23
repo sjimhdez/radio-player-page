@@ -652,7 +652,7 @@ test.describe( 'clean page robots and direction (HTTP)', () => {
 	const ROBOTS = { 'X-Radplapag-E2e-Robots': '1' };
 	const RTL = { 'X-Radplapag-E2e-Rtl': '1' };
 
-	test( 'currently prints no robots meta with blog_public = 0 (K23)', async ( {
+	test( 'prints noindex, nofollow without wp_robots with blog_public = 0 (K23)', async ( {
 		request,
 	} ) => {
 		const seed = readSeed();
@@ -670,16 +670,32 @@ test.describe( 'clean page robots and direction (HTTP)', () => {
 			expect( theme ).toContain( 'noindex, nofollow' );
 			expect( theme ).toContain( 'radplapag-e2e' );
 			expect( html ).toContain( 'RADPLAPAG_CONFIG' );
-			expect( html ).not.toContain( 'name="robots"' );
+			expect( meta( html, 'robots' ) ).toBe( 'noindex, nofollow' );
+			expect( html.match( /name="robots"/g ) ).toHaveLength( 1 );
 			expect( html ).not.toContain( 'radplapag-e2e' );
 		} finally {
 			wpCli( 'option', 'update', 'blog_public', '1' );
 		}
 	} );
 
-	test( 'currently prints no dir on a right-to-left site', async ( {
+	test( 'prints no robots meta with blog_public = 1 (K23)', async ( {
 		request,
 	} ) => {
+		const seed = readSeed();
+		const theme = await (
+			await request.get( seed.urls[ 'no-station' ], { headers: ROBOTS } )
+		).text();
+		const html = await (
+			await request.get( seed.urls.mp3, { headers: ROBOTS } )
+		).text();
+
+		expect( theme ).toContain( 'radplapag-e2e' );
+		expect( html ).toContain( 'RADPLAPAG_CONFIG' );
+		expect( html ).not.toContain( 'name="robots"' );
+		expect( html ).not.toContain( 'radplapag-e2e' );
+	} );
+
+	test( 'prints dir="rtl" on a right-to-left site', async ( { request } ) => {
 		const seed = readSeed();
 		const theme = await (
 			await request.get( seed.urls[ 'no-station' ], { headers: RTL } )
@@ -689,6 +705,12 @@ test.describe( 'clean page robots and direction (HTTP)', () => {
 		).text();
 
 		expect( theme ).toMatch( /<html [^>]*dir="rtl"/ );
+		expect( html ).toContain( '<html lang="en-US" dir="rtl"><head>' );
+	} );
+
+	test( 'prints no dir on a left-to-right site', async ( { request } ) => {
+		const html = await getHtml( request, readSeed().urls.mp3 );
+
 		expect( html ).toContain( '<html lang="en-US"><head>' );
 	} );
 } );
