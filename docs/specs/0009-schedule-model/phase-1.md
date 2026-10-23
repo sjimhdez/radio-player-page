@@ -8,6 +8,7 @@ Estado: en curso · Inicio: 2026-10-23 · ADRs: 0044 (nuevo), 0006, 0017, 0019, 
 - **Excepciones aprobadas por el usuario (2026-10-23) a «no editar caracterización»:**
   - `player/src/utils/program-schedule.test.ts` «picks the earliest start when slots overlap» → con D3 gana la que empezó más tarde.
   - `tests/php/unit/Schedule/NowPlayingResolverTest.php` `test_unknown_program_today_falls_back_to_yesterday` → en la fase 1 espera `null` (gana la franja de hoy, cuyo programa no se conoce); la fase 2 lo pasa a `'1'` al ignorar los desconocidos (C10).
+  - Su gemelo de integración, `tests/php/integration/Schedule/ScheduleVectorsTest.php` `test_draft_program_on_air_today_falls_back_to_yesterday` (aprobado el 2026-10-23, en la 1.6), igual: `null` en la fase 1 y el programa A en la fase 2. Los dos pasan a `test_*_that_started_latest_gives_no_current`.
 - **La spec decía algo falso:** `a11y.spec.ts` no puede fijar la hora con `page.clock`, porque `now-playing` se pinta en el servidor. Decisión del usuario: sin `page.clock`. Tras K52, el e2e espera un solo `article` a cualquier hora; las 23:55 las cubren `BlockAuditTest` (con `Support/Clock`) y el núcleo. §2 de la spec se corrige en la 1.1.
 - Comprobado que no caen otros tests con D3: `test_first_active_slot_wins` (09:30 gana a 09:00), `test_today_wins_over_yesterday`, `test_today_upcoming_wins_over_tomorrow_on_tie` y los datos de `TimeTest`/`ScheduleHelpersTest` fuera de los `currently`.
 - La resolución de «Coming up» en PHP solo necesita `start` (una franja sin `end` cuenta, `test_malformed_entries_are_skipped`): se conserva.
@@ -65,14 +66,16 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Verificación: `npm run test:php:unit && npm run test:php:integration -- --filter 'ScheduleVectors|BlockData|ScheduleHelpers' && npm --prefix player test -- schedule-vectors`
 - Rojo: `npm run test:php:unit` → 13 fallos, todos de C16: `TimeTest` y `ScheduleHelpersTest` (4 casos cada uno, «Failed asserting that true is false»), `ScheduleViewTest` y `ProgramsListViewTest` (lunes 00:10: `[true, true]` en vez de `[false, true]`) y `ScheduleVectorsTest` 13, 14 y C3-4 (sale C o F en vez de E o `null`).
 - Changelog: `radplapag_is_slot_active()` y los bloques ya no dan por activa una franja que cruza la medianoche antes de su fin en su propio día (C16); el programa en antena de la madrugada es el de la franja de ayer.
-- [x] hecha · commit: este
+- [x] hecha · commit: `8b36477`
 
 ### 1.6 `Now_Playing_Resolver` sobre el modelo (D3) (≤ 1 h)
 - Qué: «On Air» = la franja activa que empezó más tarde (empate: orden guardado); «Coming up» = menor `minutes_until_start` en `(0, ventana]`, solo con `start`. Se edita el test aprobado (`null`) y se añaden los de D3 (solape: gana la más tardía; empate: la primera). `Schedule_View` y `Programs_List_View` calculan `is_live` con `Week_Interval::contains()` sin pasar por la rama de ayer (refactor, sus tests como red).
 - Archivos: `includes/src/schedule/class-now-playing-resolver.php`, `class-schedule-view.php`, `class-programs-list-view.php`, `tests/php/unit/Schedule/NowPlayingResolverTest.php`
 - Test: primero (TDD) para D3; caracterización existente como red
 - Verificación: `npm run test:php:unit && npm run test:php:integration -- --filter 'NowPlaying|BlockData|BlockAudit|ScheduleVectors' && npm run lint:phpstan`
-- [ ] hecha · commit: —
+- Rojo: `NowPlayingResolverTest` → 3 fallos (`test_latest_started_slot_wins`, `test_latest_started_slot_wins_among_yesterdays` y el test editado, que daba la franja de ayer); un cuarto, en el minuto de inicio de la franja más tardía (09:30), cazó un error del primer intento (el tiempo desde el inicio salía 10080 y no 0). La integración tumbó el gemelo del test editado, `ScheduleVectorsTest::test_draft_program_on_air_today_falls_back_to_yesterday`: se editó igual con la aprobación del usuario (Contexto).
+- Resultado: una sola pasada por la semana (`Week::KEYS`) para «On Air» y «Coming up»; «Coming up» ya no limita a hoy y mañana, pero con la ventana de 10 minutos da lo mismo. `Schedule_View` y `Programs_List_View`: `is_live = contains( from_slot( día, start, end ), at( now ) )`, sin cambios en sus tests.
+- [x] hecha · commit: este
 
 ### 1.7 K52 en PHP (`fix-bug`) (≤ 1 h)
 - Qué: «Coming up» omite la franja del mismo programa que empieza justo cuando acaba la actual. `test_currently_24_hour_slot_is_coming_up_while_on_air` (`NowPlayingResolverTest`, `BlockAuditTest`) → regresión; test del partido en la medianoche. Vectores de resolución nuevos (24 h diario y lunes 22:00–00:00 + martes 00:00–02:00, a las 23:55) con resultado PHP y `ts` del player (`currently`, `K52`).

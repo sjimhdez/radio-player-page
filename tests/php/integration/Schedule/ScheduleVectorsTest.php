@@ -218,10 +218,12 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A slot on air today whose program is a draft gives no `current` from today, but
-	 * yesterday's slots that cross midnight are still looked at.
+	 * D3: the slot on air that started latest wins even when its program is a draft,
+	 * so `current` is null (C10; approved edit in the phase 1 plan of spec 0009).
+	 *
+	 * @see docs/known-issues.md C10
 	 */
-	public function test_draft_program_on_air_today_falls_back_to_yesterday() {
+	public function test_draft_program_that_started_latest_gives_no_current() {
 		$draft   = $this->factory_rpp->program( 'Draft', array(), 'draft' );
 		$station = $this->factory_rpp->station( 'Station' );
 
@@ -256,7 +258,7 @@ final class ScheduleVectorsTest extends WP_UnitTestCase {
 					)
 				);
 
-				$this->assertSame( (string) $this->programs['C'], radplapag_get_now_playing_for_station( 0 )['current']['id'] );
+				$this->assertNull( radplapag_get_now_playing_for_station( 0 )['current'] );
 			}
 		);
 	}

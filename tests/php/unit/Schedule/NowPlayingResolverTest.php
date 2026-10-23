@@ -173,6 +173,52 @@ final class NowPlayingResolverTest extends TestCase {
 	}
 
 	/**
+	 * D3: of two overlapping slots on air, the one that started latest wins, whatever their order.
+	 */
+	public function test_latest_started_slot_wins() {
+		$schedule = array(
+			'monday' => array(
+				self::slot( 1, '09:00', '11:00' ),
+				self::slot( 2, '09:30', '10:30' ),
+			),
+		);
+
+		$this->assertSame( '2', $this->resolve( $schedule, '2026-10-19 09:45' )['current']['id'] );
+		$this->assertSame( '2', $this->resolve( $schedule, '2026-10-19 09:30' )['current']['id'] );
+	}
+
+	/**
+	 * D3: of two slots on air that started at the same minute, the first in the day wins.
+	 */
+	public function test_same_start_first_slot_wins() {
+		$schedule = array(
+			'monday' => array(
+				self::slot( 2, '09:00', '10:00' ),
+				self::slot( 1, '09:00', '11:00' ),
+			),
+		);
+
+		$this->assertSame( '2', $this->resolve( $schedule, '2026-10-19 09:30' )['current']['id'] );
+	}
+
+	/**
+	 * D3: of yesterday's slots that cross midnight, the one that started latest wins,
+	 * labelled with its own day.
+	 */
+	public function test_latest_started_slot_wins_among_yesterdays() {
+		$schedule = array(
+			'monday' => array(
+				self::slot( 1, '22:00', '02:00' ),
+				self::slot( 2, '23:30', '01:00' ),
+			),
+		);
+
+		$current = $this->resolve( $schedule, '2026-10-20 00:30' )['current'];
+		$this->assertSame( '2', $current['id'] );
+		$this->assertSame( 'Lunes', $current['day_label'] );
+	}
+
+	/**
 	 * After midnight, yesterday's slot that crosses midnight is on air, labelled with its own day.
 	 */
 	public function test_previous_day_slot_crossing_midnight() {
@@ -308,10 +354,12 @@ final class NowPlayingResolverTest extends TestCase {
 	}
 
 	/**
-	 * A slot on air today whose program is unknown ends today's search, but yesterday's
-	 * slots that cross midnight are still looked at.
+	 * D3: the slot on air that started latest wins even when its program is unknown,
+	 * so `current` is null (C10; approved edit in the phase 1 plan of spec 0009).
+	 *
+	 * @see docs/known-issues.md C10
 	 */
-	public function test_unknown_program_today_falls_back_to_yesterday() {
+	public function test_unknown_program_that_started_latest_gives_no_current() {
 		$schedule = array(
 			'sunday' => array( self::slot( 3, '23:00', '02:00' ) ),
 			'monday' => array(
@@ -320,7 +368,7 @@ final class NowPlayingResolverTest extends TestCase {
 			),
 		);
 
-		$this->assertSame( '3', $this->resolve( $schedule, '2026-10-19 01:00' )['current']['id'] );
+		$this->assertNull( $this->resolve( $schedule, '2026-10-19 01:00' )['current'] );
 	}
 
 	/**

@@ -21,9 +21,9 @@ defined( 'ABSPATH' ) || exit;
  * - The seven days, Monday to Sunday or starting with today, each with its slots
  *   sorted by start. Entries that are not arrays, or have no program ID, start or
  *   end, are skipped; a program that is not in the map gives an empty name.
- * - A slot is live by its start and end only: today's, or yesterday's that crosses
- *   midnight. A slot that crosses midnight is also live early on its own day (C16
- *   in docs/known-issues.md).
+ * - A slot is live by its start and end only, as a Week_Interval of the week
+ *   (ADR 0044): yesterday's that crosses midnight is live until its end, and none
+ *   is live on its own day before its start.
  *
  * @since 3.5.0
  */
@@ -76,14 +76,11 @@ final class Schedule_View {
 	 * @return list<array{day_key: string, label: string, slots: list<array{program_id: string, program_name: string, program_description: string, program_extended_description: string, start: string, end: string, time_range: string, is_live: bool, is_rerun: bool}>}>
 	 */
 	public static function days( array $schedule, array $programs_map, array $day_labels, DateTimeImmutable $now, string $day_order, callable $sanitize_id ): array {
-		$local           = Week::local_day_and_minutes( $now );
-		$day_of_week     = $local['day'];
-		$current_minutes = $local['minutes'];
-		$prev_day        = ( $day_of_week + 6 ) % 7;
+		$day_of_week = Week::local_day_and_minutes( $now )['day'];
+		$minute      = Week_Interval::at( $now );
 
 		$days = array();
 		foreach ( Week::KEYS as $day_key ) {
-			$php_day     = Week::php_day_for_key( $day_key );
 			$day_entries = isset( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) ? $schedule[ $day_key ] : array();
 			$slots       = array();
 			foreach ( $day_entries as $entry ) {
@@ -102,12 +99,10 @@ final class Schedule_View {
 					'extended_description' => null,
 					'logo_url'             => null,
 				);
-				$is_live = false;
-				if ( $php_day === $day_of_week ) {
-					$is_live = Time::is_slot_active( $start, $end, $current_minutes, false );
-				} elseif ( $php_day === $prev_day ) {
-					$is_live = Time::is_slot_active( $start, $end, $current_minutes, true );
-				}
+
+				$interval = Week_Interval::from_slot( $day_key, $start, $end );
+				$is_live  = null !== $interval && Week_Interval::contains( $interval, $minute );
+
 				$slots[] = array(
 					'program_id'                   => $program_id,
 					'program_name'                 => $program['name'],
