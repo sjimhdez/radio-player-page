@@ -1,20 +1,20 @@
 # Estado
-Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 3 en curso · Plan: [`phase-3.md`](specs/0009-schedule-model/phase-3.md) · Actualizado: 2026-10-23
+Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 4 por empezar · Plan: — (el de la 3: [`phase-3.md`](specs/0009-schedule-model/phase-3.md)) · Actualizado: 2026-10-23
 
 ## En curso
 - Spec 0009 ([`spec.md`](specs/0009-schedule-model/spec.md)) en curso en la rama `spec/0009-schedule-model` (PR en borrador contra `trunk`): modelo de intervalos de la semana en PHP, player y admin; 4 fases.
 - Fase 1 (modelo y programa en antena: C16, C4, K8, K52) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
 - Fase 2 (programas no publicados: C10, K41, K88, K78, K17; ADR 0045) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
-- Fase 3 (validación sobre el modelo: C3) en curso desde el 2026-10-23, tareas hechas: `Slot_Validator` y `schedule-rules.js` calculan los solapes con el modelo y el admin acepta `start == end` como 24 h (3.1–3.3); falta `close-phase`.
+- Fase 3 (validación sobre el modelo: C3) cerrada el 2026-10-23 (revisión mínima: solo conformidad y backcompat).
 - Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. `close-phase` de la fase 3 de la 0009 (tareas 3.1–3.3 hechas); después `start-phase` de la fase 4 (zona horaria: C9, K10) en una sesión nueva.
+1. `start-phase` de la fase 4 de la 0009 (zona horaria: C9, K10) en una sesión nueva.
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
-3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario). Tampoco `wp-security-reviewer`, `wporg-reviewer` ni `a11y-reviewer` en las fases 1 y 2 de la 0009 (la 2 toca el meta box y su aviso). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044 y 0045).
+3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario). Tampoco `wp-security-reviewer`, `wporg-reviewer` ni `a11y-reviewer` en las fases 1 a 3 de la 0009 (la 2 toca el meta box y su aviso; la 3, la validación del horario en PHP y en el admin). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009 (lista en la nota de release de `docs/specs/README.md`: ADR 0044 y 0045).
 
 ## Bloqueos / preguntas para el humano
-- Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` sin uso; propuesta: 0010 admin).
+- Decidir si se corrige y en qué spec K76 (baja: `completeTimeFields` y `startEndSame` sin uso; propuesta: 0010 admin).
 - Decidir si se corrige y en qué spec K83 (baja, 2026-10-22): durante el reintento de C1 el controlador publica `error` sin `loading`; no se ve con `useState`, pero impide volver a `useSyncExternalStore` (ADR 0030).
 
 ## Verificación manual pendiente
