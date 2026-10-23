@@ -99,7 +99,10 @@ Los tres bloques eligen la emisora por ID (`stationId`) con `stationIndex` de re
 - Archivos: `blocks/{schedule,programs-list}/src/index.js`, `tests/e2e/mu-plugins/radplapag-e2e.php`, `tests/e2e/blocks.spec.ts`, `docs/known-issues.md`.
 - Test: regresión (e2e).
 - Verificación: `npm --prefix blocks/schedule run check && npm --prefix blocks/programs-list run check && npm run test:e2e -- blocks.spec.ts`
-- [ ] hecha · commit: —
+- Hecho: el filtro va en `gettext_with_context` (core traduce el `block.json` con los contextos `block title` y `block description`) y antepone `[E2E] ` a los textos del dominio del plugin. El test lee `getInserterItems()` (los datos del *inserter*) en lugar de abrir su interfaz, que cambia entre WP 6.6 y la última. También se quita `save: () => null`: es el `save` por defecto de `@wordpress/blocks`, como en `now-playing`.
+- Rojo: `Expected pattern: /^\[E2E\] RPP: / · Received string: "RPP: Weekly Schedule"` (`radplapag/schedule`, Chromium y WebKit). En verde: `blocks.spec.ts` 26/26 (Chromium y WebKit, WP 6.6.10 + PHP 7.4); los tres bloques salen traducidos, así que el filtro también llega a `now-playing`.
+- Changelog: los títulos y descripciones de «RPP: Weekly Schedule» y «RPP: Radio Shows List» salen traducidos en el *inserter*.
+- [x] hecha · commit: ver `git log` («fix(0013): register the schedule and programs list blocks with edit only (1.8)»)
 
 ## Decisiones abiertas → ADR
 

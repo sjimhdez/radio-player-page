@@ -449,6 +449,42 @@ test.describe( 'blocks: editor', () => {
 		} );
 	}
 
+	// K54: the titles and descriptions core translates from block.json reach
+	// the inserter. The test mu-plugin prefixes them with the header.
+	test( 'the inserter shows the translated block titles and descriptions (K54)', async ( {
+		page,
+	} ) => {
+		await page.setExtraHTTPHeaders( { 'X-Radplapag-E2e-Translate': '1' } );
+		await openNewPost( page );
+		const items = await page.evaluate( ( names ) => {
+			// @ts-expect-error -- wp is the editor global.
+			const { data } = window.wp;
+			return (
+				data.select( 'core/block-editor' ).getInserterItems() as {
+					name: string;
+					title: string;
+					description: string;
+				}[]
+			 )
+				.filter( ( item ) => names.includes( item.name ) )
+				.map( ( { name, title, description } ) => ( {
+					name,
+					title,
+					description,
+				} ) );
+		}, BLOCKS );
+
+		expect( items.map( ( item ) => item.name ).sort() ).toEqual(
+			[ ...BLOCKS ].sort()
+		);
+		for ( const item of items ) {
+			expect( item.title, item.name ).toMatch( /^\[E2E\] RPP: / );
+			expect( item.description, item.name ).toMatch(
+				/^\[E2E\] Display /
+			);
+		}
+	} );
+
 	test( 'a block saved without a station ID shows help and stays unchanged (D2)', async ( {
 		page,
 	} ) => {

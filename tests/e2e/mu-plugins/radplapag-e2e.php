@@ -5,6 +5,7 @@
  *
  * - `X-Radplapag-E2e-Rtl: 1` makes the request right-to-left without a language pack (the tests do not go to the internet).
  * - `X-Radplapag-E2e-Robots: 1` adds a directive through the wp_robots filter, so a test can tell whether a page runs it.
+ * - `X-Radplapag-E2e-Translate: 1` "translates" the block titles and descriptions of block.json with a prefix, without a language pack.
  *
  * @package RadioPlayerPage
  */
@@ -46,3 +47,22 @@ function radplapag_e2e_robots( array $robots ): array {
 	return $robots;
 }
 add_filter( 'wp_robots', 'radplapag_e2e_robots' );
+
+/**
+ * Prefixes the block titles and descriptions of the plugin with the translate header.
+ *
+ * Core translates block.json in PHP with these contexts (block-i18n.json).
+ *
+ * @param string $translation Translated text.
+ * @param string $text        Text to translate.
+ * @param string $context     Context.
+ * @param string $domain      Text domain.
+ * @return string
+ */
+function radplapag_e2e_translate( string $translation, string $text, string $context, string $domain ): string {
+	if ( 'radio-player-page' === $domain && in_array( $context, array( 'block title', 'block description' ), true ) && radplapag_e2e_header_is_on( 'X_RADPLAPAG_E2E_TRANSLATE' ) ) {
+		return '[E2E] ' . $translation;
+	}
+	return $translation;
+}
+add_filter( 'gettext_with_context', 'radplapag_e2e_translate', 10, 4 );
