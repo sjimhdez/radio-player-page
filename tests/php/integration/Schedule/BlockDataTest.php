@@ -28,6 +28,7 @@ use WP_UnitTestCase;
  * - programs list: invalid index → null; programs in order of first appearance
  *   (Monday to Sunday); slots by day and start; drafts, unknown and non-numeric
  *   program IDs out; empty descriptions → null; `is_live` per vector (C16).
+ * - password-protected program: public in its data, both blocks and the program on air (K88).
  */
 final class BlockDataTest extends WP_UnitTestCase {
 
@@ -481,6 +482,51 @@ final class BlockDataTest extends WP_UnitTestCase {
 		$this->assertSame( '', $slot['program_description'] );
 		$this->assertSame( array(), $result['programs'] );
 		$this->assertSame( array(), radplapag_get_programs_list_for_station( 0 ) );
+	}
+
+	/**
+	 * K88: a published program with a password counts as public: its data, its slot
+	 * in the schedule block, its entry in the programs list and the program on air.
+	 *
+	 * @see docs/known-issues.md K88
+	 */
+	public function test_currently_password_protected_program_is_public() {
+		$program = $this->factory_rpp->program( 'Locked', array( 'description' => 'Secret' ) );
+		wp_update_post(
+			array(
+				'ID'            => $program,
+				'post_password' => 'secret',
+			)
+		);
+		$station = $this->factory_rpp->station( 'Station' );
+
+		$this->assertSame( 'Locked', radplapag_get_program_data( $program, true )['name'] );
+
+		Clock::run(
+			'monday',
+			'08:30',
+			function ( Clock $clock ) use ( $program, $station ) {
+				$this->store_schedule(
+					$station,
+					$clock->rotate_schedule(
+						array(
+							'monday' => array(
+								array(
+									'program_id' => $program,
+									'start'      => '08:00',
+									'end'        => '09:00',
+								),
+							),
+						)
+					)
+				);
+
+				$slot = $this->day( radplapag_get_schedule_for_station( 0, 'natural' ), $clock->rotate_day( 'monday' ) )['slots'][0];
+				$this->assertSame( array( 'Locked', 'Secret' ), array( $slot['program_name'], $slot['program_description'] ) );
+				$this->assertSame( array( 'Locked' ), array_column( radplapag_get_programs_list_for_station( 0 ), 'name' ) );
+				$this->assertSame( (string) $program, radplapag_get_now_playing_for_station( 0 )['current']['id'] );
+			}
+		);
 	}
 
 	/**

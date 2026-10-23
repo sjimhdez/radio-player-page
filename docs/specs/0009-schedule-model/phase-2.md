@@ -47,7 +47,8 @@ Una sola regla en el adaptador de WordPress (D4): solo cuentan en lo público la
 - Archivos: `tests/php/integration/Schedule/BlockDataTest.php`, `docs/known-issues.md`
 - Test: caracterización
 - Verificación: `npm run test:php:integration -- --filter BlockData`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («test(0009): characterize password-protected programs (2.2)»)
+- Fila K88 (media, corregir en la 2.5). Mutación: `data()` rechaza `post_password` no vacío con `$require_published` → el test falla.
 
 ### 2.3 `Schedule\Public_Slots` en el núcleo (≤ 1 h)
 - Qué: `Public_Slots::filter( array $schedule, array $program_ids ): array` — conserva días y orden guardado; quita entradas que no son arrays, días que no son arrays y franjas cuyo `program_id` no es numérico o no está en `$program_ids`. Entrada en `tests/zip/expected-additions.txt`.
