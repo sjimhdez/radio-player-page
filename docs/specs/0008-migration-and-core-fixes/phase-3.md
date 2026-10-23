@@ -110,7 +110,8 @@ Corregir K23 (con `dir` en RTL), K26, K24, K25, K86 y K87, cada uno con su test 
 - Archivos: `includes/src/wp/class-migration-lock.php`, `tests/php/integration/Migration/UpgradeFlowTest.php`, `docs/adr/0041-…md`, `.claude/rules/data-and-migrations.md`, `docs/known-issues.md`.
 - Test: primero (en rojo): `UpgradeFlowTest`.
 - Verificación: `npm run test:php:integration -- --filter 'UpgradeFlowTest|MigrationGoldenTest'`
-- [ ] hecha · commit: —
+- Resultado (2026-10-23): en rojo antes del arreglo, `test_front_pass_while_the_lock_is_held_after_a_failure_inserts_nothing` (un `INSERT IGNORE INTO wptests_options … 'radplapag_migrating'` en la pasada del visitante). Tras el arreglo, `UpgradeFlowTest` y `MigrationGoldenTest` 89/89. Si el `INSERT IGNORE` de un bloqueo que falta pierde la carrera, `acquire()` sale con `false` sin releer (otra petición acaba de tomarlo). Sin cambio visible: no va al changelog.
+- [x] hecha · commit: ver `git log` (3.7)
 
 ### 3.8 K87: restaurar el usuario y kses también si la migración lanza (≤ 1 h)
 - Qué:

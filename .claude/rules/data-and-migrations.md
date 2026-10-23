@@ -34,7 +34,7 @@ Desde la 0005, el plan es `Migration\Legacy_Plan`, la escritura `WP\Migration_Wr
   - El aviso de éxito es un resumen; `'1'` se sigue leyendo. No caduca: se borra al pintarlo (ADR 0041).
 - Corre en `init` 100 en cualquier petición (y en `admin_init` 20), sin guarda de admin ni de capacidad (ADR 0041):
   - Como el primer administrador, sin kses (`kses_remove_filters()`); al terminar restaura el usuario y llama a `kses_init()`. Cualquier cambio en la pasada debe dejar el usuario y los filtros como estaban, también si sale antes.
-  - Un sitio ya migrado o con conflicto no paga ninguna consulta en el front: con la bandera puesta la pasada sale sin contar emisoras, y la limpieza de la bandera solo se hace en el admin. Con una migración fallida sí la paga, en `Migration_Lock::acquire()` (K86).
+  - Un sitio ya migrado o con conflicto no paga ninguna consulta en el front: con la bandera puesta la pasada sale sin contar emisoras, y la limpieza de la bandera solo se hace en el admin. Con una migración fallida o en curso paga una lectura sin autoload en `Migration_Lock::acquire()`, que lee el bloqueo antes de intentar tomarlo y, si sigue vigente, no escribe (K86).
 - Los fixtures de los formatos reales están en `tests/fixtures/legacy-settings/` y sus *goldens* en `golden/` (`MigrationGoldenTest`); `v1.1-flat` solo fija K4.
 
 ## Desinstalación

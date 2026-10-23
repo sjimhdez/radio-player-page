@@ -16,9 +16,10 @@ defined( 'ABSPATH' ) || exit;
  * The radplapag_migrating option: the Unix time at which the lock expires, without
  * autoload (ADR 0037, 0038).
  *
- * Both takes are a single query that the database decides on the unique option_name:
- * an INSERT IGNORE when the option is missing and a conditional UPDATE on the value
- * read when it has expired. Only the request that changes one row wins. While it
+ * The take first reads the option, so a lock still held costs one read and no write
+ * (K86). Both takes are a single query that the database decides on the unique
+ * option_name: an INSERT IGNORE when the option is missing and a conditional UPDATE on
+ * the value read when it has expired. Only the request that changes one row wins. While it
  * migrates, the request renews the lock it holds with the same compare-and-set, so a
  * slow migration keeps it and one that lost it finds out (ADR 0040).
  *
@@ -46,6 +47,9 @@ final class Migration_Lock {
 	/**
 	 * Takes the lock until $now + $ttl unless another request holds it.
 	 *
+	 * Reads the option from the table (the cache is dropped first): a held lock returns
+	 * without writing, a missing one is inserted and an expired one is updated.
+	 *
 	 * @since 3.5.0
 	 *
 	 * @param int $now Current Unix time.
@@ -56,14 +60,19 @@ final class Migration_Lock {
 		global $wpdb;
 
 		$until = (string) ( $now + $ttl );
-		$added = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'off' )", self::OPTION, $until ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Atomic take; add_option() overwrites with ON DUPLICATE KEY UPDATE (ADR 0038).
 		self::flush_cache();
-		if ( 1 === $added ) {
+		$stored = get_option( self::OPTION );
+		if ( false === $stored ) {
+			$added = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} ( option_name, option_value, autoload ) VALUES ( %s, %s, 'off' )", self::OPTION, $until ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery -- Atomic take; add_option() overwrites with ON DUPLICATE KEY UPDATE (ADR 0038).
+			self::flush_cache();
+			if ( 1 !== $added ) {
+				return false;
+			}
+
 			self::$until = $now + $ttl;
 			return true;
 		}
 
-		$stored = get_option( self::OPTION );
 		if ( ! is_string( $stored ) || Upgrade_Policy::is_lock_held( $stored, $now ) ) {
 			return false;
 		}

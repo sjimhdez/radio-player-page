@@ -813,6 +813,40 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * While the lock is held after a failure, a visitor's front pass reads it and writes
+	 * nothing: no INSERT reaches the database.
+	 *
+	 * @see docs/known-issues.md K86
+	 */
+	public function test_front_pass_while_the_lock_is_held_after_a_failure_inserts_nothing() {
+		$this->legacy_settings();
+		$fail = static function () {
+			return true;
+		};
+		add_filter( 'wp_insert_post_empty_content', $fail );
+		radplapag_run_legacy_migration_if_needed();
+		remove_filter( 'wp_insert_post_empty_content', $fail );
+		$until = $this->stored_lock();
+		set_current_screen( 'front' );
+		wp_set_current_user( 0 );
+		$inserts = array();
+		$record  = static function ( $query ) use ( &$inserts ) {
+			if ( 1 === preg_match( '/^\s*INSERT/i', $query ) ) {
+				$inserts[] = $query;
+			}
+			return $query;
+		};
+		add_filter( 'query', $record );
+
+		radplapag_run_legacy_migration_if_needed();
+
+		remove_filter( 'query', $record );
+		$this->assertSame( array(), $inserts );
+		$this->assertSame( $until, $this->stored_lock() );
+		$this->assertFalse( get_option( 'radplapag_db_version' ) );
+	}
+
+	/**
 	 * Runs the migration and cuts it as a fatal error or max_execution_time would: the
 	 * hook throws and nothing after it runs, so there is no rollback and the lock is
 	 * not released. Then the lock expires (its time is moved to the past) and the
