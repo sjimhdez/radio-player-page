@@ -280,17 +280,9 @@ describe( 'checkSlot: same day', () => {
 		).toEqual( ownWrite( null ) );
 	} );
 
-	it( 'currently counts slots without a program and names them after the placeholder (K75)', () => {
+	it( 'skips slots without a program, like the cross-day checks (K75)', () => {
 		expect( checkAgainst( [ slot( '', '09:00', '11:00' ) ] ) ).toEqual(
-			ownWrite( {
-				code: 'overlap',
-				other: {
-					day: 'monday',
-					name: 'Select Radio Show',
-					start: '09:00',
-					end: '11:00',
-				},
-			} )
+			ownWrite( null )
 		);
 	} );
 

@@ -731,9 +731,9 @@ describe( 'station-admin.js: overlaps across days', () => {
 		}
 	);
 
-	// docs/known-issues.md K75: the same-day check compares with a row that has
-	// times but no program, and names it after the select's placeholder.
-	it( 'currently names the placeholder of a row without a program in an overlap (K75)', async () => {
+	// docs/known-issues.md K75: the same-day check skips a row without a
+	// program, which only shows its own error.
+	it( 'ignores a row without a program in a same-day overlap (K75)', async () => {
 		const screen = await mountSlots( MARKER_STRINGS, {
 			monday: [
 				{ programId: '', start: '06:00', end: '10:00' },
@@ -745,7 +745,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 
 		expect( screen.rows( 'monday' ).map( rowMessage ) ).toEqual( [
 			'[invalid_program]',
-			'[overlap] Select Radio Show (Monday, 06:00 - 10:00)',
+			null,
 		] );
 	} );
 } );

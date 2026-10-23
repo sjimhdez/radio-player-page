@@ -92,7 +92,9 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `admin/js/schedule-rules.js`, `tests/js/admin/schedule-rules.test.js`, `tests/js/admin/station-validation.test.js`, `docs/known-issues.md`
 - Test: primero: los `currently` de K75 a regresión (sin solape; la fila sin programa muestra solo `invalid_program`).
 - Verificación: `npm test && npm run test:php:unit -- --filter ScheduleVectors`
-- [ ] hecha · commit: —
+- Rojo: Vitest `expected [ { day: 'monday', index: +0, … } ] to deeply equal [ … ]` (`checkSlot()` devuelve `overlap` con «Select Radio Show») y `expected [ '[invalid_program]', …(1) ] to deeply equal [ '[invalid_program]', null ]` (pantalla). El arreglo usa `isComplete( other )` (también salta las ocultas y las que no tienen horas, como antes). Ningún vector de `validation` cambia (`ScheduleVectors` 34/34).
+- Changelog: un aviso de solape ya no nombra a una franja sin programa como «Select Radio Show»; esa franja solo pide elegir programa (K75).
+- [x] hecha · commit: ver `git log` («fix(0010): ignore slots without a program in same-day overlaps (1.8)»)
 
 ### 1.9 K38: `is_string()` antes de `trim()` (≤ 30 min) — `fix-bug`
 - Qué: `$start`/`$end` = `trim()` solo si son cadena; si no, `''` → la franja da `required` y se descarta, como cualquier entrada incompleta.

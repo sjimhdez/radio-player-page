@@ -67,7 +67,7 @@
 		const current = intervalOf( day, slots[ index ] );
 		for ( let i = 0; i < slots.length; i++ ) {
 			const other = slots[ i ];
-			if ( i === index || other.hidden || ! other.start || ! other.end ) {
+			if ( i === index || ! isComplete( other ) ) {
 				continue;
 			}
 			if ( overlaps( current, intervalOf( day, other ) ) ) {
