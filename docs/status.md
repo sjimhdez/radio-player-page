@@ -3,11 +3,11 @@ Spec activa: 0009 — Correcciones: horario y programa en antena · Fase: 1 en c
 
 ## En curso
 - Spec 0009 ([`spec.md`](specs/0009-schedule-model/spec.md)) en curso en la rama `spec/0009-schedule-model` (PR en borrador contra `trunk`): modelo de intervalos de la semana en PHP, player y admin; 4 fases.
-- Fase 1 (modelo y programa en antena: C16, C4, K8, K52) planificada el 2026-10-23: 10 tareas. Dos tests de caracterización se editan con la aprobación del usuario (D3) y el e2e de K52 va sin `page.clock` (se pinta en el servidor); ver el plan.
+- Fase 1 (modelo y programa en antena: C16, C4, K8, K52) planificada el 2026-10-23: 10 tareas. Dos tests de caracterización se editan con la aprobación del usuario (D3) y el e2e de K52 va sin `page.clock` (se pinta en el servidor); ver el plan. Hecha la 1.1 (ADR 0044, `SPEC.md` §3.1, §3.4, §3.8 y §6).
 - Spec 0008 cerrada y fusionada en `trunk` (PR #42, 2026-10-22).
 
 ## Siguiente (máx. 5)
-1. Tarea 1.1 de la 0009: ADR 0044 y `SPEC.md` §3.1, §3.4 y §3.8.
+1. Tarea 1.2 de la 0009: vectores `model` y `Schedule\Week_Interval` en PHP (TDD).
 2. En la pista del player, sesión de diseño → `write-spec` de la 0011 (interfaz, i18n y accesibilidad; notas en la hoja de ruta), en su worktree.
 3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente). No se pasaron al cerrarla (decisión del usuario).
 

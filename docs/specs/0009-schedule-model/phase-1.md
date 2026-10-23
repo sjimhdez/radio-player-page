@@ -35,7 +35,7 @@ Un modelo común de intervalos de la semana (D1) en PHP, player y admin, probado
 - Archivos: `docs/adr/0044-*.md`, `docs/adr/README.md`, `SPEC.md`, `docs/specs/0009-schedule-model/spec.md`
 - Test: — (docs)
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: este
 
 ### 1.2 Vectores `model` y `Schedule\Week_Interval` en PHP (≤ 1 h)
 - Qué: sección `model` en `schedule-vectors.json` (`from_slot`, `contains`, `minutes_until_start`, `overlaps`) y `_doc`. Clase del núcleo con: minuto de la semana de un `DateTimeImmutable` y de (día, «HH:MM»); franja → `{start, duration}`; `contains`; `minutes_until_start`; `overlaps` (con la vuelta de la semana). Usa `Time::to_minutes()`. Entrada en `tests/zip/expected-additions.txt`.
