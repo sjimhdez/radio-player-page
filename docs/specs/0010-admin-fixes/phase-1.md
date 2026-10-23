@@ -101,7 +101,8 @@ Corregir K15 (alta), K16, K39, K44, K74, K75 y K38 con su test de regresión, tr
 - Archivos: `includes/src/schedule/class-slot-validator.php`, `tests/php/unit/Schedule/SlotValidatorTest.php`, `tests/php/integration/Schedule/SanitizeScheduleTest.php`, `docs/known-issues.md`
 - Test: primero: `test_array_time_is_discarded_without_warning` en los dos (sin *warning* con `set_error_handler`, error `required`, horario vacío), `start` y `end`.
 - Verificación: `npm run test:php:unit -- --filter SlotValidatorTest && npm run test:php:integration -- --filter SanitizeScheduleTest`
-- [ ] hecha · commit: —
+- Rojo: unit e integración (PHP 8) `TypeError: trim(): Argument #1 ($string) must be of type string, array given` en `start` y `end`. Sustituye a `test_currently_array_time_reaches_trim` en los dos archivos.
+- [x] hecha · commit: ver `git log` («fix(0010): discard slots whose time is not a string (1.9)»)
 
 ## Decisiones abiertas → ADR
 Ninguna. K16 cambia también que el borrado salte las filas ocultas de los vecinos (lo implica «la misma función» de §2); si cae un test que lo fije, se para y se pregunta.

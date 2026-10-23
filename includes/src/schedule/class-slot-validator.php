@@ -71,9 +71,9 @@ final class Slot_Validator {
 				}
 				$program_id_raw = isset( $program['program_id'] ) ? $program['program_id'] : '';
 				$program_id     = is_numeric( $program_id_raw ) ? (int) $program_id_raw : 0;
-				// K38 in docs/known-issues.md: trim() of a non-string, as in 3.4.2.
-				$start = isset( $program['start'] ) ? trim( $program['start'] ) : '';
-				$end   = isset( $program['end'] ) ? trim( $program['end'] ) : '';
+				// A time that is not a string (a hand-made POST) counts as missing (K38).
+				$start = isset( $program['start'] ) && is_string( $program['start'] ) ? trim( $program['start'] ) : '';
+				$end   = isset( $program['end'] ) && is_string( $program['end'] ) ? trim( $program['end'] ) : '';
 
 				if ( $program_id <= 0 && empty( $start ) && empty( $end ) ) {
 					continue;
