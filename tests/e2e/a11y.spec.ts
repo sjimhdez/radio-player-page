@@ -175,6 +175,24 @@ test.describe( 'a11y: player', () => {
 		await expectNoNewViolations( page, testInfo, 'player · playing' );
 	} );
 
+	// Gap of the zone 5 audit (4.6): the loading state, with the stream held
+	// back so that it lasts.
+	test( 'loading', async ( { page }, testInfo ) => {
+		let release = () => {};
+		const held = new Promise< void >( ( done ) => ( release = done ) );
+		await page.route( '**/tone.mp3', async ( route ) => {
+			await held;
+			await route.continue().catch( () => {} );
+		} );
+		await openPlayer( page );
+		await page.getByRole( 'button', { name: 'Play' } ).click();
+		await expect( page.getByRole( 'progressbar' ) ).toBeVisible();
+
+		await expectNoNewViolations( page, testInfo, 'player · loading' );
+
+		release();
+	} );
+
 	test( 'schedule modal', async ( { page }, testInfo ) => {
 		await openPlayer( page );
 		await page.getByRole( 'button', { name: 'Radio Schedule' } ).click();
@@ -196,6 +214,29 @@ test.describe( 'a11y: player', () => {
 			page,
 			testInfo,
 			'player · all-programs modal'
+		);
+	} );
+
+	// Gap of the zone 5 audit (4.6): a program expanded with "Show more", on
+	// the station whose programs have extended descriptions and slots.
+	test( 'all-programs modal expanded', async ( { page }, testInfo ) => {
+		await page.goto( readSeed().urls.always );
+		await page.getByRole( 'button', { name: 'Radio Shows' } ).click();
+		const dialog = page.getByRole( 'dialog' );
+		await expect( dialog ).toBeVisible();
+		await dialog
+			.getByRole( 'button', { name: 'Show more' } )
+			.first()
+			.click();
+		// axe could measure the program mid-transition: wait for the Collapse.
+		await expect( dialog.locator( '.MuiCollapse-entered' ) ).toHaveCount(
+			1
+		);
+
+		await expectNoNewViolations(
+			page,
+			testInfo,
+			'player · all-programs modal expanded'
 		);
 	} );
 

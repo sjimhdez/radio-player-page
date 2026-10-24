@@ -35,7 +35,8 @@ El botón de Play/Pausa no se desmonta nunca y conserva el foco; la carga se anu
 - Archivos: `tests/e2e/a11y.spec.ts`, `tests/e2e/a11y-baseline.json`
 - Test: caracterización: `tests/e2e/a11y.spec.ts`
 - Verificación: `npm run test:e2e -- tests/e2e/a11y.spec.ts -g "a11y: player"`
-- [ ] hecha · commit: —
+- Nota: `player · loading` añade también las ocho entradas `region` de AX1 que ya tienen `stopped` y `playing` (mismos nodos más el *spinner*); salen con la maqueta de la fase 3.
+- [x] hecha · commit: ver `git log` («test(0011): add loading and expanded program axe scenarios (1.1)»)
 
 ### 1.2 ADR 0051 y `SPEC.md` §3.8 «Interfaz accesible» (≤ 1 h)
 - Qué: `write-adr` 0051 (botón estable con *spinner* dentro y `aria-busy`, `aria-disabled` en la bienvenida, región `role="status"`, foco devuelto en modales y temporizador, maqueta en flujo con *landmarks*, sin animaciones infinitas salvo los puntos y ninguna con `prefers-reduced-motion`, «Show more» solo con descripción extendida); línea «Interfaz accesible» en §3.8 con nota de que fase 3 aún no está; fila en la tabla de cambios de `SPEC.md`; índice de ADRs.
@@ -45,7 +46,7 @@ El botón de Play/Pausa no se desmonta nunca y conserva el foco; la carga se anu
 - [ ] hecha · commit: —
 
 ### 1.3 K56 + AX6 + K59: botón estable y región de estado (≤ 1 h)
-- Qué (`fix-bug`): los `currently` de K56 y de AX6/K59 pasan a regresión (rojo); `PlayerControls.test.tsx` nuevo (TDD: mismo nodo `idle` → `loading` → `playing`, nombre Play/Pause, `aria-busy`, `aria-disabled` con `disabled` y clic ignorado). `PlayerControls`: un solo `IconButton`; Play en `idle`/`paused`/`error`, Pausa en `playing` o `loading` (con `loading`, `CircularProgress size` equivalente con `aria-hidden`); `aria-busy={loading}`; `aria-disabled` en vez de `disabled`; *tooltip* sigue al nombre. `StreamInfo`: `role="status"` montado siempre con «Connecting...» si `loading && !isPlaying` (la animación `blink` se queda hasta la fase 3). mp3.spec 132 y 250–254 (excepción aprobada). Baseline: quitar `player · loading · aria-progressbar-name`. Filas K56, AX6, K59 → «corregido (spec 0011)».
+- Qué (`fix-bug`): los `currently` de K56 y de AX6/K59 pasan a regresión (rojo); `PlayerControls.test.tsx` nuevo (TDD: mismo nodo `idle` → `loading` → `playing`, nombre Play/Pause, `aria-busy`, `aria-disabled` con `disabled` y clic ignorado). `PlayerControls`: un solo `IconButton`; Play en `idle`/`paused`/`error`, Pausa en `playing` o `loading` (con `loading`, `CircularProgress size` equivalente con `aria-hidden`); `aria-busy={loading}`; `aria-disabled` en vez de `disabled`; *tooltip* sigue al nombre. `StreamInfo`: `role="status"` montado siempre con «Connecting...» si `loading && !isPlaying` (la animación `blink` se queda hasta la fase 3). mp3.spec 132 y 250–254 (excepción aprobada). Baseline: quitar `player · loading · aria-progressbar-name`. Filas K56, AX6, K59 → «corregido (spec 0011)». Fila AX2: ya no decir que el escenario de axe no expande nada (desde la 1.1, `player · all-programs modal expanded · heading-order · h5` está en la línea base; decisión del usuario, 2026-10-24).
 - Archivos: `player/src/components/dashboard/PlayerControls.tsx`, `PlayerControls.test.tsx`, `StreamInfo.tsx`, `tests/e2e/player-a11y.spec.ts`, `tests/e2e/mp3.spec.ts`, `tests/e2e/a11y-baseline.json`, `docs/known-issues.md`
 - Test: primero: `PlayerControls.test.tsx` + regresiones e2e
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/player-a11y.spec.ts tests/e2e/mp3.spec.ts tests/e2e/intro.spec.ts tests/e2e/a11y.spec.ts`

@@ -1,4 +1,84 @@
 {
+	"player · all-programs modal expanded · heading-order · h5": {
+		"impact": "moderate",
+		"help": "Heading levels should only increase by one",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · aria-progressbar-name · .MuiCircularProgress-root": {
+		"impact": "serious",
+		"help": "ARIA progressbar nodes must have an accessible name",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · region · .MuiCircularProgress-root": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · region · .MuiPaper-root": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · region · .MuiTypography-h4": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · region · .MuiTypography-h5": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · region · .css-*": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · region · canvas": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · region · h1": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
+	"player · loading · region · input": {
+		"impact": "moderate",
+		"help": "All page content should be contained by landmarks",
+		"browsers": [
+			"chromium",
+			"webkit"
+		]
+	},
 	"player · playing · region · #_r_*_": {
 		"impact": "moderate",
 		"help": "All page content should be contained by landmarks",
