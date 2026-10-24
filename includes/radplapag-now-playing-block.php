@@ -24,6 +24,7 @@ define( 'RADPLAPAG_NOW_PLAYING_UPCOMING_WINDOW_MINUTES', 10 );
  * @since 3.4.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Now_Playing_Resolver, with the time of RadioPlayerPage\WP\Clock.
  * @since 3.5.0 Leaves out the slots of programs that are not public: not published, password-protected or missing (C10, ADR 0045).
+ * @since 3.5.0 Delegates the player page link to RadioPlayerPage\WP\Player_Page: empty if the page is not served (K50).
  * @param int $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
  * @return array|null Associative array with 'current', 'upcoming', and 'station_page_url' keys.
  *                    'current'/'upcoming' are each either null or
@@ -45,14 +46,7 @@ function radplapag_get_now_playing_for_station( $station_index ) {
 	$public_programs = \RadioPlayerPage\WP\Program_Repository::public_programs( $schedule_raw );
 	$schedule_raw    = \RadioPlayerPage\Schedule\Public_Slots::filter( $schedule_raw, array_keys( $public_programs ) );
 
-	$station_page_url = '';
-	if ( isset( $station['player_page'] ) && $station['player_page'] ) {
-		$page_id = (int) $station['player_page'];
-		if ( $page_id > 0 ) {
-			$station_page_url = get_permalink( $page_id );
-			$station_page_url = is_string( $station_page_url ) ? $station_page_url : '';
-		}
-	}
+	$station_page_url = \RadioPlayerPage\WP\Player_Page::url( (int) ( $station['player_page'] ?? 0 ) );
 
 	$programs = array();
 	foreach ( $public_programs as $program_id => $data ) {

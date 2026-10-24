@@ -74,7 +74,9 @@ Los tres bloques pintan encabezados reales `<hN>` (nivel configurable, por defec
 - Archivos: `includes/radplapag-now-playing-block.php`, `includes/radplapag-schedule-block.php`, `tests/php/integration/Blocks/BlockAuditTest.php`, `docs/known-issues.md`.
 - Test: regresión (`fix-bug`).
 - Verificación: `npm run test:php:integration -- --filter 'BlockAuditTest|BlockRenderTest|BlockDataTest'`
-- [ ] hecha · commit: —
+- Rojo (WP 7.1.3 + PHP 8.4): `test_does_not_link_to_a_player_page_that_is_not_served` falla en los 4 casos (borrador, privada, con contraseña, la de entradas): `now-playing` lleva `href="http://localhost:8890/?page_id=N"`. En verde: `BlockAuditTest|BlockRenderTest|BlockDataTest|PlayerPageTest` 108/108 y la integración completa 1029/1029; snapshots sin cambios. Sin enlace, `now-playing` cae en la rama de K49 (sin «On Air: » hasta la 2.6).
+- Changelog: los bloques «Now Playing» y «Schedule» ya no enlazan la página del reproductor si no se sirve (borrador, privada, con contraseña o la página de entradas).
+- [x] hecha · commit: ver `git log` («fix(0013): do not link a player page that is not served (2.5)»)
 
 ### 2.6 K49: «On Air: » también sin enlace (≤ 1 h)
 - Qué: `fix-bug`. `test_currently_now_playing_without_player_page_drops_the_on_air_label` → `test_now_playing_without_player_page_keeps_the_on_air_label` (`On Air: <strong>Show</strong>` en los dos), en rojo. Arreglo en la rama sin enlace de `now-playing/render.php`: `esc_html_e( 'On Air', … ); ': '` antes de `<strong>`, igual que dentro del enlace. Snapshots `now-playing-second-{logo,nologo}.html` regenerados (el diff solo añade «On Air: »). Con 2.5, una página que no se sirve cae aquí (se añade la aserción a la regresión de K50). K49 → corregido.

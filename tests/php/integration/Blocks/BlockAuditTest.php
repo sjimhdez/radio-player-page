@@ -161,32 +161,57 @@ final class BlockAuditTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K50: the link to the player page does not check that the page is still published:
-	 * with the page back in draft, now playing and the schedule block link to
-	 * `?page_id=N`, which visitors cannot open.
+	 * K50: the link to the player page is printed only when the page serves the clean
+	 * player page (D6): with the page in draft, private, password-protected or the
+	 * posts page of a static front page, neither now playing nor the schedule block
+	 * link to it.
+	 *
+	 * @dataProvider data_player_pages_that_are_not_served
+	 *
+	 * @param array<string, mixed> $page_changes Fields set on the player page.
+	 * @param bool                 $posts_page   Whether the page becomes the posts page of a static front page.
 	 */
-	public function test_currently_links_to_a_player_page_that_is_no_longer_published() {
+	public function test_does_not_link_to_a_player_page_that_is_not_served( array $page_changes, $posts_page ) {
 		$f       = $this->factory_rpp;
 		$program = $f->program( 'Show' );
 		$page_id = $f->page( 'Player' );
 		$station = $f->station( 'Main', array( 'player_page' => $page_id ) );
-		wp_update_post(
-			array(
-				'ID'          => $page_id,
-				'post_status' => 'draft',
-			)
-		);
+		if ( $page_changes ) {
+			wp_update_post( array_merge( array( 'ID' => $page_id ), $page_changes ) );
+		}
+		if ( $posts_page ) {
+			update_option( 'show_on_front', 'page' );
+			update_option( 'page_for_posts', $page_id );
+		}
 
 		Clock::run(
 			'wednesday',
 			'10:00',
-			function ( Clock $clock ) use ( $program, $station, $page_id ) {
+			function ( Clock $clock ) use ( $program, $station ) {
 				self::write_schedule( $clock, $station, array( 'wednesday' => array( self::slot( $program, '09:00', '11:00' ) ) ) );
 
-				$href = 'href="' . esc_url( home_url( '/?page_id=' . $page_id ) ) . '"';
-				$this->assertStringContainsString( $href, self::render( 'now-playing' ) );
-				$this->assertStringContainsString( $href, self::render( 'schedule' ) );
+				$now_playing = self::render( 'now-playing' );
+				$schedule    = self::render( 'schedule' );
+
+				$this->assertStringContainsString( '<strong>Show</strong>', $now_playing );
+				$this->assertStringNotContainsString( 'href=', $now_playing );
+				$this->assertStringContainsString( 'Show', $schedule );
+				$this->assertStringNotContainsString( 'href=', $schedule );
 			}
+		);
+	}
+
+	/**
+	 * Player pages that do not serve the clean player page.
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: bool}>
+	 */
+	public static function data_player_pages_that_are_not_served() {
+		return array(
+			'draft'      => array( array( 'post_status' => 'draft' ), false ),
+			'private'    => array( array( 'post_status' => 'private' ), false ),
+			'password'   => array( array( 'post_password' => 'secret' ), false ),
+			'posts page' => array( array(), true ),
 		);
 	}
 

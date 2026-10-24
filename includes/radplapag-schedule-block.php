@@ -122,6 +122,7 @@ function radplapag_build_programs_map( array $station ): array {
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Schedule_View::days(), with the time of RadioPlayerPage\WP\Clock.
  * @since 3.5.0 Leaves out the slots of programs that are not public: not published, password-protected or missing (C10, ADR 0045).
+ * @since 3.5.0 Delegates the player page link to RadioPlayerPage\WP\Player_Page: empty if the page is not served (K50).
  * @param int    $station_index Zero-based index into the ordered stations list (radplapag_get_stations()).
  * @param string $day_order     Optional. 'current_first' (default) = start with today; 'natural' = Monday to Sunday.
  * @return array|null Associative array with 'programs', 'days', 'station_page_url' (permalink for station's player page, or empty string),
@@ -153,14 +154,7 @@ function radplapag_get_schedule_for_station( $station_index, string $day_order =
 		'sanitize_text_field'
 	);
 
-	$station_page_url = '';
-	if ( isset( $station['player_page'] ) && $station['player_page'] ) {
-		$page_id = (int) $station['player_page'];
-		if ( $page_id > 0 ) {
-			$station_page_url = get_permalink( $page_id );
-			$station_page_url = is_string( $station_page_url ) ? $station_page_url : '';
-		}
-	}
+	$station_page_url = \RadioPlayerPage\WP\Player_Page::url( (int) ( $station['player_page'] ?? 0 ) );
 
 	return array(
 		'programs'         => $programs_map,
