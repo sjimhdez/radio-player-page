@@ -4,8 +4,9 @@ import { wpCli } from './support/wp-cli';
 
 /**
  * Scenario 9 (spec 0002 §4.4): the player's language. The clean page prints
- * the site locale in `<html lang>` and i18next detects `htmlTag` first, then
- * `localStorage`, then `navigator`, falling back to `en-US`.
+ * the site locale in `<html lang>` and the player uses it: a regional variant
+ * without resources falls back to its base language, then to `en-US`. Neither
+ * `localStorage` nor `navigator` is read, and nothing is stored (ADR 0050).
  */
 
 /**
@@ -110,20 +111,21 @@ test( 'the page language wins over the one stored in localStorage', async ( {
 			page.getByRole( 'button', { name: 'Reproducir' } )
 		).toBeVisible();
 	} );
-	// The detected language replaces the stored one (`caches: ['localStorage']`).
+	// The player neither reads nor stores its language: the stored value is
+	// left as it was.
 	expect(
 		await page.evaluate( () => window.localStorage.getItem( 'i18nextLng' ) )
-	).toBe( 'es-ES' );
+	).toBe( 'de-DE' );
 } );
 
-test( 'currently never uses the browser language: the page language is always detected first (K55)', async ( {
+test( 'uses the site language, never the browser language (K55)', async ( {
 	browser,
 } ) => {
 	const context = await browser.newContext( { locale: 'de-DE' } );
 	const page = await context.newPage();
 	try {
-		// Not even with a page language that has no translation: `htmlTag`
-		// detects `eu`, i18next falls back to `en-US`, and `navigator`
+		// Not even with a page language that has no translation: the page
+		// says `eu`, the player falls back to `en-US`, and `navigator`
 		// (German) is never read.
 		await withSiteLocale( 'eu', async () => {
 			await page.goto( readSeed().urls.mp3 );

@@ -1,6 +1,5 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 
 import translationsEN_US from 'src/locales/en-US.json'
 import translationsES from 'src/locales/es.json'
@@ -74,7 +73,7 @@ const resources = {
 
 /**
  * Internationalization (i18n) configuration
- * Configures i18next with language detection and translation resources
+ * Configures i18next with the page language and the translation resources
  *
  * Supported languages:
  * - en-US (English - United States) - Default fallback
@@ -92,29 +91,20 @@ const resources = {
  * - cs (Czech)
  * - hr (Croatian)
  *
+ * The language is the one of `<html lang>`, which the clean page prints from
+ * the site locale (en-US if it is empty). Neither the browser language nor a
+ * stored choice is read, and nothing is stored (ADR 0050)
+ *
  * A regional variant without its own resources falls back to its base language
- * (`de-AT` → `de-DE`), then to en-US (ADR 0050)
- *
- * Language detection order:
- * 1. HTML lang attribute
- * 2. localStorage (if previously selected)
- * 3. Browser navigator language
- *
- * Selected language is cached in localStorage for persistence
+ * (`de-AT` → `de-DE`), then to en-US
  */
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources,
-    fallbackLng: fallbackLanguages(Object.keys(resources), 'en-US'),
-    detection: {
-      order: ['htmlTag', 'localStorage', 'navigator'],
-      caches: ['localStorage'],
-    },
-    interpolation: {
-      escapeValue: false,
-    },
-  })
+i18n.use(initReactI18next).init({
+  resources,
+  lng: document.documentElement.lang || 'en-US',
+  fallbackLng: fallbackLanguages(Object.keys(resources), 'en-US'),
+  interpolation: {
+    escapeValue: false,
+  },
+})
 
 export default i18n

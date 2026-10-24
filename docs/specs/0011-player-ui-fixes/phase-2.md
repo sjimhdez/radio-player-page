@@ -15,7 +15,7 @@ Estado: en curso · Inicio: 2026-10-24 · ADRs: 0023, 0025, 0029, 0050 (nuevo)
 - `player/src/config/locales.test.ts`:
   - «falls back to en-US»: compara `fallbackLng.default` con `['en-US']` y añade una comprobación de comportamiento (`eu` → «Play»).
   - «%s has exactly the keys of en-US»: compara las claves sin el sufijo plural (`_one`, `_few`, `_many`, `_other`). Las formas exactas las vigila el test nuevo contra `Intl.PluralRules`.
-- `tests/e2e/i18n.spec.ts`, «the page language wins over the one stored in localStorage»: la última aserción pasa de `'es-ES'` a `toBeNull()` (un `i18nextLng` guardado no se lee y no se escribe). El comentario de cabecera del archivo pasa a describir la detección nueva.
+- `tests/e2e/i18n.spec.ts`, «the page language wins over the one stored in localStorage»: la última aserción pasa de `'es-ES'` a `toBe( 'de-DE' )` (un `i18nextLng` guardado no se lee y no se escribe: queda como estaba). El plan decía `toBeNull()`, que no puede pasar porque el test siembra `'de-DE'` antes de cargar; corregido con la aprobación del usuario en la tarea 2.4 (2026-10-24). El comentario de cabecera del archivo pasa a describir la detección nueva.
 
 ## Objetivo
 
@@ -27,7 +27,7 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 |---|---|
 | ADR 0050 aceptado y `SPEC.md` §3.8 («i18n») al día antes de K68 | Revisión del commit 2.1 |
 | K68: `de-AT`, `de-CH`, `pt-PT`, `nl-BE`, `sv`, `ru` salen en su idioma base; `es-AR` en `es`; un idioma sin traducción en `en-US` | `locales.test.ts` (regresión de K68) + `core/i18n/fallback-languages.test.ts` + e2e `i18n.spec.ts` con el sitio en `de_AT` |
-| Sin `localStorage` ni `navigator`, sin escribir `i18nextLng` | e2e `i18n.spec.ts` (localStorage → `null`; K55 sin cambios en sus asserts) |
+| Sin `localStorage` ni `navigator`, sin escribir `i18nextLng` | e2e `i18n.spec.ts` (localStorage sin tocar, `'de-DE'`; K55 sin cambios en sus asserts) |
 | K55 pasa a test normal (`uses the site language, never the browser language (K55)`) | `i18n.spec.ts` |
 | K62: la raíz, el diálogo, el menú y el *tooltip* llevan el `lang` del idioma del player (`en-US` con el sitio en `eu`) | e2e `i18n.spec.ts` (regresión de K62) |
 | K69: «(in 1 minute)»; las claves de cada locale son exactamente las categorías de `Intl.PluralRules` | `locales.test.ts` (regresión de K69 + test por locale) |
@@ -61,11 +61,11 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - [x] hecha · commit: ver `git log` («fix(0011): show regional variants in their base language (2.3)»)
 
 ### 2.4 Detección solo por el `<html lang>` y K55 (≤ 1 h)
-- Qué: fuera `LanguageDetector` y la dependencia (`npm --prefix player uninstall i18next-browser-languagedetector`); `lng: document.documentElement.lang || 'en-US'`. El comentario de `config/i18n.ts` describe lo que hace (idiomas, base, reserva, sin almacenamiento). En `i18n.spec.ts`: la aserción de `localStorage` → `toBeNull()` (aprobado), el comentario de cabecera al día, y el `currently` de K55 se renombra `uses the site language, never the browser language (K55)` sin tocar sus asserts. Fila K55 al día.
+- Qué: fuera `LanguageDetector` y la dependencia (`npm --prefix player uninstall i18next-browser-languagedetector`); `lng: document.documentElement.lang || 'en-US'`. El comentario de `config/i18n.ts` describe lo que hace (idiomas, base, reserva, sin almacenamiento). En `i18n.spec.ts`: la aserción de `localStorage` → `toBe( 'de-DE' )` (aprobado; el plan decía `toBeNull()`), el comentario de cabecera al día, y el `currently` de K55 se renombra `uses the site language, never the browser language (K55)` sin tocar sus asserts. Fila K55 al día.
 - Archivos: `player/src/config/i18n.ts`, `player/package.json`, `player/package-lock.json`, `tests/e2e/i18n.spec.ts`, `docs/known-issues.md`
 - Test: e2e existentes (`i18n.spec.ts`) + `locales.test.ts`
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/i18n.spec.ts`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («refactor(0011): read the player language only from the page (2.4)»)
 
 ### 2.5 K62: `lang` del idioma del player en la raíz y en los portales (≤ 1 h)
 - Qué (`fix-bug`): el `currently` de K62 pasa a regresión: con el sitio en `eu`, la raíz del player lleva `lang="en-US"`, y al abrir el horario, el menú de «Sleep mode» y un *tooltip* (hover en «Sleep mode»), cada uno tiene un ancestro con `lang="en-US"` (`closest('[lang]')`). Arreglo: `lang` en la raíz del `Dashboard` (`useTranslation().i18n.resolvedLanguage`) y `getTheme(colorMode, lang)` con los `defaultProps` de `MuiDialog`, `MuiPopover` y `MuiTooltip` (`slotProps.popper`). Fila K62 → «corregido».
