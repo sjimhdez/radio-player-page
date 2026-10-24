@@ -29,11 +29,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) { // p
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? false );
 	$data                      = radplapag_get_schedule_for_station( $station_index, $day_order );
-	$wrapper_attributes        = get_block_wrapper_attributes(
-		array(
-			'class' => 'wp-block-radplapag-schedule',
-		)
-	);
+	$wrapper_attributes        = get_block_wrapper_attributes();
 
 	if ( null === $data ) {
 		return '<div ' . $wrapper_attributes . '>' .

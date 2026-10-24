@@ -29,11 +29,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? true );
 	$show_schedule             = (bool) ( $attributes['showSchedule'] ?? true );
-	$wrapper_attributes        = get_block_wrapper_attributes(
-		array(
-			'class' => 'wp-block-radplapag-programs-list',
-		)
-	);
+	$wrapper_attributes        = get_block_wrapper_attributes();
 
 	$programs = radplapag_get_programs_list_for_station( $station_index );
 

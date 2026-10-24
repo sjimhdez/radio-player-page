@@ -41,7 +41,7 @@ defined( 'ABSPATH' ) || exit;
 			return;
 		}
 
-		echo '<div ' . wp_kses_post( get_block_wrapper_attributes( array( 'class' => 'wp-block-radplapag-now-playing is-empty' ) ) ) . '>' .
+		echo '<div ' . wp_kses_post( get_block_wrapper_attributes( array( 'class' => 'is-empty' ) ) ) . '>' .
 			'<div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;">' .
 			'<p><em>' . esc_html__( 'Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.', 'radio-player-page' ) . '</em></p>' .
 			'</div>' .
@@ -54,7 +54,7 @@ defined( 'ABSPATH' ) || exit;
 	$station_page_url = $now_playing['station_page_url'];
 	// phpcs:disable Squiz.ControlStructures.ControlSignature.NewlineAfterOpenBrace -- Inline markup: a line break here would change the block's HTML output.
 	?>
-	<div <?php echo wp_kses_post( get_block_wrapper_attributes( array( 'class' => 'wp-block-radplapag-now-playing' ) ) ); ?>>
+	<div <?php echo wp_kses_post( get_block_wrapper_attributes() ); ?>>
 		<article class="wp-block-group" data-program-id="<?php echo esc_attr( $current['id'] ); ?>">
 			<header class="wp-block-title" style="font-size: 1.5rem;">
 				

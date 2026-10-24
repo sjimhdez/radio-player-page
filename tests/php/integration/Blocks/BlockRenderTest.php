@@ -31,8 +31,7 @@ use WP_UnitTestCase;
  * air (Wednesday 10:00–11:30); station «Silent» with Tuesday only.
  *
  * Cases:
- * - on WP 6.6 the wrapper carries its class twice (K6); newer WP prints it once, so
- *   the other tests compare the wrapper with repeated classes removed;
+ * - the wrapper carries its class once, on WP 6.6 and on newer WP (K6);
  * - schedule: dayOrder × showDescription × showExtendedDescription (8 snapshots);
  *   invalid index and a schedule without slots → «No radio schedule» message;
  * - programs list: showImage × showDescription × showExtendedDescription ×
@@ -148,14 +147,13 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	 *
 	 * @param string $name  Block name without the namespace.
 	 * @param array  $attrs Block attributes.
-	 * @param bool   $raw   Whether to keep repeated wrapper classes (K6).
 	 * @return string
 	 */
-	private function render_at( $name, array $attrs, $raw = false ) {
+	private function render_at( $name, array $attrs ) {
 		return Clock::run(
 			'wednesday',
 			'10:55',
-			function ( Clock $clock ) use ( $name, $attrs, $raw ) {
+			function ( Clock $clock ) use ( $name, $attrs ) {
 				foreach ( $this->schedules as $title => $schedule ) {
 					update_post_meta(
 						$this->stations[ $title ],
@@ -164,7 +162,7 @@ final class BlockRenderTest extends WP_UnitTestCase {
 					);
 				}
 
-				$html = $raw ? self::render_raw( $name, $attrs ) : self::render( $name, $attrs );
+				$html = self::render( $name, $attrs );
 				if ( ! $clock->holds() ) {
 					$this->fail( 'The minute changed while rendering.' );
 				}
@@ -183,35 +181,6 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	 * @return string
 	 */
 	private static function render( $name, array $attrs ) {
-		return self::unique_wrapper_classes( self::render_raw( $name, $attrs ) );
-	}
-
-	/**
-	 * Removes repeated classes from the first `class` attribute (the wrapper's), which
-	 * WP 6.6 prints twice and newer WP once (K6), so one snapshot fits both.
-	 *
-	 * @param string $html Rendered block.
-	 * @return string
-	 */
-	private static function unique_wrapper_classes( $html ) {
-		return preg_replace_callback(
-			'/class="([^"]*)"/',
-			static function ( $m ) {
-				return 'class="' . implode( ' ', array_unique( explode( ' ', $m[1] ) ) ) . '"';
-			},
-			$html,
-			1
-		);
-	}
-
-	/**
-	 * Renders a block as a page would, without normalizing anything.
-	 *
-	 * @param string $name  Block name without the namespace.
-	 * @param array  $attrs Block attributes.
-	 * @return string
-	 */
-	private static function render_raw( $name, array $attrs ) {
 		return render_block(
 			array(
 				'blockName'    => 'radplapag/' . $name,
@@ -409,20 +378,19 @@ final class BlockRenderTest extends WP_UnitTestCase {
 
 	/**
 	 * The function get_block_wrapper_attributes() already adds the generated class
-	 * `wp-block-radplapag-<name>`, and each render passes it again: WP 6.6 prints it twice,
-	 * newer WP (checked on the latest in the CI) once. See K6 in docs/known-issues.md.
+	 * `wp-block-radplapag-<name>`, so the renders do not pass it again: it appears once on
+	 * WP 6.6 and on newer WP (regression, K6 in docs/known-issues.md).
 	 *
 	 * @dataProvider registered_blocks
 	 *
 	 * @param string $name Block name without the namespace.
 	 */
-	public function test_currently_wrapper_class_is_repeated_on_wp_6_6( $name ) {
-		$html  = ltrim( $this->render_at( $name, array( 'stationIndex' => 0 ), true ) );
+	public function test_wrapper_class_appears_once( $name ) {
+		$html  = ltrim( $this->render_at( $name, array( 'stationIndex' => 0 ) ) );
 		$class = 'wp-block-radplapag-' . $name;
 
 		$this->assertSame( 1, preg_match( '/^<div class="([^"]*)"/', $html, $m ) );
-		$expected = 0 === strpos( get_bloginfo( 'version' ), '6.6.' ) ? 2 : 1;
-		$this->assertSame( $expected, count( array_keys( explode( ' ', $m[1] ), $class, true ) ) );
+		$this->assertSame( 1, count( array_keys( explode( ' ', $m[1] ), $class, true ) ) );
 	}
 
 	/**
@@ -490,8 +458,8 @@ final class BlockRenderTest extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame(
-			'<div class="wp-block-radplapag-now-playing is-empty"><div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;"><p><em>Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.</em></p></div></div>',
-			self::unique_wrapper_classes( $response->get_data()['rendered'] )
+			'<div class="is-empty wp-block-radplapag-now-playing"><div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;"><p><em>Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.</em></p></div></div>',
+			$response->get_data()['rendered']
 		);
 	}
 
