@@ -49,6 +49,7 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Archivos: `player/src/core/i18n/fallback-languages.ts`, `player/src/core/i18n/fallback-languages.test.ts`
 - Test: primero (TDD): `fallback-languages.test.ts`
 - Verificación: `npm --prefix player run check`
+- Resultado: la clave del idioma por defecto da `en: ['en-US']` (`en-GB` → `en-US` sin repetir la reserva); el ADR 0050 no lo detallaba.
 - [x] hecha · commit: ver `git log` («feat(0011): add the per-language fallback map to the i18n core (2.2)»)
 
 ### 2.3 K68: variantes regionales en su idioma base (≤ 1 h)
@@ -65,6 +66,8 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Archivos: `player/src/config/i18n.ts`, `player/package.json`, `player/package-lock.json`, `tests/e2e/i18n.spec.ts`, `docs/known-issues.md`
 - Test: e2e existentes (`i18n.spec.ts`) + `locales.test.ts`
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/i18n.spec.ts`
+- Changelog: «The player no longer stores the language in the listener's browser (`i18nextLng` in `localStorage`); it always follows the site language.»
+- Sin test: `lng = 'en-US'` con el `<html lang>` vacío (la página limpia siempre lo imprime, `SPEC.md` §3.3); lo cubre la reserva `default`.
 - [x] hecha · commit: ver `git log` («refactor(0011): read the player language only from the page (2.4)»)
 
 ### 2.5 K62: `lang` del idioma del player en la raíz y en los portales (≤ 1 h)
@@ -91,8 +94,16 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Test: regresión (antes `currently`): `a11y.spec.ts`
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/a11y.spec.ts`
 - Rojo: la regresión de C15 en Chromium y WebKit, con `Received` `["Background", "Logo", "{currentProgram.programName}"]` frente a `["", "", "Fixture Radio Station logo"]`. Verde: `a11y.spec.ts` 36/36.
-- Changelog: los `alt` de las imágenes del player: el logo dice «<emisora> logo» (traducible) y el fondo y el avatar del programa, decorativos, van vacíos.
+- Changelog: «The player images have proper alternative text: the logo says "<station> logo" in the player language, and the decorative background and program avatar are empty.»
 - [x] hecha · commit: ver `git log` («fix(0011): translate the logo alt and empty the decorative ones (2.7)»)
+
+### 2.8 C15: `dashboard.stationLogo` traducido en los 13 locales (≤ 1 h)
+- Qué: lo encontró `spec-conformance-reviewer` en el cierre: la 2.7 dejó `"{{name}} logo"` en inglés en todos los locales y la spec pide el logo «traducido». Decisión del usuario (2026-10-24): traducirlo antes de cerrar la fase. Test nuevo por locale («%s translates the station logo alt (C15)») y las 13 traducciones («Logo de {{name}}», «Logo von {{name}}», «Логотип {{name}}»…).
+- Archivos: `player/src/locales/*.json`, `player/src/config/locales.test.ts`
+- Test: primero: `locales.test.ts`
+- Verificación: `npm --prefix player run check`
+- Rojo: los 13 casos nuevos, con el valor igual al de `en-US`.
+- [x] hecha · commit: ver `git log` («fix(0011): translate the station logo alt in every locale (2.8)»)
 
 ## Decisiones abiertas → ADR
 

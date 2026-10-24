@@ -97,6 +97,12 @@ describe('locale files', () => {
     }
   })
 
+  it.each(others)('%s translates the station logo alt (C15)', (locale) => {
+    expect(flatten(locales[locale])['dashboard.stationLogo']).not.toBe(
+      reference['dashboard.stationLogo'],
+    )
+  })
+
   it.each(others)('%s keeps the {{…}} placeholders of en-US', (locale) => {
     const messages = flatten(locales[locale])
 

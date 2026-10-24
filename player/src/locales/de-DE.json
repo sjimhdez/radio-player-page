@@ -4,7 +4,7 @@
     "connecting": "Verbindung wird hergestellt...",
     "playStreamError": "Die Wiedergabe des Streams ist nicht möglich. Bitte versuchen Sie es später erneut.",
     "audioVisualizer": "Audio-Visualisierer",
-    "stationLogo": "{{name}} logo",
+    "stationLogo": "Logo von {{name}}",
     "play": "Abspielen",
     "pause": "Pause",
     "sleepMode": "Schlafmodus",

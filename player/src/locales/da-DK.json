@@ -4,7 +4,7 @@
     "connecting": "Opretter forbindelse...",
     "playStreamError": "Kan ikke afspille strømmen. Prøv igen senere.",
     "audioVisualizer": "Lydvisualisering",
-    "stationLogo": "{{name}} logo",
+    "stationLogo": "Logo for {{name}}",
     "play": "Afspil",
     "pause": "Pause",
     "sleepMode": "Søvntimer",

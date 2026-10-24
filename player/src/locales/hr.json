@@ -4,7 +4,7 @@
     "connecting": "Povezivanje...",
     "playStreamError": "Reprodukcija strujanja nije uspjela. Pokušajte ponovno kasnije.",
     "audioVisualizer": "Audio vizualizator",
-    "stationLogo": "{{name}} logo",
+    "stationLogo": "Logotip {{name}}",
     "play": "Reproduciraj",
     "pause": "Pauziraj",
     "sleepMode": "Način mirovanja",
