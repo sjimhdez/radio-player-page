@@ -66,7 +66,8 @@ Los tres bloques pintan encabezados reales `<hN>` (nivel configurable, por defec
 - Archivos: `includes/src/wp/class-player-page.php`, `tests/php/integration/Blocks/PlayerPageTest.php`, `tests/zip/expected-additions.txt`.
 - Test: primero (TDD): `PlayerPageTest.php`.
 - Verificación: `npm run test:php:integration -- --filter PlayerPageTest && npm run check:zip`
-- [ ] hecha · commit: —
+- Rojo (WP 7.1.3 + PHP 8.4): los 10 casos fallan con «Class "RadioPlayerPage\WP\Player_Page" not found». En verde: `PlayerPageTest` 10/10, `check:zip` con 69 archivos. Mutación: sin la regla de `page_for_posts` falla solo `test_posts_page_has_no_link_with_a_static_front_page` (revertida). PHPStan: `get_permalink()` con un `WP_Post` ya es `string`, sin `is_string()`.
+- [x] hecha · commit: ver `git log` («feat(0013): add the player page link adapter (2.4)»)
 
 ### 2.5 K50: sin enlace a una página que no se sirve (≤ 1 h)
 - Qué: `fix-bug`. `test_currently_links_to_a_player_page_that_is_no_longer_published` → `test_does_not_link_to_a_player_page_that_is_not_served`, con un caso por estado (borrador, privada, con contraseña, la de entradas con `show_on_front = 'page'`): ni `now-playing` ni `schedule` llevan `href`; en rojo. Arreglo: `radplapag_get_now_playing_for_station()` y `radplapag_get_schedule_for_station()` calculan `station_page_url` con `Player_Page::url( (int) ( $station['player_page'] ?? 0 ) )` (firma y claves iguales; `@since 3.5.0` en su docblock: delega en `Player_Page`). K50 → corregido.
