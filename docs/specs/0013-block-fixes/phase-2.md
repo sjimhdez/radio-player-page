@@ -101,7 +101,8 @@ Los tres bloques pintan encabezados reales `<hN>` (nivel configurable, por defec
 - Archivos: `SPEC.md`, `docs/specs/README.md`, `docs/known-issues.md` (si falta algo).
 - Test: — (docs).
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- Hecho: las nueve filas (K6, K46–K51, K53, K54) ya estaban en «corregido (spec 0013)»; sin cambios en `known-issues.md`. Viñeta de la 0013 en «Release» de la hoja de ruta, tras la de la 0010.
+- [x] hecha · commit: ver `git log` («docs(0013): close the spec notes in SPEC.md and the roadmap (2.8)»)
 
 ## Decisiones abiertas → ADR
 
