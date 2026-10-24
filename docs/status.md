@@ -1,5 +1,5 @@
 # Estado
-Spec activa: ninguna (0013 cerrada, PR #45 listo para merge) · Actualizado: 2026-10-24
+Spec activa: 0013 — Correcciones: bloques · Fase: cerrada (1–2, el 2026-10-24; PR #45 listo, pendiente de merge en `trunk`) · Plan: [phase-2.md](specs/0013-block-fixes/phase-2.md) · Actualizado: 2026-10-24
 
 ## En curso
 - Spec 0013 (bloques: K46, K53, K47, K48, K54, K49, K50, K51, K6; ADR 0049) cerrada el 2026-10-24 en la rama `spec/0013-block-fixes`; PR #45 contra `trunk`, listo. **El merge lo decide el usuario** (merge commit, título «Spec 0013: Correcciones: bloques»).
