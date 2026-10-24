@@ -1,3 +1,4 @@
+import type { Ref } from 'react'
 import IconButton from '@mui/material/IconButton'
 import PlayCircleIcon from '@mui/icons-material/PlayCircle'
 import PauseCircleIcon from '@mui/icons-material/PauseCircle'
@@ -17,6 +18,8 @@ interface PlayerControlsProps {
   onPlay: () => void
   /** Callback function to pause playback */
   onPause: () => void
+  /** Ref to the button, so the dashboard can give it the focus (K58) */
+  ref?: Ref<HTMLButtonElement>
 }
 
 /**
@@ -31,7 +34,14 @@ interface PlayerControlsProps {
  * @param props - Component props
  * @returns The play/pause button
  */
-const PlayerControls = ({ status, loading, disabled, onPlay, onPause }: PlayerControlsProps) => {
+const PlayerControls = ({
+  status,
+  loading,
+  disabled,
+  onPlay,
+  onPause,
+  ref,
+}: PlayerControlsProps) => {
   const { t } = useTranslation()
   const showPause = loading || status === 'playing'
   const label = showPause ? t('dashboard.pause') : t('dashboard.play')
@@ -40,6 +50,7 @@ const PlayerControls = ({ status, loading, disabled, onPlay, onPause }: PlayerCo
   return (
     <Tooltip title={label} placement="top" arrow>
       <IconButton
+        ref={ref}
         onClick={() => {
           if (disabled) return
           if (showPause) onPause()

@@ -78,7 +78,9 @@ El botón de Play/Pausa no se desmonta nunca y conserva el foco; la carga se anu
 - Archivos: `player/src/components/dashboard/index.tsx`, `SleepMode.tsx`, `SleepTimer.tsx`, `PlayerControls.tsx`, `tests/e2e/player-a11y.spec.ts`, `docs/known-issues.md`
 - Test: primero: regresión e2e (+ `SleepMode.test.tsx` si el `ref` se expone)
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/player-a11y.spec.ts tests/e2e/sleep.spec.ts`
-- [ ] hecha · commit: —
+- Rojo: los 4 casos (cancelar y llegar a cero × Chromium/WebKit): el foco en `body` (`Received: "BODY"` / `Received: null`).
+- Hecho: `ref` como prop en `PlayerControls`, `SleepMode` y `SleepTimer`; `Dashboard` enfoca «Sleep mode» al cancelar y, si el foco estaba en `SleepTimer` al terminar la cuenta, Play/Pausa. El caso de la cuenta a cero va en `sleep.spec.ts`, no en `player-a11y.spec.ts`, para reutilizar `tick()` y su *timeout* (1800 *ticks*). Sin `SleepMode.test.tsx`: el `ref` se cubre con el e2e. `player-a11y.spec.ts` y `sleep.spec.ts` 32/32. Changelog: al cancelar el temporizador de sueño, o al acabar con el foco en él, el foco ya no se pierde.
+- [x] hecha · commit: ver `git log` («fix(0011): keep the focus when the sleep timer is cancelled or runs out (1.6)»)
 
 ## Decisiones abiertas → ADR
 - ADR 0051 (1.2). Ninguna otra: K83 no cambia el ADR 0030.

@@ -109,7 +109,7 @@ for ( const name of [ 'Radio Schedule', 'Radio Shows' ] ) {
 	}
 }
 
-test( 'currently loses the focus when the sleep timer is cancelled (K58)', async ( {
+test( 'gives the focus to "Sleep mode" when the sleep timer is cancelled (K58)', async ( {
 	page,
 } ) => {
 	await page.goto( readSeed().urls.live );
@@ -123,7 +123,7 @@ test( 'currently loses the focus when the sleep timer is cancelled (K58)', async
 	await expect(
 		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
 	).toHaveCount( 0 );
-	expect( await focused( page ) ).toBe( 'BODY' );
+	await expect.poll( () => focused( page ) ).toBe( 'BUTTON:Sleep mode' );
 } );
 
 for ( const name of [ 'Radio Schedule', 'Radio Shows' ] ) {

@@ -99,6 +99,29 @@ test( 'counts down and pauses when the shortest option runs out', async ( {
 	).toHaveCount( 0 );
 } );
 
+test( 'gives the focus to Play when the countdown runs out on "Cancel sleep mode" (K58)', async ( {
+	page,
+} ) => {
+	await openPlaying( page );
+	await setShortestTimer( page );
+	await page.getByRole( 'button', { name: 'Cancel sleep mode' } ).focus();
+
+	await tick( page, SHORTEST_SECONDS );
+
+	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
+	await expect(
+		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+	).toHaveCount( 0 );
+	expect(
+		await page.evaluate(
+			() =>
+				document.body.ownerDocument.activeElement?.getAttribute(
+					'aria-label'
+				) ?? null
+		)
+	).toBe( 'Play' );
+} );
+
 test( 'a manual pause cancels the timer', async ( { page } ) => {
 	await openPlaying( page );
 	await setShortestTimer( page );
