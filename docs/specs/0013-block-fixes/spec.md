@@ -1,6 +1,6 @@
 # Spec 0013 — Correcciones: bloques
 
-> Estado: **en curso** · Fecha: 2026-10-24 · Rama: `spec/0013-block-fixes` · Depende de: 0009, 0010
+> Estado: **cerrada** (2026-10-24) · Fecha: 2026-10-24 · Rama: `spec/0013-block-fixes` · Depende de: 0009, 0010
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 

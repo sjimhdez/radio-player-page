@@ -1,5 +1,5 @@
 # Spec 0013 · Fase 2 — Markup y encabezados
-Estado: en curso · Inicio: 2026-10-24 · ADRs: 0017, 0020, 0021, 0023, 0028, 0045, 0049
+Estado: cerrada (2026-10-24) · Inicio: 2026-10-24 · ADRs: 0017, 0020, 0021, 0023, 0028, 0045, 0049
 
 ## Contexto
 
@@ -57,7 +57,7 @@ Los tres bloques pintan encabezados reales `<hN>` (nivel configurable, por defec
 - Archivos: `blocks/schedule/src/index.js`, `blocks/programs-list/src/index.js`, `blocks/now-playing/src/edit.js`, `blocks/*/build/` (hook), `tests/e2e/blocks.spec.ts`, `docs/known-issues.md`.
 - Test: e2e nuevo (visto en rojo antes del control).
 - Verificación: `npm --prefix blocks/schedule run check && npm --prefix blocks/programs-list run check && npm --prefix blocks/now-playing run check && npm run test:e2e -- blocks.spec.ts a11y.spec.ts`
-- Rojo (Chromium): los tres tests nuevos fallan al buscar el `combobox` «Heading level». En verde: `blocks.spec.ts` y `a11y.spec.ts` 82/82 en Chromium y WebKit, sin violaciones nuevas de axe (ni `heading-order`). Fuera de 2–6 el control muestra H2 y la vista previa recibe 2, como el front. Capturas «después» en `test-results/0013-k53/`: mismo contenido; los encabezados toman la fuente de los `h2` del tema (serif en Twenty Twenty-Five) en lugar de la del texto (riesgo 1, va al `== Upgrade Notice ==` de la 2.8).
+- Rojo (Chromium): los tres tests nuevos fallan al buscar el `combobox` «Heading level». En verde: `blocks.spec.ts` y `a11y.spec.ts` 82/82 en Chromium y WebKit, sin violaciones nuevas de axe (ni `heading-order`). Fuera de 2–6 el control muestra H2 y la vista previa recibe 2, como el front. Capturas «después» en `test-results/0013-k53/`: mismo contenido; los encabezados toman la fuente de los `h2` del tema (serif en Twenty Twenty-Five) en lugar de la del texto (riesgo 1, va al `== Upgrade Notice ==` de la 2.8). El e2e solo mira el `<h4>` de la vista previa en `schedule` y `programs-list`; en `now-playing` comprueba la petición (`headingLevel=4`), y su `<h4>` lo cubre `BlockAuditTest::test_blocks_print_heading_elements`.
 - Changelog: control «Heading level» (H2–H6) en el panel de los tres bloques.
 - [x] hecha · commit: ver `git log` («fix(0013): add the heading level control to the blocks (2.3)»)
 
