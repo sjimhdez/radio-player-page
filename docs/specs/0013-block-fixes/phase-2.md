@@ -92,7 +92,9 @@ Los tres bloques pintan encabezados reales `<hN>` (nivel configurable, por defec
 - Archivos: `blocks/programs-list/render.php`, `blocks/schedule/render.php`, `tests/php/integration/Blocks/BlockAuditTest.php`, `docs/known-issues.md`.
 - Test: regresión (`fix-bug`).
 - Verificación: `npm run test:php:integration -- --filter 'Block(Audit|Render)Test'`
-- [ ] hecha · commit: —
+- Rojo (WP 7.1.3 + PHP 8.4): `test_extended_description_keeps_its_line_breaks` falla en `programs-list` (sale `Line one\n\nLine two &amp; more` sin `<br />`); mutación: con el arreglo solo en `programs-list`, falla en `schedule`. En verde: `Block(Audit|Render)Test` 60/60; snapshots sin cambios.
+- Changelog: la descripción extendida de «Programs List» y «Schedule» conserva sus saltos de línea.
+- [x] hecha · commit: ver `git log` («fix(0013): keep the line breaks of the extended description (2.7)»)
 
 ### 2.8 Cierre de la spec: `SPEC.md` y nota de la release (≤ 1 h)
 - Qué: `SPEC.md` §3.5 sin la nota en cursiva provisional (la fila de §6 ya está). Hoja de ruta (`docs/specs/README.md`, «Release»): viñeta «changelog y `== Upgrade Notice ==` de la 0013» con las líneas de changelog apuntadas en las tareas de las fases 1 y 2 (K46 con D2, K47, K48, K53 con `headingLevel`, K49, K50, K51 y K54) y, en `== Upgrade Notice ==`, los encabezados reales (pueden cambiar el aspecto si el tema estilaba `header` o `h2`) y que los bloques viejos pasan a ID al elegir la emisora. Se comprueba que las nueve filas están en «corregido (spec 0013)».

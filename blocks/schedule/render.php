@@ -106,7 +106,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) { // p
 			if ( $show_extended_description ) {
 				$program_extended_description = (string) ( $slot['program_extended_description'] ?? '' );
 				if ( '' !== $program_extended_description ) {
-					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_extended_description ) . '</p></div>';
+					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . nl2br( esc_html( $program_extended_description ) ) . '</p></div>';
 				}
 			}
 			$html .= '</li>';

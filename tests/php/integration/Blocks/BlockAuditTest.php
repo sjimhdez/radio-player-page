@@ -276,19 +276,26 @@ final class BlockAuditTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K51: the line breaks of the extended description (a textarea, kept by the
-	 * sanitizer) end up inside one `<p>`, where the browser shows them as spaces; the
-	 * player keeps them (`white-space: pre-wrap`).
+	 * K51 (fixed in spec 0013): the line breaks of the extended description (a
+	 * textarea, kept by the sanitizer) become `<br />` inside the same `<p>`, in the
+	 * programs list and in the schedule, and the text stays escaped.
 	 */
-	public function test_currently_extended_description_line_breaks_stay_in_one_paragraph() {
+	public function test_extended_description_keeps_its_line_breaks() {
 		$f       = $this->factory_rpp;
-		$program = $f->program( 'Show', array( 'extended_description' => "Line one\n\nLine two" ) );
+		$program = $f->program( 'Show', array( 'extended_description' => "Line one\n\nLine two & more" ) );
 		$f->station( 'Main', array( 'schedule' => array( 'monday' => array( self::slot( $program, '09:00', '10:00' ) ) ) ) );
 
-		$html = self::render( 'programs-list' );
-
-		$this->assertStringContainsString( "<p class=\"wp-block-paragraph\">Line one\n\nLine two</p>", $html );
-		$this->assertStringNotContainsString( '<br', $html );
+		$renders = array(
+			'programs-list' => self::render( 'programs-list' ),
+			'schedule'      => self::render( 'schedule', array( 'showExtendedDescription' => true ) ),
+		);
+		foreach ( $renders as $name => $html ) {
+			$this->assertMatchesRegularExpression(
+				'#<p class="wp-block-paragraph"[^>]*>Line one<br />\n<br />\nLine two &amp; more</p>#',
+				$html,
+				$name
+			);
+		}
 	}
 
 	/**

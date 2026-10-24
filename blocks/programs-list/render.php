@@ -76,7 +76,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 		}
 
 		if ( $show_extended_description && null !== $ext_desc && '' !== $ext_desc ) {
-			$html .= '<div class="wp-block-group"><p class="wp-block-paragraph">' . esc_html( $ext_desc ) . '</p></div>';
+			$html .= '<div class="wp-block-group"><p class="wp-block-paragraph">' . nl2br( esc_html( $ext_desc ) ) . '</p></div>';
 		}
 
 		if ( $show_schedule && ! empty( $slots ) ) {
