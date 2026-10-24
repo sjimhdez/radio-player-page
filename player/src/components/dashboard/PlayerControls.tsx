@@ -21,49 +21,44 @@ interface PlayerControlsProps {
 
 /**
  * Player controls component
- * Displays play/pause button or loading indicator based on player status
+ * One stable play/pause button that changes state instead of unmounting, so it
+ * keeps the focus (ADR 0051)
  *
- * Rendering priority:
- * 1. If loading is true: shows loading spinner only (no buttons)
- * 2. If status is not 'playing': shows play button
- * 3. If status is 'playing': shows pause button
+ * - While loading: Pause, busy (`aria-busy`), with a hidden spinner in place of the icon
+ * - Otherwise: Play unless the status is 'playing', then Pause
+ * - When disabled: `aria-disabled` (still focusable) and clicks are ignored
  *
  * @param props - Component props
- * @returns Loading spinner (when loading) or play/pause button (when not loading)
+ * @returns The play/pause button
  */
 const PlayerControls = ({ status, loading, disabled, onPlay, onPause }: PlayerControlsProps) => {
   const { t } = useTranslation()
-  // Show CircularProgress when loading (takes priority over button display)
-  if (loading) {
-    return <CircularProgress size={88} />
-  }
-
-  if (status !== 'playing') {
-    return (
-      <Tooltip title={t('dashboard.play')} placement="top" arrow>
-        <IconButton
-          onClick={onPlay}
-          disabled={disabled}
-          size="large"
-          aria-label={t('dashboard.play')}
-          color="primary"
-        >
-          <PlayCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
-        </IconButton>
-      </Tooltip>
-    )
-  }
+  const showPause = loading || status === 'playing'
+  const label = showPause ? t('dashboard.pause') : t('dashboard.play')
+  const iconSx = { width: 64, height: 64, '& > svg': { width: 64, height: 64 } }
 
   return (
-    <Tooltip title={t('dashboard.pause')} placement="top" arrow>
+    <Tooltip title={label} placement="top" arrow>
       <IconButton
-        onClick={onPause}
-        disabled={disabled}
+        onClick={() => {
+          if (disabled) return
+          if (showPause) onPause()
+          else onPlay()
+        }}
+        aria-disabled={disabled}
+        aria-busy={loading}
         size="large"
-        aria-label={t('dashboard.pause')}
+        aria-label={label}
         color="primary"
+        sx={{ '&[aria-disabled="true"]': { color: 'action.disabled', cursor: 'default' } }}
       >
-        <PauseCircleIcon sx={{ width: 64, height: 64, '& > svg': { width: 64, height: 64 } }} />
+        {loading ? (
+          <CircularProgress size={64} aria-hidden />
+        ) : showPause ? (
+          <PauseCircleIcon sx={iconSx} />
+        ) : (
+          <PlayCircleIcon sx={iconSx} />
+        )}
       </IconButton>
     </Tooltip>
   )

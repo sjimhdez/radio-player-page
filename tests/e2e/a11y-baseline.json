@@ -7,15 +7,7 @@
 			"webkit"
 		]
 	},
-	"player · loading · aria-progressbar-name · .MuiCircularProgress-root": {
-		"impact": "serious",
-		"help": "ARIA progressbar nodes must have an accessible name",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
-	"player · loading · region · .MuiCircularProgress-root": {
+	"player · loading · region · #_r_*_": {
 		"impact": "moderate",
 		"help": "All page content should be contained by landmarks",
 		"browsers": [
@@ -32,14 +24,6 @@
 		]
 	},
 	"player · loading · region · .MuiTypography-h4": {
-		"impact": "moderate",
-		"help": "All page content should be contained by landmarks",
-		"browsers": [
-			"chromium",
-			"webkit"
-		]
-	},
-	"player · loading · region · .MuiTypography-h5": {
 		"impact": "moderate",
 		"help": "All page content should be contained by landmarks",
 		"browsers": [

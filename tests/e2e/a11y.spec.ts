@@ -186,7 +186,12 @@ test.describe( 'a11y: player', () => {
 		} );
 		await openPlayer( page );
 		await page.getByRole( 'button', { name: 'Play' } ).click();
-		await expect( page.getByRole( 'progressbar' ) ).toBeVisible();
+		await expect(
+			page.getByRole( 'button', { name: 'Pause' } )
+		).toHaveAttribute( 'aria-busy', 'true' );
+		// The button stays under the mouse (K56), so its tooltip opens, as in
+		// `playing`: wait for it so the scenario does not depend on timing.
+		await expect( page.getByRole( 'tooltip' ) ).toBeVisible();
 
 		await expectNoNewViolations( page, testInfo, 'player · loading' );
 
