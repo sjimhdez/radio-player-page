@@ -43,7 +43,7 @@ El botón de Play/Pausa no se desmonta nunca y conserva el foco; la carga se anu
 - Archivos: `docs/adr/0051-*.md`, `docs/adr/README.md`, `SPEC.md`
 - Test: —
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («docs(0011): add ADR 0051 and the accessible interface to SPEC.md (1.2)»)
 
 ### 1.3 K56 + AX6 + K59: botón estable y región de estado (≤ 1 h)
 - Qué (`fix-bug`): los `currently` de K56 y de AX6/K59 pasan a regresión (rojo); `PlayerControls.test.tsx` nuevo (TDD: mismo nodo `idle` → `loading` → `playing`, nombre Play/Pause, `aria-busy`, `aria-disabled` con `disabled` y clic ignorado). `PlayerControls`: un solo `IconButton`; Play en `idle`/`paused`/`error`, Pausa en `playing` o `loading` (con `loading`, `CircularProgress size` equivalente con `aria-hidden`); `aria-busy={loading}`; `aria-disabled` en vez de `disabled`; *tooltip* sigue al nombre. `StreamInfo`: `role="status"` montado siempre con «Connecting...» si `loading && !isPlaying` (la animación `blink` se queda hasta la fase 3). mp3.spec 132 y 250–254 (excepción aprobada). Baseline: quitar `player · loading · aria-progressbar-name`. Filas K56, AX6, K59 → «corregido (spec 0011)». Fila AX2: ya no decir que el escenario de axe no expande nada (desde la 1.1, `player · all-programs modal expanded · heading-order · h5` está en la línea base; decisión del usuario, 2026-10-24).
