@@ -96,7 +96,7 @@ const StreamInfo = ({
         <Box
           component="img"
           src={logoImage}
-          alt="Logo"
+          alt={t('dashboard.stationLogo', { name: title })}
           sx={{
             width: 75,
             height: 75,
@@ -155,11 +155,7 @@ const StreamInfo = ({
                     marginBottom: { xs: 0, sm: '8px' },
                   }}
                 >
-                  <Avatar
-                    src={currentProgram.programLogoUrl}
-                    alt="{currentProgram.programName}"
-                    aria-hidden
-                  />
+                  <Avatar src={currentProgram.programLogoUrl} alt="" aria-hidden />
                 </Box>
               )}
 

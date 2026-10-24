@@ -4,6 +4,7 @@
     "connecting": "Conectando...",
     "playStreamError": "Não foi possível reproduzir o stream. Tente novamente mais tarde.",
     "audioVisualizer": "Visualizador de áudio",
+    "stationLogo": "{{name}} logo",
     "play": "Reproduzir",
     "pause": "Pausar",
     "sleepMode": "Modo soneca",

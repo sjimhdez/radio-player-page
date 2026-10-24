@@ -4,6 +4,7 @@
     "connecting": "Se conectează...",
     "playStreamError": "Nu se poate reda fluxul. Încercați din nou mai târziu.",
     "audioVisualizer": "Vizualizator audio",
+    "stationLogo": "{{name}} logo",
     "play": "Redare",
     "pause": "Pauză",
     "sleepMode": "Mod somn",

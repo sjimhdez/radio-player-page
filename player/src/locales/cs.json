@@ -4,6 +4,7 @@
     "connecting": "Připojování...",
     "playStreamError": "Přehrání streamu se nezdařilo. Zkuste to prosím později.",
     "audioVisualizer": "Audio vizualizér",
+    "stationLogo": "{{name}} logo",
     "play": "Přehrát",
     "pause": "Pozastavit",
     "sleepMode": "Režim spánku",

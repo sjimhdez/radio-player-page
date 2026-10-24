@@ -4,6 +4,7 @@
     "connecting": "Подключение...",
     "playStreamError": "Не удалось воспроизвести поток. Попробуйте позже.",
     "audioVisualizer": "Аудиовизуализатор",
+    "stationLogo": "{{name}} logo",
     "play": "Воспроизвести",
     "pause": "Пауза",
     "sleepMode": "Режим сна",

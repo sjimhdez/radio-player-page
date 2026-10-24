@@ -90,7 +90,9 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Archivos: `player/src/components/dashboard/index.tsx`, `player/src/components/dashboard/StreamInfo.tsx`, `player/src/locales/*.json`, `tests/e2e/a11y.spec.ts`, `docs/known-issues.md`
 - Test: regresión (antes `currently`): `a11y.spec.ts`
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/a11y.spec.ts`
-- [ ] hecha · commit: —
+- Rojo: la regresión de C15 en Chromium y WebKit, con `Received` `["Background", "Logo", "{currentProgram.programName}"]` frente a `["", "", "Fixture Radio Station logo"]`. Verde: `a11y.spec.ts` 36/36.
+- Changelog: los `alt` de las imágenes del player: el logo dice «<emisora> logo» (traducible) y el fondo y el avatar del programa, decorativos, van vacíos.
+- [x] hecha · commit: ver `git log` («fix(0011): translate the logo alt and empty the decorative ones (2.7)»)
 
 ## Decisiones abiertas → ADR
 

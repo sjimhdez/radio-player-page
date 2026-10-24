@@ -4,6 +4,7 @@
     "connecting": "Ansluter...",
     "playStreamError": "Kan inte spela livesändningen. Försök igen senare.",
     "audioVisualizer": "Visualiserare",
+    "stationLogo": "{{name}} logo",
     "play": "Spela",
     "pause": "Pausa",
     "sleepMode": "Viloläge",

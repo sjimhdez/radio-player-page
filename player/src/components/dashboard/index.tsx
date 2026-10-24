@@ -207,7 +207,7 @@ const Dashboard = () => {
         <Box
           component="img"
           src={config.backgroundImage}
-          alt="Background"
+          alt=""
           sx={{
             position: 'absolute',
             top: 0,

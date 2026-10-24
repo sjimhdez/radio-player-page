@@ -246,7 +246,7 @@ test.describe( 'a11y: player', () => {
 	} );
 
 	// axe does not judge whether an `alt` is meaningful or translated.
-	test( 'currently uses literal, untranslated alt texts and a broken one on the program avatar (C15)', async ( {
+	test( 'gives the station logo a translated alt and leaves the decorative images empty (C15)', async ( {
 		page,
 	} ) => {
 		await openPlayer( page );
@@ -256,12 +256,8 @@ test.describe( 'a11y: player', () => {
 			.evaluateAll( ( images ) =>
 				images.map( ( image ) => image.getAttribute( 'alt' ) )
 			);
-		expect( alts ).toEqual(
-			expect.arrayContaining( [
-				'Background',
-				'Logo',
-				'{currentProgram.programName}',
-			] )
+		expect( alts.sort() ).toEqual(
+			[ '', '', `${ await page.title() } logo` ].sort()
 		);
 	} );
 } );

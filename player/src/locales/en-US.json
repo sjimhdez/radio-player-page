@@ -4,6 +4,7 @@
     "connecting": "Connecting...",
     "playStreamError": "Unable to play the stream. Try again later.",
     "audioVisualizer": "Audio Visualizer",
+    "stationLogo": "{{name}} logo",
     "play": "Play",
     "pause": "Pause",
     "sleepMode": "Sleep mode",

@@ -4,6 +4,7 @@
     "connecting": "Bezig met verbinden...",
     "playStreamError": "Kan de stream niet afspelen. Probeer het later opnieuw.",
     "audioVisualizer": "Visualisator",
+    "stationLogo": "{{name}} logo",
     "play": "Afspelen",
     "pause": "Pauzeren",
     "sleepMode": "Slaapstand",
