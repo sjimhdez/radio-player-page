@@ -70,7 +70,9 @@ const AUDIO_EVENTS = ['playing', 'pause', 'error', 'canplay', 'waiting', 'ended'
  * of its own, and published in the first snapshot (K13, ADR 0036).
  *
  * A direct source that fails is retried once without crossOrigin, unless the element
- * goes through the Web Audio graph: then it is an error (C1, ADR 0033).
+ * goes through the Web Audio graph: then it is an error (C1, ADR 0033). While the live
+ * stream starts, an error of the element is not published: the outcome of its play()
+ * decides (docs/known-issues.md K83).
  *
  * The Web Audio context is created or resumed synchronously in play(), inside the
  * gesture. When the element starts playing the live stream from a source clean of
@@ -114,6 +116,10 @@ export function createAudioController({
   let generation = 0
   // The URL of the loaded live stream; with hls.js and dashjs audio.src is a blob:.
   let liveUrl: string | null = null
+  // Whether the start() of the live stream is pending, and whether it deferred an error
+  // of the element: its outcome decides, so the C1 retry publishes no error (K83).
+  let liveStarting = false
+  let errorDeferred = false
 
   const dispatch = (event: PlayerEvent) => {
     const next = transition(state, event)
@@ -146,10 +152,20 @@ export function createAudioController({
     source?.destroy()
     source = createSource(url)
     liveUrl = url
-    await source.start(element, url, {
-      onError: () => report({ type: 'stream-error' }),
-      onPlayRejected: () => report({ type: 'play-failed' }),
-    })
+    liveStarting = true
+    errorDeferred = false
+    try {
+      await source.start(element, url, {
+        onError: () => report({ type: 'stream-error' }),
+        onPlayRejected: () => report({ type: 'play-failed' }),
+      })
+    } finally {
+      // A rejection is reported by the caller as play-failed; the deferred error is dropped.
+      if (generation === current) {
+        liveStarting = false
+        errorDeferred = false
+      }
+    }
     report({ type: 'live-started' })
   }
 
@@ -213,6 +229,12 @@ export function createAudioController({
     if (event.type === 'ended') {
       // Only the end of the welcome audio matters.
       if (state.activeSource === 'intro') followWithLive()
+      return
+    }
+    // While the live stream starts, its error, and the pause of Chromium after it (K1),
+    // wait for the outcome of start(): the C1 retry may still play (K83).
+    if (liveStarting && (event.type === 'error' || (event.type === 'pause' && errorDeferred))) {
+      errorDeferred = true
       return
     }
     if (state.activeSource === 'intro') {
@@ -331,6 +353,8 @@ export function createAudioController({
       if (state.activeSource === 'intro') return
       generation += 1
       pendingPlay = null
+      liveStarting = false
+      errorDeferred = false
       // A load in progress is cancelled: hls.js would play on MANIFEST_PARSED and
       // dashjs on its own (K11).
       if (state.loading) {

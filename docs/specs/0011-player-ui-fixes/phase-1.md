@@ -60,7 +60,9 @@ El botón de Play/Pausa no se desmonta nunca y conserva el foco; la carga se anu
 - Archivos: `player/src/core/audio/audio-controller.ts`, `audio-controller.test.ts`, `docs/known-issues.md`
 - Test: primero: `audio-controller.test.ts`
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/cross-origin.spec.ts tests/e2e/mp3.spec.ts`
-- [ ] hecha · commit: —
+- Rojo: 2/3 en rojo. Sin `pause`: `toMatchObject` tras el `canplay`, `Expected: "idle"`, `Received: "error"`; con la `pause` de Chromium: la secuencia publicada lleva `{error,true}` y `{error,false}` entre `{idle,true}` y `{playing,false}`. El caso del 404 ya pasaba (fija que el fallo doble sigue en `{error,false}`).
+- Hecho: banderas `liveStarting` y `errorDeferred` en el controlador; `pause()` las limpia y `playLive` solo lo hace si su generación sigue vigente. Afecta a toda fuente del directo, no solo a la directa: con `hls.js`/`dashjs` el `error` del elemento durante el `start()` también lo decide su resultado (el fatal de la librería sigue llegando por `stream-error`). e2e de `cross-origin.spec.ts` y `mp3.spec.ts` en verde en Chromium y WebKit (33 pasan, 3 omitidos por proyecto). Sin cambio visible: no hay nota de changelog.
+- [x] hecha · commit: ver `git log` («fix(0011): publish no error while the C1 retry loads (1.4)»)
 
 ### 1.5 K57: los modales devuelven el foco (≤ 1 h)
 - Qué (`fix-bug`): los dos `currently` de K57 pasan a regresión (foco en el botón que abrió el modal) y se añade el cierre con «Close»; quitar `disableRestoreFocus` de los dos `Dialog`. Fila K57 → «corregido».

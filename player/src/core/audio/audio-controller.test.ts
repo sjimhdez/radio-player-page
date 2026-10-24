@@ -871,16 +871,24 @@ describe('currently (docs/known-issues.md)', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
 
-  it('currently publishes an error without loading while the C1 retry loads (K83)', async () => {
-    media.corsBlocked.add(MP3)
-    media.hold = true
-    const { controller, audio } = setup()
+  /**
+   * Records each status and loading the controller publishes, without repeats.
+   */
+  const recordPublished = (controller: ReturnType<typeof setup>['controller']) => {
     const published: Array<{ status: string; loading: boolean }> = []
     controller.subscribe(() => {
       const { status, loading } = controller.getSnapshot()
       const last = published[published.length - 1]
       if (last?.status !== status || last.loading !== loading) published.push({ status, loading })
     })
+    return published
+  }
+
+  it('publishes no error while the C1 retry loads (K83)', async () => {
+    media.corsBlocked.add(MP3)
+    media.hold = true
+    const { controller, audio } = setup()
+    const published = recordPublished(controller)
 
     const playing = controller.play(live())
     // The browser fires the error of the attempt with crossOrigin before play() rejects.
@@ -888,16 +896,55 @@ describe('currently (docs/known-issues.md)', () => {
     await vi.waitFor(() => expect(media.play).toHaveBeenCalledTimes(2))
     // The retry without crossOrigin loads and can play.
     audio.dispatchEvent(new Event('canplay'))
-    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: false })
     media.release()
     await playing
 
     // The Dashboard opens its alert on status 'error' with loading false.
     expect(published).toEqual([
       { status: 'idle', loading: true },
+      { status: 'idle', loading: false },
+      { status: 'playing', loading: false },
+    ])
+  })
+
+  it('publishes no error while the C1 retry loads after the pause of Chromium (K83, K1)', async () => {
+    media.corsBlocked.add(MP3)
+    media.hold = true
+    const { controller, audio } = setup()
+    const published = recordPublished(controller)
+
+    const playing = controller.play(live())
+    // Chromium fires a pause after the error of a failing source (K1).
+    audio.dispatchEvent(new Event('error'))
+    audio.dispatchEvent(new Event('pause'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenCalledTimes(2))
+    audio.dispatchEvent(new Event('canplay'))
+    media.release()
+    await playing
+
+    expect(published).toEqual([
+      { status: 'idle', loading: true },
+      { status: 'idle', loading: false },
+      { status: 'playing', loading: false },
+    ])
+  })
+
+  it('sets error once when the C1 retry fails too, as with a 404 (K83)', async () => {
+    media.failing.add(MP3)
+    const { controller, audio } = setup()
+    const published = recordPublished(controller)
+
+    const playing = controller.play(live())
+    audio.dispatchEvent(new Event('error'))
+    audio.dispatchEvent(new Event('pause'))
+    await playing
+
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(published).toEqual([
+      { status: 'idle', loading: true },
       { status: 'error', loading: true },
       { status: 'error', loading: false },
-      { status: 'playing', loading: false },
     ])
   })
 })
