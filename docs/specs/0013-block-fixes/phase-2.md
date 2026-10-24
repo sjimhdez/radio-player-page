@@ -83,7 +83,9 @@ Los tres bloques pintan encabezados reales `<hN>` (nivel configurable, por defec
 - Archivos: `blocks/now-playing/render.php`, `tests/php/integration/Blocks/BlockAuditTest.php`, `tests/php/integration/snapshots/blocks/now-playing-second-*.html`, `docs/known-issues.md`.
 - Test: regresión (`fix-bug`) + snapshots.
 - Verificación: `npm run test:php:integration -- --filter 'Block(Audit|Render)Test'`
-- [ ] hecha · commit: —
+- Rojo (WP 7.1.3 + PHP 8.4): `test_now_playing_without_player_page_keeps_the_on_air_label` y los 4 casos de `test_does_not_link_to_a_player_page_that_is_not_served` fallan (sale `<strong>Show</strong>` sin «On Air: »). En verde: `BlockAuditTest|BlockRenderTest|BlockDataTest|PlayerPageTest` 108/108; snapshots `now-playing-second-{logo,nologo}.html` regenerados (dentro del contenedor, como dice `Support/Snapshot.php`), el diff solo añade «On Air: ».
+- Changelog: «Now Playing» muestra «On Air:» también cuando la emisora no tiene página del reproductor (o no se sirve).
+- [x] hecha · commit: ver `git log` («fix(0013): keep the on air label without a player page (2.6)»)
 
 ### 2.7 K51: saltos de línea de la descripción extendida (≤ 1 h)
 - Qué: `fix-bug`. `test_currently_extended_description_line_breaks_stay_in_one_paragraph` → `test_extended_description_keeps_its_line_breaks`: en `programs-list` y en `schedule` (con `showExtendedDescription`), un solo `<p class="wp-block-paragraph">` con `Line one<br />\n<br />\nLine two` y el texto escapado (un `&` sale `&amp;`); en rojo. Arreglo: `nl2br( esc_html( … ) )` en los dos `render`. Snapshots: no deben cambiar (el *fixture* no tiene saltos). K51 → corregido.

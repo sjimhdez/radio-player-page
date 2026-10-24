@@ -127,10 +127,10 @@ final class BlockAuditTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K49: without a player page, now playing prints the program name alone; «On Air»
-	 * only lives inside the link.
+	 * K49: now playing prints «On Air: » before the program name with and without a
+	 * player page, as «Coming up: » and the schedule block do.
 	 */
-	public function test_currently_now_playing_without_player_page_drops_the_on_air_label() {
+	public function test_now_playing_without_player_page_keeps_the_on_air_label() {
 		$f       = $this->factory_rpp;
 		$program = $f->program( 'Show' );
 		$linked  = $f->station(
@@ -154,8 +154,8 @@ final class BlockAuditTest extends WP_UnitTestCase {
 				$without_page = self::render( 'now-playing', array( 'stationIndex' => 1 ) );
 
 				$this->assertStringContainsString( 'On Air: <strong>Show</strong>', $with_page );
-				$this->assertStringContainsString( '<strong>Show</strong>', $without_page );
-				$this->assertStringNotContainsString( 'On Air', $without_page );
+				$this->assertStringContainsString( 'On Air: <strong>Show</strong>', $without_page );
+				$this->assertStringNotContainsString( 'href=', $without_page );
 			}
 		);
 	}
@@ -193,7 +193,7 @@ final class BlockAuditTest extends WP_UnitTestCase {
 				$now_playing = self::render( 'now-playing' );
 				$schedule    = self::render( 'schedule' );
 
-				$this->assertStringContainsString( '<strong>Show</strong>', $now_playing );
+				$this->assertStringContainsString( 'On Air: <strong>Show</strong>', $now_playing );
 				$this->assertStringNotContainsString( 'href=', $now_playing );
 				$this->assertStringContainsString( 'Show', $schedule );
 				$this->assertStringNotContainsString( 'href=', $schedule );

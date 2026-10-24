@@ -63,7 +63,7 @@ defined( 'ABSPATH' ) || exit;
 				<?php if ( '' !== $station_page_url ) : ?>
 					<a href="<?php echo esc_url( $station_page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'On Air', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $current['name'] ); ?></strong><?php if ( ! empty( $current['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?></a>
 				<?php else : ?>
-					<strong><?php echo esc_html( $current['name'] ); ?></strong><?php if ( ! empty( $current['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?>
+					<?php esc_html_e( 'On Air', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $current['name'] ); ?></strong><?php if ( ! empty( $current['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?>
 				<?php endif; ?>
 			</h<?php echo (int) $heading_level; ?>>
 			<?php if ( $show_logo && $current['logo_id'] > 0 ) : ?>
