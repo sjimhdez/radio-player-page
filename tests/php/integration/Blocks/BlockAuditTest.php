@@ -267,11 +267,11 @@ final class BlockAuditTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K53: none of the three blocks prints a heading element. Day names, program names
-	 * and «On Air»/«Coming up» are `<header>` elements styled as headings (the schedule
-	 * one with the `wp-block-heading` class), so a screen reader cannot jump between them.
+	 * K53 (fixed in spec 0013): the three blocks print real `<hN>` headings (day names,
+	 * program names and «On Air»/«Coming up») with the same classes, never `<header>`.
+	 * `headingLevel` picks the level (2–6, default 2); any other value falls back to 2.
 	 */
-	public function test_currently_blocks_print_no_heading_elements() {
+	public function test_blocks_print_heading_elements() {
 		$f       = $this->factory_rpp;
 		$program = $f->program( 'Show', array( 'description' => 'About' ) );
 		$next    = $f->program( 'Next' );
@@ -294,10 +294,22 @@ final class BlockAuditTest extends WP_UnitTestCase {
 
 				foreach ( array( 'now-playing', 'schedule', 'programs-list' ) as $name ) {
 					$html = self::render( $name );
-					$this->assertStringContainsString( '<header class="wp-block-', $html, $name );
-					$this->assertDoesNotMatchRegularExpression( '/<h[1-6][\s>]/', $html, $name );
+					$this->assertStringContainsString( '<h2 class="wp-block-', $html, $name );
+					$this->assertStringNotContainsString( '<header', $html, $name );
+					$this->assertDoesNotMatchRegularExpression( '/<h[13-6][\s>]/', $html, $name );
+
+					$html = self::render( $name, array( 'headingLevel' => 4 ) );
+					$this->assertStringContainsString( '<h4 class="wp-block-', $html, $name );
+					$this->assertStringContainsString( '</h4>', $html, $name );
+					$this->assertDoesNotMatchRegularExpression( '/<h[1-35-6][\s>]/', $html, $name );
+
+					foreach ( array( 9, 1 ) as $level ) {
+						$html = self::render( $name, array( 'headingLevel' => $level ) );
+						$this->assertStringContainsString( '<h2 class="wp-block-', $html, $name . ' ' . $level );
+						$this->assertDoesNotMatchRegularExpression( '/<h[13-6][\s>]/', $html, $name . ' ' . $level );
+					}
 				}
-				$this->assertStringContainsString( '<header class="wp-block-heading"', self::render( 'schedule' ) );
+				$this->assertStringContainsString( '<h2 class="wp-block-heading"', self::render( 'schedule' ) );
 			}
 		);
 	}

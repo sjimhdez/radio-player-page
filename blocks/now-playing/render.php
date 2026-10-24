@@ -32,6 +32,8 @@ defined( 'ABSPATH' ) || exit;
 	$station_index = (int) ( $attributes['stationIndex'] ?? 0 );
 	$station_index = $station_id > 0 ? \RadioPlayerPage\Data\Stations::block_index( radplapag_get_stations(), $station_id, $station_index ) : $station_index;
 	$show_logo     = (bool) ( $attributes['showLogo'] ?? true );
+	$heading_level = (int) ( $attributes['headingLevel'] ?? 2 );
+	$heading_level = ( $heading_level >= 2 && $heading_level <= 6 ) ? $heading_level : 2;
 	$now_playing   = radplapag_get_now_playing_for_station( $station_index );
 
 	if ( null === $now_playing || null === $now_playing['current'] ) {
@@ -56,14 +58,14 @@ defined( 'ABSPATH' ) || exit;
 	?>
 	<div <?php echo wp_kses_post( get_block_wrapper_attributes() ); ?>>
 		<article class="wp-block-group" data-program-id="<?php echo esc_attr( $current['id'] ); ?>">
-			<header class="wp-block-title" style="font-size: 1.5rem;">
+			<h<?php echo (int) $heading_level; ?> class="wp-block-title" style="font-size: 1.5rem;">
 				
 				<?php if ( '' !== $station_page_url ) : ?>
 					<a href="<?php echo esc_url( $station_page_url ); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e( 'On Air', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $current['name'] ); ?></strong><?php if ( ! empty( $current['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?></a>
 				<?php else : ?>
 					<strong><?php echo esc_html( $current['name'] ); ?></strong><?php if ( ! empty( $current['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?>
 				<?php endif; ?>
-			</header>
+			</h<?php echo (int) $heading_level; ?>>
 			<?php if ( $show_logo && $current['logo_id'] > 0 ) : ?>
 				<figure class="wp-block-image" style="margin-top: 0.5em;margin-bottom: 0.5em; max-width: 15rem;">
 					<?php if ( '' !== $station_page_url ) : ?>
@@ -101,7 +103,7 @@ defined( 'ABSPATH' ) || exit;
 		</article>
 		<?php if ( null !== $upcoming ) : ?>
 			<article class="wp-block-group" data-program-id="<?php echo esc_attr( $upcoming['id'] ); ?>" style="padding-top: 1em; font-size: 90%;">
-				<header class="wp-block-title" style="font-size: 1.5rem;"><?php esc_html_e( 'Coming up', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $upcoming['name'] ); ?></strong><?php if ( ! empty( $upcoming['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?></header>
+				<h<?php echo (int) $heading_level; ?> class="wp-block-title" style="font-size: 1.5rem;"><?php esc_html_e( 'Coming up', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $upcoming['name'] ); ?></strong><?php if ( ! empty( $upcoming['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?></h<?php echo (int) $heading_level; ?>>
 				<p class="wp-block-paragraph" style="font-size: 90%;">
 					<?php echo esc_html( $upcoming['time_range'] ); ?>
 				</p>

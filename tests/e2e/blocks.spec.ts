@@ -61,7 +61,7 @@ test.describe( 'blocks: front end', () => {
 		expect( [ ...listedIds ].sort() ).toEqual( [ ...programIds ].sort() );
 		for ( const letter of LETTERS ) {
 			await expect(
-				programsList.locator( 'header', {
+				programsList.locator( '.wp-block-title', {
 					hasText: `E2E Program ${ letter }`,
 				} )
 			).toHaveCount( 1 );

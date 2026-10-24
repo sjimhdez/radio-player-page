@@ -29,6 +29,8 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? true );
 	$show_schedule             = (bool) ( $attributes['showSchedule'] ?? true );
+	$heading_level             = (int) ( $attributes['headingLevel'] ?? 2 );
+	$heading_level             = ( $heading_level >= 2 && $heading_level <= 6 ) ? $heading_level : 2;
 	$wrapper_attributes        = get_block_wrapper_attributes();
 
 	$programs = radplapag_get_programs_list_for_station( $station_index );
@@ -54,7 +56,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 
 		$html .= '<article class="wp-block-group"' . ( '' !== $id ? ' data-program-id="' . esc_attr( $id ) . '"' : '' ) . '>';
 
-		$html .= '<header class="wp-block-title" style="font-size:1.5em;">' . esc_html( '' !== $name ? $name : '—' ) . '</header>';
+		$html .= '<h' . $heading_level . ' class="wp-block-title" style="font-size:1.5em;">' . esc_html( '' !== $name ? $name : '—' ) . '</h' . $heading_level . '>';
 
 		if ( $show_image && $logo_id > 0 ) {
 			$img_alt = '' !== $name ? $name : __( 'Radio Show image', 'radio-player-page' );

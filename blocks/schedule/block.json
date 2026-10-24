@@ -28,6 +28,10 @@
     "showExtendedDescription": {
       "type": "boolean",
       "default": false
+    },
+    "headingLevel": {
+      "type": "number",
+      "default": 2
     }
   },
   "supports": {

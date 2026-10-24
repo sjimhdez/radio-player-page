@@ -28,6 +28,8 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) { // p
 	$day_order                 = ( $attributes['dayOrder'] ?? '' ) === 'natural' ? 'natural' : 'current_first';
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? false );
+	$heading_level             = (int) ( $attributes['headingLevel'] ?? 2 );
+	$heading_level             = ( $heading_level >= 2 && $heading_level <= 6 ) ? $heading_level : 2;
 	$data                      = radplapag_get_schedule_for_station( $station_index, $day_order );
 	$wrapper_attributes        = get_block_wrapper_attributes();
 
@@ -67,7 +69,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) { // p
 		$day_key = (string) ( $day_data['day_key'] ?? '' );
 		$label   = (string) ( $day_data['label'] ?? $day_key );
 		$html   .= '<section class="wp-block-group" data-day="' . esc_attr( $day_key ) . '">';
-		$html   .= '<header class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</header>';
+		$html   .= '<h' . $heading_level . ' class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</h' . $heading_level . '>';
 		$html   .= '<ul class="wp-block-list">';
 
 		foreach ( $slots as $slot ) {

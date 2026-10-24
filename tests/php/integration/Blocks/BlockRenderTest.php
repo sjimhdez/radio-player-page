@@ -493,6 +493,10 @@ final class BlockRenderTest extends WP_UnitTestCase {
 						'type'    => 'boolean',
 						'default' => false,
 					),
+					'headingLevel'            => array(
+						'type'    => 'number',
+						'default' => 2,
+					),
 				),
 			),
 			'programs-list' => array(
@@ -522,6 +526,10 @@ final class BlockRenderTest extends WP_UnitTestCase {
 						'type'    => 'boolean',
 						'default' => true,
 					),
+					'headingLevel'            => array(
+						'type'    => 'number',
+						'default' => 2,
+					),
 				),
 			),
 			'now-playing'   => array(
@@ -538,6 +546,10 @@ final class BlockRenderTest extends WP_UnitTestCase {
 					'showLogo'     => array(
 						'type'    => 'boolean',
 						'default' => true,
+					),
+					'headingLevel' => array(
+						'type'    => 'number',
+						'default' => 2,
 					),
 				),
 			),
