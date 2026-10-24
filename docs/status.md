@@ -1,12 +1,12 @@
 # Estado
-Spec activa: 0011 — Correcciones: interfaz, i18n y accesibilidad del player · Fase: 1 por planificar · Plan: — · Actualizado: 2026-10-24
+Spec activa: 0011 — Correcciones: interfaz, i18n y accesibilidad del player · Fase: 1 en curso · Plan: [phase-1.md](specs/0011-player-ui-fixes/phase-1.md) · Actualizado: 2026-10-24
 
 ## En curso
-- Spec 0011 escrita el 2026-10-24 ([spec](specs/0011-player-ui-fixes/spec.md), rama `spec/0011-player-ui-fixes`, sin push): tres fases (foco, estado y error con K83; idioma y textos; maqueta y movimiento) y los ADRs 0050 y 0051 previstos.
+- Spec 0011, fase 1 (foco, estado y error) empezada el 2026-10-24 ([spec](specs/0011-player-ui-fixes/spec.md), [plan](specs/0011-player-ui-fixes/phase-1.md), PR en borrador contra `trunk`): seis tareas (escenarios de axe, ADR 0051, K56 + AX6 + K59, K83, K57, K58). Decisiones del usuario en el plan: altas de la línea base, excepción ampliada de `mp3.spec.ts` (132 y 250–254), *tooltip* aceptado al devolver el foco y secuencia de K83 `idle/loading → idle → playing`.
 - Spec 0013 cerrada y fusionada en `trunk` (PR #45, 2026-10-24): cierra la pista de WordPress.
 
 ## Siguiente (máx. 5)
-1. Sesión nueva → `start-phase` de la fase 1 de la 0011 (primer push y PR en borrador contra `trunk`).
+1. Tarea 1.1 de la fase 1 de la 0011 (escenarios `player · loading` y `player · all-programs modal expanded` en la línea base de axe).
 2. Tras la 0011, la spec de la release (depende de todas).
 3. Antes de la release: `wp-security-reviewer` y `wporg-reviewer` sobre el diff de la 0008 (SQL directo de `Migration_Lock`, riesgo 3, y el aviso `is-dismissible`, cuya X solo lo oculta hasta la carga siguiente); `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0009 (meta box y su aviso, validación del horario, `timezone` impreso, reloj en `±H:MM`); y `backcompat-reviewer`, `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0010 (fase 1: foco del editor de franjas, `Slot_Validator`; fase 2: `fieldset`/`legend`, etiquetas, ARIA de los errores y foco, y si los errores de `focusout` necesitan `aria-live`, WCAG 4.1.3; fase 3: guardado campo a campo, `redirect_post_location`, avisos de C13, K36 y K27, estos dos sin `aria-describedby`). Y `backcompat-reviewer`, `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` sobre el de la 0013 (fase 1: `stationId` en los `block.json`, `query_vars['rest_route']` en `now-playing/render.php`, `Notice` y ayuda del selector en el editor; fase 2: `<hN>` en lugar de `<header>` y `headingLevel`, `SelectControl` «Heading level», `WP\Player_Page::url()`, `nl2br( esc_html() )`, «On Air: » sin enlace). No se pasaron al cerrarlas (decisión del usuario). Y el changelog y `== Upgrade Notice ==` de `readme.txt` con lo de la 0009, la 0010 y la 0013 (lista en la nota de release de `docs/specs/README.md`).
 
