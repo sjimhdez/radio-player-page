@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useCallback, useRef, useState, useEffect } from 'react'
 import Stack from '@mui/material/Stack'
 import Box from '@mui/material/Box'
 import Snackbar from '@mui/material/Snackbar'
@@ -69,8 +69,12 @@ const Dashboard = () => {
   const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
+  // Focus targets when the sleep timer goes away (known-issues.md K58)
+  const playButtonRef = useRef<HTMLButtonElement>(null)
+  const sleepModeRef = useRef<HTMLButtonElement>(null)
+  const sleepTimerRef = useRef<HTMLDivElement>(null)
 
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const hasSchedule = Boolean(
     config.schedule &&
     (config.schedule.monday?.length ||
@@ -102,8 +106,20 @@ const Dashboard = () => {
   // Configure Media Session API for lock screen
   useMediaSession(config.siteTitle, config.logoImage || '', play, pause, status)
 
-  // Sleep timer: pauses playback when the countdown runs out
-  const sleepTimer = useSleepTimer(status === 'playing', pause)
+  // Sleep timer: pauses playback when the countdown runs out. Its display unmounts
+  // then, so if it held the focus the focus goes to Play (known-issues.md K58)
+  const handleSleepEnd = useCallback(() => {
+    const hadFocus = sleepTimerRef.current?.contains(document.activeElement) ?? false
+    pause()
+    if (hadFocus) playButtonRef.current?.focus()
+  }, [pause])
+  const sleepTimer = useSleepTimer(status === 'playing', handleSleepEnd)
+
+  // Cancelling unmounts the cancel button: the focus goes to "Sleep mode" (K58)
+  const handleSleepCancel = () => {
+    sleepTimer.cancel()
+    sleepModeRef.current?.focus()
+  }
 
   // Load visualizer asynchronously (code splitting)
   useEffect(() => {
@@ -178,6 +194,7 @@ const Dashboard = () => {
 
   return (
     <Stack
+      lang={i18n.resolvedLanguage}
       sx={{
         justifyContent: 'center',
         alignItems: 'center',
@@ -190,7 +207,7 @@ const Dashboard = () => {
         <Box
           component="img"
           src={config.backgroundImage}
-          alt="Background"
+          alt=""
           sx={{
             position: 'absolute',
             top: 0,
@@ -240,7 +257,11 @@ const Dashboard = () => {
         }}
       >
         {sleepTimer.remainingSeconds !== null && (
-          <SleepTimer remainingSeconds={sleepTimer.remainingSeconds} onCancel={sleepTimer.cancel} />
+          <SleepTimer
+            ref={sleepTimerRef}
+            remainingSeconds={sleepTimer.remainingSeconds}
+            onCancel={handleSleepCancel}
+          />
         )}
         <Box
           sx={{
@@ -281,6 +302,7 @@ const Dashboard = () => {
             <Box />
           )}
           <PlayerControls
+            ref={playButtonRef}
             status={status}
             loading={loading}
             disabled={introLocked}
@@ -288,6 +310,7 @@ const Dashboard = () => {
             onPause={pause}
           />
           <SleepMode
+            ref={sleepModeRef}
             isPlaying={status === 'playing' && !introLocked}
             onSelect={(minutes) => sleepTimer.start(minutes * 60)}
           />

@@ -1,6 +1,6 @@
 # ADR 0025 — El idioma del reproductor es el del sitio
 
-- Estado: aceptado · Fecha: 2026-10-18 · Spec: 0002 (fase 5)
+- Estado: aceptado; completado por [ADR 0050](0050-player-resolves-base-language-and-marks-its-own.md) (idioma base, sin detector ni `localStorage`, `lang` del player) · Fecha: 2026-10-18 · Spec: 0002 (fase 5)
 
 ## Contexto
 `SPEC.md` §3.8 decía que el reproductor detecta el idioma en este orden: `lang` del `<html>` → `localStorage` → navegador, con reserva `en-US`. La auditoría (K55 en `docs/known-issues.md`) midió otra cosa en la 3.4.2: la página limpia **siempre** imprime `lang` con el idioma del sitio (`SPEC.md` §3.3) y i18next (`player/src/config/i18n.ts`, `order: ['htmlTag', 'localStorage', 'navigator']`) se queda con el primero que encuentra, así que `localStorage` y el navegador nunca se alcanzan. Con un idioma del sitio sin traducción (`eu`, `fr-FR`, `ja`…) el player sale en inglés, la reserva, aunque el navegador esté en un idioma que sí tiene traducción. Medido en Chromium y WebKit (`tests/e2e/i18n.spec.ts`, `currently never uses the browser language…`).

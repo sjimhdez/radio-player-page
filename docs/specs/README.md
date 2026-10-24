@@ -18,7 +18,7 @@
 | 0008 | [Correcciones: migración, actualización, núcleo PHP y desinstalación](0008-migration-and-core-fixes/spec.md) | cerrada (PR #42) | `spec/0008-migration-and-core-fixes` | 0005 |
 | 0009 | [Correcciones: horario y programa en antena](0009-schedule-model/spec.md) | cerrada (PR #43) | `spec/0009-schedule-model` | 0005, 0006 |
 | 0010 | [Correcciones: admin](0010-admin-fixes/spec.md) | cerrada (PR #44) | `spec/0010-admin-fixes` | 0005, 0009 |
-| 0011 | Correcciones: interfaz, i18n y accesibilidad del player | pendiente de escribir | — | 0006, 0007 |
+| 0011 | [Correcciones: interfaz, i18n y accesibilidad del player](0011-player-ui-fixes/spec.md) | en curso | `spec/0011-player-ui-fixes` | 0006, 0007 |
 | 0012 | ~~Correcciones: núcleo PHP y desinstalación~~: fusionada en la 0008 (comparten `uninstall.php` y `SPEC.md` §3.7; usuario, 2026-10-22) | fusionada | — | — |
 | 0013 | [Correcciones: bloques](0013-block-fixes/spec.md) | cerrada (PR #45) | `spec/0013-block-fixes` | 0009, 0010 |
 | último | Release | pendiente de escribir | — | todas |
@@ -67,19 +67,10 @@ Se escribirán con `write-spec`. Estas notas son el punto de partida, no la spec
 
 - **Dónde queda cada corrección de WordPress tras la 0005:** la lógica pura vive en `RadioPlayerPage\` (`includes/src/`, ADR 0028) y las funciones `radplapag_*` son envoltorios que no cambian de firma. Una corrección va en el núcleo, con su test unitario (el `test_currently_*` del núcleo pasa a regresión junto al de integración), y el envoltorio solo cambia si cambia lo que lee o escribe en WordPress. La columna de archivo de `known-issues.md` apunta a los dos.
 - **Dónde queda cada corrección del player tras la 0006:** la lógica vive en `player/src/core/` (sin React ni MUI, ADR 0029) y los hooks son adaptadores con la misma firma. Una corrección va en el núcleo, con su test (el `currently` del núcleo pasa a regresión junto al del hook o el e2e), y el hook o el componente solo cambian si cambia lo que pintan. La columna de archivo de `known-issues.md` apunta a los dos.
-  - **0011:** la interfaz sigue en los componentes de `components/dashboard/` (C6, C15, K56–K61, K69, AX1, AX2, AX6), que solo pintan; i18n en `config/i18n.ts` (K55, K62, K68). El error visible es un valor derivado en `Dashboard` y el foco al cancelar el sueño (K58), en `SleepTimer.tsx` e `index.tsx`.
 - **Correcciones (0007–0013), comunes a todas:**
   - cada fila se corrige con `fix-bug`: el test `currently` pasa a test de regresión en rojo y luego a verde; la fila de `known-issues.md` pasa a «corregido (versión)»;
   - la prioridad de cada fila (alta · media · baja) ordena las fases; los motivos y el detalle de cada decisión están en la columna «Decisión del usuario» de `known-issues.md`;
   - una decisión que cambie `SPEC.md` o un ADR lleva su ADR en la spec que la corrige (se indica abajo).
-- **0011 Interfaz, i18n y accesibilidad del player** (tras la 0006 y la 0007, que fija los estados del audio):
-  - la maqueta se rehace en flujo (K61, AX1, `100vh` de iOS, región de estado de K59/AX6), no se parchea; parte del valor único de la 0007 que elige entre visualizador y animación estática (ADR 0031);
-  - estados del audio que pinta, fijados por la 0007 (ADR 0034): `status`, `loading`, `introLocked`, `canVisualize` y `volumeControllable` de la instantánea del controlador. El error visible es `status === 'error'` sin `loading`; «Sleep mode» está deshabilitado mientras `introLocked` (ADR 0035); el deslizador de volumen sale de `volumeControllable` (ADR 0036). K83 (durante el reintento de C1 se publica `error` sin `loading`) sigue pendiente de asignar: si va aquí, antes de volver a `useSyncExternalStore` (ADR 0030);
-  - primera tarea: los escenarios de carga y de programa expandido entran en la línea base de `a11y.spec.ts` (hueco de `withRules()`, ADR 0023), antes de AX6 y AX2;
-  - alta: K56 (botón estable que cambia de estado);
-  - media: C15 (el canvas no se toca, zona congelada), K57, K59 y AX6 (juntas, región `role="status"`), K60, K68 (al tocarla, quitar `localStorage` y `navigator` del detector de i18next: con `supportedLngs` el navegador ganaría a un idioma del sitio sin traducción, contra el ADR 0025; y corregir el comentario de `player/src/config/i18n.ts`, si la 0006 no lo hizo);
-  - baja: C6, K58, K61 (con capturas antes y después, junto al `100vh` de iOS), K62, K69, AX1, AX2 (K71 ya lo corrigió la 0003);
-  - K55 no se corrige (manda el idioma del sitio, ADR 0025), pero su test `currently` pasa aquí a test normal.
 - **Fuera de las correcciones:** C8 (sin reconexión automática) se replica, mejora futura; C5, K4, K19, K22, K35, K40 y la sospecha del `exit` en `template_redirect` (ADR 0008): no arreglar (motivos en `known-issues.md`).
 - **Release:**
   - Plugin Check sobre el zip, la checklist de las guidelines y la matriz PHP 7.4/8.4 × WP 6.6/última;

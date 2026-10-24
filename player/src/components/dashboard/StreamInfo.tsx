@@ -31,7 +31,7 @@ interface StreamInfoProps {
  * - Displays station logo (if logoImage prop is provided)
  * - Shows station title
  * - Shows active program name and time range if schedule is configured
- * - Shows "connecting" message when loading and not playing
+ * - Shows "connecting" message when loading and not playing, in a status region
  * - Shows animated dot indicator when playing but visualization is not available
  *   (e.g., Safari with cross-origin audio due to CORS restrictions)
  * - Automatically adjusts vertical position based on visualization availability
@@ -96,7 +96,7 @@ const StreamInfo = ({
         <Box
           component="img"
           src={logoImage}
-          alt="Logo"
+          alt={t('dashboard.stationLogo', { name: title })}
           sx={{
             width: 75,
             height: 75,
@@ -155,11 +155,7 @@ const StreamInfo = ({
                     marginBottom: { xs: 0, sm: '8px' },
                   }}
                 >
-                  <Avatar
-                    src={currentProgram.programLogoUrl}
-                    alt="{currentProgram.programName}"
-                    aria-hidden
-                  />
+                  <Avatar src={currentProgram.programLogoUrl} alt="" aria-hidden />
                 </Box>
               )}
 
@@ -249,27 +245,28 @@ const StreamInfo = ({
                 lineHeight: 1,
               }}
             >
-              {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
+              {t('dashboard.upcomingInMinutes', { count: upcomingProgram.minutesUntil })}{' '}
               {upcomingProgram.timeRange}
             </Typography>
           </Stack>
         )}
       </Stack>
-      {/* Show connecting message when loading but not yet playing */}
-      {loading && !isPlaying && (
-        <Typography
-          component="p"
-          variant="h5"
-          sx={{
-            textWrap: 'balance',
-            hyphens: 'auto',
-            animation: 'blink 2s infinite',
-            '@keyframes blink': { '0%, 100%': { opacity: 0 }, '50%': { opacity: 1 } },
-          }}
-        >
-          {t('dashboard.connecting')}
-        </Typography>
-      )}
+      {/* Status region, always mounted so that the connecting message is
+          announced (ADR 0051); when empty, it gives the Stack gap back */}
+      <Typography
+        role="status"
+        component="p"
+        variant="h5"
+        sx={{
+          textWrap: 'balance',
+          hyphens: 'auto',
+          animation: 'blink 2s infinite',
+          '@keyframes blink': { '0%, 100%': { opacity: 0 }, '50%': { opacity: 1 } },
+          '&:empty': { mt: -1, animation: 'none' },
+        }}
+      >
+        {loading && !isPlaying ? t('dashboard.connecting') : null}
+      </Typography>
 
       {/* Animated playing indicator when playing but visualization is not available
           (e.g., Safari with cross-origin audio due to CORS restrictions) */}

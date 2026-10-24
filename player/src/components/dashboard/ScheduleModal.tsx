@@ -190,7 +190,6 @@ const ScheduleModal = ({ open, onClose }: ScheduleModalProps) => {
       onClose={onClose}
       maxWidth="xs"
       fullWidth
-      disableRestoreFocus
       slotProps={{
         transition: {
           onEntered: scrollToActiveProgram,

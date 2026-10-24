@@ -443,6 +443,19 @@ describe('HLS', () => {
     expect(controller.getSnapshot().status).toBe('playing')
   })
 
+  // docs/known-issues.md K83: an error of the element while start() is pending waits for
+  // its outcome, with any live source; the fatal hls.js error still sets error.
+  it('drops an error of the element while hls.js starts (K83)', async () => {
+    const hls = createFakeHls()
+    const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
+    const playing = controller.play(live(HLS))
+    audio.dispatchEvent(new Event('error'))
+    await playing
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: true })
+    audio.dispatchEvent(new Event('error'))
+    expect(controller.getSnapshot().status).toBe('error')
+  })
+
   // docs/known-issues.md C7 and K12: the reload no longer depends on comparing
   // audio.src with a blob: URL (spec 0007, ADR 0032).
   it('recreates hls.js to return to the live edge (C7)', async () => {
@@ -505,6 +518,18 @@ describe('DASH', () => {
     await controller.play(live(DASH))
     dash.players[0].handlers.error({ error: { code: 17 } })
     expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+  })
+
+  // docs/known-issues.md K83, as with hls.js.
+  it('drops an error of the element while dashjs starts (K83)', async () => {
+    const dash = createFakeDash()
+    const { controller, audio } = setup({ loaders: { loadDash: dash.loadDash } })
+    const playing = controller.play(live(DASH))
+    audio.dispatchEvent(new Event('error'))
+    await playing
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: true })
+    audio.dispatchEvent(new Event('error'))
+    expect(controller.getSnapshot().status).toBe('error')
   })
 
   // docs/known-issues.md C7 (spec 0007, ADR 0032).
@@ -737,6 +762,83 @@ describe('streams without CORS (C1)', () => {
     expect(audio.crossOrigin).toBe('anonymous')
     expect(controller.getSnapshot().status).toBe('error')
   })
+
+  /**
+   * Records each status and loading the controller publishes, without repeats.
+   */
+  const recordPublished = (controller: ReturnType<typeof setup>['controller']) => {
+    const published: Array<{ status: string; loading: boolean }> = []
+    controller.subscribe(() => {
+      const { status, loading } = controller.getSnapshot()
+      const last = published[published.length - 1]
+      if (last?.status !== status || last.loading !== loading) published.push({ status, loading })
+    })
+    return published
+  }
+
+  it('publishes no error while the C1 retry loads (K83)', async () => {
+    media.corsBlocked.add(MP3)
+    media.hold = true
+    const { controller, audio } = setup()
+    const published = recordPublished(controller)
+
+    const playing = controller.play(live())
+    // The browser fires the error of the attempt with crossOrigin before play() rejects.
+    audio.dispatchEvent(new Event('error'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenCalledTimes(2))
+    // The retry without crossOrigin loads and can play.
+    audio.dispatchEvent(new Event('canplay'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'idle', loading: false })
+    media.release()
+    await playing
+
+    // The Dashboard opens its alert on status 'error' with loading false.
+    expect(published).toEqual([
+      { status: 'idle', loading: true },
+      { status: 'idle', loading: false },
+      { status: 'playing', loading: false },
+    ])
+  })
+
+  it('publishes no error while the C1 retry loads after the pause of Chromium (K83, K1)', async () => {
+    media.corsBlocked.add(MP3)
+    media.hold = true
+    const { controller, audio } = setup()
+    const published = recordPublished(controller)
+
+    const playing = controller.play(live())
+    // Chromium fires a pause after the error of a failing source (K1).
+    audio.dispatchEvent(new Event('error'))
+    audio.dispatchEvent(new Event('pause'))
+    await vi.waitFor(() => expect(media.play).toHaveBeenCalledTimes(2))
+    audio.dispatchEvent(new Event('canplay'))
+    media.release()
+    await playing
+
+    expect(published).toEqual([
+      { status: 'idle', loading: true },
+      { status: 'idle', loading: false },
+      { status: 'playing', loading: false },
+    ])
+  })
+
+  it('sets error once when the C1 retry fails too, as with a 404 (K83)', async () => {
+    media.failing.add(MP3)
+    const { controller, audio } = setup()
+    const published = recordPublished(controller)
+
+    const playing = controller.play(live())
+    audio.dispatchEvent(new Event('error'))
+    audio.dispatchEvent(new Event('pause'))
+    await playing
+
+    expect(media.play).toHaveBeenCalledTimes(2)
+    expect(published).toEqual([
+      { status: 'idle', loading: true },
+      { status: 'error', loading: true },
+      { status: 'error', loading: false },
+    ])
+  })
 })
 
 describe('currently (docs/known-issues.md)', () => {
@@ -869,36 +971,6 @@ describe('currently (docs/known-issues.md)', () => {
     audio.dispatchEvent(new Event('canplay'))
     // Play replaces the spinner.
     expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
-  })
-
-  it('currently publishes an error without loading while the C1 retry loads (K83)', async () => {
-    media.corsBlocked.add(MP3)
-    media.hold = true
-    const { controller, audio } = setup()
-    const published: Array<{ status: string; loading: boolean }> = []
-    controller.subscribe(() => {
-      const { status, loading } = controller.getSnapshot()
-      const last = published[published.length - 1]
-      if (last?.status !== status || last.loading !== loading) published.push({ status, loading })
-    })
-
-    const playing = controller.play(live())
-    // The browser fires the error of the attempt with crossOrigin before play() rejects.
-    audio.dispatchEvent(new Event('error'))
-    await vi.waitFor(() => expect(media.play).toHaveBeenCalledTimes(2))
-    // The retry without crossOrigin loads and can play.
-    audio.dispatchEvent(new Event('canplay'))
-    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
-    media.release()
-    await playing
-
-    // The Dashboard opens its alert on status 'error' with loading false.
-    expect(published).toEqual([
-      { status: 'idle', loading: true },
-      { status: 'error', loading: true },
-      { status: 'error', loading: false },
-      { status: 'playing', loading: false },
-    ])
   })
 })
 

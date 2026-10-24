@@ -175,6 +175,29 @@ test.describe( 'a11y: player', () => {
 		await expectNoNewViolations( page, testInfo, 'player · playing' );
 	} );
 
+	// Gap of the zone 5 audit (4.6): the loading state, with the stream held
+	// back so that it lasts.
+	test( 'loading', async ( { page }, testInfo ) => {
+		let release = () => {};
+		const held = new Promise< void >( ( done ) => ( release = done ) );
+		await page.route( '**/tone.mp3', async ( route ) => {
+			await held;
+			await route.continue().catch( () => {} );
+		} );
+		await openPlayer( page );
+		await page.getByRole( 'button', { name: 'Play' } ).click();
+		await expect(
+			page.getByRole( 'button', { name: 'Pause' } )
+		).toHaveAttribute( 'aria-busy', 'true' );
+		// The button stays under the mouse (K56), so its tooltip opens, as in
+		// `playing`: wait for it so the scenario does not depend on timing.
+		await expect( page.getByRole( 'tooltip' ) ).toBeVisible();
+
+		await expectNoNewViolations( page, testInfo, 'player · loading' );
+
+		release();
+	} );
+
 	test( 'schedule modal', async ( { page }, testInfo ) => {
 		await openPlayer( page );
 		await page.getByRole( 'button', { name: 'Radio Schedule' } ).click();
@@ -199,8 +222,31 @@ test.describe( 'a11y: player', () => {
 		);
 	} );
 
+	// Gap of the zone 5 audit (4.6): a program expanded with "Show more", on
+	// the station whose programs have extended descriptions and slots.
+	test( 'all-programs modal expanded', async ( { page }, testInfo ) => {
+		await page.goto( readSeed().urls.always );
+		await page.getByRole( 'button', { name: 'Radio Shows' } ).click();
+		const dialog = page.getByRole( 'dialog' );
+		await expect( dialog ).toBeVisible();
+		await dialog
+			.getByRole( 'button', { name: 'Show more' } )
+			.first()
+			.click();
+		// axe could measure the program mid-transition: wait for the Collapse.
+		await expect( dialog.locator( '.MuiCollapse-entered' ) ).toHaveCount(
+			1
+		);
+
+		await expectNoNewViolations(
+			page,
+			testInfo,
+			'player · all-programs modal expanded'
+		);
+	} );
+
 	// axe does not judge whether an `alt` is meaningful or translated.
-	test( 'currently uses literal, untranslated alt texts and a broken one on the program avatar (C15)', async ( {
+	test( 'gives the station logo a translated alt and leaves the decorative images empty (C15)', async ( {
 		page,
 	} ) => {
 		await openPlayer( page );
@@ -210,12 +256,8 @@ test.describe( 'a11y: player', () => {
 			.evaluateAll( ( images ) =>
 				images.map( ( image ) => image.getAttribute( 'alt' ) )
 			);
-		expect( alts ).toEqual(
-			expect.arrayContaining( [
-				'Background',
-				'Logo',
-				'{currentProgram.programName}',
-			] )
+		expect( alts.sort() ).toEqual(
+			[ '', '', `${ await page.title() } logo` ].sort()
 		);
 	} );
 } );

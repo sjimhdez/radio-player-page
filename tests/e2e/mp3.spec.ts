@@ -129,7 +129,9 @@ test( 'stays paused without an error when the system pauses the loading MP3 (K81
 	await page.goto( readSeed().urls.live );
 
 	await page.getByRole( 'button', { name: 'Play' } ).click();
-	await expect( page.getByRole( 'progressbar' ) ).toBeVisible();
+	await expect(
+		page.getByRole( 'button', { name: 'Pause' } )
+	).toHaveAttribute( 'aria-busy', 'true' );
 	await page.evaluate( () => {
 		const { mediaSessionHandlers } = window as unknown as {
 			mediaSessionHandlers: Partial<
@@ -240,18 +242,14 @@ test( 'currently stays stalled without reconnecting when the stream is cut (C8)'
 	expect( state.currentTime ).toBeGreaterThan( bufferedEnd - 0.1 );
 	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
 
-	// The UI: Chromium fires `waiting` and shows the spinner; WebKit only
-	// fires `stalled` and keeps the Pause button.
-	if ( browserName === 'webkit' ) {
-		await expect(
-			page.getByRole( 'button', { name: 'Pause' } )
-		).toBeVisible();
-	} else {
-		await expect( page.getByRole( 'progressbar' ) ).toBeVisible();
-		await expect(
-			page.getByRole( 'button', { name: /^(Play|Pause)$/ } )
-		).toHaveCount( 0 );
-	}
+	// The UI: Chromium fires `waiting` and marks the Pause button busy; WebKit
+	// only fires `stalled` and keeps it idle.
+	await expect(
+		page.getByRole( 'button', { name: 'Pause' } )
+	).toHaveAttribute(
+		'aria-busy',
+		browserName === 'webkit' ? 'false' : 'true'
+	);
 } );
 
 test( 'currently stops with a network error and the play error, without reconnecting, when the stream is cut in WebKitGTK (C8)', async ( {

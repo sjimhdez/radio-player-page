@@ -27,6 +27,10 @@ function flatten(messages: Messages, prefix = ''): Record<string, unknown> {
   )
 }
 
+function withoutPluralSuffix(keys: string[]): string[] {
+  return [...new Set(keys.map((key) => key.replace(/_(zero|one|two|few|many|other)$/, '')))].sort()
+}
+
 function placeholders(message: unknown): string[] {
   return (String(message).match(/\{\{[^}]+\}\}/g) ?? []).sort()
 }
@@ -63,14 +67,40 @@ describe('locale files', () => {
   it.each(others)('%s has exactly the keys of en-US', (locale) => {
     const messages = flatten(locales[locale])
 
-    expect(Object.keys(messages).sort()).toEqual(Object.keys(reference).sort())
+    expect(withoutPluralSuffix(Object.keys(messages))).toEqual(
+      withoutPluralSuffix(Object.keys(reference)),
+    )
   })
+
+  it.each(Object.keys(locales))(
+    '%s has exactly the plural forms of its language in upcomingInMinutes',
+    (locale) => {
+      const messages = flatten(locales[locale])
+      const prefix = 'dashboard.upcomingInMinutes_'
+      const forms = Object.keys(messages)
+        .filter((key) => key.startsWith(prefix))
+        .map((key) => key.slice(prefix.length))
+
+      expect(forms.sort()).toEqual(
+        [...new Intl.PluralRules(locale).resolvedOptions().pluralCategories].sort(),
+      )
+      for (const form of forms) {
+        expect(placeholders(messages[`${prefix}${form}`]), form).toEqual(['{{count}}'])
+      }
+    },
+  )
 
   it.each(others)('%s has only non-empty string messages', (locale) => {
     for (const [key, message] of Object.entries(flatten(locales[locale]))) {
       expect(typeof message, key).toBe('string')
       expect(message, key).not.toBe('')
     }
+  })
+
+  it.each(others)('%s translates the station logo alt (C15)', (locale) => {
+    expect(flatten(locales[locale])['dashboard.stationLogo']).not.toBe(
+      reference['dashboard.stationLogo'],
+    )
   })
 
   it.each(others)('%s keeps the {{…}} placeholders of en-US', (locale) => {
@@ -98,8 +128,14 @@ describe('i18n resources', () => {
     expect(i18n.getResourceBundle('it_IT', 'translation')).toEqual(locales['it-IT'])
   })
 
-  it('falls back to en-US', () => {
-    expect(i18n.options.fallbackLng).toEqual(['en-US'])
+  it('falls back to en-US', async () => {
+    expect((i18n.options.fallbackLng as Record<string, string[]>).default).toEqual(['en-US'])
+
+    await i18n.changeLanguage('eu')
+
+    expect(i18n.t('dashboard.play')).toBe('Play')
+
+    await i18n.changeLanguage('en-US')
   })
 })
 
@@ -109,14 +145,19 @@ describe('language resolution (K68, K69)', () => {
     await i18n.changeLanguage('en-US')
   })
 
-  it.each(['de-AT', 'de-CH', 'pt-PT', 'nl-BE', 'sv', 'ru'])(
-    'currently shows %s in English: only region-qualified resources exist (K68)',
-    async (language) => {
-      await i18n.changeLanguage(language)
+  it.each([
+    ['de-AT', 'de-DE'],
+    ['de-CH', 'de-DE'],
+    ['pt-PT', 'pt-BR'],
+    ['nl-BE', 'nl-NL'],
+    ['sv', 'sv-SE'],
+    ['ru', 'ru-RU'],
+  ])('shows %s in its base language through the %s resources (K68)', async (language, resource) => {
+    await i18n.changeLanguage(language)
 
-      expect(i18n.t('dashboard.play')).toBe('Play')
-    },
-  )
+    expect(i18n.t('dashboard.play')).toBe(flatten(locales[resource])['dashboard.play'])
+    expect(i18n.resolvedLanguage).toBe(resource)
+  })
 
   it('still finds Spanish for es-AR through the base es resources', async () => {
     await i18n.changeLanguage('es-AR')
@@ -124,7 +165,8 @@ describe('language resolution (K68, K69)', () => {
     expect(i18n.t('dashboard.play')).toBe('Reproducir')
   })
 
-  it('currently says "1 minutes": the countdown has no plural forms (K69)', () => {
-    expect(i18n.t('dashboard.upcomingInMinutes', { minutes: 1 })).toBe('(in 1 minutes)')
+  it('says "1 minute" with the plural forms of the language (K69)', () => {
+    expect(i18n.t('dashboard.upcomingInMinutes', { count: 1 })).toBe('(in 1 minute)')
+    expect(i18n.t('dashboard.upcomingInMinutes', { count: 5 })).toBe('(in 5 minutes)')
   })
 })

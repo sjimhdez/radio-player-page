@@ -304,14 +304,24 @@ const palettes: Record<string, PaletteOptions> = {
  *
  * All themes use dark mode with black background
  *
+ * Dialogs, popovers (menus) and tooltips are portals in `body`, outside the
+ * player's root, so each one carries the player's language itself (K62).
+ *
  * @param colorMode - Color mode name (defaults to 'neutral' if invalid or undefined)
+ * @param lang - Language the player shows, as BCP 47 (omitted: no `lang`)
  * @returns Material-UI Theme object
  */
-export const getTheme = (colorMode: string = 'neutral'): Theme => {
+export const getTheme = (colorMode: string = 'neutral', lang?: string): Theme => {
   const selectedPalette = palettes[colorMode] || palettes.neutral
 
   return createTheme({
     ...baseThemeOptions,
+    components: {
+      ...baseThemeOptions.components,
+      MuiDialog: { defaultProps: { lang } },
+      MuiPopover: { defaultProps: { lang } },
+      MuiTooltip: { defaultProps: { slotProps: { popper: { lang } } } },
+    },
     palette: selectedPalette,
   })
 }

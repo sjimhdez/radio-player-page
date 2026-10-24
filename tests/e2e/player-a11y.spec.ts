@@ -40,7 +40,7 @@ async function playWithKeyboard( page: Page ) {
 	await playing;
 }
 
-test( 'currently loses the focus when Play turns into the loading spinner (K56)', async ( {
+test( 'keeps the focus on the button when Play turns into Pause (K56)', async ( {
 	page,
 } ) => {
 	await page.goto( readSeed().urls.live );
@@ -48,10 +48,10 @@ test( 'currently loses the focus when Play turns into the loading spinner (K56)'
 	await playWithKeyboard( page );
 
 	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
-	expect( await focused( page ) ).toBe( 'BODY' );
+	expect( await focused( page ) ).toBe( 'BUTTON:Pause' );
 } );
 
-test( 'currently gives the loading spinner no name and does not announce "Connecting..." (AX6, K59)', async ( {
+test( 'names no progressbar and announces "Connecting..." in a status region (AX6, K59)', async ( {
 	page,
 } ) => {
 	// Hold the stream back so the loading state lasts.
@@ -62,41 +62,54 @@ test( 'currently gives the loading spinner no name and does not announce "Connec
 		await route.continue().catch( () => {} );
 	} );
 	await page.goto( readSeed().urls.live );
+	// The status region is there before anything changes, so that screen
+	// readers pick up the change.
+	await expect( page.getByRole( 'status' ) ).toHaveCount( 1 );
+	await expect( page.getByRole( 'status' ) ).toHaveText( '' );
+
 	await page.getByRole( 'button', { name: 'Play' } ).click();
-	await expect( page.getByRole( 'progressbar' ) ).toBeVisible();
-	await expect( page.getByText( 'Connecting...' ) ).toBeAttached();
+	await expect(
+		page.getByRole( 'button', { name: 'Pause' } )
+	).toHaveAttribute( 'aria-busy', 'true' );
+	await expect( page.getByRole( 'status' ) ).toHaveText( 'Connecting...' );
 
 	const results = await new AxeBuilder( { page } )
 		.withRules( [ 'aria-progressbar-name' ] )
 		.analyze();
-	expect( results.violations.map( ( v ) => v.id ) ).toEqual( [
-		'aria-progressbar-name',
-	] );
-	// No live region on the page: the status change is never announced.
-	expect( await page.locator( '[aria-live], [role="status"]' ).count() ).toBe(
-		0
-	);
+	expect( results.violations ).toEqual( [] );
+	await expect( page.getByRole( 'progressbar' ) ).toHaveCount( 0 );
 
 	release();
 } );
 
 for ( const name of [ 'Radio Schedule', 'Radio Shows' ] ) {
-	test( `currently does not give the focus back after closing the ${ name } modal (K57)`, async ( {
-		page,
-	} ) => {
-		await page.goto( readSeed().urls.always );
+	for ( const close of [ 'Escape', 'Close' ] ) {
+		test( `gives the focus back to its button after closing the ${ name } modal with ${ close } (K57)`, async ( {
+			page,
+		} ) => {
+			await page.goto( readSeed().urls.always );
 
-		await page.getByRole( 'button', { name } ).focus();
-		await page.keyboard.press( 'Enter' );
-		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
-		await page.keyboard.press( 'Escape' );
-		await expect( page.getByRole( 'dialog' ) ).toHaveCount( 0 );
+			await page.getByRole( 'button', { name } ).focus();
+			await page.keyboard.press( 'Enter' );
+			await expect( page.getByRole( 'dialog' ) ).toBeVisible();
+			if ( close === 'Escape' ) {
+				await page.keyboard.press( 'Escape' );
+			} else {
+				await page
+					.getByRole( 'dialog' )
+					.getByRole( 'button', { name: 'Close' } )
+					.click();
+			}
+			await expect( page.getByRole( 'dialog' ) ).toHaveCount( 0 );
 
-		expect( await focused( page ) ).toBe( 'BODY' );
-	} );
+			await expect
+				.poll( () => focused( page ) )
+				.toBe( `BUTTON:${ name }` );
+		} );
+	}
 }
 
-test( 'currently loses the focus when the sleep timer is cancelled (K58)', async ( {
+test( 'gives the focus to "Sleep mode" when the sleep timer is cancelled (K58)', async ( {
 	page,
 } ) => {
 	await page.goto( readSeed().urls.live );
@@ -110,7 +123,7 @@ test( 'currently loses the focus when the sleep timer is cancelled (K58)', async
 	await expect(
 		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
 	).toHaveCount( 0 );
-	expect( await focused( page ) ).toBe( 'BODY' );
+	await expect.poll( () => focused( page ) ).toBe( 'BUTTON:Sleep mode' );
 } );
 
 for ( const name of [ 'Radio Schedule', 'Radio Shows' ] ) {

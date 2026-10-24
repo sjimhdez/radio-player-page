@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type Ref } from 'react'
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
@@ -12,6 +12,8 @@ interface SleepModeProps {
   isPlaying: boolean
   /** Called with the chosen duration in minutes */
   onSelect: (minutes: number) => void
+  /** Ref to the button, so the dashboard can give it the focus (K58) */
+  ref?: Ref<HTMLButtonElement>
 }
 
 /** Available sleep timer duration options in minutes */
@@ -28,7 +30,7 @@ const SLEEP_OPTIONS = [30, 60, 120]
  * @param props - Component props
  * @returns Sleep mode button with duration menu (disabled when not playing)
  */
-const SleepMode = ({ isPlaying, onSelect }: SleepModeProps) => {
+const SleepMode = ({ isPlaying, onSelect, ref }: SleepModeProps) => {
   const { t } = useTranslation()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
@@ -57,6 +59,7 @@ const SleepMode = ({ isPlaying, onSelect }: SleepModeProps) => {
       >
         <Tooltip title={t('dashboard.sleepMode')} placement="top" arrow>
           <IconButton
+            ref={ref}
             onClick={handleClick}
             aria-label={t('dashboard.sleepMode')}
             color="primary"

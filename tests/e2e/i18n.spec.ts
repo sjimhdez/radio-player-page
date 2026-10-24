@@ -1,11 +1,14 @@
+import type { Locator } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { readSeed } from './seed';
+import { startPlayback } from './support/player';
 import { wpCli } from './support/wp-cli';
 
 /**
  * Scenario 9 (spec 0002 §4.4): the player's language. The clean page prints
- * the site locale in `<html lang>` and i18next detects `htmlTag` first, then
- * `localStorage`, then `navigator`, falling back to `en-US`.
+ * the site locale in `<html lang>` and the player uses it: a regional variant
+ * without resources falls back to its base language, then to `en-US`. Neither
+ * `localStorage` nor `navigator` is read, and nothing is stored (ADR 0050).
  */
 
 /**
@@ -79,6 +82,23 @@ test( 'falls back to English for a language without translation', async ( {
 	} );
 } );
 
+test( 'shows a regional variant without resources in its base language (K68)', async ( {
+	page,
+} ) => {
+	await withSiteLocale( 'de_AT', async () => {
+		await page.goto( readSeed().urls.mp3 );
+
+		await expect( page.locator( 'html' ) ).toHaveAttribute(
+			'lang',
+			'de-AT'
+		);
+		// No de-AT or de resources: i18next falls back to `de-DE`.
+		await expect(
+			page.getByRole( 'button', { name: 'Abspielen' } )
+		).toBeVisible();
+	} );
+} );
+
 test( 'the page language wins over the one stored in localStorage', async ( {
 	page,
 } ) => {
@@ -93,20 +113,21 @@ test( 'the page language wins over the one stored in localStorage', async ( {
 			page.getByRole( 'button', { name: 'Reproducir' } )
 		).toBeVisible();
 	} );
-	// The detected language replaces the stored one (`caches: ['localStorage']`).
+	// The player neither reads nor stores its language: the stored value is
+	// left as it was.
 	expect(
 		await page.evaluate( () => window.localStorage.getItem( 'i18nextLng' ) )
-	).toBe( 'es-ES' );
+	).toBe( 'de-DE' );
 } );
 
-test( 'currently never uses the browser language: the page language is always detected first (K55)', async ( {
+test( 'uses the site language, never the browser language (K55)', async ( {
 	browser,
 } ) => {
 	const context = await browser.newContext( { locale: 'de-DE' } );
 	const page = await context.newPage();
 	try {
-		// Not even with a page language that has no translation: `htmlTag`
-		// detects `eu`, i18next falls back to `en-US`, and `navigator`
+		// Not even with a page language that has no translation: the page
+		// says `eu`, the player falls back to `en-US`, and `navigator`
 		// (German) is never read.
 		await withSiteLocale( 'eu', async () => {
 			await page.goto( readSeed().urls.mp3 );
@@ -126,24 +147,48 @@ test( 'currently never uses the browser language: the page language is always de
 	}
 } );
 
-test( 'currently leaves the English fallback marked with the page language (K62)', async ( {
+test( 'marks the English fallback with its own language (K62)', async ( {
 	page,
 } ) => {
+	/**
+	 * `lang` of the closest ancestor of `locator` that has one.
+	 *
+	 * @param locator Element inside the player or one of its portals.
+	 */
+	const langOf = ( locator: Locator ) =>
+		locator.evaluate(
+			( element ) =>
+				element.closest( '[lang]' )?.getAttribute( 'lang' ) ?? null
+		);
+
 	await withSiteLocale( 'eu', async () => {
 		await page.goto( readSeed().urls.mp3 );
 
-		await expect(
-			page.getByRole( 'button', { name: 'Play' } )
-		).toBeVisible();
-		// The interface is English, but nothing says so: the only `lang` on
-		// the page is the site's.
-		expect(
-			await page.evaluate( () =>
-				[ ...document.querySelectorAll( '[lang]' ) ].map( ( element ) =>
-					element.getAttribute( 'lang' )
-				)
-			)
-		).toEqual( [ 'eu' ] );
+		await expect( page.locator( 'html' ) ).toHaveAttribute( 'lang', 'eu' );
+		const play = page.getByRole( 'button', { name: 'Play' } );
+		await expect( play ).toBeVisible();
+		expect( await langOf( play ) ).toBe( 'en-US' );
+
+		// The dialog, the menu and the tooltip are portals in `body`, outside
+		// the player's root: each one carries the language itself.
+		await page.getByRole( 'button', { name: 'Radio Schedule' } ).click();
+		const dialog = page.getByRole( 'dialog' );
+		await expect( dialog ).toBeVisible();
+		expect( await langOf( dialog ) ).toBe( 'en-US' );
+		await page.keyboard.press( 'Escape' );
+		await expect( dialog ).toBeHidden();
+
+		await startPlayback( page );
+		const sleep = page.getByRole( 'button', { name: 'Sleep mode' } );
+		await sleep.hover();
+		const tooltip = page.getByRole( 'tooltip', { name: 'Sleep mode' } );
+		await expect( tooltip ).toBeVisible();
+		expect( await langOf( tooltip ) ).toBe( 'en-US' );
+
+		await sleep.click();
+		const menu = page.getByRole( 'menu' );
+		await expect( menu ).toBeVisible();
+		expect( await langOf( menu ) ).toBe( 'en-US' );
 	} );
 } );
 
