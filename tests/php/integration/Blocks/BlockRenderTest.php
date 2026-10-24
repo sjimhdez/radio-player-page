@@ -11,6 +11,7 @@ use RadioPlayerPage\Tests\Integration\Support\Clock;
 use RadioPlayerPage\Tests\Integration\Support\Factory;
 use RadioPlayerPage\Tests\Integration\Support\Snapshot;
 use WP_Block_Type_Registry;
+use WP_REST_Request;
 use WP_UnitTestCase;
 
 /**
@@ -30,18 +31,20 @@ use WP_UnitTestCase;
  * air (Wednesday 10:00–11:30); station «Silent» with Tuesday only.
  *
  * Cases:
- * - on WP 6.6 the wrapper carries its class twice (K6); newer WP prints it once, so
- *   the other tests compare the wrapper with repeated classes removed;
+ * - the wrapper carries its class once, on WP 6.6 and on newer WP (K6);
  * - schedule: dayOrder × showDescription × showExtendedDescription (8 snapshots);
  *   invalid index and a schedule without slots → «No radio schedule» message;
  * - programs list: showImage × showDescription × showExtendedDescription ×
  *   showSchedule (16 snapshots); invalid index → «No radio shows» message;
  * - now playing: showLogo × «Main» (logo, link, upcoming rerun) and «Second» (no
  *   logo, no link) (4 snapshots); nothing on air or invalid index → empty on the
- *   front; with REST_REQUEST → the editor placeholder;
+ *   front and in other REST responses; in the block renderer route → the editor
+ *   placeholder;
+ * - station: `stationId` wins over `stationIndex`, an unpublished one renders the
+ *   empty block, and a block without it renders by `stationIndex` (K46);
  * - registration: apiVersion, attributes and defaults, supports, render callback and
  *   editor script handle;
- * - editor data: `{ stations: [ { label } ] }`, with «Radio Station N» for untitled
+ * - editor data: `{ stations: [ { label, id } ] }`, with «Radio Station N» for untitled
  *   stations, and nothing when the editor script is not registered.
  */
 final class BlockRenderTest extends WP_UnitTestCase {
@@ -144,14 +147,13 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	 *
 	 * @param string $name  Block name without the namespace.
 	 * @param array  $attrs Block attributes.
-	 * @param bool   $raw   Whether to keep repeated wrapper classes (K6).
 	 * @return string
 	 */
-	private function render_at( $name, array $attrs, $raw = false ) {
+	private function render_at( $name, array $attrs ) {
 		return Clock::run(
 			'wednesday',
 			'10:55',
-			function ( Clock $clock ) use ( $name, $attrs, $raw ) {
+			function ( Clock $clock ) use ( $name, $attrs ) {
 				foreach ( $this->schedules as $title => $schedule ) {
 					update_post_meta(
 						$this->stations[ $title ],
@@ -160,7 +162,7 @@ final class BlockRenderTest extends WP_UnitTestCase {
 					);
 				}
 
-				$html = $raw ? self::render_raw( $name, $attrs ) : self::render( $name, $attrs );
+				$html = self::render( $name, $attrs );
 				if ( ! $clock->holds() ) {
 					$this->fail( 'The minute changed while rendering.' );
 				}
@@ -179,35 +181,6 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	 * @return string
 	 */
 	private static function render( $name, array $attrs ) {
-		return self::unique_wrapper_classes( self::render_raw( $name, $attrs ) );
-	}
-
-	/**
-	 * Removes repeated classes from the first `class` attribute (the wrapper's), which
-	 * WP 6.6 prints twice and newer WP once (K6), so one snapshot fits both.
-	 *
-	 * @param string $html Rendered block.
-	 * @return string
-	 */
-	private static function unique_wrapper_classes( $html ) {
-		return preg_replace_callback(
-			'/class="([^"]*)"/',
-			static function ( $m ) {
-				return 'class="' . implode( ' ', array_unique( explode( ' ', $m[1] ) ) ) . '"';
-			},
-			$html,
-			1
-		);
-	}
-
-	/**
-	 * Renders a block as a page would, without normalizing anything.
-	 *
-	 * @param string $name  Block name without the namespace.
-	 * @param array  $attrs Block attributes.
-	 * @return string
-	 */
-	private static function render_raw( $name, array $attrs ) {
 		return render_block(
 			array(
 				'blockName'    => 'radplapag/' . $name,
@@ -352,21 +325,72 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The function get_block_wrapper_attributes() already adds the generated class
-	 * `wp-block-radplapag-<name>`, and each render passes it again: WP 6.6 prints it twice,
-	 * newer WP (checked on the latest in the CI) once. See K6 in docs/known-issues.md.
+	 * With `stationId`, each block renders that station whatever `stationIndex` says
+	 * (K46); a block saved before 3.5.0, without it, still renders by `stationIndex`.
 	 *
 	 * @dataProvider registered_blocks
 	 *
 	 * @param string $name Block name without the namespace.
 	 */
-	public function test_currently_wrapper_class_is_repeated_on_wp_6_6( $name ) {
-		$html  = ltrim( $this->render_at( $name, array( 'stationIndex' => 0 ), true ) );
+	public function test_station_id_picks_the_station( $name ) {
+		$by_index = $this->render_at( $name, array( 'stationIndex' => 1 ) );
+
+		$this->assertNotSame( $by_index, $this->render_at( $name, array( 'stationIndex' => 0 ) ) );
+		$this->assertSame(
+			$by_index,
+			$this->render_at(
+				$name,
+				array(
+					'stationId'    => $this->stations['Second'],
+					'stationIndex' => 0,
+				)
+			)
+		);
+	}
+
+	/**
+	 * A `stationId` that is not a published station renders the empty block, as an
+	 * invalid index does, never the station at `stationIndex` (K46).
+	 *
+	 * @dataProvider registered_blocks
+	 *
+	 * @param string $name Block name without the namespace.
+	 */
+	public function test_unpublished_station_id_renders_empty( $name ) {
+		wp_update_post(
+			array(
+				'ID'          => $this->stations['Second'],
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->assertSame(
+			$this->render_at( $name, array( 'stationIndex' => 99 ) ),
+			$this->render_at(
+				$name,
+				array(
+					'stationId'    => $this->stations['Second'],
+					'stationIndex' => 0,
+				)
+			)
+		);
+	}
+
+	/**
+	 * The function get_block_wrapper_attributes() already adds the generated class
+	 * `wp-block-radplapag-<name>`, so the renders do not pass it again: it appears once on
+	 * WP 6.6 and on newer WP (regression, K6 in docs/known-issues.md).
+	 *
+	 * @dataProvider registered_blocks
+	 *
+	 * @param string $name Block name without the namespace.
+	 */
+	public function test_wrapper_class_appears_once( $name ) {
+		$html  = ltrim( $this->render_at( $name, array( 'stationIndex' => 0 ) ) );
 		$class = 'wp-block-radplapag-' . $name;
 
 		$this->assertSame( 1, preg_match( '/^<div class="([^"]*)"/', $html, $m ) );
-		$expected = 0 === strpos( get_bloginfo( 'version' ), '6.6.' ) ? 2 : 1;
-		$this->assertSame( $expected, count( array_keys( explode( ' ', $m[1] ), $class, true ) ) );
+		$this->assertSame( 1, count( array_keys( explode( ' ', $m[1] ), $class, true ) ) );
 	}
 
 	/**
@@ -414,18 +438,28 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * In a REST request (the editor preview), an empty now playing prints a placeholder.
-	 * Runs in its own process because REST_REQUEST is a constant.
+	 * In the editor preview (the block renderer route), an empty now playing prints a
+	 * placeholder. The route is set in `query_vars['rest_route']` by hand, as the real
+	 * routing does (rest_do_request() does not). Runs in its own process because
+	 * REST_REQUEST is a constant.
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_now_playing_empty_in_rest_request() {
+	public function test_now_playing_empty_in_block_renderer() {
 		define( 'REST_REQUEST', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WordPress core constant.
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wp/v2/block-renderer/radplapag/now-playing';
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-renderer/radplapag/now-playing' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', array( 'stationIndex' => 99 ) );
 
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame(
-			'<div class="wp-block-radplapag-now-playing is-empty"><div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;"><p><em>Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.</em></p></div></div>',
-			self::render( 'now-playing', array( 'stationIndex' => 99 ) )
+			'<div class="is-empty wp-block-radplapag-now-playing"><div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;"><p><em>Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.</em></p></div></div>',
+			$response->get_data()['rendered']
 		);
 	}
 
@@ -439,6 +473,10 @@ final class BlockRenderTest extends WP_UnitTestCase {
 			'schedule'      => array(
 				'schedule',
 				array(
+					'stationId'               => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
 					'stationIndex'            => array(
 						'type'    => 'number',
 						'default' => 0,
@@ -455,11 +493,19 @@ final class BlockRenderTest extends WP_UnitTestCase {
 						'type'    => 'boolean',
 						'default' => false,
 					),
+					'headingLevel'            => array(
+						'type'    => 'number',
+						'default' => 2,
+					),
 				),
 			),
 			'programs-list' => array(
 				'programs-list',
 				array(
+					'stationId'               => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
 					'stationIndex'            => array(
 						'type'    => 'number',
 						'default' => 0,
@@ -480,11 +526,19 @@ final class BlockRenderTest extends WP_UnitTestCase {
 						'type'    => 'boolean',
 						'default' => true,
 					),
+					'headingLevel'            => array(
+						'type'    => 'number',
+						'default' => 2,
+					),
 				),
 			),
 			'now-playing'   => array(
 				'now-playing',
 				array(
+					'stationId'    => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
 					'stationIndex' => array(
 						'type'    => 'number',
 						'default' => 0,
@@ -492,6 +546,10 @@ final class BlockRenderTest extends WP_UnitTestCase {
 					'showLogo'     => array(
 						'type'    => 'boolean',
 						'default' => true,
+					),
+					'headingLevel' => array(
+						'type'    => 'number',
+						'default' => 2,
 					),
 				),
 			),
@@ -564,7 +622,28 @@ final class BlockRenderTest extends WP_UnitTestCase {
 
 		do_action( 'enqueue_block_editor_assets' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core hook.
 
-		$expected = '{"stations":[{"label":"Main"},{"label":"Second"},{"label":"Silent"},{"label":"Radio Station 4"}]}';
+		$expected = wp_json_encode(
+			array(
+				'stations' => array(
+					array(
+						'label' => 'Main',
+						'id'    => $this->stations['Main'],
+					),
+					array(
+						'label' => 'Second',
+						'id'    => $this->stations['Second'],
+					),
+					array(
+						'label' => 'Silent',
+						'id'    => $this->stations['Silent'],
+					),
+					array(
+						'label' => 'Radio Station 4',
+						'id'    => $untitled,
+					),
+				),
+			)
+		);
 		foreach ( self::BLOCKS as $name => $object ) {
 			$this->assertSame(
 				'var ' . $object . ' = ' . $expected . ';',

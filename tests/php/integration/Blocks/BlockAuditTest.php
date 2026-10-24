@@ -88,26 +88,32 @@ final class BlockAuditTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K46: `stationIndex` is a position in radplapag_get_stations() (menu_order, then
-	 * title; the CPT does not support `page-attributes`). Creating a station whose title
-	 * sorts first moves a saved block to it, and unpublishing one leaves the last index
-	 * out of range.
+	 * K46: `stationId` picks the station whatever its position: creating a station whose
+	 * title sorts first does not move a saved block, and an unpublished station renders
+	 * the empty block, never another station.
 	 */
-	public function test_currently_station_index_follows_the_title_order() {
-		$f    = $this->factory_rpp;
-		$beta = $f->program( 'Beta show' );
-		$f->station( 'Beta', array( 'schedule' => array( 'monday' => array( self::slot( $beta, '09:00', '10:00' ) ) ) ) );
+	public function test_station_id_survives_title_order_and_unpublishing() {
+		$f       = $this->factory_rpp;
+		$beta    = $f->program( 'Beta show' );
+		$beta_id = $f->station( 'Beta', array( 'schedule' => array( 'monday' => array( self::slot( $beta, '09:00', '10:00' ) ) ) ) );
+		$beta_at = array(
+			'stationId'    => $beta_id,
+			'stationIndex' => 0,
+		);
 
-		$this->assertStringContainsString( 'Beta show', self::render( 'programs-list', array( 'stationIndex' => 0 ) ) );
+		$this->assertStringContainsString( 'Beta show', self::render( 'programs-list', $beta_at ) );
 
 		$alpha    = $f->program( 'Alpha show' );
 		$alpha_id = $f->station( 'Alpha', array( 'schedule' => array( 'monday' => array( self::slot( $alpha, '09:00', '10:00' ) ) ) ) );
+		$alpha_at = array(
+			'stationId'    => $alpha_id,
+			'stationIndex' => 0,
+		);
 
-		$first  = self::render( 'programs-list', array( 'stationIndex' => 0 ) );
-		$second = self::render( 'programs-list', array( 'stationIndex' => 1 ) );
-		$this->assertStringContainsString( 'Alpha show', $first );
-		$this->assertStringNotContainsString( 'Beta show', $first );
-		$this->assertStringContainsString( 'Beta show', $second );
+		$first = self::render( 'programs-list', $beta_at );
+		$this->assertStringContainsString( 'Beta show', $first );
+		$this->assertStringNotContainsString( 'Alpha show', $first );
+		$this->assertStringContainsString( 'Alpha show', self::render( 'programs-list', $alpha_at ) );
 
 		wp_update_post(
 			array(
@@ -116,15 +122,15 @@ final class BlockAuditTest extends WP_UnitTestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'Beta show', self::render( 'programs-list', array( 'stationIndex' => 0 ) ) );
-		$this->assertStringContainsString( 'No radio shows for this station.', self::render( 'programs-list', array( 'stationIndex' => 1 ) ) );
+		$this->assertStringContainsString( 'Beta show', self::render( 'programs-list', $beta_at ) );
+		$this->assertStringContainsString( 'No radio shows for this station.', self::render( 'programs-list', $alpha_at ) );
 	}
 
 	/**
-	 * K49: without a player page, now playing prints the program name alone; «On Air»
-	 * only lives inside the link.
+	 * K49: now playing prints «On Air: » before the program name with and without a
+	 * player page, as «Coming up: » and the schedule block do.
 	 */
-	public function test_currently_now_playing_without_player_page_drops_the_on_air_label() {
+	public function test_now_playing_without_player_page_keeps_the_on_air_label() {
 		$f       = $this->factory_rpp;
 		$program = $f->program( 'Show' );
 		$linked  = $f->station(
@@ -148,39 +154,64 @@ final class BlockAuditTest extends WP_UnitTestCase {
 				$without_page = self::render( 'now-playing', array( 'stationIndex' => 1 ) );
 
 				$this->assertStringContainsString( 'On Air: <strong>Show</strong>', $with_page );
-				$this->assertStringContainsString( '<strong>Show</strong>', $without_page );
-				$this->assertStringNotContainsString( 'On Air', $without_page );
+				$this->assertStringContainsString( 'On Air: <strong>Show</strong>', $without_page );
+				$this->assertStringNotContainsString( 'href=', $without_page );
 			}
 		);
 	}
 
 	/**
-	 * K50: the link to the player page does not check that the page is still published:
-	 * with the page back in draft, now playing and the schedule block link to
-	 * `?page_id=N`, which visitors cannot open.
+	 * K50: the link to the player page is printed only when the page serves the clean
+	 * player page (D6): with the page in draft, private, password-protected or the
+	 * posts page of a static front page, neither now playing nor the schedule block
+	 * link to it.
+	 *
+	 * @dataProvider data_player_pages_that_are_not_served
+	 *
+	 * @param array<string, mixed> $page_changes Fields set on the player page.
+	 * @param bool                 $posts_page   Whether the page becomes the posts page of a static front page.
 	 */
-	public function test_currently_links_to_a_player_page_that_is_no_longer_published() {
+	public function test_does_not_link_to_a_player_page_that_is_not_served( array $page_changes, $posts_page ) {
 		$f       = $this->factory_rpp;
 		$program = $f->program( 'Show' );
 		$page_id = $f->page( 'Player' );
 		$station = $f->station( 'Main', array( 'player_page' => $page_id ) );
-		wp_update_post(
-			array(
-				'ID'          => $page_id,
-				'post_status' => 'draft',
-			)
-		);
+		if ( $page_changes ) {
+			wp_update_post( array_merge( array( 'ID' => $page_id ), $page_changes ) );
+		}
+		if ( $posts_page ) {
+			update_option( 'show_on_front', 'page' );
+			update_option( 'page_for_posts', $page_id );
+		}
 
 		Clock::run(
 			'wednesday',
 			'10:00',
-			function ( Clock $clock ) use ( $program, $station, $page_id ) {
+			function ( Clock $clock ) use ( $program, $station ) {
 				self::write_schedule( $clock, $station, array( 'wednesday' => array( self::slot( $program, '09:00', '11:00' ) ) ) );
 
-				$href = 'href="' . esc_url( home_url( '/?page_id=' . $page_id ) ) . '"';
-				$this->assertStringContainsString( $href, self::render( 'now-playing' ) );
-				$this->assertStringContainsString( $href, self::render( 'schedule' ) );
+				$now_playing = self::render( 'now-playing' );
+				$schedule    = self::render( 'schedule' );
+
+				$this->assertStringContainsString( 'On Air: <strong>Show</strong>', $now_playing );
+				$this->assertStringNotContainsString( 'href=', $now_playing );
+				$this->assertStringContainsString( 'Show', $schedule );
+				$this->assertStringNotContainsString( 'href=', $schedule );
 			}
+		);
+	}
+
+	/**
+	 * Player pages that do not serve the clean player page.
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: bool}>
+	 */
+	public static function data_player_pages_that_are_not_served() {
+		return array(
+			'draft'      => array( array( 'post_status' => 'draft' ), false ),
+			'private'    => array( array( 'post_status' => 'private' ), false ),
+			'password'   => array( array( 'post_password' => 'secret' ), false ),
+			'posts page' => array( array(), true ),
 		);
 	}
 
@@ -245,27 +276,34 @@ final class BlockAuditTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * K51: the line breaks of the extended description (a textarea, kept by the
-	 * sanitizer) end up inside one `<p>`, where the browser shows them as spaces; the
-	 * player keeps them (`white-space: pre-wrap`).
+	 * K51 (fixed in spec 0013): the line breaks of the extended description (a
+	 * textarea, kept by the sanitizer) become `<br />` inside the same `<p>`, in the
+	 * programs list and in the schedule, and the text stays escaped.
 	 */
-	public function test_currently_extended_description_line_breaks_stay_in_one_paragraph() {
+	public function test_extended_description_keeps_its_line_breaks() {
 		$f       = $this->factory_rpp;
-		$program = $f->program( 'Show', array( 'extended_description' => "Line one\n\nLine two" ) );
+		$program = $f->program( 'Show', array( 'extended_description' => "Line one\n\nLine two & more" ) );
 		$f->station( 'Main', array( 'schedule' => array( 'monday' => array( self::slot( $program, '09:00', '10:00' ) ) ) ) );
 
-		$html = self::render( 'programs-list' );
-
-		$this->assertStringContainsString( "<p class=\"wp-block-paragraph\">Line one\n\nLine two</p>", $html );
-		$this->assertStringNotContainsString( '<br', $html );
+		$renders = array(
+			'programs-list' => self::render( 'programs-list' ),
+			'schedule'      => self::render( 'schedule', array( 'showExtendedDescription' => true ) ),
+		);
+		foreach ( $renders as $name => $html ) {
+			$this->assertMatchesRegularExpression(
+				'#<p class="wp-block-paragraph"[^>]*>Line one<br />\n<br />\nLine two &amp; more</p>#',
+				$html,
+				$name
+			);
+		}
 	}
 
 	/**
-	 * K53: none of the three blocks prints a heading element. Day names, program names
-	 * and «On Air»/«Coming up» are `<header>` elements styled as headings (the schedule
-	 * one with the `wp-block-heading` class), so a screen reader cannot jump between them.
+	 * K53 (fixed in spec 0013): the three blocks print real `<hN>` headings (day names,
+	 * program names and «On Air»/«Coming up») with the same classes, never `<header>`.
+	 * `headingLevel` picks the level (2–6, default 2); any other value falls back to 2.
 	 */
-	public function test_currently_blocks_print_no_heading_elements() {
+	public function test_blocks_print_heading_elements() {
 		$f       = $this->factory_rpp;
 		$program = $f->program( 'Show', array( 'description' => 'About' ) );
 		$next    = $f->program( 'Next' );
@@ -288,24 +326,38 @@ final class BlockAuditTest extends WP_UnitTestCase {
 
 				foreach ( array( 'now-playing', 'schedule', 'programs-list' ) as $name ) {
 					$html = self::render( $name );
-					$this->assertStringContainsString( '<header class="wp-block-', $html, $name );
-					$this->assertDoesNotMatchRegularExpression( '/<h[1-6][\s>]/', $html, $name );
+					$this->assertStringContainsString( '<h2 class="wp-block-', $html, $name );
+					$this->assertStringNotContainsString( '<header', $html, $name );
+					$this->assertDoesNotMatchRegularExpression( '/<h[13-6][\s>]/', $html, $name );
+
+					$html = self::render( $name, array( 'headingLevel' => 4 ) );
+					$this->assertStringContainsString( '<h4 class="wp-block-', $html, $name );
+					$this->assertStringContainsString( '</h4>', $html, $name );
+					$this->assertDoesNotMatchRegularExpression( '/<h[1-35-6][\s>]/', $html, $name );
+
+					foreach ( array( 9, 1 ) as $level ) {
+						$html = self::render( $name, array( 'headingLevel' => $level ) );
+						$this->assertStringContainsString( '<h2 class="wp-block-', $html, $name . ' ' . $level );
+						$this->assertDoesNotMatchRegularExpression( '/<h[13-6][\s>]/', $html, $name . ' ' . $level );
+					}
 				}
-				$this->assertStringContainsString( '<header class="wp-block-heading"', self::render( 'schedule' ) );
+				$this->assertStringContainsString( '<h2 class="wp-block-heading"', self::render( 'schedule' ) );
 			}
 		);
 	}
 
 	/**
-	 * K48: now playing decides its editor notice with REST_REQUEST, which every REST
-	 * request defines: an anonymous `GET /wp/v2/pages/<id>` gets the notice in
-	 * `content.rendered`, where the front end prints nothing. Runs in its own process
+	 * K48 (fixed in spec 0013): the editor notice of an empty now playing only goes to
+	 * the editor preview (the block renderer). `content.rendered` of
+	 * `GET /wp/v2/pages/<id>` prints nothing, as the front end does, for an anonymous
+	 * reader and for an editor. The route is set in `query_vars['rest_route']` by hand,
+	 * as the real routing does (rest_do_request() does not). Runs in its own process
 	 * because REST_REQUEST is a constant.
 	 *
 	 * @runInSeparateProcess
 	 * @preserveGlobalState disabled
 	 */
-	public function test_currently_rest_content_carries_the_editor_notice() {
+	public function test_rest_content_has_no_editor_notice() {
 		$this->factory_rpp->station( 'Main' );
 		$page_id = self::factory()->post->create(
 			array(
@@ -314,18 +366,24 @@ final class BlockAuditTest extends WP_UnitTestCase {
 				'post_content' => '<!-- wp:radplapag/now-playing /-->',
 			)
 		);
-
-		$this->assertSame( '', trim( do_blocks( get_post( $page_id )->post_content ) ) );
+		$editor  = self::factory()->user->create( array( 'role' => 'editor' ) );
 
 		define( 'REST_REQUEST', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WordPress core constant.
-		wp_set_current_user( 0 );
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wp/v2/pages/' . $page_id;
 
-		$response = rest_do_request( new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id ) );
-
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertStringContainsString(
-			'Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.',
-			$response->get_data()['content']['rendered']
+		$readers = array(
+			0       => 'view',
+			$editor => 'edit',
 		);
+		foreach ( $readers as $user_id => $context ) {
+			wp_set_current_user( $user_id );
+			$request = new WP_REST_Request( 'GET', '/wp/v2/pages/' . $page_id );
+			$request->set_param( 'context', $context );
+
+			$response = rest_do_request( $request );
+
+			$this->assertSame( 200, $response->get_status(), $context );
+			$this->assertSame( '', trim( $response->get_data()['content']['rendered'] ), $context );
+		}
 	}
 }

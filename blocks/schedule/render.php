@@ -22,16 +22,16 @@ defined( 'ABSPATH' ) || exit;
  * @return string HTML output.
  */
 function radplapag_render_schedule_block( $attributes, $content, $block ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by render_callback.
+	$station_id                = (int) ( $attributes['stationId'] ?? 0 );
 	$station_index             = (int) ( $attributes['stationIndex'] ?? 0 );
+	$station_index             = $station_id > 0 ? \RadioPlayerPage\Data\Stations::block_index( radplapag_get_stations(), $station_id, $station_index ) : $station_index;
 	$day_order                 = ( $attributes['dayOrder'] ?? '' ) === 'natural' ? 'natural' : 'current_first';
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? false );
+	$heading_level             = (int) ( $attributes['headingLevel'] ?? 2 );
+	$heading_level             = ( $heading_level >= 2 && $heading_level <= 6 ) ? $heading_level : 2;
 	$data                      = radplapag_get_schedule_for_station( $station_index, $day_order );
-	$wrapper_attributes        = get_block_wrapper_attributes(
-		array(
-			'class' => 'wp-block-radplapag-schedule',
-		)
-	);
+	$wrapper_attributes        = get_block_wrapper_attributes();
 
 	if ( null === $data ) {
 		return '<div ' . $wrapper_attributes . '>' .
@@ -69,7 +69,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) { // p
 		$day_key = (string) ( $day_data['day_key'] ?? '' );
 		$label   = (string) ( $day_data['label'] ?? $day_key );
 		$html   .= '<section class="wp-block-group" data-day="' . esc_attr( $day_key ) . '">';
-		$html   .= '<header class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</header>';
+		$html   .= '<h' . $heading_level . ' class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</h' . $heading_level . '>';
 		$html   .= '<ul class="wp-block-list">';
 
 		foreach ( $slots as $slot ) {
@@ -106,7 +106,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) { // p
 			if ( $show_extended_description ) {
 				$program_extended_description = (string) ( $slot['program_extended_description'] ?? '' );
 				if ( '' !== $program_extended_description ) {
-					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_extended_description ) . '</p></div>';
+					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . nl2br( esc_html( $program_extended_description ) ) . '</p></div>';
 				}
 			}
 			$html .= '</li>';

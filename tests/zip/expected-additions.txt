@@ -31,3 +31,4 @@ includes/src/wp/class-migration-notice.php
 includes/src/migration/class-slot-filter.php
 includes/src/schedule/class-week-interval.php
 includes/src/schedule/class-public-slots.php
+includes/src/wp/class-player-page.php

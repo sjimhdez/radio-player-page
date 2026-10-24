@@ -187,4 +187,51 @@ final class StationsTest extends TestCase {
 		$this->assertSame( array(), Stations::player_pages( array(), 123 ) );
 		$this->assertSame( array( 10 ), Stations::player_pages( array( 3 => 10 ), 123 ) );
 	}
+
+	/**
+	 * With a station ID, the block index is the position of the row with that ID, whatever the stored index (K46).
+	 */
+	public function test_block_index_finds_the_station_id() {
+		$rows = array( self::station( 7, 10 ), self::station( 3, 20 ), self::station( 5, 30 ) );
+
+		$this->assertSame( 1, Stations::block_index( $rows, 3, 0 ) );
+		$this->assertSame( 2, Stations::block_index( $rows, 5, 0 ) );
+		$this->assertSame( 0, Stations::block_index( $rows, 7, 2 ) );
+	}
+
+	/**
+	 * A station ID that is not in the list gives -1, never the stored index (K46).
+	 */
+	public function test_block_index_missing_station_id() {
+		$rows = array( self::station( 7, 10 ), self::station( 3, 20 ) );
+
+		$this->assertSame( -1, Stations::block_index( $rows, 4, 1 ) );
+		$this->assertSame( -1, Stations::block_index( array(), 4, 0 ) );
+	}
+
+	/**
+	 * A station ID of 0 or less falls back to the stored index, as is (D1).
+	 */
+	public function test_block_index_without_station_id_uses_the_index() {
+		$rows = array( self::station( 7, 10 ), self::station( 3, 20 ) );
+
+		$this->assertSame( 1, Stations::block_index( $rows, 0, 1 ) );
+		$this->assertSame( 999, Stations::block_index( $rows, 0, 999 ) );
+		$this->assertSame( 1, Stations::block_index( $rows, -3, 1 ) );
+	}
+
+	/**
+	 * Row IDs are compared with (int), and rows without an ID or that are not arrays keep their position.
+	 */
+	public function test_block_index_casts_ids_and_skips_incomplete_rows() {
+		$rows = array(
+			'not a row',
+			array( 'stream_url' => 'https://example.com/live.mp3' ),
+			array( 'id' => '3' ),
+			self::station( 5, 30 ),
+		);
+
+		$this->assertSame( 2, Stations::block_index( $rows, 3, 0 ) );
+		$this->assertSame( 3, Stations::block_index( $rows, 5, 0 ) );
+	}
 }

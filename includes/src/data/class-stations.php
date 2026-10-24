@@ -76,4 +76,34 @@ final class Stations {
 
 		return array_values( array_unique( $page_ids ) );
 	}
+
+	/**
+	 * Returns the list index a block with these attributes shows (K46).
+	 *
+	 * A station ID above 0 wins: the index of the row with that ID, compared
+	 * with (int), or -1 if no row has it, so the block never shows another
+	 * station. A station ID of 0 or less falls back to the stored index, as is.
+	 *
+	 * @since 3.5.0
+	 *
+	 * @param array<mixed> $rows          Station rows, in list order.
+	 * @param int          $station_id    The block's stationId.
+	 * @param int          $station_index The block's stationIndex.
+	 * @return int The index, or -1.
+	 */
+	public static function block_index( array $rows, int $station_id, int $station_index ): int {
+		if ( $station_id <= 0 ) {
+			return $station_index;
+		}
+
+		$index = 0;
+		foreach ( $rows as $row ) {
+			if ( is_array( $row ) && isset( $row['id'] ) && (int) $row['id'] === $station_id ) {
+				return $index;
+			}
+			++$index;
+		}
+
+		return -1;
+	}
 }

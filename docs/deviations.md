@@ -2,6 +2,13 @@
 
 Lo que cada spec hizo distinto de lo escrito, con su motivo y quién lo decidió. Las de la spec activa están en `status.md` y pasan aquí al cerrarla (`close-phase`). Las más recientes van primero.
 
+## Spec 0013
+Detalle en cada `phase-N.md`. El contrato va en el ADR 0049.
+
+- Fases 1 y 2 (cierre): solo `spec-conformance-reviewer`, sobre el diff de cada fase; `backcompat-reviewer`, `wp-security-reviewer`, `wporg-reviewer` y `a11y-reviewer` quedan para antes de la release. Decidido por el usuario (2026-10-24).
+- Fase 2 (2.1): sin la clase repetida, las dos puntas de WordPress ponen las clases extra antes de la generada, así que el aviso vacío de `now-playing` (solo en la vista previa del editor; no está en `SPEC.md`) pasa a `class="is-empty wp-block-radplapag-now-playing"`. Se actualizó la cadena esperada de `BlockRenderTest::test_now_playing_empty_in_block_renderer`, fuera de la lista de §4.3.
+- Fase 2 (2.2): `blocks.spec.ts` (caracterización, fuera de §4.3) localiza el programa con `.wp-block-title` en lugar de `header`, por los encabezados reales del ADR 0049 (punto 7). Aprobado por el usuario con el plan de la fase (2026-10-24).
+
 ## Spec 0010
 Detalle en cada `phase-N.md`. Los cambios de contrato van con su ADR (0047 y 0048).
 
