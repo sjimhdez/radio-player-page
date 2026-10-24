@@ -231,7 +231,6 @@ const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      disableRestoreFocus
       slotProps={{
         transition: {
           onEntered: scrollToActiveProgram,

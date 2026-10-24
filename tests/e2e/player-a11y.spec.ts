@@ -83,19 +83,30 @@ test( 'names no progressbar and announces "Connecting..." in a status region (AX
 } );
 
 for ( const name of [ 'Radio Schedule', 'Radio Shows' ] ) {
-	test( `currently does not give the focus back after closing the ${ name } modal (K57)`, async ( {
-		page,
-	} ) => {
-		await page.goto( readSeed().urls.always );
+	for ( const close of [ 'Escape', 'Close' ] ) {
+		test( `gives the focus back to its button after closing the ${ name } modal with ${ close } (K57)`, async ( {
+			page,
+		} ) => {
+			await page.goto( readSeed().urls.always );
 
-		await page.getByRole( 'button', { name } ).focus();
-		await page.keyboard.press( 'Enter' );
-		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
-		await page.keyboard.press( 'Escape' );
-		await expect( page.getByRole( 'dialog' ) ).toHaveCount( 0 );
+			await page.getByRole( 'button', { name } ).focus();
+			await page.keyboard.press( 'Enter' );
+			await expect( page.getByRole( 'dialog' ) ).toBeVisible();
+			if ( close === 'Escape' ) {
+				await page.keyboard.press( 'Escape' );
+			} else {
+				await page
+					.getByRole( 'dialog' )
+					.getByRole( 'button', { name: 'Close' } )
+					.click();
+			}
+			await expect( page.getByRole( 'dialog' ) ).toHaveCount( 0 );
 
-		expect( await focused( page ) ).toBe( 'BODY' );
-	} );
+			await expect
+				.poll( () => focused( page ) )
+				.toBe( `BUTTON:${ name }` );
+		} );
+	}
 }
 
 test( 'currently loses the focus when the sleep timer is cancelled (K58)', async ( {

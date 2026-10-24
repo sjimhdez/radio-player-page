@@ -69,7 +69,9 @@ El botón de Play/Pausa no se desmonta nunca y conserva el foco; la carga se anu
 - Archivos: `player/src/components/dashboard/ScheduleModal.tsx`, `AllProgramsModal.tsx`, `tests/e2e/player-a11y.spec.ts`, `docs/known-issues.md`
 - Test: primero: regresión e2e
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/player-a11y.spec.ts tests/e2e/modals.spec.ts`
-- [ ] hecha · commit: —
+- Rojo: los 8 casos (2 modales × Escape/«Close» × Chromium/WebKit) con `Expected: "BUTTON:Radio Schedule"` / `"BUTTON:Radio Shows"`, `Received: "BODY"`.
+- Hecho: quitado `disableRestoreFocus` de los dos `Dialog`; `player-a11y.spec.ts` y `modals.spec.ts` 34/34, `a11y.spec.ts` 36/36 sin cambios en la línea base. Changelog: al cerrar los modales del horario y de programas el foco vuelve al botón que los abrió.
+- [x] hecha · commit: ver `git log` («fix(0011): give the focus back when the schedule and programs modals close (1.5)»)
 
 ### 1.6 K58: foco al cancelar o terminar el temporizador (≤ 1 h)
 - Qué (`fix-bug`): el `currently` de K58 pasa a regresión (foco en «Sleep mode») y caso nuevo con `page.clock`: con el foco en «Cancel sleep mode», la cuenta llega a cero y el foco va a Play. `Dashboard` guarda `ref` a «Sleep mode» y a Play/Pausa (`ref` como prop, React 19); `onCancel` enfoca «Sleep mode»; al terminar (envolviendo el `onEnd` de `useSleepTimer`), si `document.activeElement` estaba dentro de `SleepTimer`, enfoca Play/Pausa. Fila K58 → «corregido».
