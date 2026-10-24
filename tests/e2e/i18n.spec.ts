@@ -1,5 +1,7 @@
+import type { Locator } from '@playwright/test';
 import { expect, test } from './fixtures';
 import { readSeed } from './seed';
+import { startPlayback } from './support/player';
 import { wpCli } from './support/wp-cli';
 
 /**
@@ -145,24 +147,48 @@ test( 'uses the site language, never the browser language (K55)', async ( {
 	}
 } );
 
-test( 'currently leaves the English fallback marked with the page language (K62)', async ( {
+test( 'marks the English fallback with its own language (K62)', async ( {
 	page,
 } ) => {
+	/**
+	 * `lang` of the closest ancestor of `locator` that has one.
+	 *
+	 * @param locator Element inside the player or one of its portals.
+	 */
+	const langOf = ( locator: Locator ) =>
+		locator.evaluate(
+			( element ) =>
+				element.closest( '[lang]' )?.getAttribute( 'lang' ) ?? null
+		);
+
 	await withSiteLocale( 'eu', async () => {
 		await page.goto( readSeed().urls.mp3 );
 
-		await expect(
-			page.getByRole( 'button', { name: 'Play' } )
-		).toBeVisible();
-		// The interface is English, but nothing says so: the only `lang` on
-		// the page is the site's.
-		expect(
-			await page.evaluate( () =>
-				[ ...document.querySelectorAll( '[lang]' ) ].map( ( element ) =>
-					element.getAttribute( 'lang' )
-				)
-			)
-		).toEqual( [ 'eu' ] );
+		await expect( page.locator( 'html' ) ).toHaveAttribute( 'lang', 'eu' );
+		const play = page.getByRole( 'button', { name: 'Play' } );
+		await expect( play ).toBeVisible();
+		expect( await langOf( play ) ).toBe( 'en-US' );
+
+		// The dialog, the menu and the tooltip are portals in `body`, outside
+		// the player's root: each one carries the language itself.
+		await page.getByRole( 'button', { name: 'Radio Schedule' } ).click();
+		const dialog = page.getByRole( 'dialog' );
+		await expect( dialog ).toBeVisible();
+		expect( await langOf( dialog ) ).toBe( 'en-US' );
+		await page.keyboard.press( 'Escape' );
+		await expect( dialog ).toBeHidden();
+
+		await startPlayback( page );
+		const sleep = page.getByRole( 'button', { name: 'Sleep mode' } );
+		await sleep.hover();
+		const tooltip = page.getByRole( 'tooltip', { name: 'Sleep mode' } );
+		await expect( tooltip ).toBeVisible();
+		expect( await langOf( tooltip ) ).toBe( 'en-US' );
+
+		await sleep.click();
+		const menu = page.getByRole( 'menu' );
+		await expect( menu ).toBeVisible();
+		expect( await langOf( menu ) ).toBe( 'en-US' );
 	} );
 } );
 

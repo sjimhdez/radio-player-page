@@ -72,7 +72,9 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Archivos: `player/src/components/dashboard/index.tsx`, `player/src/config/theme.ts`, `player/src/ThemeProviderWrapper.tsx`, `tests/e2e/i18n.spec.ts`, `docs/known-issues.md`
 - Test: regresión (antes `currently`): `i18n.spec.ts`
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/i18n.spec.ts tests/e2e/a11y.spec.ts`
-- [ ] hecha · commit: —
+- Rojo: `i18n.spec.ts`, «marks the English fallback with its own language (K62)», en Chromium y WebKit: `Expected: "en-US"` / `Received: "eu"` (el ancestro con `lang` del botón Play es el `<html>`).
+- Changelog: «The player marks its interface, dialogs, menu and tooltips with the language it shows (English when the site language has no translation).»
+- [x] hecha · commit: ver `git log` («fix(0011): mark the player and its portals with its language (2.5)»)
 
 ### 2.6 K69: formas plurales de «Coming up» (≤ 1 h)
 - Qué (`fix-bug`): el `currently` de K69 pasa a regresión (`t('dashboard.upcomingInMinutes', { count: 1 })` → «(in 1 minute)»), más un test por locale: las claves `upcomingInMinutes_*` son exactamente las categorías de `new Intl.PluralRules(locale).resolvedOptions().pluralCategories`. «exactly the keys of en-US» compara sin el sufijo plural (aprobado). `upcomingInMinutes` → `_one`/`_other` (+ `_few`/`_many` según el locale) con `{{count}}` en los 14 locales; `StreamInfo` pasa `count`. Fila K69 → «corregido».

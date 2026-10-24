@@ -74,7 +74,7 @@ const Dashboard = () => {
   const sleepModeRef = useRef<HTMLButtonElement>(null)
   const sleepTimerRef = useRef<HTMLDivElement>(null)
 
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const hasSchedule = Boolean(
     config.schedule &&
     (config.schedule.monday?.length ||
@@ -194,6 +194,7 @@ const Dashboard = () => {
 
   return (
     <Stack
+      lang={i18n.resolvedLanguage}
       sx={{
         justifyContent: 'center',
         alignItems: 'center',
