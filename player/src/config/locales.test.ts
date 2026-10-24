@@ -27,6 +27,10 @@ function flatten(messages: Messages, prefix = ''): Record<string, unknown> {
   )
 }
 
+function withoutPluralSuffix(keys: string[]): string[] {
+  return [...new Set(keys.map((key) => key.replace(/_(zero|one|two|few|many|other)$/, '')))].sort()
+}
+
 function placeholders(message: unknown): string[] {
   return (String(message).match(/\{\{[^}]+\}\}/g) ?? []).sort()
 }
@@ -63,8 +67,28 @@ describe('locale files', () => {
   it.each(others)('%s has exactly the keys of en-US', (locale) => {
     const messages = flatten(locales[locale])
 
-    expect(Object.keys(messages).sort()).toEqual(Object.keys(reference).sort())
+    expect(withoutPluralSuffix(Object.keys(messages))).toEqual(
+      withoutPluralSuffix(Object.keys(reference)),
+    )
   })
+
+  it.each(Object.keys(locales))(
+    '%s has exactly the plural forms of its language in upcomingInMinutes',
+    (locale) => {
+      const messages = flatten(locales[locale])
+      const prefix = 'dashboard.upcomingInMinutes_'
+      const forms = Object.keys(messages)
+        .filter((key) => key.startsWith(prefix))
+        .map((key) => key.slice(prefix.length))
+
+      expect(forms.sort()).toEqual(
+        [...new Intl.PluralRules(locale).resolvedOptions().pluralCategories].sort(),
+      )
+      for (const form of forms) {
+        expect(placeholders(messages[`${prefix}${form}`]), form).toEqual(['{{count}}'])
+      }
+    },
+  )
 
   it.each(others)('%s has only non-empty string messages', (locale) => {
     for (const [key, message] of Object.entries(flatten(locales[locale]))) {
@@ -135,7 +159,8 @@ describe('language resolution (K68, K69)', () => {
     expect(i18n.t('dashboard.play')).toBe('Reproducir')
   })
 
-  it('currently says "1 minutes": the countdown has no plural forms (K69)', () => {
-    expect(i18n.t('dashboard.upcomingInMinutes', { minutes: 1 })).toBe('(in 1 minutes)')
+  it('says "1 minute" with the plural forms of the language (K69)', () => {
+    expect(i18n.t('dashboard.upcomingInMinutes', { count: 1 })).toBe('(in 1 minute)')
+    expect(i18n.t('dashboard.upcomingInMinutes', { count: 5 })).toBe('(in 5 minutes)')
   })
 })

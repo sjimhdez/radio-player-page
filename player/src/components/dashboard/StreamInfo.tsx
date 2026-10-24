@@ -249,7 +249,7 @@ const StreamInfo = ({
                 lineHeight: 1,
               }}
             >
-              {t('dashboard.upcomingInMinutes', { minutes: upcomingProgram.minutesUntil })}{' '}
+              {t('dashboard.upcomingInMinutes', { count: upcomingProgram.minutesUntil })}{' '}
               {upcomingProgram.timeRange}
             </Typography>
           </Stack>

@@ -81,7 +81,9 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Archivos: `player/src/locales/*.json`, `player/src/components/dashboard/StreamInfo.tsx`, `player/src/config/locales.test.ts`, `docs/known-issues.md`
 - Test: regresión (antes `currently`) y nuevo: `locales.test.ts`
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- Rojo: `locales.test.ts`, la regresión de K69 con `Expected: "(in 1 minute)"` / `Received: "(in {{minutes}} minutes)"` y los 14 casos por locale (ninguna clave `upcomingInMinutes_*`). `schedule.spec.ts` sigue esperando «(in 10 minutes)» y pasa.
+- Changelog: «The "Coming up" countdown uses the plural forms of each language ("in 1 minute").»
+- [x] hecha · commit: ver `git log` («fix(0011): use plural forms in the coming-up countdown (2.6)»)
 
 ### 2.7 C15: `alt` traducidos o vacíos (≤ 1 h)
 - Qué (`fix-bug`): el `currently` de C15 pasa a regresión: los `alt` de las `img` del player son `''` (fondo y avatar del programa en antena) y «<emisora> logo» (el título sembrado). `dashboard.stationLogo` = `"{{name}} logo"` en los 14 locales; `StreamInfo` usa `t('dashboard.stationLogo', { name: title })`; el fondo y el `Avatar` pasan a `alt=""` (el avatar sigue con `aria-hidden`). El canvas no se toca. Fila C15 → «corregido».
