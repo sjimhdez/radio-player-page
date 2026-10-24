@@ -56,7 +56,9 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Archivos: `player/src/config/i18n.ts`, `player/src/config/locales.test.ts`, `tests/e2e/i18n.spec.ts`, `docs/known-issues.md`
 - Test: regresión (antes `currently`): `locales.test.ts`, `i18n.spec.ts`
 - Verificación: `npm --prefix player run check && npm run test:e2e -- tests/e2e/i18n.spec.ts`
-- [ ] hecha · commit: —
+- Rojo: `locales.test.ts`, los seis casos de K68 con `Expected: "Abspielen"` (`"Reproduzir"`, `"Afspelen"`, `"Spela"`, `"Воспроизвести"`) / `Received: "Play"`, y «falls back to en-US» (`fallbackLng` era `['en-US']`); el e2e nuevo, contra el `dist/` anterior, no encuentra el botón «Abspielen».
+- Changelog: «The player shows regional variants without their own translation (de-AT, pt-PT, nl-BE…) in their base language instead of English.»
+- [x] hecha · commit: ver `git log` («fix(0011): show regional variants in their base language (2.3)»)
 
 ### 2.4 Detección solo por el `<html lang>` y K55 (≤ 1 h)
 - Qué: fuera `LanguageDetector` y la dependencia (`npm --prefix player uninstall i18next-browser-languagedetector`); `lng: document.documentElement.lang || 'en-US'`. El comentario de `config/i18n.ts` describe lo que hace (idiomas, base, reserva, sin almacenamiento). En `i18n.spec.ts`: la aserción de `localStorage` → `toBeNull()` (aprobado), el comentario de cabecera al día, y el `currently` de K55 se renombra `uses the site language, never the browser language (K55)` sin tocar sus asserts. Fila K55 al día.

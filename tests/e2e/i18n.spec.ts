@@ -79,6 +79,23 @@ test( 'falls back to English for a language without translation', async ( {
 	} );
 } );
 
+test( 'shows a regional variant without resources in its base language (K68)', async ( {
+	page,
+} ) => {
+	await withSiteLocale( 'de_AT', async () => {
+		await page.goto( readSeed().urls.mp3 );
+
+		await expect( page.locator( 'html' ) ).toHaveAttribute(
+			'lang',
+			'de-AT'
+		);
+		// No de-AT or de resources: i18next falls back to `de-DE`.
+		await expect(
+			page.getByRole( 'button', { name: 'Abspielen' } )
+		).toBeVisible();
+	} );
+} );
+
 test( 'the page language wins over the one stored in localStorage', async ( {
 	page,
 } ) => {
