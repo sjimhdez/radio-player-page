@@ -12,6 +12,9 @@ import metadata from '../block.json';
 
 const blockName = metadata.name;
 
+/** Heading levels the block can print; the front end falls back to 2. */
+const HEADING_LEVELS = [ 2, 3, 4, 5, 6 ];
+
 /**
  * Label of a station in the select.
  *
@@ -37,7 +40,7 @@ function stationLabel( station, index ) {
  * @return {Element} Element to render.
  */
 export default function Edit( { attributes, setAttributes } ) {
-	const { stationId, stationIndex, showLogo } = attributes;
+	const { stationId, stationIndex, showLogo, headingLevel } = attributes;
 	const blockProps = useBlockProps();
 	const stations = window.radplapagNowPlayingBlock?.stations || [];
 	// The station the front end shows: by ID, or by position without one.
@@ -82,6 +85,10 @@ export default function Edit( { attributes, setAttributes } ) {
 					stationLabel( resolved, resolvedIndex )
 				);
 	const showLogoValue = showLogo !== false;
+	// What the front end prints: 2 outside 2-6.
+	const headingLevelValue = HEADING_LEVELS.includes( headingLevel )
+		? headingLevel
+		: 2;
 
 	return (
 		<>
@@ -128,6 +135,19 @@ export default function Edit( { attributes, setAttributes } ) {
 							setAttributes( { showLogo: value } )
 						}
 					/>
+					<SelectControl
+						label={ __( 'Heading level', 'radio-player-page' ) }
+						value={ String( headingLevelValue ) }
+						options={ HEADING_LEVELS.map( ( level ) => ( {
+							label: `H${ level }`,
+							value: String( level ),
+						} ) ) }
+						onChange={ ( value ) =>
+							setAttributes( {
+								headingLevel: parseInt( value, 10 ),
+							} )
+						}
+					/>
 				</PanelBody>
 			</InspectorControls>
 			<div { ...blockProps }>
@@ -137,6 +157,7 @@ export default function Edit( { attributes, setAttributes } ) {
 						stationId,
 						stationIndex,
 						showLogo: showLogoValue,
+						headingLevel: headingLevelValue,
 					} }
 				/>
 			</div>

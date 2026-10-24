@@ -24,6 +24,9 @@ import metadata from '../block.json';
 
 const blockName = metadata.name;
 
+/** Heading levels the block can print; the front end falls back to 2. */
+const HEADING_LEVELS = [ 2, 3, 4, 5, 6 ];
+
 /**
  * Label of a station in the select.
  *
@@ -46,6 +49,7 @@ function Edit( { attributes, setAttributes } ) {
 		showDescription,
 		showExtendedDescription,
 		showSchedule,
+		headingLevel,
 	} = attributes;
 	const blockProps = useBlockProps();
 	const stations = window.radplapagProgramsListBlock?.stations || [];
@@ -94,6 +98,10 @@ function Edit( { attributes, setAttributes } ) {
 	const showDescriptionValue = showDescription !== false;
 	const showExtendedDescriptionValue = showExtendedDescription !== false;
 	const showScheduleValue = showSchedule !== false;
+	// What the front end prints: 2 outside 2-6.
+	const headingLevelValue = HEADING_LEVELS.includes( headingLevel )
+		? headingLevel
+		: 2;
 
 	return (
 		<>
@@ -173,6 +181,19 @@ function Edit( { attributes, setAttributes } ) {
 							setAttributes( { showSchedule: value } )
 						}
 					/>
+					<SelectControl
+						label={ __( 'Heading level', 'radio-player-page' ) }
+						value={ String( headingLevelValue ) }
+						options={ HEADING_LEVELS.map( ( level ) => ( {
+							label: `H${ level }`,
+							value: String( level ),
+						} ) ) }
+						onChange={ ( value ) =>
+							setAttributes( {
+								headingLevel: parseInt( value, 10 ),
+							} )
+						}
+					/>
 				</PanelBody>
 			</InspectorControls>
 			<div { ...blockProps }>
@@ -185,6 +206,7 @@ function Edit( { attributes, setAttributes } ) {
 						showDescription: showDescriptionValue,
 						showExtendedDescription: showExtendedDescriptionValue,
 						showSchedule: showScheduleValue,
+						headingLevel: headingLevelValue,
 					} }
 				/>
 			</div>

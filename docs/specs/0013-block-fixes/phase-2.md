@@ -57,7 +57,9 @@ Los tres bloques pintan encabezados reales `<hN>` (nivel configurable, por defec
 - Archivos: `blocks/schedule/src/index.js`, `blocks/programs-list/src/index.js`, `blocks/now-playing/src/edit.js`, `blocks/*/build/` (hook), `tests/e2e/blocks.spec.ts`, `docs/known-issues.md`.
 - Test: e2e nuevo (visto en rojo antes del control).
 - Verificación: `npm --prefix blocks/schedule run check && npm --prefix blocks/programs-list run check && npm --prefix blocks/now-playing run check && npm run test:e2e -- blocks.spec.ts a11y.spec.ts`
-- [ ] hecha · commit: —
+- Rojo (Chromium): los tres tests nuevos fallan al buscar el `combobox` «Heading level». En verde: `blocks.spec.ts` y `a11y.spec.ts` 82/82 en Chromium y WebKit, sin violaciones nuevas de axe (ni `heading-order`). Fuera de 2–6 el control muestra H2 y la vista previa recibe 2, como el front. Capturas «después» en `test-results/0013-k53/`: mismo contenido; los encabezados toman la fuente de los `h2` del tema (serif en Twenty Twenty-Five) en lugar de la del texto (riesgo 1, va al `== Upgrade Notice ==` de la 2.8).
+- Changelog: control «Heading level» (H2–H6) en el panel de los tres bloques.
+- [x] hecha · commit: ver `git log` («fix(0013): add the heading level control to the blocks (2.3)»)
 
 ### 2.4 D6: `Player_Page::url()` (≤ 1 h)
 - Qué: TDD del adaptador `RadioPlayerPage\WP\Player_Page::url( int $page_id ): string`: `get_permalink()` si la entrada existe, es de tipo `page`, está en `publish`, `'' === post_password` y no es `page_for_posts` con `show_on_front = 'page'`; si no, `''`. Casos: publicada; 0 y un ID inexistente; borrador, privada, pendiente; con contraseña; la de entradas con `show_on_front = 'page'` (y la misma página con `posts`, que sí se sirve); una entrada que no es `page`. Va en `expected-additions.txt`.

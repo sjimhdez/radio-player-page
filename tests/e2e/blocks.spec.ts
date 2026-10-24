@@ -447,6 +447,60 @@ test.describe( 'blocks: editor', () => {
 				).toHaveCount( LETTERS.length );
 			}
 		} );
+
+		test( `${ name }: choosing a heading level stores it and previews it (K53)`, async ( {
+			page,
+		} ) => {
+			await openNewPost( page );
+			const station = await editorStation( page, SCHEDULED_STATION );
+			// Choosing before the first preview arrives can lose the next one
+			// (ServerSideRender), so wait for it as a user would.
+			const first = page.waitForResponse( ( response ) =>
+				decodeURIComponent( response.url() ).includes(
+					`/block-renderer/${ name }?`
+				)
+			);
+			const clientId = await insertBlock( page, name, station );
+			await first;
+			const { inspector } = await inspectBlock( page, clientId );
+			const level = inspector.getByRole( 'combobox', {
+				name: 'Heading level',
+				exact: true,
+			} );
+			await expect( level ).toHaveValue( '2' );
+
+			const preview = page.waitForResponse( ( response ) => {
+				const url = decodeURIComponent( response.url() );
+				return (
+					url.includes( `/block-renderer/${ name }?` ) &&
+					url.includes( 'attributes[headingLevel]=4' )
+				);
+			} );
+			await level.selectOption( { label: 'H4' } );
+			await preview;
+			await expect
+				.poll( () =>
+					page.evaluate(
+						( id ) =>
+							// @ts-expect-error -- wp is the editor global.
+							window.wp.data
+								.select( 'core/block-editor' )
+								.getBlockAttributes( id )
+								.headingLevel as number,
+						clientId
+					)
+				)
+				.toBe( 4 );
+			await expect( level ).toHaveValue( '4' );
+			// now-playing depends on the clock: the request with the level is
+			// what it previews.
+			if ( name !== 'radplapag/now-playing' ) {
+				const canvas = await editorCanvas( page );
+				const block = canvas.locator( `[data-type="${ name }"]` );
+				await expect( block.locator( 'h4' ).first() ).toBeVisible();
+				await expect( block.locator( 'h2' ) ).toHaveCount( 0 );
+			}
+		} );
 	}
 
 	// K54: the titles and descriptions core translates from block.json reach
