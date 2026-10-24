@@ -34,7 +34,7 @@ paths:
 
 ## Núcleo, hooks y componentes (ADR 0029)
 
-- **Núcleo:** `src/core/<zona>/` (`config`, `clock`, `schedule`, `audio`, `media-session`, `sleep`), TypeScript sin React, MUI ni i18next, con el test al lado (`*.test.ts`, TDD). Es interno, no es contrato. Puede importar `src/utils/` y `src/types/`; `src/utils/` se queda donde está, con sus firmas.
+- **Núcleo:** `src/core/<zona>/` (`config`, `clock`, `schedule`, `audio`, `media-session`, `sleep`, `i18n`), TypeScript sin React, MUI ni i18next, con el test al lado (`*.test.ts`, TDD). Es interno, no es contrato. Puede importar `src/utils/` y `src/types/`; `src/utils/` se queda donde está, con sus firmas.
 - **Frontera (A2):** ESLint, en el bloque de `src/core/**` de `eslint.config.js`, prohíbe importar `react`, `react-dom`, `@mui/*`, `@emotion/*`, `i18next`, `react-i18next`, `src/config/i18n`, `src/hooks/*` y `src/components/*`, y usar los globales `window`, `document`, `navigator` y `localStorage`. No se desactiva.
 - **Inyección de dependencias:** lo que no es del núcleo entra como parámetro: el `HTMLAudioElement`, `navigator.mediaSession`, el *user agent*, el constructor de `AudioContext` (`webAudio`), el reloj (`now`, `setTimeout`/`setInterval` y sus `clear*`, con los globales por defecto), los cargadores de `hls.js`/`dashjs` (los `import()` por defecto viven en el núcleo, para que sigan siendo *chunks* aparte) y los textos ya traducidos. Los tests usan *fakes* (`src/test/fake-audio.ts`, `src/test/fake-web-audio.ts`, un reloj *fake*), no `vi.mock` de módulos.
 - **Estado:** transición pura `(estado, evento) → estado` + un controlador que ejecuta los efectos y publica una instantánea inmutable con `subscribe()`/`getSnapshot()`. `getSnapshot()` devuelve la misma referencia hasta que algo cambia; los temporizadores arrancan con el primer suscriptor y paran con el último; `attach`/`detach` son idempotentes (`StrictMode`).
@@ -45,4 +45,6 @@ paths:
 ## i18n
 
 - 14 locales en `src/locales/*.json` (i18next). Todos tienen las mismas claves que `en-US.json` (test de paridad en la 0002).
-- Idioma: el del sitio, por el `lang` del `<html>`; reserva `en-US`. El navegador y `localStorage` no son contrato (ADR 0025).
+- Idioma: el del sitio, `lng = document.documentElement.lang || 'en-US'`, sin detector (ADR 0025, 0050). No se leen ni se escriben `localStorage` ni `navigator`.
+- Reservas: `fallbackLng` por idioma base, derivado de las claves de los recursos por `src/core/i18n/` (`de-AT` → `de-DE`; las claves con `_` se ignoran; `default: ['en-US']`). Un locale nuevo entra solo; no se escribe a mano.
+- `lang` = `i18n.resolvedLanguage`, siempre, en la raíz del `Dashboard` y en los portales por los `defaultProps` de `getTheme(colorMode, lang)` (`MuiDialog`, `MuiPopover`, `MuiTooltip` en `slotProps.popper`). Un portal nuevo lleva su `lang` en el tema; no se pasan `slotProps.popper` propios a un `Tooltip`.

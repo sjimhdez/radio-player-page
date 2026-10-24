@@ -42,7 +42,7 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Archivos: `docs/adr/0050-*.md`, `docs/adr/README.md`, `SPEC.md`, `.claude/rules/player.md`
 - Test: — (documentación)
 - Verificación: `npm run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («docs(0011): add ADR 0050 on the player language and its lang (2.1)»)
 
 ### 2.2 Mapa de reservas por idioma en el núcleo (≤ 1 h)
 - Qué: `fallbackLanguages(resourceKeys, defaultLanguage)` → `{ [base]: [primerRecursoDeEseIdioma, default], default: [default] }`; ignora las claves con `_` y los idiomas cuya base ya es un recurso (`es`, `cs`, `hr`). Orden estable (alfabético) si hubiera dos variantes de una base sin recurso base.
