@@ -1,5 +1,5 @@
 # Spec 0011 · Fase 2 — Idioma y textos
-Estado: en curso · Inicio: 2026-10-24 · ADRs: 0023, 0025, 0029, 0050 (nuevo)
+Estado: cerrada (2026-10-24) · Inicio: 2026-10-24 · ADRs: 0023, 0025, 0029, 0050 (nuevo)
 
 ## Contexto
 

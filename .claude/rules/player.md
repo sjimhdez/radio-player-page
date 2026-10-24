@@ -44,7 +44,7 @@ paths:
 
 ## i18n
 
-- 14 locales en `src/locales/*.json` (i18next). Todos tienen las mismas claves que `en-US.json` (test de paridad en la 0002).
+- 14 locales en `src/locales/*.json` (i18next). Todos tienen las mismas claves que `en-US.json` sin el sufijo plural (test de paridad en la 0002); las claves plurales (`_one`, `_few`, `_many`, `_other`) de cada locale son exactamente las categorías de `Intl.PluralRules` (K69) y se pasa `count`.
 - Idioma: el del sitio, `lng = document.documentElement.lang || 'en-US'`, sin detector (ADR 0025, 0050). No se leen ni se escriben `localStorage` ni `navigator`.
 - Reservas: `fallbackLng` por idioma base, derivado de las claves de los recursos por `src/core/i18n/` (`de-AT` → `de-DE`; las claves con `_` se ignoran; `default: ['en-US']`). Un locale nuevo entra solo; no se escribe a mano.
 - `lang` = `i18n.resolvedLanguage`, siempre, en la raíz del `Dashboard` y en los portales por los `defaultProps` de `getTheme(colorMode, lang)` (`MuiDialog`, `MuiPopover`, `MuiTooltip` en `slotProps.popper`). Un portal nuevo lleva su `lang` en el tema; no se pasan `slotProps.popper` propios a un `Tooltip`.
