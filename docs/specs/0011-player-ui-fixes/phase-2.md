@@ -49,7 +49,7 @@ El player sale en el idioma base cuando la variante regional no tiene recurso, m
 - Archivos: `player/src/core/i18n/fallback-languages.ts`, `player/src/core/i18n/fallback-languages.test.ts`
 - Test: primero (TDD): `fallback-languages.test.ts`
 - Verificación: `npm --prefix player run check`
-- [ ] hecha · commit: —
+- [x] hecha · commit: ver `git log` («feat(0011): add the per-language fallback map to the i18n core (2.2)»)
 
 ### 2.3 K68: variantes regionales en su idioma base (≤ 1 h)
 - Qué (`fix-bug`): el `currently` de K68 pasa a regresión (`changeLanguage(language)` → «Abspielen», «Reproduzir», «Afspelen»… el texto de `dashboard.play` del recurso base), en rojo y luego en verde con `fallbackLng: fallbackLanguages(Object.keys(resources), 'en-US')`. «falls back to en-US» cambia (aprobado). E2E nuevo en `i18n.spec.ts` con el sitio en `de_AT` (botón «Abspielen» o su texto en `de-DE`). Fila K68 → «corregido (spec 0011)».
