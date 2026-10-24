@@ -18,7 +18,7 @@
 | 0008 | [Correcciones: migración, actualización, núcleo PHP y desinstalación](0008-migration-and-core-fixes/spec.md) | cerrada (PR #42) | `spec/0008-migration-and-core-fixes` | 0005 |
 | 0009 | [Correcciones: horario y programa en antena](0009-schedule-model/spec.md) | cerrada (PR #43) | `spec/0009-schedule-model` | 0005, 0006 |
 | 0010 | [Correcciones: admin](0010-admin-fixes/spec.md) | cerrada (PR #44) | `spec/0010-admin-fixes` | 0005, 0009 |
-| 0011 | [Correcciones: interfaz, i18n y accesibilidad del player](0011-player-ui-fixes/spec.md) | propuesta | `spec/0011-player-ui-fixes` | 0006, 0007 |
+| 0011 | [Correcciones: interfaz, i18n y accesibilidad del player](0011-player-ui-fixes/spec.md) | en curso | `spec/0011-player-ui-fixes` | 0006, 0007 |
 | 0012 | ~~Correcciones: núcleo PHP y desinstalación~~: fusionada en la 0008 (comparten `uninstall.php` y `SPEC.md` §3.7; usuario, 2026-10-22) | fusionada | — | — |
 | 0013 | [Correcciones: bloques](0013-block-fixes/spec.md) | cerrada (PR #45) | `spec/0013-block-fixes` | 0009, 0010 |
 | último | Release | pendiente de escribir | — | todas |

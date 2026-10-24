@@ -47,3 +47,8 @@ La causa ya no es K1, sino el reintento sin `crossOrigin` del ADR 0033, que lleg
 Decisión: `useAudioPlayer()` sigue con `useState` + `subscribe()`. Para volver a `useSyncExternalStore` primero hay que dejar de publicar `error` durante el reintento de C1 (K83 en `known-issues.md`), lo que cambia el núcleo y queda fuera de la 2.7. Lo protegen los dos e2e de arriba en Chromium.
 
 Evidencia: [`phase-2.md`](../specs/0006-player-refactor/phase-2.md) de la 0006, tareas 2.9 (la regresión) y 2.11 (la sonda y las dos variantes); [`phase-2.md`](../specs/0007-playback-fixes/phase-2.md) de la 0007, tarea 2.7.
+
+## Revisión en la 0011 (cierre de la fase 1, 2026-10-24)
+La 1.4 de la 0011 corrigió K83: mientras el `start()` del directo está pendiente, el núcleo aplaza el `error` del elemento (y la `pause` que lo sigue) y no publica `error` durante el reintento de C1 (secuencia `idle/loading → idle → playing`). El motivo de la revisión de la 0007 ya no se da. Aun así, `useAudioPlayer()` sigue con `useState` + `subscribe()` por decisión del usuario (2026-10-24): volver a `useSyncExternalStore` necesitaría su propia medición (los e2e de C1 y K1 en Chromium y WebKit) y queda fuera de la 0011.
+
+Evidencia: [`phase-1.md`](../specs/0011-player-ui-fixes/phase-1.md) de la 0011, tarea 1.4.

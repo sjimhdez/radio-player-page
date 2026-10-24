@@ -1,6 +1,6 @@
 # Spec 0011 — Correcciones: interfaz, i18n y accesibilidad del player
 
-> Estado: **propuesta** · Fecha: 2026-10-24 · Rama: `spec/0011-player-ui-fixes` · Depende de: 0006, 0007
+> Estado: **en curso** · Fecha: 2026-10-24 · Rama: `spec/0011-player-ui-fixes` · Depende de: 0006, 0007
 >
 > Contexto y decisiones comunes: [`docs/specs/README.md`](../README.md). Contrato del producto: [`SPEC.md`](../../../SPEC.md). Docs en español; código, comentarios y commits en inglés.
 
@@ -32,9 +32,9 @@ Al cerrar la spec, todas estas filas están corregidas con su test de regresión
 - **ADR 0051** aceptado y `SPEC.md` §3.8 al día (línea «Interfaz accesible») antes de K56.
 - **K56 (alta):** el botón de Play/Pausa no se desmonta: con `loading` pinta el *spinner* dentro del mismo botón. Regresión en `tests/e2e/player-a11y.spec.ts` (el foco sigue en el botón tras Play con Enter y cuando sale Pausa) y en un test nuevo `components/dashboard/PlayerControls.test.tsx` (mismo nodo en `idle` → `loading` → `playing`). Con la bienvenida, el botón usa `aria-disabled` y conserva el foco.
 - **AX6 + K59 (media):** ninguna `progressbar` sin nombre (axe `aria-progressbar-name` en el escenario `player · loading`, que sale de la línea base) y «Connecting...» dentro de una región `role="status"` montada siempre. Regresión: el `currently` de AX6/K59.
-- **K83 (baja):** durante el reintento sin `crossOrigin` de C1 la instantánea nunca es `{ status: 'error', loading: false }`; la secuencia es `idle/loading → playing`. Regresión: el `currently` de `audio-controller.test.ts` y los e2e de C1 de `cross-origin.spec.ts` siguen en verde.
+- **K83 (baja):** durante el reintento sin `crossOrigin` de C1 la instantánea nunca es `{ status: 'error', loading: false }`; la secuencia es `idle/loading → idle → playing` (el `canplay` del reintento limpia `loading`; precisión aprobada por el usuario en el plan de la fase 1). Regresión: el `currently` de `audio-controller.test.ts` y los e2e de C1 de `cross-origin.spec.ts` siguen en verde.
 - **K57 (media):** al cerrar cualquiera de los dos modales (Escape o «Close») el foco vuelve al botón que lo abrió. Regresión: los dos `currently` de K57.
-- **K58 (baja):** al cancelar el temporizador el foco va a «Sleep mode»; al llegar a cero con el foco en él, al botón de Play. Regresión: el `currently` de K58 y un caso de cuenta a cero en `player-a11y.spec.ts` (con `page.clock`).
+- **K58 (baja):** al cancelar el temporizador el foco va a «Sleep mode»; al llegar a cero con el foco en él, al botón de Play. Regresión: el `currently` de K58 y un caso de cuenta a cero en `sleep.spec.ts` (reutiliza su `tick()`; plan de la fase 1, 1.6).
 
 **Fase 2 — Idioma y textos**
 
@@ -74,7 +74,7 @@ K83 no cambia el contrato: §3.8 ya dice que el error se muestra si el stream fa
 
 ### 4.2 K83 (fase 1)
 
-En el núcleo (`core/audio/audio-controller.ts`, `player-machine.ts`): el `error` del primer intento de una fuente directa con `crossOrigin` que **va a reintentarse** no se despacha como `error`; el estado sigue en carga hasta el `playing` del reintento o su propio fallo. El orden de los eventos (`error` del elemento antes del rechazo de `play()`) obliga a decidir el reintento antes de publicar, o a aplazar el `error` del elemento hasta saber si hay reintento: lo decide el plan, con TDD sobre el *fake*. Los e2e de C1 (`cross-origin.spec.ts`) y K1 deben seguir en verde en Chromium y WebKit.
+En el núcleo (`core/audio/audio-controller.ts`, `player-machine.ts`): el `error` del primer intento de una fuente directa con `crossOrigin` que **va a reintentarse** no se despacha como `error`; el estado sigue en carga hasta el `playing` del reintento o su propio fallo. El orden de los eventos (`error` del elemento antes del rechazo de `play()`) obliga a decidir el reintento antes de publicar, o a aplazar el `error` del elemento hasta saber si hay reintento: lo decide el plan, con TDD sobre el *fake*. Los e2e de C1 (`cross-origin.spec.ts`) y K1 deben seguir en verde en Chromium y WebKit. Hecho (fase 1, 1.4): el `error` del elemento se aplaza mientras el `start()` del directo está pendiente, con **toda** fuente del directo (también `hls.js`, `dashjs` y HLS nativo; el fatal de la librería sigue llegando aparte); decisión del usuario en el cierre de la fase 1, con tests de HLS y DASH.
 
 ### 4.3 Idioma (fase 2)
 
