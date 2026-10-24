@@ -80,3 +80,6 @@ El botón de Play/Pausa no se desmonta nunca y conserva el foco; la carga se anu
 
 ## Decisiones abiertas → ADR
 - ADR 0051 (1.2). Ninguna otra: K83 no cambia el ADR 0030.
+
+## Para el cierre de la fase
+- `.claude/rules/player.md` (excepción de `useAudioPlayer()`) y la revisión del ADR 0030 dan como motivo de `useState` el `error` intermedio de C1, que la 1.4 eliminó. Reescribir el motivo: el original (K83) se corrigió en la 0011; `useState` + `subscribe()` se mantiene por decisión del usuario, y volver a `useSyncExternalStore` necesitaría su propia medición (decisión del usuario, 2026-10-24).
