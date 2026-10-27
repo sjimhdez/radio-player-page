@@ -1,4 +1,11 @@
 <?php
+/**
+ * Server-side render for the Radio Schedule block.
+ *
+ * @package radio-player-page
+ * @since 3.3.0
+ */
+
 defined( 'ABSPATH' ) || exit;
 
 /**
@@ -14,19 +21,19 @@ defined( 'ABSPATH' ) || exit;
  * @param WP_Block $block      Block instance.
  * @return string HTML output.
  */
-function radplapag_render_schedule_block( $attributes, $content, $block ) {
+function radplapag_render_schedule_block( $attributes, $content, $block ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by render_callback.
+	$station_id                = (int) ( $attributes['stationId'] ?? 0 );
 	$station_index             = (int) ( $attributes['stationIndex'] ?? 0 );
+	$station_index             = $station_id > 0 ? \RadioPlayerPage\Data\Stations::block_index( radplapag_get_stations(), $station_id, $station_index ) : $station_index;
 	$day_order                 = ( $attributes['dayOrder'] ?? '' ) === 'natural' ? 'natural' : 'current_first';
 	$show_description          = (bool) ( $attributes['showDescription'] ?? true );
 	$show_extended_description = (bool) ( $attributes['showExtendedDescription'] ?? false );
-	$data             = radplapag_get_schedule_for_station( $station_index, $day_order );
-	$wrapper_attributes = get_block_wrapper_attributes(
-		[
-			'class' => 'wp-block-radplapag-schedule',
-		]
-	);
+	$heading_level             = (int) ( $attributes['headingLevel'] ?? 2 );
+	$heading_level             = ( $heading_level >= 2 && $heading_level <= 6 ) ? $heading_level : 2;
+	$data                      = radplapag_get_schedule_for_station( $station_index, $day_order );
+	$wrapper_attributes        = get_block_wrapper_attributes();
 
-	if ( $data === null ) {
+	if ( null === $data ) {
 		return '<div ' . $wrapper_attributes . '>' .
 			'<div class="wp-block-group is-empty">' .
 			'<p>' . esc_html__( 'No radio schedule for this station.', 'radio-player-page' ) . '</p>' .
@@ -34,7 +41,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			'</div>';
 	}
 
-	$days = $data['days'] ?? [];
+	$days          = $data['days'] ?? array();
 	$has_any_slots = false;
 	foreach ( $days as $day_data ) {
 		if ( ! empty( $day_data['slots'] ) ) {
@@ -50,20 +57,20 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 	}
 
 	$station_page_url = $data['station_page_url'] ?? '';
-	$station_page_url = ( is_string( $station_page_url ) && $station_page_url !== '' ) ? $station_page_url : '';
+	$station_page_url = ( is_string( $station_page_url ) && '' !== $station_page_url ) ? $station_page_url : '';
 
 	$html = '<div ' . $wrapper_attributes . '>';
 
 	foreach ( $days as $day_data ) {
-		$slots = $day_data['slots'] ?? [];
+		$slots = $day_data['slots'] ?? array();
 		if ( empty( $slots ) ) {
 			continue;
 		}
 		$day_key = (string) ( $day_data['day_key'] ?? '' );
 		$label   = (string) ( $day_data['label'] ?? $day_key );
-		$html    .= '<section class="wp-block-group" data-day="' . esc_attr( $day_key ) . '">';
-		$html    .= '<header class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</header>';
-		$html    .= '<ul class="wp-block-list">';
+		$html   .= '<section class="wp-block-group" data-day="' . esc_attr( $day_key ) . '">';
+		$html   .= '<h' . $heading_level . ' class="wp-block-heading" style="font-size:1.5em;">' . esc_html( $label ) . '</h' . $heading_level . '>';
+		$html   .= '<ul class="wp-block-list">';
 
 		foreach ( $slots as $slot ) {
 			$program_name = (string) ( $slot['program_name'] ?? '' );
@@ -74,8 +81,8 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			if ( $is_live ) {
 				$slot_class .= ' is-live';
 			}
-			$html .= '<li class="' . esc_attr( $slot_class ) . '"' . ( $is_live ? ' data-is-live="true"' : '' ) . '>';
-			$slot_content = '<span>' . esc_html( $program_name !== '' ? $program_name : '—' ) . '</span>';
+			$html        .= '<li class="' . esc_attr( $slot_class ) . '"' . ( $is_live ? ' data-is-live="true"' : '' ) . '>';
+			$slot_content = '<span>' . esc_html( '' !== $program_name ? $program_name : '—' ) . '</span>';
 			if ( $is_rerun ) {
 				$slot_content .= ' <span>' . esc_html__( '(Rerun)', 'radio-player-page' ) . '</span>';
 			}
@@ -84,7 +91,7 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 				$slot_content = '<span>' . esc_html__( 'On Air', 'radio-player-page' ) . '</span>: ' . $slot_content;
 			}
 			$html .= '<p class="wp-block-paragraph">';
-			if ( $is_live && $station_page_url !== '' ) {
+			if ( $is_live && '' !== $station_page_url ) {
 				$html .= '<a href="' . esc_url( $station_page_url ) . '" target="_blank" rel="noopener noreferrer">' . $slot_content . '</a>';
 			} else {
 				$html .= $slot_content;
@@ -92,14 +99,14 @@ function radplapag_render_schedule_block( $attributes, $content, $block ) {
 			$html .= '</p>';
 			if ( $show_description ) {
 				$program_description = (string) ( $slot['program_description'] ?? '' );
-				if ( $program_description !== '' ) {
+				if ( '' !== $program_description ) {
 					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_description ) . '</p></div>';
 				}
 			}
 			if ( $show_extended_description ) {
 				$program_extended_description = (string) ( $slot['program_extended_description'] ?? '' );
-				if ( $program_extended_description !== '' ) {
-					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . esc_html( $program_extended_description ) . '</p></div>';
+				if ( '' !== $program_extended_description ) {
+					$html .= '<div class="wp-block-group"><p class="wp-block-paragraph" style="font-size:0.875em;">' . nl2br( esc_html( $program_extended_description ) ) . '</p></div>';
 				}
 			}
 			$html .= '</li>';

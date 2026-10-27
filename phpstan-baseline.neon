@@ -1,0 +1,289 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Function radplapag_get_admin_strings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: admin/admin-strings.php
+
+		-
+			message: '#^Property WP_Screen\:\:\$id \(string\) in isset\(\) is not nullable\.$#'
+			identifier: isset.property
+			count: 2
+			path: admin/admin.php
+
+		-
+			message: '#^PHPDoc tag @var for variable \$attributes has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: blocks/now-playing/render.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: blocks/programs-list/render.php
+
+		-
+			message: '#^Function radplapag_render_programs_list_block\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: blocks/programs-list/render.php
+
+		-
+			message: '#^Function radplapag_render_schedule_block\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: blocks/schedule/render.php
+
+		-
+			message: '#^Method Radplapag_Program_Config\:\:__construct\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/data/class-radplapag-program-config.php
+
+		-
+			message: '#^Method Radplapag_Program_Config\:\:to_array\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/data/class-radplapag-program-config.php
+
+		-
+			message: '#^Property Radplapag_Program_Config\:\:\$data type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/data/class-radplapag-program-config.php
+
+		-
+			message: '#^Method Radplapag_Station_Config\:\:to_array\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/data/class-radplapag-station-config.php
+
+		-
+			message: '#^Function radplapag_get_now_playing_for_station\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-now-playing-block.php
+
+		-
+			message: '#^Function radplapag_get_all_programs_for_select\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-program-cpt.php
+
+		-
+			message: '#^Function radplapag_grant_program_caps_to_manage_options\(\) has parameter \$allcaps with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-program-cpt.php
+
+		-
+			message: '#^Function radplapag_grant_program_caps_to_manage_options\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-program-cpt.php
+
+		-
+			message: '#^Function radplapag_grant_program_caps_to_manage_options\(\) has parameter \$caps with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-program-cpt.php
+
+		-
+			message: '#^Function radplapag_grant_program_caps_to_manage_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-program-cpt.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/radplapag-program-cpt.php
+
+		-
+			message: '#^Function radplapag_get_programs_list_for_station\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-programs-list-block.php
+
+		-
+			message: '#^Function radplapag_build_programs_map\(\) has parameter \$station with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-schedule-block.php
+
+		-
+			message: '#^Function radplapag_build_programs_map\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-schedule-block.php
+
+		-
+			message: '#^Function radplapag_get_schedule_day_keys_and_labels\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-schedule-block.php
+
+		-
+			message: '#^Function radplapag_get_schedule_for_station\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-schedule-block.php
+
+		-
+			message: '#^PHPDoc tag @var has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-schedule-block.php
+
+		-
+			message: '#^Call to function is_array\(\) with array will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Function radplapag_grant_station_caps_to_manage_options\(\) has parameter \$allcaps with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Function radplapag_grant_station_caps_to_manage_options\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Function radplapag_grant_station_caps_to_manage_options\(\) has parameter \$caps with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Function radplapag_grant_station_caps_to_manage_options\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Function radplapag_sanitize_station_schedule\(\) has parameter \$schedule_input with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Function radplapag_sanitize_station_schedule\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int given\.$#'
+			identifier: argument.type
+			count: 4
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Parameter \#1 \$text of function esc_attr expects string, int\<0, max\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: includes/radplapag-station-cpt.php
+
+		-
+			message: '#^Function radplapag_get_config\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-stations.php
+
+		-
+			message: '#^Function radplapag_get_stations\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-stations.php
+
+		-
+			message: '#^Function radplapag_on_upgrader_process_complete\(\) has parameter \$options with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: includes/radplapag-upgrade.php
+
+		-
+			message: '#^Function radplapag_enqueue_now_playing_block_editor_assets\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_enqueue_programs_list_block_editor_assets\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_enqueue_schedule_block_editor_assets\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_get_station_for_current_page\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_map_cpt_meta_cap\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_map_cpt_meta_cap\(\) has parameter \$caps with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_map_cpt_meta_cap\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_register_now_playing_block\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_register_programs_list_block\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Function radplapag_register_schedule_block\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Parameter \#1 \$url of function esc_url expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: radio-player-page.php
+
+		-
+			message: '#^Parameter \#1 \$new_blog_id of function switch_to_blog expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: uninstall.php

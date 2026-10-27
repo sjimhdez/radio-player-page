@@ -1,0 +1,32 @@
+{
+    "stations": [
+        {
+            "title": "Plain",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 1}}",
+                "radplapag_station_schedule": "[]",
+                "radplapag_station_stream_url": "https://stream.example.test/plain.ogg",
+                "radplapag_station_theme_color": "neutral",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
+        }
+    ],
+    "programs": [],
+    "options": {
+        "radplapag_settings": "{{ABSENT}}",
+        "radplapag_db_version": "330",
+        "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
+    },
+    "transients": {
+        "radplapag_migrating": false,
+        "radplapag_migration_success_notice": {
+            "stations": 1,
+            "dropped": []
+        },
+        "radplapag_migration_error_notice": false
+    }
+}

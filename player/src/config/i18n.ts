@@ -1,6 +1,5 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
-import LanguageDetector from 'i18next-browser-languagedetector'
 
 import translationsEN_US from 'src/locales/en-US.json'
 import translationsES from 'src/locales/es.json'
@@ -16,10 +15,65 @@ import translationsPT_BR from 'src/locales/pt-BR.json'
 import translationsIT_IT from 'src/locales/it-IT.json'
 import translationsCS from 'src/locales/cs.json'
 import translationsHR from 'src/locales/hr.json'
+import { fallbackLanguages } from 'src/core/i18n/fallback-languages'
+
+const resources = {
+  'en-US': {
+    translation: translationsEN_US,
+  },
+  'ru-RU': {
+    translation: translationsRU_RU,
+  },
+  es: {
+    translation: translationsES,
+  },
+  'es-MX': {
+    translation: translationsES_MX,
+  },
+  'sv-SE': {
+    translation: translationsSV_SE,
+  },
+  'nl-NL': {
+    translation: translationsNL_NL,
+  },
+  'ro-RO': {
+    translation: translationsRO_RO,
+  },
+  'gl-ES': {
+    translation: translationsGL_ES,
+  },
+  'da-DK': {
+    translation: translationsDA_DK,
+  },
+  'de-DE': {
+    translation: translationsDE_DE,
+  },
+  de_DE: {
+    translation: translationsDE_DE,
+  },
+  'pt-BR': {
+    translation: translationsPT_BR,
+  },
+  pt_BR: {
+    translation: translationsPT_BR,
+  },
+  'it-IT': {
+    translation: translationsIT_IT,
+  },
+  it_IT: {
+    translation: translationsIT_IT,
+  },
+  cs: {
+    translation: translationsCS,
+  },
+  hr: {
+    translation: translationsHR,
+  },
+}
 
 /**
  * Internationalization (i18n) configuration
- * Configures i18next with language detection and translation resources
+ * Configures i18next with the page language and the translation resources
  *
  * Supported languages:
  * - en-US (English - United States) - Default fallback
@@ -37,78 +91,20 @@ import translationsHR from 'src/locales/hr.json'
  * - cs (Czech)
  * - hr (Croatian)
  *
- * Language detection order:
- * 1. HTML lang attribute
- * 2. localStorage (if previously selected)
- * 3. Browser navigator language
+ * The language is the one of `<html lang>`, which the clean page prints from
+ * the site locale (en-US if it is empty). Neither the browser language nor a
+ * stored choice is read, and nothing is stored (ADR 0050)
  *
- * Selected language is cached in localStorage for persistence
+ * A regional variant without its own resources falls back to its base language
+ * (`de-AT` → `de-DE`), then to en-US
  */
-i18n
-  .use(LanguageDetector)
-  .use(initReactI18next)
-  .init({
-    resources: {
-      'en-US': {
-        translation: translationsEN_US,
-      },
-      'ru-RU': {
-        translation: translationsRU_RU,
-      },
-      es: {
-        translation: translationsES,
-      },
-      'es-MX': {
-        translation: translationsES_MX,
-      },
-      'sv-SE': {
-        translation: translationsSV_SE,
-      },
-      'nl-NL': {
-        translation: translationsNL_NL,
-      },
-      'ro-RO': {
-        translation: translationsRO_RO,
-      },
-      'gl-ES': {
-        translation: translationsGL_ES,
-      },
-      'da-DK': {
-        translation: translationsDA_DK,
-      },
-      'de-DE': {
-        translation: translationsDE_DE,
-      },
-      de_DE: {
-        translation: translationsDE_DE,
-      },
-      'pt-BR': {
-        translation: translationsPT_BR,
-      },
-      pt_BR: {
-        translation: translationsPT_BR,
-      },
-      'it-IT': {
-        translation: translationsIT_IT,
-      },
-      it_IT: {
-        translation: translationsIT_IT,
-      },
-      cs: {
-        translation: translationsCS,
-      },
-      hr: {
-        translation: translationsHR,
-      },
-    },
-    fallbackLng: 'en-US',
-    detection: {
-      order: ['htmlTag', 'localStorage', 'navigator'],
-      caches: ['localStorage'],
-    },
-    interpolation: {
-      escapeValue: false,
-    },
-  })
+i18n.use(initReactI18next).init({
+  resources,
+  lng: document.documentElement.lang || 'en-US',
+  fallbackLng: fallbackLanguages(Object.keys(resources), 'en-US'),
+  interpolation: {
+    escapeValue: false,
+  },
+})
 
 export default i18n

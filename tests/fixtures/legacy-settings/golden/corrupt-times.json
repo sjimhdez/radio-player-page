@@ -1,0 +1,75 @@
+{
+    "stations": [
+        {
+            "title": "Valid",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 1}}",
+                "radplapag_station_schedule": "{\"monday\":[{\"program_id\":\"{{PROGRAM:Valid Show}}\",\"start\":\"07:00\",\"end\":\"09:00\",\"is_rerun\":false}]}",
+                "radplapag_station_stream_url": "https://stream.example.test/one.mp3",
+                "radplapag_station_theme_color": "neutral",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
+        },
+        {
+            "title": "Broken",
+            "status": "publish",
+            "menu_order": 1,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 2}}",
+                "radplapag_station_schedule": "[]",
+                "radplapag_station_stream_url": "https://stream.example.test/two.mp3",
+                "radplapag_station_theme_color": "neutral",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
+        }
+    ],
+    "programs": [
+        {
+            "title": "Valid Show",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        },
+        {
+            "title": "Broken Show",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        }
+    ],
+    "options": {
+        "radplapag_settings": "{{ABSENT}}",
+        "radplapag_db_version": "330",
+        "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
+    },
+    "transients": {
+        "radplapag_migrating": false,
+        "radplapag_migration_success_notice": {
+            "stations": 2,
+            "dropped": [
+                {
+                    "station": "Broken",
+                    "day": "friday",
+                    "start": "7:00",
+                    "end": "25:00",
+                    "program": "Broken Show"
+                }
+            ]
+        },
+        "radplapag_migration_error_notice": false
+    }
+}

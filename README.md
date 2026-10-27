@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-3.4.2-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
@@ -101,7 +101,7 @@ Visualizers are lazy-loaded for optimal performance and only activate when audio
 
 ### Multilingual Interface
 
-Player interface available in **12 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil), Italian. Automatic language detection based on browser settings, with fallback to English.
+Player interface available in **14 languages:** English (US), Spanish, Spanish (Mexico), Russian, Dutch, Romanian, Swedish, Galician, Danish, German, Portuguese (Brazil), Italian, Czech, Croatian. The player follows your site language; a regional variant without its own translation uses its base language (e.g. German (Austria) → German), and any other language falls back to English.
 
 ---
 
@@ -161,9 +161,9 @@ The player is a self-contained application built with **React 19, TypeScript, an
 
 - **WordPress** 6.6+
 - **PHP** 7.4+
-- **Node.js** 20.x (development only; see `player/.nvmrc`)
+- **Node.js** 26 (development only; `.nvmrc`; minimum `>=22.22.2`)
 
-**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and radio show CPT posts and flushes the object cache. Data is not removed on deactivation.
+**Uninstall:** When the plugin is uninstalled (not just deactivated), `uninstall.php` removes all station and radio show CPT posts (trashed and auto-drafts included), the plugin's options, transients and internal meta, on every site of a multisite network, and flushes the object cache. Data is not removed on deactivation.
 
 ### Data Model
 
@@ -176,7 +176,7 @@ Since version 3.3.0, stations and radio shows are stored as WordPress custom pos
 
 ### Architecture and Data Flow
 
-The plugin uses WordPress `template_redirect` to intercept requests for pages assigned to a station. It then outputs a minimal HTML document that loads the React player and injects configuration via three global variables. The React app combines and validates them with `useConfig()`.
+The plugin uses WordPress `template_redirect` to intercept requests for pages assigned to a station. It then outputs a minimal HTML document that loads the React player and injects configuration via three global variables. The React app reads and validates them once, through `useConfig()` (validation and defaults live in the framework-free core, `player/src/core/config/read-config.ts`).
 
 ```
 WordPress page request
@@ -186,7 +186,8 @@ WordPress page request
   → Reads manifest.json, loads fingerprinted assets
   → Outputs HTML with:
       window.RADPLAPAG_CONFIG   (streamUrl, siteTitle, themeColor, visualizer,
-                                  backgroundImage, logoImage, introAudioUrl, timezoneOffset)
+                                  backgroundImage, logoImage, introAudioUrl, timezoneOffset, timezone,
+                                  hideTitle)
       window.RADPLAPAG_PROGRAMS (array of { id, name, description?, extendedDescription?, logoUrl? })
       window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end, is_rerun? }, ...])
   → React: useConfig() → ResolvedConfig
@@ -207,18 +208,20 @@ Asset paths come from Vite's `manifest.json` (content-hashed filenames) for cach
 | Material-UI   | Component library              |
 | hls.js        | HLS streaming (non-iOS)        |
 | dashjs        | DASH streaming                 |
-| i18next       | Internationalization           |
+| i18next       | Internationalization (with react-i18next) |
 | date-fns      | Date/time formatting           |
 | Web Audio API | Audio analysis for visualizers |
 
-Node 20.x is used for development (`player/.nvmrc`, `player/package.json`).
+Node 26 is used for development (`.nvmrc` in the root, `player/` and each block; `engines.node >=22.22.2`). The root, `player/` and each block are independent npm projects, each with its own `package.json`, lockfile and build.
+
+Development and test tooling: PHPCS (WPCS + PHPCompatibilityWP), PHPStan, PHPUnit, ESLint, Prettier, Vitest, Playwright (Chromium + WebKit) and `@wordpress/env` (Docker).
 
 ### Project Structure
 
 ```
 radio-player-page/
-├── radio-player-page.php          # Main plugin file, template redirect, block registration
-├── uninstall.php                  # Removes CPT posts on uninstall (multisite-aware)
+├── radio-player-page.php          # Main plugin file, clean player page (template_redirect), block registration
+├── uninstall.php                  # Removes plugin data on uninstall (multisite-aware)
 ├── includes/
 │   ├── radplapag-station-cpt.php  # radplapag_station CPT registration
 │   ├── radplapag-program-cpt.php  # radplapag_program CPT registration
@@ -228,25 +231,40 @@ radio-player-page/
 │   ├── radplapag-programs-list-block.php
 │   ├── radplapag-now-playing-block.php
 │   ├── data/                      # Radplapag_Station_Config, Radplapag_Program_Config
-│   └── migration/                 # Legacy settings-option → CPT one-way migrator
+│   ├── migration/                 # Legacy settings-option → CPT one-way migrator
+│   └── src/                       # Autoloaded classes: data, schedule, station, program, player globals, migration, upgrade, wp
 ├── admin/                         # Loaded when is_admin()
 │   ├── admin.php                  # Bootstrap, hooks, menu
 │   ├── admin-strings.php          # JS localization (radplapag_get_admin_strings)
 │   ├── css/, js/                  # Admin styles and form logic
-├── blocks/
-│   ├── schedule/                  # Radio Schedule block (block.json, render.php, build/)
-│   ├── programs-list/             # Radio Shows List block (block.json, render.php, build/)
-│   └── now-playing/               # Now Playing block (block.json, render.php, build/)
-├── player/                        # React frontend
-│   ├── src/                       # Components, hooks, config, locales, types, utils
+├── blocks/                        # Each block is an independent npm project
+│   ├── schedule/                  # Radio Schedule block (block.json, render.php, src/ → build/)
+│   ├── programs-list/             # Radio Shows List block (block.json, render.php, src/ → build/)
+│   └── now-playing/               # Now Playing block (block.json, render.php, src/ → build/)
+├── player/                        # React frontend (independent npm project)
+│   ├── src/
+│   │   ├── core/                  # Framework-free core: audio, config, schedule, clock, sleep, media session, i18n
+│   │   └── components/, hooks/, config/, locales/, types/, utils/
 │   ├── dist/                      # Build output (generated, committed)
 │   ├── vite.config.ts
 │   └── package.json
-├── scripts/                       # run-eslint, run-wp-plugin-check, run-php-versions-check, build-release-zip
+├── scripts/                       # build-release-zip, fixtures and seeding, license and coverage checks, local CI mirrors
+├── tests/                         # php/unit, php/integration, js, e2e, zip
 └── readme.txt                     # WordPress.org readme format
 ```
 
 ### Development
+
+From the plugin root (WordPress side and the whole suite):
+
+```bash
+npm install && composer install
+npm run check          # PHPCS, PHPStan, PHPUnit unit, ESLint, Vitest, hook tests, player and block checks, zip list
+npm run env:start      # Development site on http://localhost:8886 (wp-env, Docker; admin / password)
+npm run env:start:min  # Test site on http://localhost:8890 with WP 6.6 + PHP 7.4 (env:start:latest: latest WP + PHP 8.4)
+npm run test:php:integration
+npm run test:e2e       # Playwright, Chromium + WebKit, on the test site
+```
 
 From the `player/` directory:
 
@@ -255,15 +273,17 @@ npm install
 npm run build          # Production build to dist/
 npm run dev            # Standalone dev server (http://localhost:5173), mock globals in index.html
 npm run dev:build      # Watch mode; rebuilds to dist/ for testing in WordPress
-npm run lint           # ESLint
+npm run check          # Typecheck, ESLint, Prettier and Vitest with coverage
 ```
+
+From each `blocks/<block>/` directory: `npm install`, `npm run build` (to `build/`) and `npm run check`.
 
 **Standalone:** `npm run dev` uses mock `window.*` globals from `player/index.html` and hot reload.
 **WordPress:** Use `npm run dev:build` and load the player via the assigned page; manifest and assets are read from `dist/`.
 
 `player/dist/` and each block's `build/` directory are generated but committed — CI fails if they're stale, so rebuild and commit after touching `player/src` or `blocks/*/src`.
 
-CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/test.yml): PHP syntax (7.4 and 8.4), player lint/build, WordPress block builds, and Plugin Check (on push to `main` or PRs that touch PHP/admin/readme). Scripts in `scripts/` mirror those checks locally (e.g. `./scripts/run-eslint.sh`, `./scripts/run-wp-plugin-check.sh`, `./scripts/run-php-versions-check.sh`, `./scripts/build-release-zip.sh --build`).
+CI runs on GitHub Actions via [.github/workflows/ci.yml](.github/workflows/ci.yml) on every pull request and on pushes to `main`: PHP syntax (7.4 and 8.4), PHPCS, PHPStan, PHPUnit (unit, and integration on WP 6.6 + PHP 7.4 and latest WP + PHP 8.4), root lint and Vitest, the player and block checks with a stale-build check, licenses and `npm audit`, E2E on both environments, the release zip file list and Plugin Check on the release zip. `./scripts/build-release-zip.sh` builds the release zip locally.
 
 ### API Reference
 
@@ -272,9 +292,9 @@ CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/tes
 - **Action** `template_redirect`: Intercepts requests for player pages.
 - **Filters:** None exposed.
 
-**JavaScript globals** (set by PHP before React; combined in React via `useConfig()`):
+**JavaScript globals** (set by PHP before React; read in React via `useConfig()`):
 
-- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `introAudioUrl` (optional welcome audio, played once before the live stream on first play), `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC).
+- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `introAudioUrl` (optional welcome audio, played once before the live stream on first play), `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC at request time; fallback), `timezone` (the site's IANA zone, or `null` with a manual UTC offset; the player follows its daylight saving time while the page is open), `hideTitle` (`true` hides the station name from view; it stays as the page heading for screen readers).
 - **`window.RADPLAPAG_PROGRAMS`** – Array of `{ id, name, description?, extendedDescription?, logoUrl? }`. Optional.
 - **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end, is_rerun? }], ... }`. `program_id` is the radio show's post ID (as a string), matched against `id` in `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour); `is_rerun` marks the slot as a rerun. Optional.
 
@@ -287,9 +307,9 @@ CI runs on GitHub Actions via [.github/workflows/test.yml](.github/workflows/tes
 
 ### Internationalization
 
-Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE, pt-BR / pt_BR, it-IT / it_IT. Detection: HTML `lang` → localStorage → navigator. For German (de_DE), Portuguese Brazil (pt_BR), and Italian (it_IT), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/), [WordPress Portuguese Brazil glossary](https://translate.wordpress.org/locale/pt-br/default/glossary/), and [WordPress Italian glossary](https://translate.wordpress.org/locale/it/default/glossary/) where applicable.
+Player UI locales: en-US, es, es-MX, ru-RU, nl-NL, ro-RO, sv-SE, gl-ES, da-DK, de-DE / de_DE, pt-BR / pt_BR, it-IT / it_IT, cs, hr. The language is the site language, read from the `<html lang>` of the clean page; the browser language and `localStorage` are not used. A regional variant without its own resources falls back to its base language (`de-AT` → `de-DE`, `pt-PT` → `pt-BR`, `es-AR` → `es`), and then to en-US. The player marks the language it renders in with `lang`, also on its dialogs, menus and tooltips. For German (de_DE), Portuguese Brazil (pt_BR), and Italian (it_IT), terminology follows the [WordPress German glossary](https://translate.wordpress.org/locale/de/default/glossary/), [WordPress Portuguese Brazil glossary](https://translate.wordpress.org/locale/pt-br/default/glossary/), and [WordPress Italian glossary](https://translate.wordpress.org/locale/it/default/glossary/) where applicable.
 
-**Adding a new language:** (1) Add a JSON file in `player/src/locales/` with the same keys as `en-US.json`. (2) Import it and register the locale in `player/src/config/i18n.ts` (use both hyphen and underscore keys if the locale has a region, e.g. `de-DE` and `de_DE`, so WordPress `lang` and browser codes both work). (3) Update this README. Source strings are English (en-US). For locales with an official WordPress glossary (e.g. de_DE), use the [glossary and style guide](https://make.wordpress.org/polyglots/handbook/translating/glossaries-and-style-guides-per-locale/) when translating.
+**Adding a new language:** (1) Add a JSON file in `player/src/locales/` with the same keys as `en-US.json`. (2) Import it and register the locale in `player/src/config/i18n.ts`; the base-language fallback is derived from the registered keys, so no other configuration is needed. (3) Update this README. Source strings are English (en-US). For locales with an official WordPress glossary (e.g. de_DE), use the [glossary and style guide](https://make.wordpress.org/polyglots/handbook/translating/glossaries-and-style-guides-per-locale/) when translating.
 
 ### Security and Browser Support
 

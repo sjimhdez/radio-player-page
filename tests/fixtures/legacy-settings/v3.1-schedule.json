@@ -1,0 +1,20 @@
+{
+	"_source": "v3.1.0 admin/sanitize-settings.php: + programs[{id,name,logo_id}], schedule{day:[{program_id,name,start,end}]}",
+	"settings": {
+		"stations": [
+			{
+				"stream_url": "https://stream.example.test/one.mp3", "player_page": "{{PAGE:Player 1}}", "station_title": "Scheduled",
+				"background_id": 0, "logo_id": 0, "theme_color": "blue", "visualizer": "bars",
+				"programs": [
+					{ "id": "prog_morning01", "name": "Morning", "logo_id": 0 },
+					{ "id": "prog_night0001", "name": "Night", "logo_id": 0 }
+				],
+				"schedule": {
+					"monday": [ { "program_id": "prog_morning01", "name": "Morning", "start": "07:00", "end": "09:00" } ],
+					"friday": [ { "program_id": "prog_night0001", "name": "Night", "start": "23:00", "end": "01:00" } ],
+					"sunday": [ { "program_id": "prog_unknown01", "name": "Ghost", "start": "10:00", "end": "11:00" } ]
+				}
+			}
+		]
+	}
+}

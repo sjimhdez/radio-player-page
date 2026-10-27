@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useCallback, useRef, useState, useEffect } from 'react'
 import Stack from '@mui/material/Stack'
 import Box from '@mui/material/Box'
 import Snackbar from '@mui/material/Snackbar'
@@ -6,8 +6,8 @@ import Alert from '@mui/material/Alert'
 import { useTranslation } from 'react-i18next'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import useAudioVisualizer from 'src/hooks/use-audio-visualizer'
-import { useCanVisualize } from 'src/hooks/use-can-visualize'
 import useMediaSession from 'src/hooks/use-media-session'
+import useSleepTimer from 'src/hooks/use-sleep-timer'
 import useConfig from 'src/hooks/use-config'
 import { getVisualizer, getDefaultVisualizer, type VisualizerConfig } from 'src/config/visualizers'
 import StreamInfo from './StreamInfo'
@@ -64,15 +64,17 @@ const Dashboard = () => {
     width: window.innerWidth,
     height: window.innerHeight,
   })
-  const [openError, setOpenError] = useState(false)
   const [openScheduleModal, setOpenScheduleModal] = useState(false)
   const [openAllProgramsModal, setOpenAllProgramsModal] = useState(false)
-  const [sleepTimerSeconds, setSleepTimerSeconds] = useState<number | null>(null)
   const [visualizerConfig, setVisualizerConfig] = useState<VisualizerConfig | null>(null)
 
   const canvasRef = useRef<HTMLCanvasElement>(document.createElement('canvas'))
+  // Focus targets when the sleep timer goes away (known-issues.md K58)
+  const playButtonRef = useRef<HTMLButtonElement>(null)
+  const sleepModeRef = useRef<HTMLButtonElement>(null)
+  const sleepTimerRef = useRef<HTMLDivElement>(null)
 
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const hasSchedule = Boolean(
     config.schedule &&
     (config.schedule.monday?.length ||
@@ -83,13 +85,41 @@ const Dashboard = () => {
       config.schedule.saturday?.length ||
       config.schedule.sunday?.length),
   )
-  const { audioRef, status, loading, introLocked, play, pause, volume, handleVolumeChange } =
-    useAudioPlayer(config.streamUrl, config.introAudioUrl)
-  const canVisualize = useCanVisualize(audioRef)
+  const {
+    audioRef,
+    status,
+    loading,
+    introLocked,
+    play,
+    pause,
+    volume,
+    volumeControllable,
+    handleVolumeChange,
+    canVisualize,
+    getAnalyser,
+  } = useAudioPlayer(config.streamUrl, config.introAudioUrl)
   const transmissionTimeData = useTransmissionTime()
+
+  // Show error snackbar when error occurs and loading is complete
+  const openError = status === 'error' && !loading
 
   // Configure Media Session API for lock screen
   useMediaSession(config.siteTitle, config.logoImage || '', play, pause, status)
+
+  // Sleep timer: pauses playback when the countdown runs out. Its display unmounts
+  // then, so if it held the focus the focus goes to Play (known-issues.md K58)
+  const handleSleepEnd = useCallback(() => {
+    const hadFocus = sleepTimerRef.current?.contains(document.activeElement) ?? false
+    pause()
+    if (hadFocus) playButtonRef.current?.focus()
+  }, [pause])
+  const sleepTimer = useSleepTimer(status === 'playing', handleSleepEnd)
+
+  // Cancelling unmounts the cancel button: the focus goes to "Sleep mode" (K58)
+  const handleSleepCancel = () => {
+    sleepTimer.cancel()
+    sleepModeRef.current?.focus()
+  }
 
   // Load visualizer asynchronously (code splitting)
   useEffect(() => {
@@ -129,9 +159,9 @@ const Dashboard = () => {
     } as VisualizerConfig)
 
   useAudioVisualizer(
-    audioRef,
+    getAnalyser,
     canvasRef,
-    status,
+    status === 'playing' && canVisualize,
     dimensions.width,
     dimensions.height,
     currentVisualizerConfig.fn,
@@ -162,74 +192,138 @@ const Dashboard = () => {
     }
   }, [dimensions])
 
-  // Show error snackbar when error occurs and loading is complete
-  useEffect(() => {
-    setOpenError(status === 'error' && loading === false)
-  }, [status, loading])
+  // The station info goes to the top while a visualizer draws
+  const atTop = status === 'playing' && canVisualize && !currentVisualizerConfig.forceVerticalCenter
+  // Top row: the clock, or at least 16px without it
+  const topRowMin = transmissionTimeData.hasDifference ? 'auto' : '16px'
 
+  // In flow: header (clock), main (station info over the visualizer layer) and
+  // the controls region (known-issues.md K61, AX1). The outer rows share the
+  // free space, so the station info sits in the middle of the window; with no
+  // room, the controls row keeps its content and the station info goes up.
+  // The height is definite: with min-height the free space is indefinite and
+  // both outer rows grow to the tallest (ADR 0055)
   return (
-    <Stack
-      justifyContent="center"
-      alignItems="center"
-      width="100vw"
-      height="100vh"
-      position="relative"
+    <Box
+      lang={i18n.resolvedLanguage}
+      sx={{
+        display: 'grid',
+        gridTemplateRows: `minmax(${topRowMin}, ${atTop ? 0 : 1}fr) auto minmax(auto, 1fr)`,
+        // fr to fr animates where auto margins do not (K92)
+        transition: 'grid-template-rows 0.8s ease',
+        width: '100%',
+        height: '100vh',
+        '@supports (height: 100dvh)': { height: '100dvh' },
+      }}
     >
-      {config.backgroundImage && (
+      {transmissionTimeData.hasDifference && (
         <Box
-          component="img"
-          src={config.backgroundImage}
-          alt="Background"
+          component="header"
           sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0,
-            opacity: 0.3,
+            gridRow: 1,
+            alignSelf: 'start',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            p: 2,
+            position: 'relative',
+            zIndex: 1,
           }}
-        />
+        >
+          <TimezoneClock transmissionTimeData={transmissionTimeData} />
+        </Box>
       )}
 
-      <StreamInfo
-        title={config.siteTitle}
-        logoImage={config.logoImage}
-        isPlaying={status === 'playing'}
-        canVisualize={canVisualize}
-        loading={loading}
-        forceVerticalCenter={currentVisualizerConfig.forceVerticalCenter}
-      />
-
       <Box
-        component="canvas"
-        ref={canvasRef}
-        role="img"
-        aria-label={t('dashboard.audioVisualizer')}
+        component="main"
         sx={{
-          opacity: canVisualize ? 1 : 0,
-          width: '100%',
-          height: '100%',
-          display: 'block',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
+          gridRow: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
         }}
-      />
+      >
+        {/* Background and visualizer, fixed to the window behind the content */}
+        <Box sx={{ position: 'fixed', inset: 0, zIndex: 0 }}>
+          {config.backgroundImage && (
+            <Box
+              component="img"
+              src={config.backgroundImage}
+              alt=""
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                opacity: 0.3,
+              }}
+            />
+          )}
+          <Box
+            component="canvas"
+            ref={canvasRef}
+            role="img"
+            aria-label={t('dashboard.audioVisualizer')}
+            sx={{
+              opacity: canVisualize ? 1 : 0,
+              width: '100%',
+              height: '100%',
+              display: 'block',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+            }}
+          />
+        </Box>
 
-      <Stack alignItems="center" gap={2} position="absolute" bottom={25}>
-        {sleepTimerSeconds !== null && (
+        <StreamInfo
+          title={config.siteTitle}
+          logoImage={config.logoImage}
+          isPlaying={status === 'playing'}
+          canVisualize={canVisualize}
+          loading={loading}
+          hideTitle={config.hideTitle}
+        />
+      </Box>
+
+      <Stack
+        component="section"
+        aria-label={t('dashboard.playerControls')}
+        sx={{
+          gridRow: 3,
+          alignSelf: 'end',
+          alignItems: 'center',
+          gap: 2,
+          pt: 2,
+          pb: '25px',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        {sleepTimer.remainingSeconds !== null && (
           <SleepTimer
-            remainingSeconds={sleepTimerSeconds}
-            onCancel={() => setSleepTimerSeconds(null)}
+            ref={sleepTimerRef}
+            remainingSeconds={sleepTimer.remainingSeconds}
+            onCancel={handleSleepCancel}
           />
         )}
-        <Box display="grid" gridTemplateColumns="1fr 1fr 1fr" gap={1}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: 1,
+          }}
+        >
           {hasSchedule ? (
-            <Stack direction="row" alignItems="center" justifyContent="flex-end" gap={0}>
+            <Stack
+              direction="row"
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: 2,
+              }}
+            >
               <Tooltip title={t('dashboard.viewSchedule')} placement="top" arrow>
                 <IconButton
                   onClick={() => setOpenScheduleModal(true)}
@@ -253,6 +347,7 @@ const Dashboard = () => {
             <Box />
           )}
           <PlayerControls
+            ref={playButtonRef}
             status={status}
             loading={loading}
             disabled={introLocked}
@@ -260,14 +355,17 @@ const Dashboard = () => {
             onPause={pause}
           />
           <SleepMode
-            isPlaying={status === 'playing'}
-            onSleepTimerEnd={pause}
-            onTimerChange={setSleepTimerSeconds}
-            externalTimerSeconds={sleepTimerSeconds}
+            ref={sleepModeRef}
+            isPlaying={status === 'playing' && !introLocked}
+            onSelect={(minutes) => sleepTimer.start(minutes * 60)}
           />
         </Box>
 
-        <VolumeControl volume={volume} onVolumeChange={handleVolumeChange} />
+        <VolumeControl
+          volume={volume}
+          controllable={volumeControllable}
+          onVolumeChange={handleVolumeChange}
+        />
       </Stack>
 
       {hasSchedule && (
@@ -282,15 +380,12 @@ const Dashboard = () => {
 
       <audio ref={audioRef} hidden preload="none" />
 
-      {/* Timezone clock - positioned discretely in top-right corner */}
-      <TimezoneClock transmissionTimeData={transmissionTimeData} />
-
       <Snackbar open={openError} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
         <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
           {t('dashboard.playStreamError')}
         </Alert>
       </Snackbar>
-    </Stack>
+    </Box>
   )
 }
 

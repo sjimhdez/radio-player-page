@@ -1,14 +1,14 @@
 <?php
-defined( 'ABSPATH' ) || exit;
-
-require_once dirname( __FILE__ ) . '/data/class-radplapag-station-config.php';
-
 /**
  * Stations data: list of stations from CPT (used by blocks, player page, config).
  *
  * @package radio-player-page
  * @since 3.3.0
  */
+
+defined( 'ABSPATH' ) || exit;
+
+require_once __DIR__ . '/data/class-radplapag-station-config.php';
 
 /**
  * Retrieves all stations from the radplapag_station CPT as an indexed array.
@@ -17,28 +17,15 @@ require_once dirname( __FILE__ ) . '/data/class-radplapag-station-config.php';
  * Order: menu_order, then title.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\WP\Station_Repository::published_rows().
+ * @since 3.5.0 Adds hide_title (ADR 0054).
  *
  * @return array Indexed array of station configs: each with id, stream_url, player_page,
- *               station_title, background_id, logo_id, theme_color, visualizer, schedule.
+ *               station_title, hide_title, background_id, logo_id, theme_color, visualizer,
+ *               schedule.
  */
 function radplapag_get_stations(): array {
-	$posts = get_posts(
-		[
-			'post_type'      => 'radplapag_station',
-			'post_status'    => 'publish',
-			'posts_per_page' => -1,
-			'orderby'        => 'menu_order title',
-			'order'          => 'ASC',
-		]
-	);
-	$out = [];
-	foreach ( $posts as $post ) {
-		$config = Radplapag_Station_Config::from_post( $post );
-		if ( $config ) {
-			$out[] = $config->to_array();
-		}
-	}
-	return $out;
+	return \RadioPlayerPage\WP\Station_Repository::published_rows();
 }
 
 /**
@@ -49,5 +36,5 @@ function radplapag_get_stations(): array {
  * @return array Config array with key 'stations' (ordered list from radplapag_get_stations()).
  */
 function radplapag_get_config(): array {
-	return [ 'stations' => radplapag_get_stations() ];
+	return array( 'stations' => radplapag_get_stations() );
 }

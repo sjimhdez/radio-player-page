@@ -1,0 +1,34 @@
+{
+	"_source": "v3.2.0 admin/sanitize-settings.php only warned (radplapag_schedule_cross_day_overlap) and saved a slot crossing midnight into the next day's slot; Sunday into Monday too. The later slot of each pair is dropped and both stations migrate (K30)",
+	"settings": {
+		"stations": [
+			{
+				"stream_url": "https://stream.example.test/one.mp3", "player_page": "{{PAGE:Player 1}}", "station_title": "Late Nights",
+				"background_id": 0, "logo_id": 0, "theme_color": "blue", "visualizer": "bars",
+				"programs": [
+					{ "id": "prog_late00001", "name": "Late Show", "description": "", "extended_description": "", "logo_id": 0 },
+					{ "id": "prog_early0001", "name": "Early Show", "description": "", "extended_description": "", "logo_id": 0 }
+				],
+				"schedule": {
+					"monday": [ { "program_id": "prog_late00001", "name": "Late Show", "start": "23:00", "end": "02:00" } ],
+					"tuesday": [
+						{ "program_id": "prog_early0001", "name": "Early Show", "start": "01:00", "end": "03:00" },
+						{ "program_id": "prog_early0001", "name": "Early Show", "start": "06:00", "end": "08:00" }
+					]
+				}
+			},
+			{
+				"stream_url": "https://stream.example.test/two.mp3", "player_page": "{{PAGE:Player 2}}", "station_title": "Weekend",
+				"background_id": 0, "logo_id": 0, "theme_color": "neutral", "visualizer": "oscilloscope",
+				"programs": [
+					{ "id": "prog_late00001", "name": "Late Show", "description": "", "extended_description": "", "logo_id": 0 },
+					{ "id": "prog_early0001", "name": "Early Show", "description": "", "extended_description": "", "logo_id": 0 }
+				],
+				"schedule": {
+					"sunday": [ { "program_id": "prog_late00001", "name": "Late Show", "start": "23:00", "end": "02:00" } ],
+					"monday": [ { "program_id": "prog_early0001", "name": "Early Show", "start": "01:00", "end": "03:00" } ]
+				}
+			}
+		]
+	}
+}

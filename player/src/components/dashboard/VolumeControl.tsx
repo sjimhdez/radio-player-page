@@ -2,11 +2,12 @@ import Slider from '@mui/material/Slider'
 import { VolumeMute, VolumeUp } from '@mui/icons-material'
 import Stack from '@mui/material/Stack'
 import { useTranslation } from 'react-i18next'
-import { useIsIOS } from 'src/hooks/use-is-ios'
 
 interface VolumeControlProps {
   /** Current volume level (0-1) */
   volume: number
+  /** Whether the volume can be changed (false on iOS, where it is read-only) */
+  controllable: boolean
   /** Callback function called when volume changes */
   onVolumeChange: (volume: number) => void
 }
@@ -14,17 +15,16 @@ interface VolumeControlProps {
 /**
  * Volume control component
  * Displays a slider to control audio volume
- * Hidden on iOS devices as volume is controlled by system hardware buttons
+ * Hidden where the volume cannot be changed, as on iOS, where the hardware buttons
+ * control it (docs/known-issues.md K13, ADR 0036)
  *
  * @param props - Component props
- * @returns Volume slider or null on iOS devices
+ * @returns Volume slider, or null if the volume cannot be changed
  */
-const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
+const VolumeControl = ({ volume, controllable, onVolumeChange }: VolumeControlProps) => {
   const { t } = useTranslation()
-  const isIOS = useIsIOS()
 
-  // Hide volume control completely on iOS devices
-  if (isIOS) {
+  if (!controllable) {
     return null
   }
 
@@ -32,9 +32,12 @@ const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
     <Stack
       spacing={2}
       direction="row"
-      justifyContent={'center'}
-      width={'100%'}
-      sx={{ alignItems: 'center', mb: 1 }}
+      sx={{
+        justifyContent: 'center',
+        width: '100%',
+        alignItems: 'center',
+        mb: 1,
+      }}
     >
       <VolumeMute fontSize="small" />
       <Slider

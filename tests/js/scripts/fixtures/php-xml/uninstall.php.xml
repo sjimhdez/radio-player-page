@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<phpunit xmlns="https://schema.phpunit.de/coverage/1.0">
+  <file name="uninstall.php" path="/">
+    <totals>
+      <lines total="30" comments="5" code="25" executable="10" executed="7" percent="70.00"/>
+      <methods count="0" tested="0" percent="0"/>
+      <functions count="1" tested="0" percent="0.00"/>
+      <classes count="0" tested="0" percent="0"/>
+      <traits count="0" tested="0" percent="0"/>
+    </totals>
+    <function name="uninstall_run" signature="uninstall_run(): void" start="8" crap="2" executable="8" executed="5" coverage="62.5"/>
+  </file>
+</phpunit>

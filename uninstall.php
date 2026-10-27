@@ -8,8 +8,6 @@
  *
  * @package radio-player-page
  * @since      3.1.0
- *
- * @package    radio-player-page
  */
 
 // If uninstall not called from WordPress, then exit.
@@ -21,16 +19,19 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  * Deletes all radplapag_program posts (and their meta) for the current blog.
  *
  * @since 3.3.0
+ * @since 3.5.0 Deletes posts in every registered status, trash and auto-draft included.
  *
  * @return void
  */
 function radplapag_uninstall_delete_programs(): void {
-	$posts = get_posts( [
-		'post_type'      => 'radplapag_program',
-		'post_status'    => 'any',
-		'posts_per_page' => -1,
-		'fields'         => 'ids',
-	] );
+	$posts = get_posts(
+		array(
+			'post_type'      => 'radplapag_program',
+			'post_status'    => array_keys( get_post_stati() ),
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		)
+	);
 	foreach ( $posts as $post_id ) {
 		wp_delete_post( (int) $post_id, true );
 	}
@@ -40,46 +41,83 @@ function radplapag_uninstall_delete_programs(): void {
  * Deletes all radplapag_station posts (and their meta) for the current blog.
  *
  * @since 3.3.0
+ * @since 3.5.0 Deletes posts in every registered status, trash and auto-draft included.
  *
  * @return void
  */
 function radplapag_uninstall_delete_stations(): void {
-	$posts = get_posts( [
-		'post_type'      => 'radplapag_station',
-		'post_status'    => 'any',
-		'posts_per_page' => -1,
-		'fields'         => 'ids',
-	] );
+	$posts = get_posts(
+		array(
+			'post_type'      => 'radplapag_station',
+			'post_status'    => array_keys( get_post_stati() ),
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		)
+	);
 	foreach ( $posts as $post_id ) {
 		wp_delete_post( (int) $post_id, true );
 	}
 }
 
 /**
+ * Deletes the options, transients and internal meta of the plugin for the current blog.
+ *
+ * Runs before the posts are deleted: the error transients of each station are found
+ * by its ID, in any status.
+ *
+ * @since 3.5.0
+ *
+ * @return void
+ */
+function radplapag_uninstall_delete_site_data(): void {
+	$stations = get_posts(
+		array(
+			'post_type'      => 'radplapag_station',
+			'post_status'    => array_keys( get_post_stati() ),
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+		)
+	);
+	foreach ( $stations as $station_id ) {
+		delete_transient( 'radplapag_station_field_errors_' . (int) $station_id );
+		delete_transient( 'radplapag_station_schedule_errors_' . (int) $station_id );
+	}
+
+	delete_option( 'radplapag_settings' );
+	delete_option( 'radplapag_db_version' );
+	delete_option( 'radplapag_migration_skipped_cpt_conflict' );
+	delete_option( 'radplapag_migrating' );
+	delete_transient( 'radplapag_migrating' );
+	delete_transient( 'radplapag_migration_success_notice' );
+	delete_transient( 'radplapag_migration_error_notice' );
+	delete_post_meta_by_key( '_radplapag_migration_pending' );
+}
+
+/**
  * Remove plugin data from database.
  *
- * Deletes all station and program CPT posts (and their meta) and flushes cache.
+ * Deletes the options, transients and internal meta of the plugin and all station and
+ * program CPT posts (and their meta), and flushes cache.
  * Handles both single site and multisite installations.
  *
  * @package radio-player-page
  * @since 3.1.0
  * @since 3.3.0 Deletes radplapag_program and radplapag_station posts.
+ * @since 3.5.0 Deletes the legacy settings, the migration lock and every transient.
  *
  * @return void
  */
 function radplapag_uninstall_plugin(): void {
-	delete_option( 'radplapag_db_version' );
-	delete_option( 'radplapag_migration_skipped_cpt_conflict' );
+	radplapag_uninstall_delete_site_data();
 	radplapag_uninstall_delete_stations();
 	radplapag_uninstall_delete_programs();
 	wp_cache_flush();
 
 	if ( is_multisite() ) {
-		$sites = get_sites( [ 'number' => 0 ] );
+		$sites = get_sites( array( 'number' => 0 ) );
 		foreach ( $sites as $site ) {
 			switch_to_blog( $site->blog_id );
-			delete_option( 'radplapag_db_version' );
-			delete_option( 'radplapag_migration_skipped_cpt_conflict' );
+			radplapag_uninstall_delete_site_data();
 			radplapag_uninstall_delete_stations();
 			radplapag_uninstall_delete_programs();
 			restore_current_blog();
@@ -87,5 +125,5 @@ function radplapag_uninstall_plugin(): void {
 	}
 }
 
-// Run uninstall function
+// Run uninstall function.
 radplapag_uninstall_plugin();

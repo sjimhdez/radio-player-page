@@ -18,7 +18,7 @@ defined( 'ABSPATH' ) || exit;
  * @return void
  */
 function radplapag_register_station_post_type() {
-	$labels = [
+	$labels = array(
 		'name'               => _x( 'Radio Stations', 'post type general name', 'radio-player-page' ),
 		'singular_name'      => _x( 'Radio Station', 'post type singular name', 'radio-player-page' ),
 		'menu_name'          => __( 'Radio Stations', 'radio-player-page' ),
@@ -31,24 +31,24 @@ function radplapag_register_station_post_type() {
 		'not_found'          => __( 'No radio stations found.', 'radio-player-page' ),
 		'not_found_in_trash' => __( 'No radio stations found in Trash.', 'radio-player-page' ),
 		'all_items'          => __( 'Radio Stations', 'radio-player-page' ),
-	];
+	);
 
-	$args = [
-		'labels'              => $labels,
-		'public'               => false,
-		'publicly_queryable'   => false,
-		'show_ui'              => true,
-		'show_in_menu'         => 'radplapag',
-		'query_var'            => false,
-		'rewrite'              => false,
-		'capability_type'      => [ 'radplapag_station', 'radplapag_stations' ],
-		'map_meta_cap'         => true,
-		'has_archive'          => false,
-		'hierarchical'         => false,
-		'menu_position'        => 5,
-		'supports'             => [ 'title' ],
-		'show_in_rest'         => true,
-	];
+	$args = array(
+		'labels'             => $labels,
+		'public'             => false,
+		'publicly_queryable' => false,
+		'show_ui'            => true,
+		'show_in_menu'       => 'radplapag',
+		'query_var'          => false,
+		'rewrite'            => false,
+		'capability_type'    => array( 'radplapag_station', 'radplapag_stations' ),
+		'map_meta_cap'       => true,
+		'has_archive'        => false,
+		'hierarchical'       => false,
+		'menu_position'      => 5,
+		'supports'           => array( 'title' ),
+		'show_in_rest'       => true,
+	);
 
 	register_post_type( 'radplapag_station', $args );
 }
@@ -63,7 +63,7 @@ add_action( 'init', 'radplapag_register_station_post_type' );
  * @return bool
  */
 function radplapag_station_use_classic_editor( $use_block_editor, $post_type ) {
-	if ( $post_type === 'radplapag_station' ) {
+	if ( 'radplapag_station' === $post_type ) {
 		return false;
 	}
 	return $use_block_editor;
@@ -80,20 +80,20 @@ add_filter( 'use_block_editor_for_post_type', 'radplapag_station_use_classic_edi
  * @param WP_User $user    User object.
  * @return array Filtered capabilities.
  */
-function radplapag_grant_station_caps_to_manage_options( $allcaps, $caps, $args, $user ) {
+function radplapag_grant_station_caps_to_manage_options( $allcaps, $caps, $args, $user ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature fixed by user_has_cap (4 arguments).
 	if ( ! empty( $allcaps['manage_options'] ) ) {
-		$allcaps['edit_radplapag_stations']         = true;
-		$allcaps['edit_others_radplapag_stations']  = true;
-		$allcaps['publish_radplapag_stations']      = true;
-		$allcaps['read_private_radplapag_stations'] = true;
-		$allcaps['delete_radplapag_stations']        = true;
+		$allcaps['edit_radplapag_stations']             = true;
+		$allcaps['edit_others_radplapag_stations']      = true;
+		$allcaps['publish_radplapag_stations']          = true;
+		$allcaps['read_private_radplapag_stations']     = true;
+		$allcaps['delete_radplapag_stations']           = true;
 		$allcaps['delete_private_radplapag_stations']   = true;
-		$allcaps['delete_published_radplapag_stations']  = true;
-		$allcaps['delete_others_radplapag_stations']     = true;
-		$allcaps['edit_radplapag_station']          = true;
-		$allcaps['read_radplapag_station']          = true;
-		$allcaps['delete_radplapag_station']        = true;
-		$allcaps['create_radplapag_stations']       = true;
+		$allcaps['delete_published_radplapag_stations'] = true;
+		$allcaps['delete_others_radplapag_stations']    = true;
+		$allcaps['edit_radplapag_station']              = true;
+		$allcaps['read_radplapag_station']              = true;
+		$allcaps['delete_radplapag_station']            = true;
+		$allcaps['create_radplapag_stations']           = true;
 	}
 	return $allcaps;
 }
@@ -112,138 +112,153 @@ function radplapag_register_station_meta() {
 	register_post_meta(
 		$post_type,
 		'radplapag_station_stream_url',
-		[
+		array(
 			'type'              => 'string',
 			'description'       => __( 'Streaming URL for the station.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => 'esc_url_raw',
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_station_player_page',
-		[
+		array(
 			'type'              => 'integer',
 			'description'       => __( 'Page ID where the player is displayed.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => 'absint',
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_station_background_id',
-		[
+		array(
 			'type'              => 'integer',
 			'description'       => __( 'Attachment ID for background image.', 'radio-player-page' ),
 			'single'            => true,
-			'sanitize_callback' => function( $value ) {
+			'sanitize_callback' => function ( $value ) {
 				$id = absint( $value );
 				if ( $id > 0 && ! wp_attachment_is_image( $id ) ) {
 					return 0;
 				}
 				return $id;
 			},
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_station_logo_id',
-		[
+		array(
 			'type'              => 'integer',
 			'description'       => __( 'Attachment ID for station logo.', 'radio-player-page' ),
 			'single'            => true,
-			'sanitize_callback' => function( $value ) {
+			'sanitize_callback' => function ( $value ) {
 				$id = absint( $value );
 				if ( $id > 0 && ! wp_attachment_is_image( $id ) ) {
 					return 0;
 				}
 				return $id;
 			},
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_station_intro_audio_id',
-		[
+		array(
 			'type'              => 'integer',
 			'description'       => __( 'Attachment ID for the welcome audio (mp3) played before the live stream.', 'radio-player-page' ),
 			'single'            => true,
-			'sanitize_callback' => function( $value ) {
+			'sanitize_callback' => function ( $value ) {
 				$id = absint( $value );
 				if ( $id > 0 && get_post_mime_type( $id ) !== 'audio/mpeg' ) {
 					return 0;
 				}
 				return $id;
 			},
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_station_theme_color',
-		[
+		array(
 			'type'              => 'string',
 			'description'       => __( 'Theme color key.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => 'sanitize_key',
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_station_visualizer',
-		[
+		array(
 			'type'              => 'string',
 			'description'       => __( 'Visualizer type key.', 'radio-player-page' ),
 			'single'            => true,
 			'sanitize_callback' => 'sanitize_key',
-			'auth_callback'     => function() {
+			'auth_callback'     => function () {
 				return current_user_can( 'manage_options' );
 			},
 			'show_in_rest'      => true,
-		]
+		)
 	);
 
 	register_post_meta(
 		$post_type,
 		'radplapag_station_schedule',
-		[
-			'type'              => 'string',
-			'description'       => __( 'Weekly schedule as JSON (day => array of program_id, start, end, is_rerun).', 'radio-player-page' ),
-			'single'            => true,
-			'auth_callback'     => function() {
+		array(
+			'type'          => 'string',
+			'description'   => __( 'Weekly schedule as JSON (day => array of program_id, start, end, is_rerun).', 'radio-player-page' ),
+			'single'        => true,
+			'auth_callback' => function () {
 				return current_user_can( 'manage_options' );
 			},
-			'show_in_rest'      => false,
-		]
+			'show_in_rest'  => false,
+		)
+	);
+
+	register_post_meta(
+		$post_type,
+		'radplapag_station_hide_title',
+		array(
+			'type'              => 'boolean',
+			'description'       => __( 'Whether the player hides the station name visually.', 'radio-player-page' ),
+			'single'            => true,
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'auth_callback'     => function () {
+				return current_user_can( 'manage_options' );
+			},
+			'show_in_rest'      => true,
+		)
 	);
 }
 add_action( 'init', 'radplapag_register_station_meta', 20 );
@@ -255,209 +270,37 @@ add_action( 'init', 'radplapag_register_station_meta', 20 );
  * Returns sanitized schedule array or WP_Error with messages.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\Schedule\Slot_Validator and RadioPlayerPage\WP\Schedule_Messages.
  * @param array $schedule_input Raw schedule array: day => [ [ program_id, start, end, is_rerun ], ... ].
  * @return array|WP_Error Sanitized schedule array keyed by day, or WP_Error on validation failure.
  */
 function radplapag_sanitize_station_schedule( $schedule_input ) {
-	$valid_days   = [ 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday' ];
-	$day_labels   = [
-		'monday'    => __( 'Monday', 'radio-player-page' ),
-		'tuesday'   => __( 'Tuesday', 'radio-player-page' ),
-		'wednesday' => __( 'Wednesday', 'radio-player-page' ),
-		'thursday'  => __( 'Thursday', 'radio-player-page' ),
-		'friday'    => __( 'Friday', 'radio-player-page' ),
-		'saturday'  => __( 'Saturday', 'radio-player-page' ),
-		'sunday'    => __( 'Sunday', 'radio-player-page' ),
-	];
-	$time_regex   = '/^([0-1][0-9]|2[0-3]):[0-5][0-9]$/';
-	$schedule_out = [];
-	$errors       = [];
-
-	if ( ! is_array( $schedule_input ) ) {
-		return $schedule_out;
-	}
-
-	foreach ( $valid_days as $day ) {
-		if ( ! isset( $schedule_input[ $day ] ) || ! is_array( $schedule_input[ $day ] ) ) {
-			continue;
-		}
-		$day_programs  = [];
-		$day_intervals = [];
-
-		$programs_data = [];
-		foreach ( $schedule_input[ $day ] as $program ) {
-			if ( ! is_array( $program ) ) {
+	// Names of the programs the rows use, in any status: the meta box warns about the
+	// ones that are not public (ADR 0045).
+	$program_names = array();
+	if ( is_array( $schedule_input ) ) {
+		foreach ( $schedule_input as $day_rows ) {
+			if ( ! is_array( $day_rows ) ) {
 				continue;
 			}
-			$program_id_raw = isset( $program['program_id'] ) ? $program['program_id'] : '';
-			$program_id    = is_numeric( $program_id_raw ) ? (int) $program_id_raw : 0;
-			$program_start  = isset( $program['start'] ) ? trim( $program['start'] ) : '';
-			$program_end   = isset( $program['end'] ) ? trim( $program['end'] ) : '';
-			$program_is_rerun = ! empty( $program['is_rerun'] );
-
-			if ( $program_id <= 0 && empty( $program_start ) && empty( $program_end ) ) {
-				continue;
-			}
-
-			$has_program = $program_id > 0;
-			$has_start   = ! empty( $program_start );
-			$has_end     = ! empty( $program_end );
-			if ( $has_program || $has_start || $has_end ) {
-				if ( ! $has_program || ! $has_start || ! $has_end ) {
-					$errors[] = sprintf(
-						/* translators: 1: Day name */
-						__( 'Radio show on %1$s: All fields (radio show, start time, end time) are required.', 'radio-player-page' ),
-						$day_labels[ $day ]
-					);
+			foreach ( $day_rows as $row ) {
+				$program_id = is_array( $row ) && isset( $row['program_id'] ) && is_numeric( $row['program_id'] ) ? (int) $row['program_id'] : 0;
+				if ( $program_id <= 0 || isset( $program_names[ $program_id ] ) ) {
 					continue;
 				}
-			}
-
-			$program_data = $program_id > 0 ? radplapag_get_program_data( $program_id ) : null;
-			if ( ! $program_data ) {
-				$errors[] = sprintf(
-					/* translators: 1: Day name */
-					__( 'Radio show on %1$s: Please select a valid radio show.', 'radio-player-page' ),
-					$day_labels[ $day ]
-				);
-				continue;
-			}
-			$program_name = $program_data['name'];
-
-			if ( ! preg_match( $time_regex, $program_start ) || ! preg_match( $time_regex, $program_end ) ) {
-				$errors[] = sprintf(
-					/* translators: 1: Program name, 2: Day name */
-					__( 'Radio show "%1$s" on %2$s: Invalid time format. Times must be in HH:MM format.', 'radio-player-page' ),
-					$program_name,
-					$day_labels[ $day ]
-				);
-				continue;
-			}
-
-			$start_time = strtotime( '2000-01-01 ' . $program_start . ':00' );
-			$end_time   = strtotime( '2000-01-01 ' . $program_end . ':00' );
-			$end_time_for_validation = $end_time;
-			if ( $end_time <= $start_time ) {
-				$end_time_for_validation = strtotime( '2000-01-02 ' . $program_end . ':00' );
-			}
-			if ( $start_time >= $end_time_for_validation ) {
-				$errors[] = sprintf(
-					/* translators: 1: Program name, 2: Day name */
-					__( 'Radio show "%1$s" on %2$s: End time must be after start time.', 'radio-player-page' ),
-					$program_name,
-					$day_labels[ $day ]
-				);
-				continue;
-			}
-
-			$end_time_for_overlap = $end_time;
-			if ( $end_time <= $start_time ) {
-				$end_time_for_overlap = strtotime( '2000-01-02 ' . $program_end . ':00' );
-			}
-			$programs_data[] = [
-				'program_id' => $program_id,
-				'name'       => $program_name,
-				'start'      => $program_start,
-				'end'        => $program_end,
-				'is_rerun'   => $program_is_rerun,
-				'start_time' => $start_time,
-				'end_time'   => $end_time_for_overlap,
-			];
-		}
-
-		usort( $programs_data, function( $a, $b ) {
-			return $a['start_time'] - $b['start_time'];
-		} );
-
-		foreach ( $programs_data as $prog_data ) {
-			$has_overlap = false;
-			$overlapping = null;
-			foreach ( $day_intervals as $interval ) {
-				if ( $prog_data['start_time'] < $interval['end'] && $prog_data['end_time'] > $interval['start'] ) {
-					$has_overlap = true;
-					$overlapping = $interval['name'];
-					break;
-				}
-			}
-			if ( $has_overlap ) {
-				$errors[] = sprintf(
-					/* translators: 1: Program name, 2: Day name, 3: Overlapping program name */
-					__( 'Radio show "%1$s" on %2$s: Time slot overlaps with "%3$s".', 'radio-player-page' ),
-					$prog_data['name'],
-					$day_labels[ $day ],
-					$overlapping
-				);
-				continue;
-			}
-			$day_intervals[] = [
-				'start' => $prog_data['start_time'],
-				'end'   => $prog_data['end_time'],
-				'name'  => $prog_data['name'],
-			];
-			$day_programs[] = [
-				'program_id' => $prog_data['program_id'],
-				'start'      => $prog_data['start'],
-				'end'        => $prog_data['end'],
-				'is_rerun'   => $prog_data['is_rerun'],
-			];
-		}
-		if ( ! empty( $day_programs ) ) {
-			$schedule_out[ $day ] = $day_programs;
-		}
-	}
-
-	// Cross-day overlap for midnight-crossing slots
-	$days_array = $valid_days;
-	foreach ( $days_array as $day_idx => $day ) {
-		if ( ! isset( $schedule_out[ $day ] ) || empty( $schedule_out[ $day ] ) ) {
-			continue;
-		}
-		foreach ( $schedule_out[ $day ] as $program ) {
-			$program_id    = isset( $program['program_id'] ) ? (int) $program['program_id'] : 0;
-			$program_data  = $program_id > 0 ? radplapag_get_program_data( $program_id ) : null;
-			$program_name  = $program_data ? $program_data['name'] : '';
-			$program_start = isset( $program['start'] ) ? trim( $program['start'] ) : '';
-			$program_end   = isset( $program['end'] ) ? trim( $program['end'] ) : '';
-			if ( empty( $program_start ) || empty( $program_end ) || ! $program_data ) {
-				continue;
-			}
-			$start_time = strtotime( '2000-01-01 ' . $program_start . ':00' );
-			$end_time   = strtotime( '2000-01-01 ' . $program_end . ':00' );
-			if ( $end_time <= $start_time ) {
-				$next_day_idx = ( $day_idx + 1 ) % 7;
-				$next_day     = $days_array[ $next_day_idx ];
-				if ( isset( $schedule_out[ $next_day ] ) && is_array( $schedule_out[ $next_day ] ) ) {
-					foreach ( $schedule_out[ $next_day ] as $next_program ) {
-						$next_program_id   = isset( $next_program['program_id'] ) ? (int) $next_program['program_id'] : 0;
-						$found_next        = $next_program_id > 0 ? radplapag_get_program_data( $next_program_id ) : null;
-						$next_program_name = $found_next ? $found_next['name'] : '';
-						$next_start        = isset( $next_program['start'] ) ? trim( $next_program['start'] ) : '';
-						$next_end          = isset( $next_program['end'] ) ? trim( $next_program['end'] ) : '';
-						if ( empty( $next_start ) || empty( $next_end ) || ! $found_next ) {
-							continue;
-						}
-						$next_start_time = strtotime( '2000-01-01 ' . $next_start . ':00' );
-						if ( $end_time > $next_start_time ) {
-							$errors[] = sprintf(
-								/* translators: 1: Program name, 2: Day name, 3: Overlapping program name, 4: Next day name */
-								__( 'Radio show "%1$s" on %2$s (crosses midnight) overlaps with "%3$s" on %4$s.', 'radio-player-page' ),
-								$program_name,
-								$day_labels[ $day ],
-								$next_program_name,
-								$day_labels[ $next_day ]
-							);
-							return new WP_Error( 'radplapag_schedule_validation', implode( ' ', $errors ) );
-						}
-					}
+				$program_data = radplapag_get_program_data( $program_id );
+				if ( $program_data ) {
+					$program_names[ $program_id ] = $program_data['name'];
 				}
 			}
 		}
 	}
 
-	if ( ! empty( $errors ) ) {
-		return new WP_Error( 'radplapag_schedule_validation', implode( ' ', $errors ) );
+	$result = \RadioPlayerPage\Schedule\Slot_Validator::validate( $schedule_input, $program_names );
+	if ( ! empty( $result['errors'] ) ) {
+		return new WP_Error( 'radplapag_schedule_validation', \RadioPlayerPage\WP\Schedule_Messages::join( $result['errors'] ) );
 	}
-	return $schedule_out;
+	return $result['schedule'];
 }
 
 /**
@@ -494,26 +337,58 @@ function radplapag_add_station_meta_boxes() {
 function radplapag_render_station_details_meta_box( $post ) {
 	wp_nonce_field( 'radplapag_station_meta', 'radplapag_station_meta_nonce' );
 
-	$stream_url   = get_post_meta( $post->ID, 'radplapag_station_stream_url', true );
-	$player_page  = (int) get_post_meta( $post->ID, 'radplapag_station_player_page', true );
-	$background_id = (int) get_post_meta( $post->ID, 'radplapag_station_background_id', true );
-	$logo_id      = (int) get_post_meta( $post->ID, 'radplapag_station_logo_id', true );
+	$stream_url     = get_post_meta( $post->ID, 'radplapag_station_stream_url', true );
+	$player_page    = (int) get_post_meta( $post->ID, 'radplapag_station_player_page', true );
+	$background_id  = (int) get_post_meta( $post->ID, 'radplapag_station_background_id', true );
+	$logo_id        = (int) get_post_meta( $post->ID, 'radplapag_station_logo_id', true );
 	$intro_audio_id = (int) get_post_meta( $post->ID, 'radplapag_station_intro_audio_id', true );
-	$theme        = get_post_meta( $post->ID, 'radplapag_station_theme_color', true );
-	$visualizer   = get_post_meta( $post->ID, 'radplapag_station_visualizer', true );
+	$theme          = get_post_meta( $post->ID, 'radplapag_station_theme_color', true );
+	$visualizer     = get_post_meta( $post->ID, 'radplapag_station_visualizer', true );
+	$hide_title     = (bool) get_post_meta( $post->ID, 'radplapag_station_hide_title', true );
 
+	// Mixed content (C13). The notice is printed hidden too, so the JS can show it while typing.
 	$stream_url   = is_string( $stream_url ) ? esc_url( $stream_url ) : '';
-	$valid_themes = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
+	$site_scheme  = (string) wp_parse_url( home_url(), PHP_URL_SCHEME );
+	$mixed        = 'https' === $site_scheme && 'http' === wp_parse_url( $stream_url, PHP_URL_SCHEME );
+	$valid_themes = array( 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' );
 	$theme        = in_array( $theme, $valid_themes, true ) ? $theme : 'neutral';
-	$valid_viz   = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
+	$valid_viz    = array( 'oscilloscope', 'bars', 'particles', 'waterfall' );
 	$visualizer   = in_array( $visualizer, $valid_viz, true ) ? $visualizer : 'oscilloscope';
 
-	$pages    = get_pages( [ 'post_status' => 'publish' ] );
-	$bg_url   = $background_id > 0 ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
-	$logo_url = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
+	$pages = get_pages( array( 'post_status' => 'publish' ) );
+	$pages = is_array( $pages ) ? $pages : array();
+
+	// The posts page never shows the player, so it is left out unless already assigned (K27).
+	$posts_page = 'page' === get_option( 'show_on_front' ) ? (int) get_option( 'page_for_posts' ) : 0;
+	if ( $posts_page > 0 && $posts_page !== $player_page ) {
+		$pages = array_values(
+			array_filter(
+				$pages,
+				function ( $page ) use ( $posts_page ) {
+					return $posts_page !== $page->ID;
+				}
+			)
+		);
+	}
+	$is_posts_page = $posts_page > 0 && $posts_page === $player_page;
+
+	// An assigned page that is not published stays listed, with its status (K36).
+	$unpublished_page  = null;
+	$unpublished_label = '';
+	if ( $player_page > 0 && ! in_array( $player_page, wp_list_pluck( $pages, 'ID' ), true ) ) {
+		$assigned = get_post( $player_page );
+		if ( $assigned && 'page' === $assigned->post_type ) {
+			$unpublished_page = $assigned;
+			/* translators: 1: page title, 2: page status, such as Draft or Private. */
+			$unpublished_label = sprintf( __( '%1$s (%2$s)', 'radio-player-page' ), $assigned->post_title, \RadioPlayerPage\WP\Post_Status_Label::of( $assigned->post_status ) );
+		}
+	}
+
+	$bg_url          = $background_id > 0 ? wp_get_attachment_image_url( $background_id, 'medium' ) : '';
+	$logo_url        = $logo_id > 0 ? wp_get_attachment_image_url( $logo_id, 'medium' ) : '';
 	$intro_audio_url = $intro_audio_id > 0 ? wp_get_attachment_url( $intro_audio_id ) : '';
 
-	$colors = [
+	$colors = array(
 		'neutral' => __( 'Neutral', 'radio-player-page' ),
 		'blue'    => __( 'Blue', 'radio-player-page' ),
 		'green'   => __( 'Green', 'radio-player-page' ),
@@ -522,23 +397,39 @@ function radplapag_render_station_details_meta_box( $post ) {
 		'yellow'  => __( 'Yellow', 'radio-player-page' ),
 		'purple'  => __( 'Purple', 'radio-player-page' ),
 		'pink'    => __( 'Pink', 'radio-player-page' ),
-	];
+	);
 	?>
 	<div class="radplapag-form-row">
-		<p class="radplapag-field-wrap" data-field="player_page">
-			<label for="radplapag_station_player_page"><strong><?php esc_html_e( 'Player Page', 'radio-player-page' ); ?> <span class="required">*</span></strong></label><br>
-			<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-field-select radplapag-player-page">
-				<option value=""><?php esc_html_e( 'Select a Page', 'radio-player-page' ); ?></option>
-				<?php foreach ( $pages as $page ) : ?>
-					<option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $player_page, $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option>
-				<?php endforeach; ?>
-			</select>
-			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
-		</p>
-		<p class="radplapag-field-wrap" data-field="stream_url">
+		<div>
+			<p class="radplapag-field-wrap" data-field="player_page">
+				<label for="radplapag_station_player_page"><strong><?php esc_html_e( 'Player Page', 'radio-player-page' ); ?> <span class="required">*</span></strong></label><br>
+				<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-field-select radplapag-player-page">
+					<option value=""><?php esc_html_e( 'Select a Page', 'radio-player-page' ); ?></option>
+					<?php foreach ( $pages as $page ) : ?>
+						<option value="<?php echo esc_attr( $page->ID ); ?>" <?php selected( $player_page, $page->ID ); ?>><?php echo esc_html( $page->post_title ); ?></option>
+					<?php endforeach; ?>
+					<?php if ( $unpublished_page ) : ?>
+						<option value="<?php echo esc_attr( (string) $unpublished_page->ID ); ?>" selected='selected'><?php echo esc_html( $unpublished_label ); ?></option>
+					<?php endif; ?>
+				</select>
+				<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
+				<?php if ( $unpublished_page ) : ?>
+					<span class="radplapag-field-notice"><?php esc_html_e( 'This page is not published; the player is not shown until it is.', 'radio-player-page' ); ?></span>
+				<?php endif; ?>
+				<?php if ( $is_posts_page ) : ?>
+					<span class="radplapag-field-notice"><?php esc_html_e( 'This page is the posts page; the player is not shown on it.', 'radio-player-page' ); ?></span>
+				<?php endif; ?>
+			</p>
+			<p class="radplapag-field-wrap" data-field="hide_title">
+				<input type="checkbox" name="radplapag_station_hide_title" id="radplapag_station_hide_title" value="1" <?php checked( $hide_title ); ?>>
+				<label for="radplapag_station_hide_title"><?php esc_html_e( 'Hide station name in the player', 'radio-player-page' ); ?></label>
+			</p>
+		</div>
+		<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="<?php echo esc_attr( $site_scheme ); ?>">
 			<label for="radplapag_station_stream_url"><strong><?php esc_html_e( 'Streaming URL', 'radio-player-page' ); ?> <span class="required">*</span></strong></label><br>
-			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>">
+			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="<?php echo esc_attr( $stream_url ); ?>" class="large-text radplapag-field-input radplapag-stream-url" placeholder="<?php esc_attr_e( 'https://my.station.com:8000/stream', 'radio-player-page' ); ?>"<?php echo $mixed ? ' aria-describedby="radplapag_station_stream_url_notice"' : ''; ?>>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
+			<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice"<?php echo $mixed ? '' : ' hidden'; ?>><?php esc_html_e( 'This stream uses http:// and this site uses https://; browsers block it, so it will not play.', 'radio-player-page' ); ?></span>
 		</p>
 	</div>
 	<div class="radplapag-form-row">
@@ -616,15 +507,15 @@ function radplapag_render_station_details_meta_box( $post ) {
  */
 function radplapag_render_station_schedule_meta_box( $post ) {
 	$schedule_json = get_post_meta( $post->ID, 'radplapag_station_schedule', true );
-	$schedule      = [];
-	if ( is_string( $schedule_json ) && $schedule_json !== '' ) {
+	$schedule      = array();
+	if ( is_string( $schedule_json ) && '' !== $schedule_json ) {
 		$decoded = json_decode( $schedule_json, true );
 		if ( is_array( $decoded ) ) {
 			$schedule = $decoded;
 		}
 	}
 
-	$days = [
+	$days = array(
 		'monday'    => __( 'Monday', 'radio-player-page' ),
 		'tuesday'   => __( 'Tuesday', 'radio-player-page' ),
 		'wednesday' => __( 'Wednesday', 'radio-player-page' ),
@@ -632,52 +523,62 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 		'friday'    => __( 'Friday', 'radio-player-page' ),
 		'saturday'  => __( 'Saturday', 'radio-player-page' ),
 		'sunday'    => __( 'Sunday', 'radio-player-page' ),
-	];
+	);
 
-	$cpt_programs = radplapag_get_all_programs_for_select();
+	$cpt_programs      = radplapag_get_station_programs_for_select( $post->ID );
+	$public_by_program = wp_list_pluck( $cpt_programs, 'public', 'id' );
 	?>
 	<div id="radplapag-station-cpt-container">
 		<div class="radplapag-schedule-wrapper">
-			<?php foreach ( $days as $day_key => $day_label ) :
-				$day_programs = isset( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) ? $schedule[ $day_key ] : [];
-				uasort( $day_programs, function( $a, $b ) {
-					$start_a = isset( $a['start'] ) ? $a['start'] : '';
-					$start_b = isset( $b['start'] ) ? $b['start'] : '';
-					if ( empty( $start_a ) && empty( $start_b ) ) {
-						return 0;
+			<?php
+			foreach ( $days as $day_key => $day_label ) :
+				$day_programs = isset( $schedule[ $day_key ] ) && is_array( $schedule[ $day_key ] ) ? $schedule[ $day_key ] : array();
+				uasort(
+					$day_programs,
+					function ( $a, $b ) {
+						$start_a = isset( $a['start'] ) ? $a['start'] : '';
+						$start_b = isset( $b['start'] ) ? $b['start'] : '';
+						if ( empty( $start_a ) && empty( $start_b ) ) {
+							return 0;
+						}
+						if ( empty( $start_a ) ) {
+							return 1;
+						}
+						if ( empty( $start_b ) ) {
+							return -1;
+						}
+						return strcmp( $start_a, $start_b );
 					}
-					if ( empty( $start_a ) ) {
-						return 1;
-					}
-					if ( empty( $start_b ) ) {
-						return -1;
-					}
-					return strcmp( $start_a, $start_b );
-				} );
+				);
 				?>
-				<div class="radplapag-schedule-day" data-day="<?php echo esc_attr( $day_key ); ?>">
-					<h4 style="margin: 10px 0 5px 0; font-size: 13px; font-weight: 600;"><?php echo esc_html( $day_label ); ?></h4>
+				<fieldset class="radplapag-schedule-day" data-day="<?php echo esc_attr( $day_key ); ?>">
+					<legend class="radplapag-schedule-day-legend"><?php echo esc_html( $day_label ); ?></legend>
 					<div class="radplapag-programs-list">
-						<?php foreach ( $day_programs as $prog_index => $program ) :
-							$prog_id     = isset( $program['program_id'] ) ? $program['program_id'] : '';
-							$prog_id_int = is_numeric( $prog_id ) ? (int) $prog_id : 0;
-							$prog_start  = isset( $program['start'] ) ? esc_attr( $program['start'] ) : '';
-							$prog_end    = isset( $program['end'] ) ? esc_attr( $program['end'] ) : '';
+						<?php
+						foreach ( $day_programs as $prog_index => $program ) :
+							$prog_id       = isset( $program['program_id'] ) ? $program['program_id'] : '';
+							$prog_id_int   = is_numeric( $prog_id ) ? (int) $prog_id : 0;
+							$prog_start    = isset( $program['start'] ) ? esc_attr( $program['start'] ) : '';
+							$prog_end      = isset( $program['end'] ) ? esc_attr( $program['end'] ) : '';
 							$prog_is_rerun = ! empty( $program['is_rerun'] );
+							$field_id      = 'radplapag-slot-' . $day_key . '-' . $prog_index . '-';
 							?>
 							<div class="radplapag-program-row" data-program-index="<?php echo esc_attr( $prog_index ); ?>">
-								<select name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'program' ); ?>"><?php esc_html_e( 'Radio Show', 'radio-player-page' ); ?></label>
+								<select name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="<?php echo esc_attr( $field_id . 'program' ); ?>">
 									<option value=""><?php esc_html_e( 'Select Radio Show', 'radio-player-page' ); ?></option>
-									<?php foreach ( $cpt_programs as $p ) :
-										$p_id   = (int) $p['id'];
-										$pname  = isset( $p['name'] ) ? $p['name'] : '';
+									<?php
+									foreach ( $cpt_programs as $p ) :
+										$p_id = (int) $p['id'];
 										?>
-										<option value="<?php echo esc_attr( $p_id ); ?>" <?php selected( $prog_id_int > 0 && $prog_id_int === $p_id ); ?>><?php echo esc_html( $pname ); ?></option>
+										<option value="<?php echo esc_attr( $p_id ); ?>" <?php selected( $prog_id_int > 0 && $prog_id_int === $p_id ); ?>><?php echo esc_html( $p['label'] ); ?></option>
 									<?php endforeach; ?>
 								</select>
-								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" value="<?php echo esc_attr( $prog_start ); ?>" class="radplapag-program-start" style="width: 100px; margin-right: 5px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'start' ); ?>"><?php esc_html_e( 'Start time', 'radio-player-page' ); ?></label>
+								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][start]" value="<?php echo esc_attr( $prog_start ); ?>" class="radplapag-program-start" style="width: 100px; margin-right: 5px;" id="<?php echo esc_attr( $field_id . 'start' ); ?>">
 								<span style="margin-right: 5px;"> <?php esc_html_e( 'to', 'radio-player-page' ); ?> </span>
-								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" value="<?php echo esc_attr( $prog_end ); ?>" class="radplapag-program-end" style="width: 100px; margin-right: 10px;">
+								<label class="screen-reader-text" for="<?php echo esc_attr( $field_id . 'end' ); ?>"><?php esc_html_e( 'End time', 'radio-player-page' ); ?></label>
+								<input type="time" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][end]" value="<?php echo esc_attr( $prog_end ); ?>" class="radplapag-program-end" style="width: 100px; margin-right: 10px;" id="<?php echo esc_attr( $field_id . 'end' ); ?>">
 								<label class="radplapag-program-is-rerun-label" style="margin-right: 10px;">
 									<input type="checkbox" name="radplapag_station_schedule[<?php echo esc_attr( $day_key ); ?>][<?php echo esc_attr( $prog_index ); ?>][is_rerun]" value="1" <?php checked( $prog_is_rerun ); ?> class="radplapag-program-is-rerun">
 									<?php esc_html_e( 'Rerun', 'radio-player-page' ); ?>
@@ -686,13 +587,16 @@ function radplapag_render_station_schedule_meta_box( $post ) {
 									<a href="#" class="submitdelete radplapag-remove-program"><?php esc_html_e( 'Remove Time Slot', 'radio-player-page' ); ?></a>
 								</div>
 								<div class="radplapag-program-error-message" style="display: none;"></div>
+								<?php if ( isset( $public_by_program[ $prog_id_int ] ) && ! $public_by_program[ $prog_id_int ] ) : ?>
+									<div class="radplapag-program-notice"><?php esc_html_e( 'This program is not published; this time slot is not shown on the site.', 'radio-player-page' ); ?></div>
+								<?php endif; ?>
 							</div>
 						<?php endforeach; ?>
 					</div>
 					<button type="button" class="button radplapag-add-program" data-day="<?php echo esc_attr( $day_key ); ?>" style="margin-top: 5px; margin-bottom: 15px;">
 						<?php esc_html_e( 'Add Time Slot', 'radio-player-page' ); ?>
 					</button>
-				</div>
+				</fieldset>
 			<?php endforeach; ?>
 		</div>
 	</div>
@@ -703,6 +607,7 @@ function radplapag_render_station_schedule_meta_box( $post ) {
  * Saves station meta on post save.
  *
  * @since 3.3.0
+ * @since 3.5.0 Keeps the guards and the form reads; delegates the save to RadioPlayerPage\WP\Station_Meta_Saver::save().
  * @param int $post_id Post ID.
  * @return void
  */
@@ -720,80 +625,24 @@ function radplapag_save_station_meta( $post_id ) {
 		return;
 	}
 
-	$stream_url_input = filter_input( INPUT_POST, 'radplapag_station_stream_url', FILTER_UNSAFE_RAW );
-	$stream_url_input = is_string( $stream_url_input ) ? wp_unslash( $stream_url_input ) : '';
-	$stream_url = '';
-	if ( is_string( $stream_url_input ) ) {
-		$stream_url = esc_url_raw( trim( $stream_url_input ) );
-	}
-	$player_page  = isset( $_POST['radplapag_station_player_page'] ) ? absint( $_POST['radplapag_station_player_page'] ) : 0;
-	$background_id = isset( $_POST['radplapag_station_background_id'] ) ? absint( $_POST['radplapag_station_background_id'] ) : 0;
-	$logo_id      = isset( $_POST['radplapag_station_logo_id'] ) ? absint( $_POST['radplapag_station_logo_id'] ) : 0;
-	$intro_audio_id = isset( $_POST['radplapag_station_intro_audio_id'] ) ? absint( $_POST['radplapag_station_intro_audio_id'] ) : 0;
-	$theme        = isset( $_POST['radplapag_station_theme_color'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_theme_color'] ) ) : 'neutral';
-	$visualizer   = isset( $_POST['radplapag_station_visualizer'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_visualizer'] ) ) : 'oscilloscope';
-
-	$valid_themes = [ 'neutral', 'blue', 'green', 'red', 'orange', 'yellow', 'purple', 'pink' ];
-	if ( ! in_array( $theme, $valid_themes, true ) ) {
-		$theme = 'neutral';
-	}
-	$valid_visualizers = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];
-	if ( ! in_array( $visualizer, $valid_visualizers, true ) ) {
-		$visualizer = 'oscilloscope';
-	}
-	if ( $background_id > 0 && ! wp_attachment_is_image( $background_id ) ) {
-		$background_id = 0;
-	}
-	if ( $logo_id > 0 && ! wp_attachment_is_image( $logo_id ) ) {
-		$logo_id = 0;
-	}
-	if ( $intro_audio_id > 0 && get_post_mime_type( $intro_audio_id ) !== 'audio/mpeg' ) {
-		$intro_audio_id = 0;
-	}
-
-	$field_errors = [];
-	if ( $stream_url === '' ) {
-		$field_errors[] = __( 'Streaming URL is required.', 'radio-player-page' );
-	}
-	if ( $player_page <= 0 ) {
-		$field_errors[] = __( 'Player Page is required. Please select a page.', 'radio-player-page' );
-	}
-	if ( $player_page > 0 ) {
-		$assigned_player_pages = radplapag_get_player_pages_assigned_to_other_stations( $post_id );
-		if ( in_array( $player_page, $assigned_player_pages, true ) ) {
-			$field_errors[] = __( 'This Player Page is already assigned to another station. Please choose a different page.', 'radio-player-page' );
-		}
-	}
-	if ( ! empty( $field_errors ) ) {
-		set_transient( 'radplapag_station_field_errors_' . $post_id, implode( ' ', $field_errors ), 45 );
-	} else {
-		delete_transient( 'radplapag_station_field_errors_' . $post_id );
-		update_post_meta( $post_id, 'radplapag_station_stream_url', $stream_url );
-		update_post_meta( $post_id, 'radplapag_station_player_page', $player_page );
-	}
-
-	update_post_meta( $post_id, 'radplapag_station_background_id', $background_id );
-	update_post_meta( $post_id, 'radplapag_station_logo_id', $logo_id );
-	update_post_meta( $post_id, 'radplapag_station_intro_audio_id', $intro_audio_id );
-	update_post_meta( $post_id, 'radplapag_station_theme_color', $theme );
-	update_post_meta( $post_id, 'radplapag_station_visualizer', $visualizer );
-
-	$schedule_input = [];
+	$stream_url = filter_input( INPUT_POST, 'radplapag_station_stream_url', FILTER_UNSAFE_RAW );
+	$input      = array(
+		'stream_url'     => is_string( $stream_url ) ? wp_unslash( $stream_url ) : '',
+		'player_page'    => isset( $_POST['radplapag_station_player_page'] ) ? absint( $_POST['radplapag_station_player_page'] ) : 0,
+		'background_id'  => isset( $_POST['radplapag_station_background_id'] ) ? absint( $_POST['radplapag_station_background_id'] ) : 0,
+		'logo_id'        => isset( $_POST['radplapag_station_logo_id'] ) ? absint( $_POST['radplapag_station_logo_id'] ) : 0,
+		'intro_audio_id' => isset( $_POST['radplapag_station_intro_audio_id'] ) ? absint( $_POST['radplapag_station_intro_audio_id'] ) : 0,
+		'theme_color'    => isset( $_POST['radplapag_station_theme_color'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_theme_color'] ) ) : '',
+		'visualizer'     => isset( $_POST['radplapag_station_visualizer'] ) ? sanitize_key( wp_unslash( $_POST['radplapag_station_visualizer'] ) ) : '',
+		'hide_title'     => isset( $_POST['radplapag_station_hide_title'] ),
+		'schedule'       => array(),
+	);
 	if ( isset( $_POST['radplapag_station_schedule'] ) ) {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized by radplapag_sanitize_station_schedule().
-		$schedule_raw = wp_unslash( $_POST['radplapag_station_schedule'] );
-		if ( is_array( $schedule_raw ) ) {
-			$schedule_input = $schedule_raw;
-		}
+		$input['schedule'] = wp_unslash( $_POST['radplapag_station_schedule'] );
 	}
-	$schedule_sanitized = radplapag_sanitize_station_schedule( $schedule_input );
-	if ( is_wp_error( $schedule_sanitized ) ) {
-		set_transient( 'radplapag_station_schedule_errors_' . $post_id, $schedule_sanitized->get_error_message(), 45 );
-	} else {
-		delete_transient( 'radplapag_station_schedule_errors_' . $post_id );
-		$schedule_json = wp_json_encode( $schedule_sanitized );
-		update_post_meta( $post_id, 'radplapag_station_schedule', $schedule_json );
-	}
+
+	\RadioPlayerPage\WP\Station_Meta_Saver::save( (int) $post_id, $input );
 }
 
 /**
@@ -805,7 +654,7 @@ function radplapag_save_station_meta( $post_id ) {
  */
 function radplapag_station_schedule_errors_notice() {
 	$screen = get_current_screen();
-	if ( ! $screen || $screen->id !== 'radplapag_station' ) {
+	if ( ! $screen || 'radplapag_station' !== $screen->id ) {
 		return;
 	}
 	$post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
@@ -814,7 +663,7 @@ function radplapag_station_schedule_errors_notice() {
 		return;
 	}
 	$field_message = get_transient( 'radplapag_station_field_errors_' . $post_id );
-	if ( is_string( $field_message ) && $field_message !== '' ) {
+	if ( is_string( $field_message ) && '' !== $field_message ) {
 		delete_transient( 'radplapag_station_field_errors_' . $post_id );
 		?>
 		<div class="notice notice-error is-dismissible">
@@ -823,7 +672,7 @@ function radplapag_station_schedule_errors_notice() {
 		<?php
 	}
 	$message = get_transient( 'radplapag_station_schedule_errors_' . $post_id );
-	if ( ! is_string( $message ) || $message === '' ) {
+	if ( ! is_string( $message ) || '' === $message ) {
 		return;
 	}
 	delete_transient( 'radplapag_station_schedule_errors_' . $post_id );
@@ -835,35 +684,39 @@ function radplapag_station_schedule_errors_notice() {
 }
 
 /**
+ * Drops core's "Post published." / "Post updated." from the redirect after saving a
+ * station that left an error notice (ADR 0048).
+ *
+ * The station is still published or updated; only the notice changes.
+ *
+ * @since 3.5.0
+ * @param string $location The destination URL.
+ * @param int    $post_id  The saved post ID.
+ * @return string
+ */
+function radplapag_station_redirect_without_message( $location, $post_id ) {
+	if ( get_post_type( $post_id ) !== 'radplapag_station' ) {
+		return $location;
+	}
+	if ( false === get_transient( 'radplapag_station_field_errors_' . $post_id ) && false === get_transient( 'radplapag_station_schedule_errors_' . $post_id ) ) {
+		return $location;
+	}
+
+	return remove_query_arg( 'message', $location );
+}
+
+/**
  * Returns page IDs that are assigned as Player Page by other stations (excluding the given post).
  *
  * Used by admin to disable those options in the Player Page select and validate on submit.
  *
  * @since 3.3.0
+ * @since 3.5.0 Delegates to RadioPlayerPage\WP\Station_Repository::player_pages_except().
  * @param int $exclude_post_id Station post ID to exclude (current station being edited).
  * @return int[] Array of page IDs assigned to other stations.
  */
 function radplapag_get_player_pages_assigned_to_other_stations( $exclude_post_id = 0 ) {
-	$exclude_post_id = (int) $exclude_post_id;
-	$stations        = get_posts(
-		[
-			'post_type'      => 'radplapag_station',
-			'post_status'    => 'any',
-			'posts_per_page' => -1,
-			'fields'         => 'ids',
-		]
-	);
-	$page_ids = [];
-	foreach ( $stations as $station_id ) {
-		if ( $exclude_post_id > 0 && (int) $station_id === $exclude_post_id ) {
-			continue;
-		}
-		$page_id = (int) get_post_meta( $station_id, 'radplapag_station_player_page', true );
-		if ( $page_id > 0 ) {
-			$page_ids[] = $page_id;
-		}
-	}
-	return array_values( array_unique( $page_ids ) );
+	return \RadioPlayerPage\WP\Station_Repository::player_pages_except( (int) $exclude_post_id );
 }
 
 /**
@@ -874,7 +727,7 @@ function radplapag_get_player_pages_assigned_to_other_stations( $exclude_post_id
  */
 function radplapag_station_edit_scripts() {
 	$screen = get_current_screen();
-	if ( ! $screen || $screen->id !== 'radplapag_station' ) {
+	if ( ! $screen || 'radplapag_station' !== $screen->id ) {
 		return;
 	}
 	wp_enqueue_media();
@@ -885,4 +738,5 @@ if ( is_admin() ) {
 	add_action( 'save_post_radplapag_station', 'radplapag_save_station_meta' );
 	add_action( 'admin_notices', 'radplapag_station_schedule_errors_notice' );
 	add_action( 'admin_enqueue_scripts', 'radplapag_station_edit_scripts' );
+	add_filter( 'redirect_post_location', 'radplapag_station_redirect_without_message', 10, 2 );
 }
