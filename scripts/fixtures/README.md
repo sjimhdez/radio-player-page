@@ -90,3 +90,15 @@ schedule) is defined as plain PHP arrays near the top of `seed.php` — edit
 them directly rather than adding CLI flags; this script is meant to be a
 single, readable source of truth for "what a filled-in test station looks
 like."
+
+## E2E test media
+
+`make-audio.sh` regenerates the media the e2e suite serves from
+`tests/fixtures/audio/` (committed, never in the release zip): `tone.mp3` and
+`tone.ogg` (8 s, 440 Hz, 64 kbps), `hls/` and `dash/` (the same tone in 2 s
+segments) and `intro.mp3` (2 s, 880 Hz). Requires ffmpeg with libmp3lame and
+libvorbis; the output is bit-exact, so a re-run leaves the tree clean.
+
+```bash
+bash scripts/fixtures/make-audio.sh
+```

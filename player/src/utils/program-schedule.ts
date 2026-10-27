@@ -12,6 +12,8 @@
  */
 
 import type { Schedule, ScheduleEntry, ProgramDefinition } from 'src/types/global'
+import { at, contains, DAY, fromSlot, minutesUntilStart, WEEK } from 'src/utils/week-interval'
+import type { WeekInterval } from 'src/utils/week-interval'
 
 /** Program name and time range for display (resolved from schedule + programs) */
 export interface CurrentProgram {
@@ -48,7 +50,8 @@ function parseToMinutes(time: string): number {
 }
 
 /**
- * Check if a schedule entry is currently active (by start/end only).
+ * Check if a schedule entry is currently active (by start/end only), as an
+ * interval of the week (ADR 0044): only from its start, never early on its own day.
  *
  * @param entry - Schedule entry with start and end times
  * @param currentTime - Current time as minutes since midnight (0-1439)
@@ -59,18 +62,10 @@ export function isProgramActive(
   currentTime: number,
   isPrevDayCrossing = false,
 ): boolean {
-  const startTime = parseToMinutes(entry.start)
-  const endTime = parseToMinutes(entry.end)
+  const interval = fromSlot('monday', entry.start, entry.end)
+  const minute = (isPrevDayCrossing ? DAY : 0) + currentTime
 
-  if (isPrevDayCrossing) {
-    return endTime <= startTime && currentTime < endTime
-  }
-
-  if (endTime <= startTime) {
-    return currentTime >= startTime || currentTime < endTime
-  }
-
-  return currentTime >= startTime && currentTime < endTime
+  return interval !== null && contains(interval, minute)
 }
 
 /**
@@ -79,7 +74,12 @@ export function isProgramActive(
 function resolveProgram(
   programs: ProgramDefinition[] | undefined,
   programId: string,
-): { name: string; description: string | null; extendedDescription: string | null; logoUrl: string | null } {
+): {
+  name: string
+  description: string | null
+  extendedDescription: string | null
+  logoUrl: string | null
+} {
   if (!programs || !programId) {
     return { name: '', description: null, extendedDescription: null, logoUrl: null }
   }
@@ -93,7 +93,53 @@ function resolveProgram(
 }
 
 /**
+ * Whether a slot's program is in the programs array. A slot of any other program
+ * (not public or deleted) is ignored everywhere (ADR 0045, C10 in docs/known-issues.md).
+ */
+function isKnownProgram(programs: ProgramDefinition[] | undefined, programId: string): boolean {
+  return !!programs?.some((prog) => prog.id === programId)
+}
+
+/** The active slot and its interval of the week */
+interface ActiveSlot {
+  entry: ScheduleEntry
+  interval: WeekInterval
+}
+
+/**
+ * Find the active slot over the whole week (ADR 0044): the one that started
+ * latest wins; on a tie, the first one in the stored order of its day, from Monday (D3).
+ */
+function findActiveSlot(
+  schedule: Schedule,
+  programs: ProgramDefinition[] | undefined,
+  minute: number,
+): ActiveSlot | null {
+  let current: ActiveSlot | null = null
+  let currentElapsed = WEEK
+
+  for (let i = 1; i <= 7; i++) {
+    const dayKey = DAY_MAP[i % 7]
+    for (const entry of schedule[dayKey] ?? []) {
+      if (!isKnownProgram(programs, entry.program_id)) continue
+      const interval = fromSlot(dayKey, entry.start, entry.end)
+      if (interval === null || !contains(interval, minute)) continue
+      const elapsed = (WEEK - minutesUntilStart(interval, minute)) % WEEK
+      if (elapsed < currentElapsed) {
+        current = { entry, interval }
+        currentElapsed = elapsed
+      }
+    }
+  }
+
+  return current
+}
+
+/**
  * Find the currently active program.
+ *
+ * Looks at the whole week (ADR 0044): the active slot that started latest wins;
+ * on a tie, the first one in the stored order of its day, from Monday (D3).
  *
  * @param schedule - Weekly schedule (relational: program_id (string ID), start, end)
  * @param programs - Program definitions to resolve name/logo by program_id (unique string ID)
@@ -109,49 +155,17 @@ export function findActiveProgram(
 ): CurrentProgram | null {
   if (!schedule) return null
 
-  const dayKey = DAY_MAP[dayOfWeek]
-  const dayEntries = schedule[dayKey]
+  const active = findActiveSlot(schedule, programs, at(dayOfWeek, currentTime))
+  if (active === null) return null
 
-  if (!dayEntries || dayEntries.length === 0) {
-    return null
+  const { entry } = active
+  const { name, logoUrl } = resolveProgram(programs, entry.program_id)
+  return {
+    programName: name,
+    timeRange: `${entry.start}-${entry.end}`,
+    programLogoUrl: logoUrl,
+    isRerun: !!entry.is_rerun,
   }
-
-  const sorted = [...dayEntries].sort((a, b) => parseToMinutes(a.start) - parseToMinutes(b.start))
-
-  for (const entry of sorted) {
-    if (isProgramActive(entry, currentTime, false)) {
-      const { name, logoUrl } = resolveProgram(programs, entry.program_id)
-      return {
-        programName: name,
-        timeRange: `${entry.start}-${entry.end}`,
-        programLogoUrl: logoUrl,
-        isRerun: !!entry.is_rerun,
-      }
-    }
-  }
-
-  const prevDayIndex = (dayOfWeek - 1 + 7) % 7
-  const prevDayKey = DAY_MAP[prevDayIndex]
-  const prevDayEntries = schedule[prevDayKey]
-
-  if (prevDayEntries && prevDayEntries.length > 0) {
-    const sortedPrev = [...prevDayEntries].sort(
-      (a, b) => parseToMinutes(a.start) - parseToMinutes(b.start),
-    )
-    for (const entry of sortedPrev) {
-      if (isProgramActive(entry, currentTime, true)) {
-        const { name, logoUrl } = resolveProgram(programs, entry.program_id)
-        return {
-          programName: name,
-          timeRange: `${entry.start}-${entry.end}`,
-          programLogoUrl: logoUrl,
-          isRerun: !!entry.is_rerun,
-        }
-      }
-    }
-  }
-
-  return null
 }
 
 /** Incoming program window in minutes (relative to current time) */
@@ -161,7 +175,10 @@ const INCOMING_WINDOW_MINUTES = 10
  * Find the first incoming program (next program that starts within 10 minutes from now).
  *
  * Calculated relative to current time, not to the active program, so the incoming
- * program is shown even when there is no program currently active.
+ * program is shown even when there is no program currently active. Slots are
+ * intervals of the whole week (ADR 0044); on a tie, the first one in stored order,
+ * from Monday. A slot of the program on air that starts just when the slot on air
+ * ends is skipped: it goes on, it does not come up (K52 in docs/known-issues.md).
  *
  * @param schedule - Weekly schedule (relational: program_id is unique string ID)
  * @param programs - Program definitions to resolve name/logo by program_id (unique string ID)
@@ -179,46 +196,40 @@ export function findIncomingProgram(
     return null
   }
 
-  const dayKey = DAY_MAP[dayOfWeek]
-  const dayEntries = schedule[dayKey] ?? []
-  const nextDayKey = DAY_MAP[(dayOfWeek + 1) % 7]
-  const nextDayEntries = schedule[nextDayKey] ?? []
+  const minute = at(dayOfWeek, currentTime)
+  const active = findActiveSlot(schedule, programs, minute)
+  const activeEnd =
+    active === null ? null : (active.interval.start + active.interval.duration) % WEEK
 
-  const candidates: Array<{ entry: ScheduleEntry; startTime: number }> = []
+  let incoming: ScheduleEntry | null = null
+  let incomingMinutes = 0
 
-  // Today: programs that start after current time
-  for (const entry of dayEntries) {
-    const start = parseToMinutes(entry.start)
-    if (start > currentTime) {
-      candidates.push({ entry, startTime: start })
-    }
-  }
-
-  // Next day: all programs (their start is "tomorrow" in same timeline)
-  for (const entry of nextDayEntries) {
-    candidates.push({
-      entry,
-      startTime: parseToMinutes(entry.start) + 1440,
-    })
-  }
-
-  candidates.sort((a, b) => a.startTime - b.startTime)
-
-  for (const { entry, startTime } of candidates) {
-    const minutesUntil = startTime - currentTime
-    if (minutesUntil > 0 && minutesUntil <= INCOMING_WINDOW_MINUTES) {
-      const { name, logoUrl } = resolveProgram(programs, entry.program_id)
-      return {
-        programName: name,
-        timeRange: `${entry.start}-${entry.end}`,
-        minutesUntil,
-        programLogoUrl: logoUrl,
-        isRerun: !!entry.is_rerun,
+  for (let i = 1; i <= 7; i++) {
+    const dayKey = DAY_MAP[i % 7]
+    for (const entry of schedule[dayKey] ?? []) {
+      if (!isKnownProgram(programs, entry.program_id)) continue
+      const interval = fromSlot(dayKey, entry.start, entry.end)
+      if (interval === null) continue
+      const minutesUntil = minutesUntilStart(interval, minute)
+      if (minutesUntil <= 0 || minutesUntil > INCOMING_WINDOW_MINUTES) continue
+      if (interval.start === activeEnd && entry.program_id === active?.entry.program_id) continue
+      if (incoming === null || minutesUntil < incomingMinutes) {
+        incoming = entry
+        incomingMinutes = minutesUntil
       }
     }
   }
 
-  return null
+  if (incoming === null) return null
+
+  const { name, logoUrl } = resolveProgram(programs, incoming.program_id)
+  return {
+    programName: name,
+    timeRange: `${incoming.start}-${incoming.end}`,
+    minutesUntil: incomingMinutes,
+    programLogoUrl: logoUrl,
+    isRerun: !!incoming.is_rerun,
+  }
 }
 
 /** Resolved program slot for display in the schedule modal (one per day entry) */
@@ -235,7 +246,8 @@ export interface ProgramForDay {
 
 /**
  * Get all program entries for a given day, sorted by start time, with name/logo resolved
- * and isActive set when that day is "today" and the entry is currently active.
+ * and isActive set when the entry is currently active as an interval of the week
+ * (ADR 0044), so a previous day slot crossing midnight is active while it still plays.
  *
  * @param schedule - Weekly schedule (relational)
  * @param programs - Program definitions to resolve name/logo by program_id
@@ -254,16 +266,19 @@ export function getProgramsForDay(
   if (!schedule) return []
 
   const dayKey = DAY_MAP[dayOfWeek]
-  const dayEntries = schedule[dayKey]
+  const dayEntries = (schedule[dayKey] ?? []).filter((entry) =>
+    isKnownProgram(programs, entry.program_id),
+  )
 
-  if (!dayEntries || dayEntries.length === 0) return []
+  if (dayEntries.length === 0) return []
 
   const sorted = [...dayEntries].sort((a, b) => parseToMinutes(a.start) - parseToMinutes(b.start))
-  const isToday = dayOfWeek === currentDayOfWeek
+  const minute = at(currentDayOfWeek, currentTime)
 
   return sorted.map((entry) => {
     const { name, description, logoUrl } = resolveProgram(programs, entry.program_id)
-    const active = isToday && isProgramActive(entry, currentTime, false)
+    const interval = fromSlot(dayKey, entry.start, entry.end)
+    const active = interval !== null && contains(interval, minute)
     return {
       programName: name,
       programDescription: description,
@@ -343,7 +358,7 @@ export function getProgramsForWeekOrdered(
 /**
  * Get all programs with every slot they have in the week, sorted alphabetically by name.
  * Used by the "all programs" modal. Each program includes isLive when any of its slots
- * is currently active (today or previous day crossing midnight).
+ * is currently active as an interval of the week (ADR 0044).
  *
  * @param schedule - Weekly schedule (relational)
  * @param programs - Program definitions to resolve name/logo by program_id
@@ -366,7 +381,7 @@ export function getAllProgramsWithSlots(
     extendedDescription: string | null
     logoUrl: string | null
     slots: ProgramSlotDisplay[]
-    entries: Array<{ dayOfWeek: number; entry: ScheduleEntry }>
+    intervals: WeekInterval[]
   }
   const byId = new Map<string, Accum>()
 
@@ -376,28 +391,29 @@ export function getAllProgramsWithSlots(
     if (!dayEntries || dayEntries.length === 0) continue
     for (const entry of dayEntries) {
       const programId = entry.program_id
+      if (!isKnownProgram(programs, programId)) continue
       const timeRange = `${entry.start}-${entry.end}`
       const slot: ProgramSlotDisplay = { dayOfWeek, timeRange }
       let acc = byId.get(programId)
       if (!acc) {
-        const { name, description, extendedDescription, logoUrl } = resolveProgram(programs, programId)
-        acc = { name, description, extendedDescription, logoUrl, slots: [], entries: [] }
+        const { name, description, extendedDescription, logoUrl } = resolveProgram(
+          programs,
+          programId,
+        )
+        acc = { name, description, extendedDescription, logoUrl, slots: [], intervals: [] }
         byId.set(programId, acc)
       }
       acc.slots.push(slot)
-      acc.entries.push({ dayOfWeek, entry })
+      const interval = fromSlot(dayKey, entry.start, entry.end)
+      if (interval !== null) acc.intervals.push(interval)
     }
   }
 
-  const prevDayOfWeek = (currentDayOfWeek - 1 + 7) % 7
+  const minute = at(currentDayOfWeek, currentTime)
 
   const result: ProgramWithSlots[] = []
   for (const [programId, acc] of byId.entries()) {
-    const isLive = acc.entries.some(
-      ({ dayOfWeek, entry }) =>
-        (dayOfWeek === currentDayOfWeek && isProgramActive(entry, currentTime, false)) ||
-        (dayOfWeek === prevDayOfWeek && isProgramActive(entry, currentTime, true)),
-    )
+    const isLive = acc.intervals.some((interval) => contains(interval, minute))
     result.push({
       programId,
       programName: acc.name,
@@ -409,6 +425,8 @@ export function getAllProgramsWithSlots(
     })
   }
 
-  result.sort((a, b) => a.programName.localeCompare(b.programName, undefined, { sensitivity: 'base' }))
+  result.sort((a, b) =>
+    a.programName.localeCompare(b.programName, undefined, { sensitivity: 'base' }),
+  )
   return result
 }

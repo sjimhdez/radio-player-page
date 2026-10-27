@@ -1,0 +1,319 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # PHP (WordPress side). Minimums: PHP 7.4 + WP 6.6.
+  # ---------------------------------------------------------------------------
+
+  php-syntax:
+    name: PHP Syntax (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["7.4", "8.4"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: none
+      - name: Lint shipped and development PHP files
+        run: |
+          set -euo pipefail
+          status=0
+          while IFS= read -r file; do
+            php -l "$file" >/dev/null || status=1
+          done < <(git ls-files '*.php' ':!spike')
+          exit "$status"
+
+  phpcs:
+    name: PHPCS (WPCS + PHPCompatibilityWP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/phpcs -q --report-full --report-summary
+      - name: Composer audit
+        run: composer audit --no-interaction
+
+  phpstan:
+    name: PHPStan (level 8 with baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      # Same command as `npm run lint:phpstan` (no Node needed). The baseline
+      # only shrinks: unmatched entries fail too.
+      - run: vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+
+  phpunit-unit:
+    name: PHPUnit unit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["7.4", "8.4"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/phpunit
+
+  phpunit-integration:
+    name: PHPUnit integration (${{ matrix.env.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - { name: "PHP 7.4 + WP 6.6", script: "env:start:min" }
+          # Coverage only here: Xdebug slows the run down.
+          - { name: "PHP 8.4 + latest WP", script: "env:start:latest", coverage: true }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          coverage: none
+          tools: composer
+      - run: composer install --no-interaction --no-progress
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Start the test environment
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: npm run ${{ matrix.env.script }}${{ matrix.env.coverage && ' -- --xdebug=coverage' || '' }}
+      - if: ${{ !matrix.env.coverage }}
+        run: npm run test:php:integration
+      - if: ${{ matrix.env.coverage }}
+        run: npm run test:php:integration:coverage
+      - name: PHP coverage minimums (tests/coverage/php-zones.json)
+        if: ${{ matrix.env.coverage }}
+        run: node scripts/check-php-coverage.mjs coverage/php-xml
+      - run: npm run test:php:integration:ms
+
+  # ---------------------------------------------------------------------------
+  # JavaScript: one job per project, never unified.
+  # ---------------------------------------------------------------------------
+
+  root-js:
+    name: WordPress JS (root lint + Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run lint:js
+      - run: npm run test:coverage
+
+  player:
+    name: Player (typecheck, lint, format, Vitest, build, dist check)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: player
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: player/.nvmrc
+          cache: npm
+          cache-dependency-path: player/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:coverage
+      - run: npm run build
+      - name: Committed player/dist matches the build
+        run: |
+          git diff --exit-code -- dist/ || { echo "player/dist is out of date: run npm --prefix player run build and commit."; exit 1; }
+
+  block:
+    name: Block (${{ matrix.block }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        block: [schedule, programs-list, now-playing]
+    defaults:
+      run:
+        working-directory: blocks/${{ matrix.block }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: blocks/${{ matrix.block }}/.nvmrc
+          cache: npm
+          cache-dependency-path: blocks/${{ matrix.block }}/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - name: Committed build matches the build
+        run: |
+          git diff --exit-code -- build/ || { echo "blocks/${{ matrix.block }}/build is out of date: run npm run build there and commit."; exit 1; }
+
+  licenses:
+    name: Licenses and npm audit (bundled dependencies)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: GPL-compatible licenses of bundled dependencies
+        run: node scripts/check-licenses.mjs player blocks/schedule blocks/programs-list blocks/now-playing
+      - name: npm audit (runtime dependencies)
+        run: |
+          set -euo pipefail
+          for project in player blocks/schedule blocks/programs-list blocks/now-playing; do
+            echo "::group::$project"
+            (cd "$project" && npm audit --omit=dev --audit-level=high)
+            echo "::endgroup::"
+          done
+
+  # ---------------------------------------------------------------------------
+  # E2E, release zip and Plugin Check.
+  # ---------------------------------------------------------------------------
+
+  e2e:
+    name: E2E (${{ matrix.env.name }}, Chromium + WebKit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - { name: "PHP 7.4 + WP 6.6", script: "env:start:min", slug: "min" }
+          - { name: "PHP 8.4 + latest WP", script: "env:start:latest", slug: "latest" }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium webkit
+      - name: Start the test environment
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: npm run ${{ matrix.env.script }}
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.env.slug }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 14
+
+  release-zip:
+    name: Release zip (file list and development paths)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - run: npm run check:zip
+
+  plugin-check:
+    name: Plugin Check (release zip)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - name: Build and unpack the release zip
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/plugin-check"
+          bash scripts/build-release-zip.sh --output "$RUNNER_TEMP/plugin-check/radio-player-page.zip"
+          unzip -q "$RUNNER_TEMP/plugin-check/radio-player-page.zip" -d "$RUNNER_TEMP/plugin-check"
+          cat > "$RUNNER_TEMP/plugin-check/.wp-env.json" <<'JSON'
+          {
+            "core": null,
+            "phpVersion": "8.4",
+            "port": 8895,
+            "testsEnvironment": false,
+            "plugins": [
+              "https://downloads.wordpress.org/plugin/plugin-check.latest-stable.zip",
+              "./radio-player-page"
+            ]
+          }
+          JSON
+      # Plugin Check comes from its zip inside .wp-env.json (no WP-CLI workaround:
+      # the wp-env bug with remote zips on Node >= 24.16 did not reproduce with
+      # wp-env 11.17).
+      - name: Start WordPress with the zip and Plugin Check
+        uses: nick-fields/retry@v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 10
+          command: cd "$RUNNER_TEMP/plugin-check" && "$GITHUB_WORKSPACE/node_modules/.bin/wp-env" start
+      - name: Run Plugin Check (all categories)
+        working-directory: ${{ runner.temp }}/plugin-check
+        run: |
+          set -uo pipefail
+          # wp plugin check exits 0 even when it reports errors: read its output.
+          "$GITHUB_WORKSPACE/node_modules/.bin/wp-env" run cli wp plugin check radio-player-page \
+            --slug=radio-player-page \
+            --exclude-directories=player \
+            --ignore-codes=WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet,WordPress.WP.EnqueuedResources.NonEnqueuedScript \
+            --require=./wp-content/plugins/plugin-check.latest-stable/cli.php \
+            --format=csv | tee plugin-check.csv
+          if grep -E ',(ERROR|WARNING),' plugin-check.csv; then
+            echo "Plugin Check reported errors or warnings (see above)."
+            exit 1
+          fi

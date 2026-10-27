@@ -30,6 +30,8 @@ class Radplapag_Program_Config {
 	private array $data;
 
 	/**
+	 * Wraps the data of a program post.
+	 *
 	 * @since 3.3.0
 	 * @param int   $post_id Program post ID.
 	 * @param array $data    Associative array from radplapag_get_program_data().
@@ -40,6 +42,8 @@ class Radplapag_Program_Config {
 	}
 
 	/**
+	 * Builds the config of a program post, or null when it has no program data.
+	 *
 	 * @since 3.3.0
 	 * @param int $post_id radplapag_program post ID.
 	 * @return Radplapag_Program_Config|null
@@ -59,6 +63,8 @@ class Radplapag_Program_Config {
 	}
 
 	/**
+	 * Returns the program post ID.
+	 *
 	 * @since 3.3.0
 	 * @return int
 	 */
@@ -74,7 +80,7 @@ class Radplapag_Program_Config {
 	 */
 	public function to_array(): array {
 		return array_merge(
-			[ 'id' => $this->post_id ],
+			array( 'id' => $this->post_id ),
 			$this->data
 		);
 	}

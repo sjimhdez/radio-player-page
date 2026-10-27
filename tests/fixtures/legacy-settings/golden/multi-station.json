@@ -1,0 +1,60 @@
+{
+    "stations": [
+        {
+            "title": "Alpha",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 1}}",
+                "radplapag_station_schedule": "[]",
+                "radplapag_station_stream_url": "https://stream.example.test/one.mp3",
+                "radplapag_station_theme_color": "red",
+                "radplapag_station_visualizer": "bars"
+            }
+        },
+        {
+            "title": "Radio Station",
+            "status": "publish",
+            "menu_order": 1,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 2}}",
+                "radplapag_station_schedule": "[]",
+                "radplapag_station_stream_url": "https://stream.example.test/two.m3u8",
+                "radplapag_station_theme_color": "orange",
+                "radplapag_station_visualizer": "particles"
+            }
+        },
+        {
+            "title": "Gamma FM",
+            "status": "publish",
+            "menu_order": 2,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 3}}",
+                "radplapag_station_schedule": "[]",
+                "radplapag_station_stream_url": "https://stream.example.test/three.mpd",
+                "radplapag_station_theme_color": "yellow",
+                "radplapag_station_visualizer": "waterfall"
+            }
+        }
+    ],
+    "programs": [],
+    "options": {
+        "radplapag_settings": "{{ABSENT}}",
+        "radplapag_db_version": "330",
+        "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
+    },
+    "transients": {
+        "radplapag_migrating": false,
+        "radplapag_migration_success_notice": {
+            "stations": 3,
+            "dropped": []
+        },
+        "radplapag_migration_error_notice": false
+    }
+}

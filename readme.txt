@@ -3,7 +3,7 @@ Contributors: sjimhdez
 Tags: radio player, radio station, radio, icecast, shoutcast
 Requires at least: 6.6
 Tested up to: 7.1
-Stable tag: 3.4.2
+Stable tag: 3.5.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -20,7 +20,7 @@ Designed for online radio stations, community broadcasters, and streaming servic
 
 * **Standalone Listening Pages** – Every station has its own independent HTML page, bypassing your WordPress theme entirely. This guarantees reliable playback, excellent performance, and a dedicated URL for every station.
 * **Reliable Playback** – Listeners always access the same optimized player page without theme conflicts, page builder issues, or unnecessary front-end overhead.
-* **Universal Stream Compatibility** – Supports Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams with automatic protocol detection and native HLS support on iOS Safari.
+* **Universal Stream Compatibility** – Supports Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams with automatic protocol detection (also with query strings) and native HLS support on iOS Safari.
 
 = Radio Schedule =
 
@@ -43,12 +43,6 @@ Designed for online radio stations, community broadcasters, and streaming servic
 * **Media Session API** – Integration with lock screens and hardware media controls, including artwork and metadata.
 * **Convenience Features** – Sleep Timer, responsive layout, and Open Graph metadata for social sharing.
 
-= Blocks =
-
-* **RPP: Weekly Schedule Block** – Display the complete weekly schedule for any station anywhere on your site using the Block Editor.
-* **RPP: Radio Shows List Block** – Display a list of radio shows including featured images, descriptions, and broadcast schedules.
-* **RPP: Now Playing Block** – Display the radio show currently on air for a station, with its schedule, and the next show if it starts within 10 minutes.
-
 = Modern Architecture =
 
 Radio Player Page is built as a standalone React application using React 19, TypeScript, and Vite. Assets are loaded through a manifest-based system for efficient caching, fast updates, and long-term maintainability.
@@ -57,9 +51,9 @@ Radio Player Page is built as a standalone React application using React 19, Typ
 
 1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen.
 2. Activate the plugin.
-3. Open **RPP → Stations** and create your first station.
+3. Open **RPP → Radio Stations** and create your first station.
 4. Configure:
-   * Streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3)
+   * Streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3, starting with `http://` or `https://`)
    * WordPress page
    * Station title
    * Branding options (logo, background, color theme)
@@ -72,13 +66,13 @@ Radio Player Page is built as a standalone React application using React 19, Typ
 * Every station requires a valid streaming URL and an assigned WordPress page.
 * Stations and radio shows are stored as WordPress custom post types.
 * Deactivating the plugin preserves your data.
-* Uninstalling the plugin permanently removes stations, radio shows, and schedules.
+* Uninstalling the plugin permanently removes stations, radio shows, schedules, and the plugin's settings, including trashed items.
 
 == Frequently Asked Questions ==
 
 = Do I need to configure anything on the WordPress page? =
 
-No. Once you assign a page to a station on the **RPP → Stations** edit screen, no additional configuration is needed on the page itself. The plugin intercepts page requests using WordPress template redirect hooks and serves a standalone HTML page with the player. The normal page output (content, template, blocks) is bypassed for that URL, so the player always loads reliably without page-level setup.
+No. Once you assign a page to a station on the **RPP → Radio Stations** edit screen, no additional configuration is needed on the page itself. The plugin intercepts page requests using WordPress template redirect hooks and serves a standalone HTML page with the player. The normal page output (content, template, blocks) is bypassed for that URL, so the player always loads reliably without page-level setup.
 
 = Where can I get support or report issues? =
 
@@ -91,6 +85,10 @@ Yes. The plugin is free and open-source (GPLv2 or later), suitable for both comm
 = Where can I view the full source code? =
 
 The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-page).
+
+= Why doesn't my stream play, or why is the visualizer not moving? =
+
+The player first loads the stream with cross-origin access (CORS) so the visualizer can read the audio. If the streaming server doesn't allow it, MP3 and OGG streams play anyway, with a static animation instead of the visualizer. HLS and DASH streams from another domain require CORS on the streaming server (except native HLS on iOS). An `http://` stream may also be blocked on an `https://` site; the station edit screen warns you about it.
 
 = What is Welcome Audio? =
 
@@ -108,6 +106,13 @@ Welcome Audio is an optional MP3 clip you can upload for a station. When a liste
 8. Radio Station edit screen with weekly schedule.
 
 == Changelog ==
+
+= 3.5.0 =
+* Improved player page layout and accessibility.
+* Fixed playback issues, including streams without CORS.
+* Fixed issues in blocks, Weekly Schedule, and admin area.
+* Radio shows that are not published (drafts, password-protected, or trashed) no longer appear in the player, the schedule, or the blocks.
+* Added an option to hide the station name in the player.
 
 = 3.4.2 =
 * Added Croatian translation.

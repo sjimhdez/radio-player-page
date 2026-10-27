@@ -1,0 +1,21 @@
+{
+	"_source": "3.2.x shape with real attachment IDs: images are kept, an audio file or a missing ID used as an image becomes 0 (register_post_meta sanitize callbacks)",
+	"attachments": { "Station background": "image", "Station logo": "image", "Show logo": "image", "Jingle": "audio" },
+	"settings": {
+		"stations": [
+			{
+				"stream_url": "https://stream.example.test/one.mp3", "player_page": "{{PAGE:Player 1}}", "station_title": "Pictured",
+				"background_id": "{{ATTACHMENT:Station background}}", "logo_id": "{{ATTACHMENT:Station logo}}", "theme_color": "pink", "visualizer": "bars",
+				"programs": [
+					{ "id": "prog_pics00001", "name": "With Logo", "description": "", "extended_description": "", "logo_id": "{{ATTACHMENT:Show logo}}" },
+					{ "id": "prog_audio0001", "name": "Audio As Logo", "description": "", "extended_description": "", "logo_id": "{{ATTACHMENT:Jingle}}" }
+				],
+				"schedule": { "thursday": [ { "program_id": "prog_pics00001", "start": "12:00", "end": "13:00" } ] }
+			},
+			{
+				"stream_url": "https://stream.example.test/two.mp3", "player_page": "{{PAGE:Player 2}}", "station_title": "Missing media",
+				"background_id": "{{ATTACHMENT:Jingle}}", "logo_id": 987654321, "theme_color": "neutral", "visualizer": "oscilloscope"
+			}
+		]
+	}
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<ruleset name="Radio Player Page">
+	<description>WordPress Coding Standards and PHP 7.4+ compatibility for the WordPress side of the plugin.</description>
+
+	<file>.</file>
+
+	<exclude-pattern>/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>/player/*</exclude-pattern>
+	<exclude-pattern>/blocks/*/build/*</exclude-pattern>
+	<exclude-pattern>/spike/*</exclude-pattern>
+	<exclude-pattern>/coverage/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<arg name="parallel" value="8"/>
+
+	<config name="testVersion" value="7.4-"/>
+	<config name="minimum_wp_version" value="6.6"/>
+
+	<rule ref="PHPCompatibilityWP"/>
+
+	<rule ref="WordPress"/>
+
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="radplapag"/>
+				<element value="RADPLAPAG"/>
+				<element value="RadioPlayerPage"/>
+			</property>
+		</properties>
+	</rule>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="radio-player-page"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Test files follow PHPUnit naming (*Test.php, spec 0001 §5.2), not WordPress file naming. -->
+	<rule ref="WordPress.Files.FileName">
+		<exclude-pattern>/tests/*</exclude-pattern>
+	</rule>
+</ruleset>

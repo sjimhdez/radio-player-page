@@ -1,3 +1,4 @@
+import type { Ref } from 'react'
 import IconButton from '@mui/material/IconButton'
 import Stack from '@mui/material/Stack'
 import Typography from '@mui/material/Typography'
@@ -10,6 +11,8 @@ interface SleepTimerProps {
   remainingSeconds: number
   /** Callback function to cancel the sleep timer */
   onCancel: () => void
+  /** Ref to the container, so the dashboard can tell whether it holds the focus (K58) */
+  ref?: Ref<HTMLDivElement>
 }
 
 /**
@@ -21,7 +24,7 @@ interface SleepTimerProps {
  * @param props - Component props
  * @returns Sleep timer display with countdown and cancel button
  */
-const SleepTimer = ({ remainingSeconds, onCancel }: SleepTimerProps) => {
+const SleepTimer = ({ remainingSeconds, onCancel, ref }: SleepTimerProps) => {
   const { t } = useTranslation()
 
   /**
@@ -48,7 +51,15 @@ const SleepTimer = ({ remainingSeconds, onCancel }: SleepTimerProps) => {
   }
 
   return (
-    <Stack direction="row" alignItems="center" justifyContent="center" gap={1}>
+    <Stack
+      ref={ref}
+      direction="row"
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 1,
+      }}
+    >
       <Typography variant="body2" sx={{ minWidth: '60px', textAlign: 'center' }}>
         {formatTime(remainingSeconds)}
       </Typography>

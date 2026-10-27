@@ -1,0 +1,57 @@
+{
+	"critical": {
+		"min": 90,
+		"include": [
+			{
+				"file": "includes/radplapag-station-cpt.php",
+				"functions": [
+					"radplapag_sanitize_station_schedule",
+					"radplapag_save_station_meta"
+				]
+			},
+			{
+				"file": "includes/migration/class-radplapag-migrator-settings-to-cpt.php"
+			},
+			{ "file": "includes/radplapag-upgrade.php" },
+			{
+				"file": "includes/radplapag-now-playing-block.php",
+				"functions": [ "radplapag_get_now_playing_for_station" ]
+			},
+			{
+				"file": "includes/radplapag-schedule-block.php",
+				"functions": [
+					"radplapag_parse_time_to_minutes",
+					"radplapag_is_slot_active"
+				]
+			},
+			{ "file": "includes/radplapag-stations.php" },
+			{ "file": "includes/src/wp/class-schedule-messages.php" },
+			{ "file": "includes/src/wp/class-clock.php" },
+			{ "file": "includes/src/wp/class-station-repository.php" },
+			{ "file": "includes/src/wp/class-program-repository.php" },
+			{ "file": "includes/src/wp/class-station-meta-saver.php" },
+			{ "file": "includes/src/wp/class-program-meta-saver.php" },
+			{ "file": "includes/src/wp/class-migration-writer.php" },
+			{ "file": "includes/data/class-radplapag-station-config.php" },
+			{ "file": "includes/data/class-radplapag-program-config.php" },
+			{
+				"file": "radio-player-page.php",
+				"functions": [ "radplapag_get_station_for_current_page" ]
+			}
+		]
+	},
+	"core": {
+		"min": 90,
+		"include": [ "includes/src/**" ],
+		"exclude": [ "includes/src/wp/**" ]
+	},
+	"rest": {
+		"min": 80,
+		"include": [
+			"includes/**",
+			"admin/*.php",
+			"blocks/*/render.php",
+			"uninstall.php"
+		]
+	}
+}

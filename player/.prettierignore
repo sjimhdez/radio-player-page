@@ -3,3 +3,6 @@ dist
 build
 coverage
 .env
+
+# Frozen zone (ADR 0018): not reformatted.
+src/config/visualizers.ts

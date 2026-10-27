@@ -1,0 +1,19 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/wp-env.json",
+	"core": null,
+	"phpVersion": "8.4",
+	"port": 8890,
+	"testsEnvironment": false,
+	"plugins": [ "." ],
+	"config": {
+		"WP_DEBUG": true,
+		"SCRIPT_DEBUG": false
+	},
+	"mappings": {
+		"wp-content/plugins/radplapag-no-manifest": ".",
+		"wp-content/plugins/radplapag-no-manifest/player/dist": "./tests/fixtures/player-dist/no-manifest",
+		"wp-content/plugins/radplapag-no-main-entry": ".",
+		"wp-content/plugins/radplapag-no-main-entry/player/dist": "./tests/fixtures/player-dist/no-main-entry",
+		"wp-content/mu-plugins": "./tests/e2e/mu-plugins"
+	}
+}

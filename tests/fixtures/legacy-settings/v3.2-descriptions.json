@@ -1,0 +1,29 @@
+{
+	"_source": "v3.2.0 admin/sanitize-settings.php: programs + description, extended_description; same legacy id shared by two stations",
+	"settings": {
+		"stations": [
+			{
+				"stream_url": "https://stream.example.test/one.mp3", "player_page": "{{PAGE:Player 1}}", "station_title": "First",
+				"background_id": 0, "logo_id": 0, "theme_color": "green", "visualizer": "waterfall",
+				"programs": [
+					{ "id": "prog_shared0001", "name": "Shared Show", "description": "Short", "extended_description": "Long\nwith a newline", "logo_id": 0 },
+					{ "id": "prog_first00001", "name": "First Only", "description": "", "extended_description": "", "logo_id": 0 }
+				],
+				"schedule": {
+					"tuesday": [
+						{ "program_id": "prog_shared0001", "name": "Shared Show", "start": "08:00", "end": "10:00" },
+						{ "program_id": "prog_first00001", "name": "First Only", "start": "10:00", "end": "12:00" }
+					]
+				}
+			},
+			{
+				"stream_url": "https://stream.example.test/two.mp3", "player_page": "{{PAGE:Player 2}}", "station_title": "Second",
+				"background_id": 0, "logo_id": 0, "theme_color": "neutral", "visualizer": "oscilloscope",
+				"programs": [
+					{ "id": "prog_shared0001", "name": "Shared Show", "description": "Short", "extended_description": "Long\nwith a newline", "logo_id": 0 }
+				],
+				"schedule": { "saturday": [ { "program_id": "prog_shared0001", "name": "Shared Show", "start": "20:00", "end": "22:00" } ] }
+			}
+		]
+	}
+}

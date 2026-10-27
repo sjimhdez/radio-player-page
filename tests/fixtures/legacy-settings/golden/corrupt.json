@@ -1,0 +1,67 @@
+{
+    "stations": [
+        {
+            "title": "12345",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "0",
+                "radplapag_station_schedule": "{\"wednesday\":[{\"program_id\":\"{{PROGRAM:Good Show}}\",\"start\":\"09:00\",\"end\":\"10:00\",\"is_rerun\":false},{\"program_id\":\"{{PROGRAM:Program}}\",\"start\":\"10:00\",\"end\":\"10:00\",\"is_rerun\":false}]}",
+                "radplapag_station_stream_url": "",
+                "radplapag_station_theme_color": "blue",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
+        },
+        {
+            "title": "Same page",
+            "status": "publish",
+            "menu_order": 1,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 1}}",
+                "radplapag_station_schedule": "[]",
+                "radplapag_station_stream_url": "https://stream.example.test/ok.mp3",
+                "radplapag_station_theme_color": "neutral",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
+        }
+    ],
+    "programs": [
+        {
+            "title": "Good Show",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "Desc",
+                "radplapag_program_extended_description": "Line 1\nLine 2",
+                "radplapag_program_logo_id": "0"
+            }
+        },
+        {
+            "title": "Program",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        }
+    ],
+    "options": {
+        "radplapag_settings": "{{ABSENT}}",
+        "radplapag_db_version": "330",
+        "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
+    },
+    "transients": {
+        "radplapag_migrating": false,
+        "radplapag_migration_success_notice": {
+            "stations": 2,
+            "dropped": []
+        },
+        "radplapag_migration_error_notice": false
+    }
+}

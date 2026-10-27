@@ -1,0 +1,7 @@
+{
+	"src/other.tsx": {
+		"file": "assets/other.js",
+		"src": "src/other.tsx",
+		"isEntry": true
+	}
+}

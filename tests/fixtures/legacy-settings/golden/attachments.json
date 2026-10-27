@@ -1,0 +1,67 @@
+{
+    "stations": [
+        {
+            "title": "Pictured",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_station_background_id": "{{ATTACHMENT:Station background}}",
+                "radplapag_station_logo_id": "{{ATTACHMENT:Station logo}}",
+                "radplapag_station_player_page": "{{PAGE:Player 1}}",
+                "radplapag_station_schedule": "{\"thursday\":[{\"program_id\":\"{{PROGRAM:With Logo}}\",\"start\":\"12:00\",\"end\":\"13:00\",\"is_rerun\":false}]}",
+                "radplapag_station_stream_url": "https://stream.example.test/one.mp3",
+                "radplapag_station_theme_color": "pink",
+                "radplapag_station_visualizer": "bars"
+            }
+        },
+        {
+            "title": "Missing media",
+            "status": "publish",
+            "menu_order": 1,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 2}}",
+                "radplapag_station_schedule": "[]",
+                "radplapag_station_stream_url": "https://stream.example.test/two.mp3",
+                "radplapag_station_theme_color": "neutral",
+                "radplapag_station_visualizer": "oscilloscope"
+            }
+        }
+    ],
+    "programs": [
+        {
+            "title": "With Logo",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "{{ATTACHMENT:Show logo}}"
+            }
+        },
+        {
+            "title": "Audio As Logo",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        }
+    ],
+    "options": {
+        "radplapag_settings": "{{ABSENT}}",
+        "radplapag_db_version": "330",
+        "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
+    },
+    "transients": {
+        "radplapag_migrating": false,
+        "radplapag_migration_success_notice": {
+            "stations": 2,
+            "dropped": []
+        },
+        "radplapag_migration_error_notice": false
+    }
+}

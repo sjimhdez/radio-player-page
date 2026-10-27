@@ -1,0 +1,53 @@
+{
+    "stations": [
+        {
+            "title": "Scheduled",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_station_background_id": "0",
+                "radplapag_station_logo_id": "0",
+                "radplapag_station_player_page": "{{PAGE:Player 1}}",
+                "radplapag_station_schedule": "{\"monday\":[{\"program_id\":\"{{PROGRAM:Morning}}\",\"start\":\"07:00\",\"end\":\"09:00\",\"is_rerun\":false}],\"friday\":[{\"program_id\":\"{{PROGRAM:Night}}\",\"start\":\"23:00\",\"end\":\"01:00\",\"is_rerun\":false}]}",
+                "radplapag_station_stream_url": "https://stream.example.test/one.mp3",
+                "radplapag_station_theme_color": "blue",
+                "radplapag_station_visualizer": "bars"
+            }
+        }
+    ],
+    "programs": [
+        {
+            "title": "Morning",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        },
+        {
+            "title": "Night",
+            "status": "publish",
+            "menu_order": 0,
+            "meta": {
+                "radplapag_program_description": "",
+                "radplapag_program_extended_description": "",
+                "radplapag_program_logo_id": "0"
+            }
+        }
+    ],
+    "options": {
+        "radplapag_settings": "{{ABSENT}}",
+        "radplapag_db_version": "330",
+        "radplapag_migration_skipped_cpt_conflict": "{{ABSENT}}"
+    },
+    "transients": {
+        "radplapag_migrating": false,
+        "radplapag_migration_success_notice": {
+            "stations": 1,
+            "dropped": []
+        },
+        "radplapag_migration_error_notice": false
+    }
+}

@@ -15,7 +15,7 @@ interface TimezoneClockProps {
  * Timezone clock component
  *
  * Displays a discrete, stylized real-time clock showing the station timezone (WordPress)
- * with a subtle time difference indicator. Positioned in the top-right corner.
+ * with a subtle time difference indicator. The page header places it.
  *
  * Only displays when there is a timezone difference (hasDifference === true). When that
  * condition is met, the clock is always visible, independent of playback state.
@@ -24,7 +24,6 @@ interface TimezoneClockProps {
  * - Compact clock showing station timezone in "HH:MM" format
  * - Updates at the start of each system minute (at :00 seconds)
  * - Subtle time difference indicator
- * - Discreet positioning in top-right corner
  * - Minimal, elegant design using Material-UI components
  *
  * @param props - Component props
@@ -46,10 +45,6 @@ const TimezoneClock = ({ transmissionTimeData }: TimezoneClockProps) => {
     <Paper
       elevation={0}
       sx={{
-        position: 'absolute',
-        top: 16,
-        right: 16,
-        zIndex: (theme) => theme.zIndex.appBar,
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
         backdropFilter: 'blur(8px)',
         px: 1.5,
@@ -58,15 +53,39 @@ const TimezoneClock = ({ transmissionTimeData }: TimezoneClockProps) => {
         borderColor: 'divider',
       }}
     >
-      <Stack direction="column" alignItems="flex-end" spacing={0.5}>
+      <Stack
+        direction="column"
+        spacing={0.5}
+        sx={{
+          alignItems: 'flex-end',
+        }}
+      >
         {/* Informative text */}
-        <Typography variant="caption" letterSpacing="0.05em" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            letterSpacing: '0.05em',
+            color: 'text.secondary',
+          }}
+        >
           {t('dashboard.timezoneClockLabel')}
         </Typography>
 
         {/* Station transmission time clock and difference indicator */}
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <Typography variant="body2" letterSpacing="0.05em" fontWeight={500}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            alignItems: 'center',
+          }}
+        >
+          <Typography
+            variant="body2"
+            sx={{
+              letterSpacing: '0.05em',
+              fontWeight: 500,
+            }}
+          >
             {transmissionTime}
           </Typography>
 

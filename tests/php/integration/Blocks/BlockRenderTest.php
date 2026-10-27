@@ -1,0 +1,693 @@
+<?php
+/**
+ * Characterization of the render, registration and editor data of the three blocks (3.4.2).
+ *
+ * @package radio-player-page
+ */
+
+namespace RadioPlayerPage\Tests\Integration\Blocks;
+
+use RadioPlayerPage\Tests\Integration\Support\Clock;
+use RadioPlayerPage\Tests\Integration\Support\Factory;
+use RadioPlayerPage\Tests\Integration\Support\Snapshot;
+use WP_Block_Type_Registry;
+use WP_REST_Request;
+use WP_UnitTestCase;
+
+/**
+ * Pins the markup of `radplapag/schedule`, `radplapag/programs-list` and
+ * `radplapag/now-playing` (SPEC.md §3.5) with snapshots in
+ * tests/php/integration/snapshots/blocks/, rendered through render_block() so that
+ * get_block_wrapper_attributes() runs as on a real page.
+ *
+ * The site is on a real Wednesday at 10:55 (Clock with an exact day), so `natural`
+ * (Monday to Sunday) and `current_first` (Wednesday first) give different orders.
+ * Rotating the days instead would make `natural` depend on today's weekday (K73).
+ *
+ * Fixture: station «Main» (player page «Player») with Morning (logo and both
+ * descriptions; Wednesday 09:00–11:00, on air, and Monday 09:00–10:00), Early
+ * (no meta; Wednesday 07:00–08:00) and Later (description only; Wednesday
+ * 11:00–12:00, a rerun, coming up); station «Second» (no player page) with Early on
+ * air (Wednesday 10:00–11:30); station «Silent» with Tuesday only.
+ *
+ * Cases:
+ * - the wrapper carries its class once, on WP 6.6 and on newer WP (K6);
+ * - schedule: dayOrder × showDescription × showExtendedDescription (8 snapshots);
+ *   invalid index and a schedule without slots → «No radio schedule» message;
+ * - programs list: showImage × showDescription × showExtendedDescription ×
+ *   showSchedule (16 snapshots); invalid index → «No radio shows» message;
+ * - now playing: showLogo × «Main» (logo, link, upcoming rerun) and «Second» (no
+ *   logo, no link) (4 snapshots); nothing on air or invalid index → empty on the
+ *   front and in other REST responses; in the block renderer route → the editor
+ *   placeholder;
+ * - station: `stationId` wins over `stationIndex`, an unpublished one renders the
+ *   empty block, and a block without it renders by `stationIndex` (K46);
+ * - registration: apiVersion, attributes and defaults, supports, render callback and
+ *   editor script handle;
+ * - editor data: `{ stations: [ { label, id } ] }`, with «Radio Station N» for untitled
+ *   stations, and nothing when the editor script is not registered.
+ */
+final class BlockRenderTest extends WP_UnitTestCase {
+
+	const BLOCKS = array(
+		'schedule'      => 'radplapagScheduleBlock',
+		'programs-list' => 'radplapagProgramsListBlock',
+		'now-playing'   => 'radplapagNowPlayingBlock',
+	);
+
+	/**
+	 * Fixture factory.
+	 *
+	 * @var Factory
+	 */
+	private $factory_rpp;
+
+	/**
+	 * Station title → post ID.
+	 *
+	 * @var array<string, int>
+	 */
+	private $stations = array();
+
+	/**
+	 * Station title → schedule.
+	 *
+	 * @var array<string, array>
+	 */
+	private $schedules = array();
+
+	/**
+	 * Creates the programs and stations; schedules are written by render_at().
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->factory_rpp = new Factory();
+		$f                 = $this->factory_rpp;
+
+		$morning = $f->program(
+			'Morning',
+			array(
+				'description'          => 'Wake up',
+				'extended_description' => 'News & music',
+				'logo_id'              => $f->image( 'Morning logo' ),
+			)
+		);
+		$early   = $f->program( 'Early' );
+		$later   = $f->program( 'Later', array( 'description' => 'Afternoon talk' ) );
+
+		$this->stations['Main']   = $f->station(
+			'Main',
+			array(
+				'player_page' => $f->page( 'Player' ),
+				'menu_order'  => 0,
+			)
+		);
+		$this->stations['Second'] = $f->station( 'Second', array( 'menu_order' => 1 ) );
+		$this->stations['Silent'] = $f->station( 'Silent', array( 'menu_order' => 2 ) );
+
+		$this->schedules = array(
+			'Main'   => array(
+				'monday'    => array( self::slot( $morning, '09:00', '10:00' ) ),
+				'wednesday' => array(
+					self::slot( $later, '11:00', '12:00', true ),
+					self::slot( $morning, '09:00', '11:00' ),
+					self::slot( $early, '07:00', '08:00' ),
+				),
+			),
+			'Second' => array(
+				'wednesday' => array( self::slot( $early, '10:00', '11:30' ) ),
+			),
+			'Silent' => array(
+				'tuesday' => array( self::slot( $early, '20:00', '21:00' ) ),
+			),
+		);
+	}
+
+	/**
+	 * A schedule entry.
+	 *
+	 * @param int    $program_id Program post ID.
+	 * @param string $start      Start, HH:MM.
+	 * @param string $end        End, HH:MM.
+	 * @param bool   $is_rerun   Whether it is a rerun.
+	 * @return array
+	 */
+	private static function slot( $program_id, $start, $end, $is_rerun = false ) {
+		return array(
+			'program_id' => (string) $program_id,
+			'start'      => $start,
+			'end'        => $end,
+			'is_rerun'   => $is_rerun,
+		);
+	}
+
+	/**
+	 * Renders a block with the site on Wednesday 10:55.
+	 *
+	 * @param string $name  Block name without the namespace.
+	 * @param array  $attrs Block attributes.
+	 * @return string
+	 */
+	private function render_at( $name, array $attrs ) {
+		return Clock::run(
+			'wednesday',
+			'10:55',
+			function ( Clock $clock ) use ( $name, $attrs ) {
+				foreach ( $this->schedules as $title => $schedule ) {
+					update_post_meta(
+						$this->stations[ $title ],
+						'radplapag_station_schedule',
+						wp_slash( wp_json_encode( $schedule ) )
+					);
+				}
+
+				$html = self::render( $name, $attrs );
+				if ( ! $clock->holds() ) {
+					$this->fail( 'The minute changed while rendering.' );
+				}
+
+				return $html;
+			},
+			true
+		);
+	}
+
+	/**
+	 * Renders a block as a page would.
+	 *
+	 * @param string $name  Block name without the namespace.
+	 * @param array  $attrs Block attributes.
+	 * @return string
+	 */
+	private static function render( $name, array $attrs ) {
+		return render_block(
+			array(
+				'blockName'    => 'radplapag/' . $name,
+				'attrs'        => $attrs,
+				'innerBlocks'  => array(),
+				'innerHTML'    => '',
+				'innerContent' => array(),
+			)
+		);
+	}
+
+	/**
+	 * Every combination of the given boolean attributes, keyed by a file-name suffix.
+	 *
+	 * @param array<string, string> $flags Attribute → short name.
+	 * @return array<string, array>
+	 */
+	private static function combinations( array $flags ) {
+		$out = array( '' => array() );
+		foreach ( $flags as $attribute => $short ) {
+			$next = array();
+			foreach ( $out as $suffix => $attrs ) {
+				foreach ( array( true, false ) as $value ) {
+					$next[ $suffix . '-' . ( $value ? '' : 'no' ) . $short ] = $attrs + array( $attribute => $value );
+				}
+			}
+			$out = $next;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The 8 attribute combinations of the schedule block.
+	 *
+	 * @return array<string, array{string, array}>
+	 */
+	public function schedule_attributes() {
+		$out = array();
+		foreach ( array( 'natural', 'current_first' ) as $order ) {
+			$flags = array(
+				'showDescription'         => 'desc',
+				'showExtendedDescription' => 'ext',
+			);
+			foreach ( self::combinations( $flags ) as $suffix => $attrs ) {
+				$file         = 'schedule-' . str_replace( '_', '-', $order ) . $suffix . '.html';
+				$out[ $file ] = array(
+					$file,
+					array(
+						'stationIndex' => 0,
+						'dayOrder'     => $order,
+					) + $attrs,
+				);
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The 16 attribute combinations of the programs list block.
+	 *
+	 * @return array<string, array{string, array}>
+	 */
+	public function programs_list_attributes() {
+		$flags = array(
+			'showImage'               => 'image',
+			'showDescription'         => 'desc',
+			'showExtendedDescription' => 'ext',
+			'showSchedule'            => 'schedule',
+		);
+		$out   = array();
+		foreach ( self::combinations( $flags ) as $suffix => $attrs ) {
+			$file         = 'programs-list' . $suffix . '.html';
+			$out[ $file ] = array( $file, array( 'stationIndex' => 0 ) + $attrs );
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The 4 now playing cases: showLogo × station.
+	 *
+	 * @return array<string, array{string, array}>
+	 */
+	public function now_playing_attributes() {
+		$out      = array();
+		$stations = array(
+			0 => 'main',
+			1 => 'second',
+		);
+		foreach ( $stations as $index => $station ) {
+			foreach ( array( true, false ) as $show_logo ) {
+				$file         = 'now-playing-' . $station . '-' . ( $show_logo ? '' : 'no' ) . 'logo.html';
+				$out[ $file ] = array(
+					$file,
+					array(
+						'stationIndex' => $index,
+						'showLogo'     => $show_logo,
+					),
+				);
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * The schedule block markup for each attribute combination.
+	 *
+	 * @dataProvider schedule_attributes
+	 *
+	 * @param string $file  Snapshot file name.
+	 * @param array  $attrs Block attributes.
+	 */
+	public function test_schedule_render( $file, array $attrs ) {
+		Snapshot::assert_matches( $this, 'blocks/' . $file, $this->render_at( 'schedule', $attrs ), $this->factory_rpp->names() );
+	}
+
+	/**
+	 * The programs list block markup for each attribute combination.
+	 *
+	 * @dataProvider programs_list_attributes
+	 *
+	 * @param string $file  Snapshot file name.
+	 * @param array  $attrs Block attributes.
+	 */
+	public function test_programs_list_render( $file, array $attrs ) {
+		Snapshot::assert_matches( $this, 'blocks/' . $file, $this->render_at( 'programs-list', $attrs ), $this->factory_rpp->names() );
+	}
+
+	/**
+	 * The now playing block markup for each case.
+	 *
+	 * @dataProvider now_playing_attributes
+	 *
+	 * @param string $file  Snapshot file name.
+	 * @param array  $attrs Block attributes.
+	 */
+	public function test_now_playing_render( $file, array $attrs ) {
+		Snapshot::assert_matches( $this, 'blocks/' . $file, $this->render_at( 'now-playing', $attrs ), $this->factory_rpp->names() );
+	}
+
+	/**
+	 * With `stationId`, each block renders that station whatever `stationIndex` says
+	 * (K46); a block saved before 3.5.0, without it, still renders by `stationIndex`.
+	 *
+	 * @dataProvider registered_blocks
+	 *
+	 * @param string $name Block name without the namespace.
+	 */
+	public function test_station_id_picks_the_station( $name ) {
+		$by_index = $this->render_at( $name, array( 'stationIndex' => 1 ) );
+
+		$this->assertNotSame( $by_index, $this->render_at( $name, array( 'stationIndex' => 0 ) ) );
+		$this->assertSame(
+			$by_index,
+			$this->render_at(
+				$name,
+				array(
+					'stationId'    => $this->stations['Second'],
+					'stationIndex' => 0,
+				)
+			)
+		);
+	}
+
+	/**
+	 * A `stationId` that is not a published station renders the empty block, as an
+	 * invalid index does, never the station at `stationIndex` (K46).
+	 *
+	 * @dataProvider registered_blocks
+	 *
+	 * @param string $name Block name without the namespace.
+	 */
+	public function test_unpublished_station_id_renders_empty( $name ) {
+		wp_update_post(
+			array(
+				'ID'          => $this->stations['Second'],
+				'post_status' => 'draft',
+			)
+		);
+
+		$this->assertSame(
+			$this->render_at( $name, array( 'stationIndex' => 99 ) ),
+			$this->render_at(
+				$name,
+				array(
+					'stationId'    => $this->stations['Second'],
+					'stationIndex' => 0,
+				)
+			)
+		);
+	}
+
+	/**
+	 * The function get_block_wrapper_attributes() already adds the generated class
+	 * `wp-block-radplapag-<name>`, so the renders do not pass it again: it appears once on
+	 * WP 6.6 and on newer WP (regression, K6 in docs/known-issues.md).
+	 *
+	 * @dataProvider registered_blocks
+	 *
+	 * @param string $name Block name without the namespace.
+	 */
+	public function test_wrapper_class_appears_once( $name ) {
+		$html  = ltrim( $this->render_at( $name, array( 'stationIndex' => 0 ) ) );
+		$class = 'wp-block-radplapag-' . $name;
+
+		$this->assertSame( 1, preg_match( '/^<div class="([^"]*)"/', $html, $m ) );
+		$this->assertSame( 1, count( array_keys( explode( ' ', $m[1] ), $class, true ) ) );
+	}
+
+	/**
+	 * An invalid station index renders the «No radio schedule» message.
+	 */
+	public function test_schedule_invalid_index() {
+		$this->assertSame(
+			'<div class="wp-block-radplapag-schedule"><div class="wp-block-group is-empty"><p>No radio schedule for this station.</p></div></div>',
+			self::render( 'schedule', array( 'stationIndex' => 99 ) )
+		);
+	}
+
+	/**
+	 * A station whose schedule has no slots renders the same message.
+	 */
+	public function test_schedule_without_slots() {
+		$this->assertSame(
+			'<div class="wp-block-radplapag-schedule"><div class="wp-block-group is-empty"><p>No radio schedule for this station.</p></div></div>',
+			self::render( 'schedule', array( 'stationIndex' => 0 ) )
+		);
+	}
+
+	/**
+	 * An invalid station index renders the «No radio shows» message.
+	 */
+	public function test_programs_list_invalid_index() {
+		$this->assertSame(
+			'<div class="wp-block-radplapag-programs-list"><div class="wp-block-group is-empty"><p>No radio shows for this station.</p></div></div>',
+			self::render( 'programs-list', array( 'stationIndex' => 99 ) )
+		);
+	}
+
+	/**
+	 * On the front, now playing prints nothing when nothing is on air or starting soon.
+	 */
+	public function test_now_playing_empty_on_front() {
+		$this->assertSame( '', $this->render_at( 'now-playing', array( 'stationIndex' => 2 ) ) );
+	}
+
+	/**
+	 * Currently, «On Air» and «Coming up» are translated alone and the «: » after them is
+	 * not part of any translatable string, so a translation cannot change it. R-org-8 of
+	 * the spec 0014 review.
+	 */
+	public function test_currently_now_playing_colon_is_outside_the_translatable_strings() {
+		$translate = static function ( $translation, $text, $domain ) {
+			$labels = array(
+				'On Air'    => 'EN ANTENA',
+				'Coming up' => 'A CONTINUACIÓN',
+			);
+			return 'radio-player-page' === $domain && isset( $labels[ $text ] ) ? $labels[ $text ] : $translation;
+		};
+		add_filter( 'gettext', $translate, 10, 3 );
+
+		$html = $this->render_at( 'now-playing', array( 'stationIndex' => 0 ) );
+
+		remove_filter( 'gettext', $translate, 10 );
+		$this->assertStringContainsString( 'EN ANTENA: <strong>', $html );
+		$this->assertStringContainsString( 'A CONTINUACIÓN: <strong>', $html );
+	}
+
+	/**
+	 * On the front, now playing prints nothing for an invalid station index.
+	 */
+	public function test_now_playing_invalid_index_on_front() {
+		$this->assertSame( '', self::render( 'now-playing', array( 'stationIndex' => 99 ) ) );
+	}
+
+	/**
+	 * In the editor preview (the block renderer route), an empty now playing prints a
+	 * placeholder. The route is set in `query_vars['rest_route']` by hand, as the real
+	 * routing does (rest_do_request() does not). Runs in its own process because
+	 * REST_REQUEST is a constant.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_now_playing_empty_in_block_renderer() {
+		define( 'REST_REQUEST', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- WordPress core constant.
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wp/v2/block-renderer/radplapag/now-playing';
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$request = new WP_REST_Request( 'GET', '/wp/v2/block-renderer/radplapag/now-playing' );
+		$request->set_param( 'context', 'edit' );
+		$request->set_param( 'attributes', array( 'stationIndex' => 99 ) );
+
+		$response = rest_do_request( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame(
+			'<div class="is-empty wp-block-radplapag-now-playing"><div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;"><p><em>Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.</em></p></div></div>',
+			$response->get_data()['rendered']
+		);
+	}
+
+	/**
+	 * Expected registration of each block (SPEC.md §3.5).
+	 *
+	 * @return array<string, array{string, array}>
+	 */
+	public function registered_blocks() {
+		return array(
+			'schedule'      => array(
+				'schedule',
+				array(
+					'stationId'               => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
+					'stationIndex'            => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
+					'dayOrder'                => array(
+						'type'    => 'string',
+						'default' => 'current_first',
+					),
+					'showDescription'         => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'showExtendedDescription' => array(
+						'type'    => 'boolean',
+						'default' => false,
+					),
+					'headingLevel'            => array(
+						'type'    => 'number',
+						'default' => 2,
+					),
+				),
+			),
+			'programs-list' => array(
+				'programs-list',
+				array(
+					'stationId'               => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
+					'stationIndex'            => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
+					'showImage'               => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'showDescription'         => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'showExtendedDescription' => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'showSchedule'            => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'headingLevel'            => array(
+						'type'    => 'number',
+						'default' => 2,
+					),
+				),
+			),
+			'now-playing'   => array(
+				'now-playing',
+				array(
+					'stationId'    => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
+					'stationIndex' => array(
+						'type'    => 'number',
+						'default' => 0,
+					),
+					'showLogo'     => array(
+						'type'    => 'boolean',
+						'default' => true,
+					),
+					'headingLevel' => array(
+						'type'    => 'number',
+						'default' => 2,
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Each block is registered with apiVersion 3, its attributes and defaults, the shared
+	 * supports, a server render and its editor script.
+	 *
+	 * @dataProvider registered_blocks
+	 *
+	 * @param string $name       Block name without the namespace.
+	 * @param array  $attributes Expected own attributes.
+	 */
+	public function test_block_registration( $name, array $attributes ) {
+		$type = WP_Block_Type_Registry::get_instance()->get_registered( 'radplapag/' . $name );
+
+		$this->assertNotNull( $type );
+		$this->assertSame( 3, $type->api_version );
+		$this->assertSame( 'widgets', $type->category );
+		// Block supports add their own attributes (style, className…), which vary by WP version.
+		$this->assertSame( $attributes, array_intersect_key( $type->attributes, $attributes ) );
+		$this->assertSame(
+			array(
+				'typography' => array(
+					'fontSize'   => true,
+					'lineHeight' => true,
+				),
+				'spacing'    => array(
+					'margin'  => true,
+					'padding' => true,
+				),
+				'color'      => array(
+					'text'       => true,
+					'background' => true,
+				),
+				'html'       => false,
+			),
+			$type->supports
+		);
+		$this->assertTrue( $type->is_dynamic() );
+		$this->assertSame( array( 'radplapag-' . $name . '-editor-script' ), $type->editor_script_handles );
+	}
+
+	/**
+	 * The schedule and programs list blocks render through named callbacks; now playing
+	 * through its render.php file.
+	 */
+	public function test_render_callbacks() {
+		$registry = WP_Block_Type_Registry::get_instance();
+
+		$this->assertSame( 'radplapag_render_schedule_block', $registry->get_registered( 'radplapag/schedule' )->render_callback );
+		$this->assertSame( 'radplapag_render_programs_list_block', $registry->get_registered( 'radplapag/programs-list' )->render_callback );
+		$this->assertInstanceOf( \Closure::class, $registry->get_registered( 'radplapag/now-playing' )->render_callback );
+	}
+
+	/**
+	 * Each editor script gets `{ stations: [ { label } ] }` in station order, with
+	 * «Radio Station N» for a station without title.
+	 */
+	public function test_editor_data() {
+		$untitled = $this->factory_rpp->station( '', array( 'menu_order' => 3 ) );
+		$this->assertGreaterThan( 0, $untitled );
+
+		foreach ( self::BLOCKS as $name => $object ) {
+			$handle = 'radplapag-' . $name . '-editor-script';
+			wp_scripts()->add_data( $handle, 'data', '' );
+		}
+
+		do_action( 'enqueue_block_editor_assets' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WordPress core hook.
+
+		$expected = wp_json_encode(
+			array(
+				'stations' => array(
+					array(
+						'label' => 'Main',
+						'id'    => $this->stations['Main'],
+					),
+					array(
+						'label' => 'Second',
+						'id'    => $this->stations['Second'],
+					),
+					array(
+						'label' => 'Silent',
+						'id'    => $this->stations['Silent'],
+					),
+					array(
+						'label' => 'Radio Station 4',
+						'id'    => $untitled,
+					),
+				),
+			)
+		);
+		foreach ( self::BLOCKS as $name => $object ) {
+			$this->assertSame(
+				'var ' . $object . ' = ' . $expected . ';',
+				wp_scripts()->get_data( 'radplapag-' . $name . '-editor-script', 'data' ),
+				$name
+			);
+		}
+	}
+
+	/**
+	 * Without its editor script registered, a block adds no editor data.
+	 */
+	public function test_editor_data_needs_registered_script() {
+		foreach ( self::BLOCKS as $name => $object ) {
+			$handle = 'radplapag-' . $name . '-editor-script';
+			$script = wp_scripts()->query( $handle, 'registered' );
+			wp_deregister_script( $handle );
+
+			call_user_func( 'radplapag_enqueue_' . str_replace( '-', '_', $name ) . '_block_editor_assets' );
+
+			$this->assertFalse( wp_scripts()->query( $handle, 'registered' ), $name );
+			wp_scripts()->registered[ $handle ] = $script;
+		}
+	}
+}

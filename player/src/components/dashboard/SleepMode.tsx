@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, type Ref } from 'react'
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
@@ -8,14 +8,12 @@ import Stack from '@mui/material/Stack'
 import Tooltip from '@mui/material/Tooltip'
 
 interface SleepModeProps {
-  /** Whether the stream is currently playing */
+  /** Whether the live stream is playing (false during the welcome audio, K65) */
   isPlaying: boolean
-  /** Callback function called when sleep timer ends */
-  onSleepTimerEnd: () => void
-  /** Optional callback to notify parent of timer changes */
-  onTimerChange?: (remainingSeconds: number | null) => void
-  /** External timer state to sync with (used when timer is cancelled externally) */
-  externalTimerSeconds?: number | null
+  /** Called with the chosen duration in minutes */
+  onSelect: (minutes: number) => void
+  /** Ref to the button, so the dashboard can give it the focus (K58) */
+  ref?: Ref<HTMLButtonElement>
 }
 
 /** Available sleep timer duration options in minutes */
@@ -23,91 +21,20 @@ const SLEEP_OPTIONS = [30, 60, 120]
 
 /**
  * Sleep mode component
- * Provides a button to set a sleep timer that will pause playback after a specified duration.
- * The button is always visible and disabled when playback is not active.
- *
- * State synchronization flow:
- * 1. Internal state (remainingSeconds) tracks countdown locally
- * 2. Parent state (externalTimerSeconds) can cancel timer externally
- * 3. onTimerChange callback notifies parent of timer changes
- * 4. Timer automatically clears when playback is paused
- * 5. Timer calls onSleepTimerEnd when countdown reaches zero
- *
- * Multiple useEffect hooks manage:
- * - Timer interval lifecycle (start/stop/cleanup)
- * - Synchronization with external cancellation state
- * - Notification of parent component on state changes
- * - Prevention of stale closures in callbacks
+ * Provides a button that opens a menu of sleep timer durations. The button is always
+ * visible and disabled when playback is not active or the welcome audio plays: its
+ * handover to the live stream goes through paused, which would cancel the timer
+ * (known-issues.md K65, ADR 0035). The countdown itself lives in
+ * useSleepTimer(); this component only reports the chosen duration.
  *
  * @param props - Component props
  * @returns Sleep mode button with duration menu (disabled when not playing)
  */
-const SleepMode = ({
-  isPlaying,
-  onSleepTimerEnd,
-  onTimerChange,
-  externalTimerSeconds,
-}: SleepModeProps) => {
+const SleepMode = ({ isPlaying, onSelect, ref }: SleepModeProps) => {
   const { t } = useTranslation()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null)
-  const intervalRef = useRef<NodeJS.Timeout | null>(null)
-  const onTimerChangeRef = useRef(onTimerChange)
 
   const open = Boolean(anchorEl)
-
-  // Keep the most recent reference of onTimerChange to avoid stale closures
-  useEffect(() => {
-    onTimerChangeRef.current = onTimerChange
-  }, [onTimerChange])
-
-  // Clear interval and reset timer when playback is paused
-  useEffect(() => {
-    if (!isPlaying && intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-      setRemainingSeconds(null)
-      onTimerChange?.(null)
-    }
-  }, [isPlaying, onTimerChange])
-
-  useEffect(() => {
-    if (remainingSeconds === null) {
-      return
-    }
-
-    // Clear previous interval if it exists
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-    }
-
-    // Update timer every second
-    intervalRef.current = setInterval(() => {
-      setRemainingSeconds((prev) => {
-        if (prev === null) {
-          onTimerChangeRef.current?.(null)
-          return null
-        }
-        // When timer reaches 0 or less, stop playback
-        if (prev <= 1) {
-          onSleepTimerEnd()
-          onTimerChangeRef.current?.(null)
-          return null
-        }
-        // Decrement timer and notify parent
-        const newValue = prev - 1
-        onTimerChangeRef.current?.(newValue)
-        return newValue
-      })
-    }, 1000)
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-  }, [remainingSeconds, onSleepTimerEnd])
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -118,33 +45,21 @@ const SleepMode = ({
   }
 
   const handleSelectTime = (minutes: number) => {
-    const seconds = minutes * 60
-    setRemainingSeconds(seconds)
-    onTimerChange?.(seconds)
+    onSelect(minutes)
     handleClose()
   }
 
-  // Sync with external state when timer is cancelled from parent component
-  useEffect(() => {
-    if (externalTimerSeconds === null && remainingSeconds !== null) {
-      setRemainingSeconds(null)
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-      }
-    }
-  }, [externalTimerSeconds, remainingSeconds])
-
-  // Notify parent component of timer state changes
-  useEffect(() => {
-    onTimerChange?.(remainingSeconds)
-  }, [remainingSeconds, onTimerChange])
-
   return (
     <>
-      <Stack alignItems="flex-start" justifyContent="center">
+      <Stack
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+        }}
+      >
         <Tooltip title={t('dashboard.sleepMode')} placement="top" arrow>
           <IconButton
+            ref={ref}
             onClick={handleClick}
             aria-label={t('dashboard.sleepMode')}
             color="primary"

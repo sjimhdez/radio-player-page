@@ -93,6 +93,19 @@ const baseThemeOptions: Omit<ThemeOptions, 'palette'> = {
     borderRadius: 0,
   },
   components: {
+    // "Reduce motion": nothing animates, neither the dots, the collapses, the
+    // dialogs, the tooltips nor the loading spinner. The visualizers draw on
+    // the canvas and are left as they are (frozen zone, ADR 0018)
+    MuiCssBaseline: {
+      styleOverrides: {
+        '@media (prefers-reduced-motion: reduce)': {
+          '*, *::before, *::after': {
+            animation: 'none !important',
+            transition: 'none !important',
+          },
+        },
+      },
+    },
     MuiButtonBase: {
       defaultProps: {
         disableRipple: true,
@@ -304,14 +317,25 @@ const palettes: Record<string, PaletteOptions> = {
  *
  * All themes use dark mode with black background
  *
+ * Dialogs and popovers (menus) are portals in `body`, outside the player's
+ * root, so each one carries the player's language itself (K62). Tooltips render
+ * in place, inside the controls region, so that they sit in a landmark (AX1).
+ *
  * @param colorMode - Color mode name (defaults to 'neutral' if invalid or undefined)
+ * @param lang - Language the player shows, as BCP 47 (omitted: no `lang`)
  * @returns Material-UI Theme object
  */
-export const getTheme = (colorMode: string = 'neutral'): Theme => {
+export const getTheme = (colorMode: string = 'neutral', lang?: string): Theme => {
   const selectedPalette = palettes[colorMode] || palettes.neutral
 
   return createTheme({
     ...baseThemeOptions,
+    components: {
+      ...baseThemeOptions.components,
+      MuiDialog: { defaultProps: { lang } },
+      MuiPopover: { defaultProps: { lang } },
+      MuiTooltip: { defaultProps: { slotProps: { popper: { lang, disablePortal: true } } } },
+    },
     palette: selectedPalette,
   })
 }

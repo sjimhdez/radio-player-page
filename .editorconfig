@@ -1,0 +1,21 @@
+# WordPress coding standards: https://developer.wordpress.org/coding-standards/
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = tab
+
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
+
+# The player follows its own conventions (player/.prettierrc), not WordPress.
+[player/**]
+indent_style = space
+indent_size = 2
