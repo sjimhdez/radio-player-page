@@ -48,6 +48,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'allFieldsRequired',
 		'selectProgram',
 		'to',
+		'remove',
 		'removeTimeSlot',
 		'scheduleRerun',
 		'showMoreFields',
@@ -67,12 +68,31 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		'programLabel',
 		'startTimeLabel',
 		'endTimeLabel',
+		'streamTesting',
+		'streamUseUrl',
+		'streamMountLabel',
+		'streamPlays',
+		'streamPlaysNoVisualizer',
+		'streamPlaylist',
+		'streamPlaylistEmpty',
+		'streamIcecastMounts',
+		'streamIcecastNoMounts',
+		'streamShoutcast',
+		'streamMixedContentVariant',
+		'streamMixedContent',
+		'streamManifestNoCors',
+		'streamNotAStream',
+		'streamHttpError',
+		'streamServerOnly',
+		'streamUnreachable',
+		'streamNotePlaylistMirrors',
+		'streamNotePlaylistPrivateEntry',
 	);
 
 	/**
 	 * Notice printed under a slot whose program is not public.
 	 */
-	const NOTICE = '<div class="radplapag-program-notice">This program is not published; this time slot is not shown on the site.</div>';
+	const NOTICE = '<div class="radplapag-program-notice">This radio show is not published; this time slot is not shown on the site.</div>';
 
 	/**
 	 * Globals each test starts empty, with their empty value (null makes wp_scripts()
@@ -267,7 +287,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		$this->assertSame( $this->plugin_version(), $style->ver );
 
 		foreach ( array(
-			'radplapag-station-admin' => array( 'station-admin.js', array( 'jquery', 'media-editor', 'radplapag-schedule-rules' ) ),
+			'radplapag-station-admin' => array( 'station-admin.js', array( 'jquery', 'media-editor', 'radplapag-schedule-rules', 'radplapag-stream-rules' ) ),
 			'radplapag-program-admin' => array( 'program-admin.js', array( 'jquery', 'media-editor' ) ),
 		) as $handle => list( $file, $deps ) ) {
 			$script = wp_scripts()->registered[ $handle ];
@@ -279,12 +299,17 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		}
 		$this->assertSame( $media + 1, did_action( 'wp_enqueue_media' ) );
 
-		$rules = wp_scripts()->registered['radplapag-schedule-rules'];
-		$this->assertTrue( wp_script_is( 'radplapag-schedule-rules', 'registered' ) );
-		$this->assertSame( $admin . 'js/schedule-rules.js', $rules->src );
-		$this->assertSame( array(), $rules->deps );
-		$this->assertSame( $this->plugin_version(), $rules->ver );
-		$this->assertSame( 1, wp_scripts()->get_data( 'radplapag-schedule-rules', 'group' ) );
+		foreach ( array(
+			'radplapag-schedule-rules' => 'schedule-rules.js',
+			'radplapag-stream-rules'   => 'stream-rules.js',
+		) as $handle => $file ) {
+			$rules = wp_scripts()->registered[ $handle ];
+			$this->assertTrue( wp_script_is( $handle, 'registered' ), $handle );
+			$this->assertSame( $admin . 'js/' . $file, $rules->src, $handle );
+			$this->assertSame( array(), $rules->deps, $handle );
+			$this->assertSame( $this->plugin_version(), $rules->ver, $handle );
+			$this->assertSame( 1, wp_scripts()->get_data( $handle, 'group' ), $handle );
+		}
 	}
 
 	/**
@@ -300,6 +325,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		$this->assertTrue( wp_style_is( 'radplapag-admin', 'enqueued' ) );
 		$this->assertFalse( wp_script_is( 'radplapag-station-admin', 'enqueued' ) );
 		$this->assertFalse( wp_script_is( 'radplapag-schedule-rules', 'registered' ) );
+		$this->assertFalse( wp_script_is( 'radplapag-stream-rules', 'registered' ) );
 		$this->assertFalse( wp_script_is( 'radplapag-program-admin', 'enqueued' ) );
 		$this->assertSame( $media, did_action( 'wp_enqueue_media' ) );
 
@@ -350,7 +376,9 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		$this->assertSame( 1, preg_match( '/^var radplapagAdmin = (.*);$/s', $data, $m ) );
 		$localized = json_decode( $m[1], true );
 
-		$this->assertSame( array( 'programs', 'strings', 'assignedPlayerPages' ), array_keys( $localized ) );
+		$this->assertSame( array( 'programs', 'strings', 'assignedPlayerPages', 'probe' ), array_keys( $localized ) );
+		$this->assertSame( admin_url( 'admin-ajax.php' ), $localized['probe']['ajaxUrl'] );
+		$this->assertSame( 1, wp_verify_nonce( $localized['probe']['nonce'], 'radplapag_probe_stream' ) );
 		$this->assertSame( radplapag_get_station_programs_for_select( 0 ), $localized['programs'] );
 		$this->assertSame( radplapag_get_admin_strings()['strings'], $localized['strings'] );
 		$this->assertEqualsCanonicalizing( array( $main, $other ), $localized['assignedPlayerPages'] );
@@ -438,6 +466,9 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		}
 		$this->assertSame( 'This time slot overlaps with: %s', $strings['strings']['timeSlotOverlapsWithMessage'] );
 		$this->assertSame( 'Rerun', $strings['strings']['scheduleRerun'] );
+		$this->assertSame( 'Remove', $strings['strings']['remove'] );
+		$this->assertSame( 'Remove Time Slot', $strings['strings']['removeTimeSlot'] );
+		$this->assertSame( 'The server answers with HTTP error %d. Check the address.', $strings['strings']['streamHttpError'] );
 	}
 
 	/**
@@ -476,7 +507,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	// ── Meta boxes ──────────────────────────────────────────────────────────────
 
 	/**
-	 * Station: Details and Radio Schedule, in the normal context; program: Details.
+	 * Station: Details and Weekly Schedule, in the normal context; program: Details.
 	 */
 	public function test_meta_boxes_are_registered() {
 		radplapag_add_station_meta_boxes();
@@ -496,7 +527,7 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		$this->assertSame(
 			array(
 				array( 'radplapag_station', 'normal', 'default', 'radplapag_station_details', 'Details', 'radplapag_render_station_details_meta_box' ),
-				array( 'radplapag_station', 'normal', 'default', 'radplapag_station_schedule', 'Radio Schedule', 'radplapag_render_station_schedule_meta_box' ),
+				array( 'radplapag_station', 'normal', 'default', 'radplapag_station_schedule', 'Weekly Schedule', 'radplapag_render_station_schedule_meta_box' ),
 				array( 'radplapag_program', 'normal', 'default', 'radplapag_program_details', 'Details', 'radplapag_render_program_meta_boxes' ),
 			),
 			$boxes
@@ -531,19 +562,75 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The hide title checkbox, with its label, sits right below Player Page in the
-	 * same cell of the first row, before Streaming URL; unchecked without the meta
-	 * (ADR 0054).
+	 * The first row is the Streaming URL column and then Player Page; the hide
+	 * title checkbox, with its label, sits in the last row after Welcome Audio,
+	 * first after the heading of the cell that is the second child of the row;
+	 * unchecked without the meta (ADR 0054, ADR 0067, ADR 0068, ADR 0073).
 	 */
-	public function test_details_box_hide_title_checkbox_below_player_page() {
+	public function test_details_box_hide_title_checkbox_next_to_welcome_audio() {
 		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM' ) );
 
 		$this->assertSame( 1, preg_match( '#<input type="checkbox" name="radplapag_station_hide_title" id="radplapag_station_hide_title" value="1"\s*>#', $html ) );
 		$this->assertStringContainsString( '<label for="radplapag_station_hide_title">Hide station name in the player</label>', $html );
 		$this->assertSame(
 			1,
-			preg_match( '#<div class="radplapag-form-row">\s*<div>\s*<p class="radplapag-field-wrap" data-field="player_page">.*?</p>\s*<p class="radplapag-field-wrap" data-field="hide_title">.*?</p>\s*</div>\s*<p class="radplapag-field-wrap" data-field="stream_url"#s', $html )
+			preg_match( '#<div class="radplapag-form-row">\s*<div class="radplapag-stream-column">\s*<p class="radplapag-field-wrap" data-field="stream_url".*?</details>\s*</div>\s*<p class="radplapag-field-wrap" data-field="player_page">.*?</p>\s*</div>#s', $html )
 		);
+		$this->assertSame(
+			1,
+			preg_match( '#<div class="radplapag-station-audio-wrapper">.*?</div>\s*</div>\s*<div class="radplapag-field-wrap" role="group" aria-labelledby="radplapag_station_display_title">\s*<label id="radplapag_station_display_title">.*?</label>\s*<p class="radplapag-field-wrap" data-field="hide_title">.*?</p>\s*<p class="radplapag-field-wrap" data-field="show_song">.*?</div>\s*</div>\s*$#s', $html )
+		);
+	}
+
+	/**
+	 * Player Page has its help right after the select, which points to it with
+	 * aria-describedby, before the error message (ADR 0073).
+	 */
+	public function test_details_box_player_page_help_describes_the_select() {
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM' ) );
+
+		$this->assertStringContainsString( '<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-field-select radplapag-player-page" aria-describedby="radplapag_station_player_page_description">', $html );
+		$this->assertSame(
+			1,
+			preg_match( '#</select>\s*<span id="radplapag_station_player_page_description" class="description">The player replaces this whole page, so an empty page works best\. Each page can be used by only one radio station\.</span>\s*<span class="radplapag-field-error-message"#', $html )
+		);
+	}
+
+	/**
+	 * The cell of the two checkboxes is a group named by its "Player Display"
+	 * heading, a label without `for` that comes first (ADR 0073).
+	 */
+	public function test_details_box_checkboxes_cell_is_a_group_with_its_heading() {
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM' ) );
+
+		$this->assertSame(
+			1,
+			preg_match( '#<div class="radplapag-field-wrap" role="group" aria-labelledby="radplapag_station_display_title">\s*<label id="radplapag_station_display_title"><strong>Player Display</strong></label>\s*<p class="radplapag-field-wrap" data-field="hide_title">#', $html )
+		);
+	}
+
+	/**
+	 * The show song checkbox, with its label and its description, sits below the
+	 * hide title checkbox, in the same cell; unchecked without the meta (ADR 0068).
+	 */
+	public function test_details_box_show_song_checkbox_below_hide_title() {
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM' ) );
+
+		$this->assertSame( 1, preg_match( '#<input type="checkbox" name="radplapag_station_show_song" id="radplapag_station_show_song" value="1" aria-describedby="radplapag_station_show_song_description"\s*>#', $html ) );
+		$this->assertStringContainsString( '<label for="radplapag_station_show_song">Show current song</label>', $html );
+		$this->assertSame(
+			1,
+			preg_match( '#<p class="radplapag-field-wrap" data-field="hide_title">.*?</p>\s*<p class="radplapag-field-wrap" data-field="show_song">.*?</p>\s*<p id="radplapag_station_show_song_description" class="description">[^<]+</p>\s*</div>\s*</div>\s*$#s', $html )
+		);
+	}
+
+	/**
+	 * With the show song meta, the checkbox is checked.
+	 */
+	public function test_details_box_show_song_checkbox_checked_with_the_meta() {
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM', array( 'show_song' => '1' ) ) );
+
+		$this->assertStringContainsString( 'aria-describedby="radplapag_station_show_song_description"  checked=\'checked\'', $html );
 	}
 
 	/**
@@ -712,6 +799,51 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Next to the URL, a "Test Stream" button that does not submit, tied to an
+	 * empty status region printed for the JS, and the help in a details element,
+	 * all in the column of the field (spec 0018, A6 and A7).
+	 */
+	public function test_details_box_prints_the_stream_test_button_result_and_help() {
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM' ) );
+
+		$this->assertSame(
+			1,
+			preg_match( '#<div class="radplapag-stream-column">\s*<p class="radplapag-field-wrap" data-field="stream_url".*?</p>\s*<div id="radplapag_stream_test_result" class="radplapag-stream-test-result" role="status"></div>\s*<details class="radplapag-stream-help">.*?</details>\s*</div>#s', $html )
+		);
+		$this->assertStringContainsString( '<button type="button" class="button radplapag-stream-test" aria-describedby="radplapag_stream_test_result">Test Stream</button>', $html );
+		$this->assertStringContainsString( '<summary>Which URL do I use?</summary>', $html );
+		foreach ( array( 'Icecast', 'Shoutcast', 'AzuraCast', 'Centova Cast', '/;', '.pls' ) as $text ) {
+			$this->assertStringContainsString( $text, $this->help( $html ), $text );
+		}
+	}
+
+	/**
+	 * The help text is translatable: every paragraph goes through gettext.
+	 */
+	public function test_details_box_translates_the_stream_help() {
+		$translate = function ( $translation, $text, $domain ) {
+			return 'radio-player-page' === $domain && false !== strpos( $text, 'Icecast' ) ? '[translated]' : $translation;
+		};
+		add_filter( 'gettext', $translate, 10, 3 );
+
+		$html = $this->render( 'radplapag_render_station_details_meta_box', $this->factory_rpp->station( 'Test FM' ) );
+
+		remove_filter( 'gettext', $translate, 10 );
+		$this->assertStringContainsString( '[translated]', $this->help( $html ) );
+		$this->assertStringNotContainsString( 'Icecast', $this->help( $html ) );
+	}
+
+	/**
+	 * The help details element of the stream field.
+	 *
+	 * @param string $html Meta box HTML.
+	 * @return string
+	 */
+	private function help( $html ) {
+		return preg_match( '#<details class="radplapag-stream-help">.*?</details>#s', $html, $match ) ? $match[0] : '';
+	}
+
+	/**
 	 * Without an http stream on an https site, the notice is printed hidden, for the
 	 * JS, and the input does not point to it (C13).
 	 *
@@ -808,6 +940,56 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The link of a saved slot shows "Remove" and keeps "Remove Time Slot" as its
+	 * accessible name, which starts with the visible text (spec 0023, A6).
+	 */
+	public function test_schedule_box_remove_link_shows_remove() {
+		$station = $this->station_with_slot( $this->factory_rpp->program( 'Morning Show' ) );
+
+		$html = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
+
+		$this->assertStringContainsString( '<a href="#" class="submitdelete radplapag-remove-program" aria-label="Remove Time Slot">Remove</a>', $html );
+	}
+
+	/**
+	 * "Remove" carries the "time slot link" context for translators, both in the
+	 * printed link and in the string of the JS that builds new slots.
+	 */
+	public function test_remove_link_text_has_a_translator_context() {
+		$translate = function ( $translation, $text, $context, $domain ) {
+			return 'radio-player-page' === $domain && 'Remove' === $text && 'time slot link' === $context ? '[remove]' : $translation;
+		};
+		add_filter( 'gettext_with_context', $translate, 10, 4 );
+		$station = $this->station_with_slot( $this->factory_rpp->program( 'Morning Show' ) );
+
+		$html    = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
+		$strings = radplapag_get_admin_strings();
+
+		remove_filter( 'gettext_with_context', $translate, 10 );
+		$this->assertStringContainsString( 'aria-label="Remove Time Slot">[remove]</a>', $html );
+		$this->assertSame( '[remove]', $strings['strings']['remove'] );
+	}
+
+	/**
+	 * A slot whose program was deleted for good keeps its program ID selected, as
+	 * "Radio Show #ID (Deleted)", and prints the notice under the row, so the station can
+	 * still be saved (K106 of docs/known-issues.md, ADR 0062).
+	 */
+	public function test_schedule_box_keeps_a_slot_whose_program_is_deleted() {
+		$program = $this->factory_rpp->program( 'Morning Show' );
+		$station = $this->station_with_slot( $program );
+		wp_delete_post( $program, true );
+
+		$html = $this->render( 'radplapag_render_station_schedule_meta_box', $station );
+		$name = 'radplapag_station_schedule[monday][0][program_id]';
+
+		$this->assertSame( array( (string) $program ), $this->selected( $html, $name ) );
+		$this->assertStringContainsString( '>Radio Show #' . $program . ' (Deleted)</option>', $this->select( $html, $name ) );
+		$this->assertStringContainsString( 'name="radplapag_station_schedule[monday][0][start]" value="07:00"', $html );
+		$this->assertSame( 1, substr_count( $html, self::NOTICE ) );
+	}
+
+	/**
 	 * Draft and password-protected programs are not public: their slot keeps the
 	 * program, with its status, and prints the notice (C10 in the admin, ADR 0045).
 	 *
@@ -884,7 +1066,8 @@ final class AdminScreensTest extends WP_UnitTestCase {
 	/**
 	 * The station list: the published and draft programs, then the program of each
 	 * saved slot in any other status, once; each with its label and whether it is
-	 * public. Slots of programs that do not exist or are not programs add nothing.
+	 * public. The ID of a slot that is not a program (no post, or a post of another
+	 * type) is listed last as deleted (K106, ADR 0062); a non-numeric one adds nothing.
 	 */
 	public function test_station_programs_for_select() {
 		$morning  = $this->factory_rpp->program( 'Morning Show' );
@@ -924,6 +1107,8 @@ final class AdminScreensTest extends WP_UnitTestCase {
 				$this->option( $private, 'Private Show', 'Private Show (Private)', false ),
 				$this->option( $future, 'Future Show', 'Future Show (Scheduled)', false ),
 				$this->option( $pending, 'Pending Show', 'Pending Show (Pending)', false ),
+				$this->option( $page, 'Radio Show #' . $page . ' (Deleted)', 'Radio Show #' . $page . ' (Deleted)', false ),
+				$this->option( 999999, 'Radio Show #999999 (Deleted)', 'Radio Show #999999 (Deleted)', false ),
 			),
 			radplapag_get_station_programs_for_select( $station )
 		);
@@ -1080,17 +1265,21 @@ final class AdminScreensTest extends WP_UnitTestCase {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Test request.
 		$_SERVER['REQUEST_URI'] = '/wp-admin/post.php?post=' . $station . '&action=edit';
 
+		$form = '<form id="post">' . "\n"
+			. $this->render( 'radplapag_render_station_details_meta_box', $station )
+			. $this->render( 'radplapag_render_station_schedule_meta_box', $station )
+			. '</form>' . "\n";
+		$form = preg_replace( '/(name="radplapag_station_meta_nonce" value=")[^"]+/', '$1{{NONCE}}', $form );
+
+		// The header goes in after the IDs are normalized: its numbers are already the
+		// fixture ones, and a real ID that matches one of them would rewrite it.
 		$html = '<!-- Written by tests/php/integration/Admin/AdminScreensTest.php (test_station_meta_box_fixture); do not edit by hand.' . "\n"
 			. '     Pages: 101 Main Player (this station), 102 Other Player (Other FM), 103 Free Page.' . "\n"
 			. '     Programs: 201 Morning Show, 202 Night Owl, 203 Draft Show (draft). Station: 301 Test FM.' . "\n"
 			. '     Attachments: 401 logo, 402 background, 403 intro (audio). -->' . "\n"
-			. '<form id="post">' . "\n"
-			. $this->render( 'radplapag_render_station_details_meta_box', $station )
-			. $this->render( 'radplapag_render_station_schedule_meta_box', $station )
-			. '</form>' . "\n";
-		$html = preg_replace( '/(name="radplapag_station_meta_nonce" value=")[^"]+/', '$1{{NONCE}}', $html );
+			. Snapshot::normalize( $form, $ids );
 
-		Snapshot::assert_matches_file( $this, dirname( __DIR__, 3 ) . '/fixtures/admin/station-meta-box.html', $html, $ids );
+		Snapshot::assert_matches_file( $this, dirname( __DIR__, 3 ) . '/fixtures/admin/station-meta-box.html', $html );
 	}
 
 	/**

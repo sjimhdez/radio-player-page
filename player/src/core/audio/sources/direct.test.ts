@@ -1,6 +1,6 @@
-// The direct source (spec 0006, task 2.3): MP3/OGG, native HLS and the welcome audio.
-// ADR 0004: a source assigned to audio.src sets crossOrigin = 'anonymous'.
-// C1 (fixed in spec 0007, ADR 0033): one retry without crossOrigin when play() fails.
+// The direct source: MP3/OGG, native HLS and the welcome audio. A source assigned to
+// audio.src sets crossOrigin = 'anonymous' (ADR 0004), with one retry without it when
+// play() fails (ADR 0033).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDirectSource } from 'src/core/audio/sources/direct'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -16,9 +16,7 @@ afterEach(() => restore())
 
 const callbacks = () => ({ onError: vi.fn(), onPlayRejected: vi.fn() })
 
-/**
- * Records, in order, the writes to src and crossOrigin and the calls to load() and play().
- */
+/** Records, in order, the writes to src and crossOrigin and the calls to load() and play() */
 function recordSteps(audio: HTMLAudioElement): string[] {
   const steps: string[] = []
   const proto = Object.getPrototypeOf(audio) as HTMLAudioElement
@@ -97,9 +95,14 @@ describe('createDirectSource', () => {
     await source.start(new Audio(), MP3, callbacks())
     expect(source.isCorsClean()).toBe(true)
   })
+
+  // The controller watches the progress of sources without MSE (ADR 0061).
+  it('does not use Media Source', () => {
+    expect(createDirectSource().usesMediaSource()).toBe(false)
+  })
 })
 
-// docs/known-issues.md C1 (spec 0007, ADR 0033).
+// A source without CORS and a broken one fail alike, so both get the retry (ADR 0033).
 describe('retry without crossOrigin (C1)', () => {
   it('retries once without crossOrigin when play() fails, and plays', async () => {
     media.corsBlocked.add(MP3)

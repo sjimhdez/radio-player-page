@@ -1,111 +1,150 @@
 === Radio Player Page ===
 Contributors: sjimhdez
-Tags: radio player, radio station, radio, icecast, shoutcast
+Tags: radio player, radio station, radio schedule, icecast, shoutcast
 Requires at least: 6.6
 Tested up to: 7.1
-Stable tag: 3.5.0
+Stable tag: 3.6.0
 Requires PHP: 7.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Create dedicated listening pages for your radio stations with integrated radio schedules and reliable playback.
+Give each radio station its own player page with a weekly schedule. Plays Icecast, Shoutcast, HLS, and DASH streams.
 
 == Description ==
 
-Radio Player Page lets you create dedicated listening pages for your radio stations on WordPress. Each station has its own standalone page with reliable playback, integrated weekly scheduling, radio show information, and custom branding, completely independent of your WordPress theme.
+Radio Player Page gives each of your radio stations its own player page on WordPress: a standalone player at the URL of a page you choose. It plays Icecast, Shoutcast, MP3, OGG, HLS, and DASH streams.
 
-Designed for online radio stations, community broadcasters, and streaming services, it combines station management, scheduling, and playback into a single solution while keeping the listening experience fast, reliable, and distraction-free.
+Add your radio shows and a weekly schedule, and the player shows the radio show on air and the next one. Three blocks bring the schedule, the radio shows, and what's on air to the rest of your site.
 
-= Dedicated Listening Pages =
+= Player pages =
 
-* **Standalone Listening Pages** – Every station has its own independent HTML page, bypassing your WordPress theme entirely. This guarantees reliable playback, excellent performance, and a dedicated URL for every station.
-* **Reliable Playback** – Listeners always access the same optimized player page without theme conflicts, page builder issues, or unnecessary front-end overhead.
-* **Universal Stream Compatibility** – Supports Icecast, Shoutcast, HLS (.m3u8), DASH (.mpd), and MP3 streams with automatic protocol detection (also with query strings) and native HLS support on iOS Safari.
+* **Standalone player page** – Each station plays on its own WordPress page, with its own URL. The page skips your theme and other plugins' scripts and styles, so they can't break playback.
+* **Stream formats** – Icecast, Shoutcast, MP3, OGG, HLS (`.m3u8`), and DASH (`.mpd`). The player detects the format from the URL and uses native HLS on iPhone and iPad.
+* **Always live** – After a pause, Play returns to the live broadcast. If the stream drops, the player reconnects on its own and only shows an error if it can't.
+* **No tracking** – The plugin doesn't track listeners or load anything from third-party services. The player only connects to your site and to the streaming server you set.
 
-= Radio Schedule =
+= Radio shows and schedule =
 
-* **Weekly Schedule** – Build a complete weekly schedule with named radio shows, optional logos, timezone-aware calculations, and overlap prevention.
-* **Now & Next Information** – The player automatically displays the current radio show and the next scheduled show.
-* **Radio Shows Library** – Create reusable radio shows with featured images, descriptions, and broadcast times.
-* **Rerun Marker** – Mark any schedule time slot as a rerun, shown to listeners in the schedule and now-playing displays.
+* **Radio shows** – Reusable radio shows with an image, a description, and their broadcast times.
+* **Weekly Schedule** – Build each station's week from your radio shows, with time slots that can cross midnight. The plugin prevents overlapping time slots.
+* **On air and up next** – The player shows the radio show on air and announces the next one when it starts within 10 minutes, in the station's time zone.
+* **Reruns** – Mark any time slot as a rerun. Listeners see the marker in the player and in the schedule.
+* **Station Time** – When the station's time zone differs from the listener's, the player shows the station's local time and the difference.
 
-= Station Management =
+= Station management =
 
-* **Multi-Station Support** – Manage multiple independent radio stations from a single WordPress installation.
-* **Station Branding** – Customize each station with its own logo, background image, and color theme.
-* **Welcome Audio** – Optionally upload an MP3 that plays once before the live stream starts, the first time a listener presses play.
-* **Broadcast Timezone Clock** – Display your station's local time whenever it differs from the listener's timezone.
+* **Multiple stations** – Run several independent radio stations from one WordPress site, each on its own page.
+* **Station branding** – Give each station its own logo, background image, color scheme (eight to choose from), and visualizer. You can also hide the station name in the player.
+* **Welcome Audio** – Optionally upload an MP3, such as a station ID or a greeting, that plays once before the live stream, the first time a listener presses Play. It can't be paused or skipped.
+* **Test Stream** – Check the streaming URL from the station edit screen. The plugin finds the stream behind a playlist or a server page and tells you what to fix.
 
-= Listener Experience =
+= Listener experience =
 
-* **Visual Themes** – Choose from eight color themes.
-* **Audio Visualizers** – Four real-time visualizers powered by the Web Audio API.
-* **Media Session API** – Integration with lock screens and hardware media controls, including artwork and metadata.
-* **Convenience Features** – Sleep Timer, responsive layout, and Open Graph metadata for social sharing.
+* **Audio visualizers** – Four real-time visualizers: Oscilloscope, Bars Spectrum, Amplitude Waterfall, and Spectral Particles. They need a stream that allows cross-origin access (CORS). In Safari, in any browser on iPhone or iPad, and with "reduce motion" turned on, the player shows a static animation instead.
+* **Current song** – Optionally show the song your streaming server reports, below the station name.
+* **Lock screen and media controls** – The station name and logo appear on the lock screen, and listeners can play and pause from headphones, keyboards, and other media controls.
+* **Sleep timer** – Listeners can stop playback after 30 minutes, 1 hour, or 2 hours.
+* **Sharing and search** – Open Graph metadata for social sharing and schema.org structured data for search engines.
+* **Accessible and translated** – The player works with a keyboard and screen readers, and follows your site's language, with translations for 12 languages included.
 
-= Modern Architecture =
+= Blocks =
 
-Radio Player Page is built as a standalone React application using React 19, TypeScript, and Vite. Assets are loaded through a manifest-based system for efficient caching, fast updates, and long-term maintainability.
+Show your stations' schedules and radio shows on any post or page:
+
+* **RPP: Weekly Schedule** – The weekly schedule of a radio station.
+* **RPP: Radio Shows List** – The radio shows in a station's weekly schedule, with their name, image, descriptions, and broadcast times.
+* **RPP: On Air** – The radio show on air, with its time slot, and the next one if it starts within 10 minutes.
 
 == Installation ==
 
-1. Upload the `radio-player-page` folder to the `/wp-content/plugins/` directory, or install the plugin through the WordPress Plugins screen.
+1. In WordPress, go to **Plugins → Add New Plugin**, search for "Radio Player Page", and click **Install Now**. Or upload the `radio-player-page` folder to `/wp-content/plugins/`.
 2. Activate the plugin.
-3. Open **RPP → Radio Stations** and create your first station.
-4. Configure:
-   * Streaming URL (Icecast, Shoutcast, HLS, DASH, or MP3, starting with `http://` or `https://`)
-   * WordPress page
-   * Station title
-   * Branding options (logo, background, color theme)
-   * Audio visualizer
-5. Publish the station.
-6. Optionally create radio shows from **RPP → Radio Shows** and build the station's weekly schedule.
+3. Go to **RPP → Radio Stations** and add a station.
+4. Enter the station name as the title and fill in:
+   * **Streaming URL** (Icecast, Shoutcast, HLS, DASH, or MP3, starting with `http://` or `https://`). Click **Test Stream** to check it.
+   * **Player Page**: the WordPress page where the player appears. An empty page works best.
+   * Optionally, **Color Scheme**, **Visualizer**, **Logo Image**, **Background Image**, and **Welcome Audio**.
+5. Publish the station and visit its page.
+6. Optionally, add radio shows in **RPP → Radio Shows** and build the station's Weekly Schedule on its edit screen.
 
-**Important Notes**
+**Notes**
 
-* Every station requires a valid streaming URL and an assigned WordPress page.
-* Stations and radio shows are stored as WordPress custom post types.
-* Deactivating the plugin preserves your data.
-* Uninstalling the plugin permanently removes stations, radio shows, schedules, and the plugin's settings, including trashed items.
+* Each station needs a valid streaming URL and its own published page. A page can be used by only one station.
+* Deactivating the plugin keeps your data.
+* Uninstalling the plugin deletes all stations, radio shows, schedules, and plugin settings, including items in the trash.
 
 == Frequently Asked Questions ==
 
 = Do I need to configure anything on the WordPress page? =
 
-No. Once you assign a page to a station on the **RPP → Radio Stations** edit screen, no additional configuration is needed on the page itself. The plugin intercepts page requests using WordPress template redirect hooks and serves a standalone HTML page with the player. The normal page output (content, template, blocks) is bypassed for that URL, so the player always loads reliably without page-level setup.
+No. Choose the page in **Player Page** on the station edit screen, and the plugin shows the player at that page's URL instead of your theme. The page's own content isn't shown, so an empty page works best. The page must be published and can't be password protected or your site's posts page, and each page can be used by only one station.
 
-= Where can I get support or report issues? =
+= Which streaming URL do I use? =
 
-Visit the [WordPress Support Forum](https://wordpress.org/support/plugin/radio-player-page/) for help, feature requests, and to report any bugs.
+Use the address of the audio stream itself, not your station's website. It's usually the "Listen" link of your streaming server or control panel:
+
+* Icecast: the URL of a mount point, for example `https://example.com:8000/live`.
+* Shoutcast: version 1 servers need `/;` after the port. Version 2 servers use `/stream` or `/;`.
+* AzuraCast, Centova Cast, and other control panels: the station's stream or listen URL.
+
+Not sure? Paste the playlist link from the "Listen" button (`.pls` or `.m3u`) or the address of the server's status page, and click **Test Stream** next to the field. The plugin finds the stream and offers it with **Use This URL**.
+
+= What does Test Stream connect to? =
+
+Nothing is tested until you click **Test Stream**. Then:
+
+1. Your WordPress server requests the URL you entered and, only when needed, the Icecast `status-json.xsl` on the same server and the `https://` version of an `http://` URL. Each request follows up to three redirects and sends your site's address as its origin.
+2. When needed, your browser loads the stream without playing it (and tries once more without cross-origin access if the first try fails) or, for HLS and DASH, loads its manifest.
+
+If a stream fails on the player page, administrators see the reason under the error message and a link back to the test. Listeners see the usual message.
+
+= Why doesn't my stream play, or why don't I see the visualizer? =
+
+The player first loads the stream with cross-origin access (CORS) so the visualizer can read the audio. If your streaming server doesn't allow it, MP3 and OGG streams still play, with a static animation instead of the visualizer. HLS and DASH streams from another domain need CORS on the streaming server to play at all (except native HLS on iPhone and iPad). An `http://` stream is blocked on an `https://` site; the station edit screen warns you about it, and **Test Stream** tells you what to fix. Safari, any browser on iPhone or iPad, and "reduce motion" also show the static animation instead of the visualizer.
+
+= Why doesn't the current song show? =
+
+**Show current song** is off by default. To turn it on, select it on the station edit screen. Then, while the live stream plays (not the Welcome Audio) and the page is visible, each listener's browser asks your streaming server for the current song:
+
+* MP3 and OGG streams: the server's Icecast `status-json.xsl` every 20 seconds or, if that fails, the song information inside the stream every 30 seconds. On some servers, each of these lookups counts as one more listener.
+* HLS streams: the song comes in the stream's ID3 tags, with no extra requests.
+* DASH streams: the song isn't shown.
+
+These requests only go to the stream's own server. The song only shows if the server reports it and allows cross-origin access (CORS), which many hosting providers and Shoutcast servers don't. An `http://` server is never asked from an `https://` site. Without a song, the player looks the same as with the option off.
 
 = Can I use this for commercial radio stations? =
 
-Yes. The plugin is free and open-source (GPLv2 or later), suitable for both commercial and non-commercial radio stations.
+Yes. The plugin is free and open source (GPLv2 or later), so you can use it for commercial and non-commercial radio stations.
+
+= Where can I get support or report issues? =
+
+Ask in the [support forum](https://wordpress.org/support/plugin/radio-player-page/) for help, feature requests, and bug reports.
 
 = Where can I view the full source code? =
 
-The source code is hosted on [GitHub](https://github.com/sjimhdez/radio-player-page).
-
-= Why doesn't my stream play, or why is the visualizer not moving? =
-
-The player first loads the stream with cross-origin access (CORS) so the visualizer can read the audio. If the streaming server doesn't allow it, MP3 and OGG streams play anyway, with a static animation instead of the visualizer. HLS and DASH streams from another domain require CORS on the streaming server (except native HLS on iOS). An `http://` stream may also be blocked on an `https://` site; the station edit screen warns you about it.
-
-= What is Welcome Audio? =
-
-Welcome Audio is an optional MP3 clip you can upload for a station. When a listener presses play for the first time, this clip plays once before the live stream starts, and can't be paused or skipped until it finishes. It's useful for a short station ID, a welcome message, or a legal notice. It's completely optional, plays only once per page visit, and if it can't play for any reason the live stream starts normally instead.
+The full source code, including the player and its build tools, is on [GitHub](https://github.com/sjimhdez/radio-player-page).
 
 == Screenshots ==
 
-1. Player page with blue theme and Oscilloscope visualizer.
-2. Player page with yellow theme, Bars Spectrum visualizer, and Broadcast Timezone Clock.
-3. Player page with green theme, Amplitude Waterfall visualizer, and Sleep Timer active.
-4. Player page with pink theme and Weekly Schedule dialog open.
-5. Player page with orange theme and Radio Shows dialog open.
+1. Player page in blue with Oscilloscope visualizer.
+2. Player page in yellow with Bars Spectrum visualizer and Station Time.
+3. Player page in green with Amplitude Waterfall visualizer and sleep timer active.
+4. Player page in pink with Weekly Schedule dialog open.
+5. Player page in orange with Radio Shows dialog open.
 6. Radio Stations list.
-7. Radio Station edit screen with streaming URL and player page.
-8. Radio Station edit screen with weekly schedule.
+7. Radio Station edit screen with the Streaming URL and Player Page fields.
+8. Radio Station edit screen with Weekly Schedule.
 
 == Changelog ==
+
+= 3.6.0 =
+* The player reconnects automatically when the live stream drops, and only shows an error if it cannot.
+* Added a "Test Stream" button to the station edit screen that checks the streaming URL and suggests a fix; administrators also see why a stream fails on the player page.
+* Added an option, off by default, to show the current song from the streaming server in the player.
+* Added schema.org structured data to the player page.
+* Improved the visualizers: bars and particles respond to the whole audible spectrum, not just the bass; they run at the same speed on 120 Hz screens and look sharp on high-density screens. With "reduce motion," no visualizer is drawn, and screen readers no longer announce the canvas.
+* The Weekly Schedule keeps a time slot whose radio show was deleted, labeled as deleted, instead of blocking the station from being saved.
+* Renamed some labels to match the rest of the plugin: the "RPP: Now Playing" block is now "RPP: On Air," and the station's Theme Color and Radio Schedule are now Color Scheme and Weekly Schedule. In the player, Sleep mode is now Sleep Timer, and the station clock is labeled Station Time. Blocks already on your pages keep working.
 
 = 3.5.0 =
 * Improved player page layout and accessibility.

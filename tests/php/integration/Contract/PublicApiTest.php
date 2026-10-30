@@ -51,6 +51,7 @@ final class PublicApiTest extends WP_UnitTestCase {
 			'radplapag_admin_menu'                   => '()',
 			'radplapag_remove_duplicate_rpp_submenu' => '()',
 			'radplapag_menu_redirect_to_stations'    => '()',
+			'radplapag_ajax_probe_stream'            => '()',
 		),
 		'blocks/programs-list/render.php'            => array(
 			'radplapag_render_programs_list_block' => '($attributes, $content, $block)',
@@ -131,20 +132,20 @@ final class PublicApiTest extends WP_UnitTestCase {
 	 * static methods).
 	 */
 	const CLASSES = array(
-		'includes/data/class-radplapag-program-config.php' => array(
+		'includes/class-radplapag-program-config.php' => array(
 			'Radplapag_Program_Config' => array(
 				'from_post_id' => 'static (int $post_id): ?Radplapag_Program_Config',
 				'get_post_id'  => '(): int',
 				'to_array'     => '(): array',
 			),
 		),
-		'includes/data/class-radplapag-station-config.php' => array(
+		'includes/class-radplapag-station-config.php' => array(
 			'Radplapag_Station_Config' => array(
 				'from_post' => 'static ($post): ?Radplapag_Station_Config',
 				'to_array'  => '(): array',
 			),
 		),
-		'includes/migration/class-radplapag-migrator-settings-to-cpt.php' => array(
+		'includes/class-radplapag-migrator-settings-to-cpt.php' => array(
 			'Radplapag_Migrator_Settings_To_Cpt' => array(
 				'run' => 'static (int $author_user_id)',
 			),
@@ -171,7 +172,7 @@ final class PublicApiTest extends WP_UnitTestCase {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		require_once self::plugin_dir() . '/includes/migration/class-radplapag-migrator-settings-to-cpt.php';
+		require_once self::plugin_dir() . '/includes/class-radplapag-migrator-settings-to-cpt.php';
 	}
 
 	// ── Functions ───────────────────────────────────────────────────────────────

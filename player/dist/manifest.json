@@ -1,55 +1,74 @@
 {
+  "_radio-player-page-3.6.0-frame-time.min.js": {
+    "file": "radio-player-page-3.6.0-frame-time.min.js",
+    "name": "frame-time"
+  },
+  "_radio-player-page-3.6.0-levels.min.js": {
+    "file": "radio-player-page-3.6.0-levels.min.js",
+    "name": "levels"
+  },
   "node_modules/dashjs/dist/modern/esm/dash.all.min.js": {
-    "file": "radio-player-page-3.5.0-dash-all-min.min.js",
+    "file": "radio-player-page-3.6.0-dash-all-min.min.js",
     "name": "dash.all.min",
     "src": "node_modules/dashjs/dist/modern/esm/dash.all.min.js",
     "isDynamicEntry": true
   },
   "node_modules/hls.js/dist/hls.mjs": {
-    "file": "radio-player-page-3.5.0-hls.min.js",
+    "file": "radio-player-page-3.6.0-hls.min.js",
     "name": "hls",
     "src": "node_modules/hls.js/dist/hls.mjs",
     "isDynamicEntry": true
   },
-  "src/components/visualizers/amplitude-waterfall-visualizer.tsx": {
-    "file": "radio-player-page-3.5.0-amplitude-waterfall-visualizer.min.js",
-    "name": "amplitude-waterfall-visualizer",
-    "src": "src/components/visualizers/amplitude-waterfall-visualizer.tsx",
+  "src/core/visualizers/bars.ts": {
+    "file": "radio-player-page-3.6.0-bars.min.js",
+    "name": "bars",
+    "src": "src/core/visualizers/bars.ts",
+    "isDynamicEntry": true,
+    "imports": [
+      "_radio-player-page-3.6.0-frame-time.min.js",
+      "_radio-player-page-3.6.0-levels.min.js"
+    ]
+  },
+  "src/core/visualizers/oscilloscope.ts": {
+    "file": "radio-player-page-3.6.0-oscilloscope.min.js",
+    "name": "oscilloscope",
+    "src": "src/core/visualizers/oscilloscope.ts",
     "isDynamicEntry": true
   },
-  "src/components/visualizers/bar-visualizer.tsx": {
-    "file": "radio-player-page-3.5.0-bar-visualizer.min.js",
-    "name": "bar-visualizer",
-    "src": "src/components/visualizers/bar-visualizer.tsx",
-    "isDynamicEntry": true
+  "src/core/visualizers/particles.ts": {
+    "file": "radio-player-page-3.6.0-particles.min.js",
+    "name": "particles",
+    "src": "src/core/visualizers/particles.ts",
+    "isDynamicEntry": true,
+    "imports": [
+      "_radio-player-page-3.6.0-frame-time.min.js",
+      "_radio-player-page-3.6.0-levels.min.js"
+    ]
   },
-  "src/components/visualizers/oscilloscope-visualizer.tsx": {
-    "file": "radio-player-page-3.5.0-oscilloscope-visualizer.min.js",
-    "name": "oscilloscope-visualizer",
-    "src": "src/components/visualizers/oscilloscope-visualizer.tsx",
-    "isDynamicEntry": true
-  },
-  "src/components/visualizers/particles-visualizer.tsx": {
-    "file": "radio-player-page-3.5.0-particles-visualizer.min.js",
-    "name": "particles-visualizer",
-    "src": "src/components/visualizers/particles-visualizer.tsx",
-    "isDynamicEntry": true
+  "src/core/visualizers/waterfall.ts": {
+    "file": "radio-player-page-3.6.0-waterfall.min.js",
+    "name": "waterfall",
+    "src": "src/core/visualizers/waterfall.ts",
+    "isDynamicEntry": true,
+    "imports": [
+      "_radio-player-page-3.6.0-frame-time.min.js"
+    ]
   },
   "src/main.tsx": {
-    "file": "radio-player-page-3.5.0.min.js",
+    "file": "radio-player-page-3.6.0.min.js",
     "name": "main",
     "src": "src/main.tsx",
     "isEntry": true,
     "dynamicImports": [
       "node_modules/dashjs/dist/modern/esm/dash.all.min.js",
       "node_modules/hls.js/dist/hls.mjs",
-      "src/components/visualizers/oscilloscope-visualizer.tsx",
-      "src/components/visualizers/bar-visualizer.tsx",
-      "src/components/visualizers/particles-visualizer.tsx",
-      "src/components/visualizers/amplitude-waterfall-visualizer.tsx"
+      "src/core/visualizers/oscilloscope.ts",
+      "src/core/visualizers/bars.ts",
+      "src/core/visualizers/particles.ts",
+      "src/core/visualizers/waterfall.ts"
     ],
     "css": [
-      "radio-player-page-3.5.0.css"
+      "radio-player-page-3.6.0.css"
     ]
   }
 }

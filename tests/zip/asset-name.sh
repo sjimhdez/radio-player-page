@@ -2,7 +2,7 @@
 # Player asset names carry the plugin version (radio-player-page-<x.y.z>…), so
 # a release renames every file under player/dist/. The zip guard compares those
 # names with the version replaced by {VERSION} (spec 0014, R8).
-# Sourced by compare-lists.sh, compare-with-v3.4.2.sh and their tests.
+# Sourced by compare-lists.sh, compare-with-v3.5.0.sh and their tests.
 
 # Reads paths relative to the plugin root on stdin and prints them with the
 # version of the player assets replaced. Other paths are left as they are.

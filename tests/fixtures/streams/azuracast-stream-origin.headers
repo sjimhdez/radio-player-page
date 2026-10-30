@@ -1,0 +1,26 @@
+HTTP/2 200 
+date: Wed, 28 Oct 2026 02:56:41 GMT
+content-type: audio/mpeg
+access-control-allow-credentials: True
+access-control-allow-headers: Origin, Icy-MetaData, Range
+access-control-allow-methods: GET, OPTIONS, SOURCE, PUT, HEAD, STATS
+access-control-allow-origin: https://example.com
+access-control-expose-headers: Icy-Br, Icy-Description, Icy-Genre, Icy-MetaInt, Icy-Name, Icy-Pub, Icy-Url
+cache-control: no-store, no-cache, private
+expires: Thu, 19 Nov 1981 08:52:00 GMT
+ice-audio-info: channels=2;samplerate=44100;bitrate=192
+icy-br: 192
+icy-description: ONLINE RADIO
+icy-name: SHAHIMSHA
+icy-pub: 0
+pragma: no-cache
+referrer-policy: no-referrer-when-downgrade
+server: cloudflare
+vary: Origin
+x-content-type-options: nosniff
+x-xss-protection: 1
+cf-cache-status: BYPASS
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=1%2BeX7FoJVm81tlaY78fv5bkwH%2FLpChXL6UVSHztSOCh3Vw290TjID6Zy2YqJ40Mq9TflRfyH%2Fv0kGI7QUYw%2FP7cq3ZmL9iAceIub0w9JG6c9wGYGD6Nl8yEr7nSoiCY44H4DgxIv"}]}
+cf-ray: a516ab324f8b00b2-MAD
+alt-svc: h3=":443"; ma=86400

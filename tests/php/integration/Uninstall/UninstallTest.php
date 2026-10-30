@@ -78,6 +78,26 @@ final class UninstallTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The show song meta goes with its station: no row of it is left (ADR 0068).
+	 */
+	public function test_deletes_the_show_song_meta() {
+		global $wpdb;
+
+		$this->factory_rpp->station( 'Song', array( 'show_song' => '1' ) );
+		$this->factory_rpp->station(
+			'Song draft',
+			array(
+				'status'    => 'draft',
+				'show_song' => '1',
+			)
+		);
+
+		self::uninstall();
+
+		$this->assertSame( '0', $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $wpdb->postmeta WHERE meta_key = %s", 'radplapag_station_show_song' ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+	}
+
+	/**
 	 * K7 (docs/known-issues.md, fixed in spec 0008): trashed, auto-draft and inherit
 	 * posts go too, with their meta.
 	 */

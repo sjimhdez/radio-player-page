@@ -71,4 +71,17 @@ final class Program_Repository {
 
 		return $programs;
 	}
+
+	/**
+	 * Returns the label of a schedule slot whose program no longer exists (K106, ADR 0062, 0077).
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param int $post_id Program ID the slot keeps.
+	 * @return string
+	 */
+	public static function deleted_label( int $post_id ): string {
+		/* translators: %d: radio show ID. */
+		return sprintf( __( 'Radio Show #%d (Deleted)', 'radio-player-page' ), $post_id );
+	}
 }

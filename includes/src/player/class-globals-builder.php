@@ -57,22 +57,28 @@ final class Globals_Builder {
 	 * RADPLAPAG_CONFIG for a station.
 	 *
 	 * An empty station title falls back to the site title, and the title is decoded
-	 * (K21: kses stores `&` as `&amp;`); hideTitle is a truthy hide_title (ADR 0054). Theme and visualizer go
-	 * through sanitize_key() and the whitelists; falsy media URLs are null. The offset
+	 * (K21: kses stores `&` as `&amp;`); hideTitle is a truthy hide_title (ADR 0054)
+	 * and showSong a truthy show_song (ADR 0068). Theme and visualizer go through
+	 * sanitize_key() and the whitelists; falsy media URLs are null. The offset
 	 * is the one of $now in hours, an integer when exact. The zone is the IANA name of
 	 * $now, or null when it is a manual offset (`±HH:MM`), so the player can follow
 	 * daylight saving time with the page open and keep the offset as a fallback (C9, ADR 0046).
+	 * adminDiagnostics is `{ editUrl }` with an edit URL, given only to users who can
+	 * manage_options, and null otherwise (ADR 0065).
 	 *
 	 * @since 3.5.0
+	 * @since 3.6.0 Adds adminDiagnostics and $edit_url (ADR 0065).
+	 * @since 3.6.0 Adds showSong (ADR 0068).
 	 *
 	 * @param array<string, mixed> $station      Station row with its stream_url.
 	 * @param array<string, mixed> $media        background_url, logo_url and intro_audio_url, each optional.
 	 * @param string               $site_title   Site title.
 	 * @param DateTimeImmutable    $now          Now, in the site timezone.
 	 * @param callable             $sanitize_key sanitize_key().
-	 * @return array{streamUrl: mixed, siteTitle: mixed, hideTitle: bool, backgroundImage: mixed, logoImage: mixed, introAudioUrl: mixed, themeColor: string, visualizer: string, timezoneOffset: int|float, timezone: string|null}
+	 * @param string|null          $edit_url     Edit URL of the station for the error reason, or null.
+	 * @return array{streamUrl: mixed, siteTitle: mixed, hideTitle: bool, showSong: bool, backgroundImage: mixed, logoImage: mixed, introAudioUrl: mixed, themeColor: string, visualizer: string, timezoneOffset: int|float, timezone: string|null, adminDiagnostics: array{editUrl: string}|null}
 	 */
-	public static function config( array $station, array $media, string $site_title, DateTimeImmutable $now, callable $sanitize_key ): array {
+	public static function config( array $station, array $media, string $site_title, DateTimeImmutable $now, callable $sanitize_key, ?string $edit_url = null ): array {
 		$theme_color = isset( $station['theme_color'] ) ? $sanitize_key( $station['theme_color'] ) : Station::THEMES[0];
 		if ( ! in_array( $theme_color, Station::THEMES, true ) ) {
 			$theme_color = Station::THEMES[0];
@@ -87,13 +93,15 @@ final class Globals_Builder {
 			'streamUrl'       => $station['stream_url'],
 			'siteTitle'       => self::decode( ! empty( $station['station_title'] ) ? $station['station_title'] : $site_title ),
 			'hideTitle'       => ! empty( $station['hide_title'] ),
+			'showSong'        => ! empty( $station['show_song'] ),
 			'backgroundImage' => ! empty( $media['background_url'] ) ? $media['background_url'] : null,
 			'logoImage'       => ! empty( $media['logo_url'] ) ? $media['logo_url'] : null,
 			'introAudioUrl'   => ! empty( $media['intro_audio_url'] ) ? $media['intro_audio_url'] : null,
 			'themeColor'      => $theme_color,
 			'visualizer'      => $visualizer,
-			'timezoneOffset'  => $now->getOffset() / 3600,
-			'timezone'        => self::zone_name( $now ),
+			'timezoneOffset'   => $now->getOffset() / 3600,
+			'timezone'         => self::zone_name( $now ),
+			'adminDiagnostics' => null === $edit_url ? null : array( 'editUrl' => $edit_url ),
 		);
 	}
 

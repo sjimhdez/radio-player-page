@@ -51,6 +51,7 @@ final class CptTest extends WP_UnitTestCase {
 			'radplapag_station_visualizer'     => array( 'string', true, true, true ),
 			'radplapag_station_schedule'       => array( 'string', true, false, false ),
 			'radplapag_station_hide_title'     => array( 'boolean', true, true, true ),
+			'radplapag_station_show_song'      => array( 'boolean', true, true, true ),
 		),
 		'radplapag_program' => array(
 			'radplapag_program_description'          => array( 'string', true, true, true ),
@@ -292,6 +293,17 @@ final class CptTest extends WP_UnitTestCase {
 	 */
 	public function test_station_hide_title_sanitizer() {
 		$key = 'radplapag_station_hide_title';
+
+		$this->assertTrue( $this->sanitize( 'radplapag_station', $key, '1' ) );
+		$this->assertFalse( $this->sanitize( 'radplapag_station', $key, '' ) );
+		$this->assertFalse( $this->sanitize( 'radplapag_station', $key, 'false' ) );
+	}
+
+	/**
+	 * The show song meta goes through rest_sanitize_boolean() (ADR 0068).
+	 */
+	public function test_station_show_song_sanitizer() {
+		$key = 'radplapag_station_show_song';
 
 		$this->assertTrue( $this->sanitize( 'radplapag_station', $key, '1' ) );
 		$this->assertFalse( $this->sanitize( 'radplapag_station', $key, '' ) );

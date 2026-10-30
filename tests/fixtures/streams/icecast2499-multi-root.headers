@@ -1,0 +1,13 @@
+HTTP/1.1 200 OK
+Server: Icecast 2.4.99.3
+Connection: Keep-Alive
+Accept-Encoding: identity
+Allow: GET, PUT, OPTIONS, SOURCE
+Date: Wed, 28 Oct 2026 02:28:35 GMT
+Content-Type: text/html; charset=utf-8
+Cache-Control: no-cache, no-store
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+Pragma: no-cache
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Icy-MetaData
+Content-Length: 7542

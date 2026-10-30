@@ -1,0 +1,9 @@
+HTTP/1.0 200 OK
+Server: Icecast 2.4.4
+Connection: Close
+Date: Wed, 28 Oct 2026 02:27:11 GMT
+Content-Type: text/xml; charset=UTF-8
+Cache-Control: no-cache, no-store
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+Pragma: no-cache
+Content-Length: 2289

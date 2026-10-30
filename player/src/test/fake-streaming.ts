@@ -1,11 +1,17 @@
-// Fakes of hls.js and dashjs for the core sources (spec 0006, task 2.4). The sources
+// Fakes of hls.js and dashjs for the core sources. The sources
 // receive their loaders as parameters, so no vi.mock is needed: each test creates its
 // own fake and passes its loader.
 import { vi } from 'vitest'
-import type { DashErrorEvent, DashMediaPlayer, HlsClass } from 'src/core/audio/sources/types'
+import type {
+  DashErrorEvent,
+  DashMediaPlayer,
+  HlsClass,
+  HlsEventData,
+} from 'src/core/audio/sources/types'
 
-type HlsHandler = (event: string, data: { fatal: boolean }) => void
+type HlsHandler = (event: string, data: HlsEventData) => void
 
+/** An instance of the fake Hls class, with what it was given and its handlers */
 export interface FakeHlsInstance {
   config: unknown
   handlers: Record<string, HlsHandler>
@@ -14,11 +20,7 @@ export interface FakeHlsInstance {
   destroy: ReturnType<typeof vi.fn<() => void>>
 }
 
-/**
- * Creates a fake Hls class that records its instances.
- *
- * @returns The class, its instances, the loader to inject and a switch for isSupported()
- */
+/** A fake Hls class that records its instances, its loader and a switch for isSupported() */
 export function createFakeHls() {
   const state = { supported: true, instances: [] as FakeHlsInstance[] }
 
@@ -49,6 +51,7 @@ export function createFakeHls() {
   }
 }
 
+/** A player of the fake dashjs factory, with its handlers */
 export interface FakeDashPlayer {
   handlers: Record<string, (event: DashErrorEvent) => void>
   initialize: ReturnType<
@@ -58,11 +61,7 @@ export interface FakeDashPlayer {
   reset: ReturnType<typeof vi.fn<() => void>>
 }
 
-/**
- * Creates a fake dashjs MediaPlayer factory that records the players it creates.
- *
- * @returns The players and the loader to inject
- */
+/** A fake dashjs MediaPlayer factory that records its players, and its loader */
 export function createFakeDash() {
   const players: FakeDashPlayer[] = []
   const MediaPlayer: DashMediaPlayer = () => ({

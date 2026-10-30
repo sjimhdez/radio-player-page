@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta charset="utf-8">
+<title>Status — Icecast Server</title>
+<link rel="stylesheet" type="text/css" href="/assets/css/style.css" media="screen, print">
+<meta name="theme-color" content="#001826">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="description" content="Icecast is free server software for streaming multimedia.">
+</head>
+<body>
+                    <!-- WARNING:
+                    DO NOT ATTEMPT TO PARSE ICECAST HTML OUTPUT!
+                    The web interface may change completely between releases.
+                    If you have a need for automatic processing of server data,
+                    please read the appropriate documentation. Latest docs:
+                    https://icecast.org/docs/icecast-latest/server-stats.html
+                    -->
+                <header><nav id="main-nav" role="primary"><a href="/" id="branding"><img src="/assets/img/icecast.png" alt="Logo"><h1>Audio/Video Server FM.BE</h1></a></nav></header><main role="main"><h2>Status</h2>
+<section class="box"><h3 class="box_title">Mountpoint <code>/media</code>
+</h3>
+<div>
+<ul class="playlists">
+<li><a href="/media">Direct</a></li>
+<li><a href="/media.m3u">M3U</a></li>
+<li><a href="/media.xspf">XSPF</a></li>
+</ul>
+<h4>Play stream</h4>
+</div>
+<h4>Further information</h4>
+<div class="mountcont">
+<table class="table-keys"><tbody>
+<tr>
+<td>Stream Name:</td>
+<td>Media</td>
+</tr>
+<tr>
+<td>Stream Description:</td>
+<td>Radio Media</td>
+</tr>
+<tr>
+<td>Content Type:</td>
+<td>audio/mpeg</td>
+</tr>
+<tr>
+<td>Genre:</td>
+<td class="streamstats">Oldies</td>
+</tr>
+<tr>
+<td>Stream URL:</td>
+<td class="streamstats"><a href="RadioMedia.be.be">RadioMedia.be.be</a></td>
+</tr>
+<tr>
+<td>Currently playing:</td>
+<td class="streamstats">CLOUSEAU - LIVE LIKE KINGS</td>
+</tr>
+</tbody></table>
+<h4>Playlist</h4>
+<div class="playlist-container"><table class="table-block">
+<thead><tr>
+<th>Artist</th>
+<th>Title</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>DANNY FISHER</td>
+<td>LITTLE CHRISTINE</td>
+</tr>
+<tr>
+<td>STEAM</td>
+<td>NA NA HEY KISS HIM GOODBYE</td>
+</tr>
+<tr>
+<td>altijd in jouw buurt</td>
+<td>Alles weten, kijk op www.radiomedia.be</td>
+</tr>
+<tr>
+<td>FREDDY BRECK</td>
+<td>UBERALL AUF DIE WELT</td>
+</tr>
+<tr>
+<td>LAURA PAUSINI</td>
+<td>INCANCELLABILE</td>
+</tr>
+<tr>
+<td>altijd in jouw buurt</td>
+<td>Alles weten, kijk op www.radiomedia.be</td>
+</tr>
+<tr>
+<td>CHUCK BERRY</td>
+<td>JOHNNY B GOODE</td>
+</tr>
+<tr>
+<td>CHARLES AZNAVOUR</td>
+<td>LA BOHEME</td>
+</tr>
+<tr>
+<td>altijd in jouw buurt</td>
+<td>Alles weten, kijk op www.radiomedia.be</td>
+</tr>
+<tr>
+<td>CLOUSEAU</td>
+<td>LIVE LIKE KINGS</td>
+</tr>
+</tbody>
+</table></div>
+</div></section><section class="box"><h3 class="box_title">Mountpoint <code>/rand</code>
+</h3>
+<div>
+<ul class="playlists">
+<li><a href="/rand">Direct</a></li>
+<li><a href="/rand.m3u">M3U</a></li>
+<li><a href="/rand.xspf">XSPF</a></li>
+</ul>
+<h4>Play stream</h4>
+</div>
+<h4>Further information</h4>
+<div class="mountcont">
+<table class="table-keys"><tbody>
+<tr>
+<td>Stream Name:</td>
+<td>Radio Rand </td>
+</tr>
+<tr>
+<td>Stream Description:</td>
+<td>Radio Rand De Klank Van Het Pajottenland</td>
+</tr>
+<tr>
+<td>Content Type:</td>
+<td>audio/mpeg</td>
+</tr>
+<tr>
+<td>Genre:</td>
+<td class="streamstats">POP</td>
+</tr>
+<tr>
+<td>Stream URL:</td>
+<td class="streamstats"><a href="radiorand.be">radiorand.be</a></td>
+</tr>
+<tr>
+<td>Currently playing:</td>
+<td class="streamstats">George Michael - Praying For Time</td>
+</tr>
+</tbody></table>
+<h4>Playlist</h4>
+<div class="playlist-container"><table class="table-block">
+<thead><tr>
+<th>Artist</th>
+<th>Title</th>
+</tr></thead>
+<tbody>
+<tr>
+<td></td>
+<td>RR 22 - SSW 2 - LANG</td>
+</tr>
+<tr>
+<td></td>
+<td>BlÃ¸f - Liefs Uit Londen</td>
+</tr>
+<tr>
+<td></td>
+<td>XTC - Making Plans for Nigel</td>
+</tr>
+<tr>
+<td></td>
+<td>RR 21 - SSW 2</td>
+</tr>
+<tr>
+<td></td>
+<td>James Morrison - Wonderful World</td>
+</tr>
+<tr>
+<td></td>
+<td>Europe - Rock The Night</td>
+</tr>
+<tr>
+<td></td>
+<td>RR 21 - SSW 8</td>
+</tr>
+<tr>
+<td></td>
+<td>Clouseau - Helemaal Alleen (Uit Liefde Voor Muziek)</td>
+</tr>
+<tr>
+<td></td>
+<td>RR 21 - SSW 1</td>
+</tr>
+<tr>
+<td></td>
+<td>George Michael - Praying For Time</td>
+</tr>
+</tbody>
+</table></div>
+</div></section><section class="box"><h3 class="box_title">Mountpoint <code>/vlar1.mp3</code>
+</h3>
+<div>
+<ul class="playlists">
+<li><a href="/vlar1.mp3">Direct</a></li>
+<li><a href="/vlar1.mp3.m3u">M3U</a></li>
+<li><a href="/vlar1.mp3.xspf">XSPF</a></li>
+</ul>
+<h4>Play stream</h4>
+</div>
+<h4>Further information</h4>
+<div class="mountcont">
+<table class="table-keys"><tbody>
+<tr>
+<td>Stream Name:</td>
+<td>VLAR1</td>
+</tr>
+<tr>
+<td>Stream Description:</td>
+<td>VlaamseArdennen1</td>
+</tr>
+<tr>
+<td>Content Type:</td>
+<td>audio/mpeg</td>
+</tr>
+<tr>
+<td>Genre:</td>
+<td class="streamstats">pop</td>
+</tr>
+<tr>
+<td>Stream URL:</td>
+<td class="streamstats"><a href="vlar1">vlar1</a></td>
+</tr>
+<tr>
+<td>Currently playing:</td>
+<td class="streamstats">Bruno Mars - I just might</td>
+</tr>
+</tbody></table>
+<h4>Playlist</h4>
+<div class="playlist-container"><table class="table-block">
+<thead><tr>
+<th>Artist</th>
+<th>Title</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Cameron Whitcomb</td>
+<td>Kingdom of fear</td>
+</tr>
+<tr>
+<td>VLAR1</td>
+<td>RECLAME</td>
+</tr>
+<tr>
+<td>ELTON JOHN</td>
+<td>JUST LIKE BELGIUM</td>
+</tr>
+<tr>
+<td>Gala</td>
+<td>LET A BOY CRY </td>
+</tr>
+<tr>
+<td>WHITE STRIPES</td>
+<td>SEVEN NATION ARMY</td>
+</tr>
+<tr>
+<td>Juste </td>
+<td>Turn the lights off</td>
+</tr>
+<tr>
+<td>SAM RYDER</td>
+<td>SPACE MAN</td>
+</tr>
+<tr>
+<td>NATHALIE CARDONE</td>
+<td>HASTA SIEMPRE</td>
+</tr>
+<tr>
+<td>STEVE ARRINGTON</td>
+<td>FEEL SO REAL</td>
+</tr>
+<tr>
+<td>Bruno Mars</td>
+<td>I just might</td>
+</tr>
+</tbody>
+</table></div>
+</div></section><section class="box"><h3 class="box_title">Mountpoint <code>/wrgm1</code>
+</h3>
+<div>
+<ul class="playlists">
+<li><a href="/wrgm1">Direct</a></li>
+<li><a href="/wrgm1.m3u">M3U</a></li>
+<li><a href="/wrgm1.xspf">XSPF</a></li>
+</ul>
+<h4>Play stream</h4>
+</div>
+<h4>Further information</h4>
+<div class="mountcont">
+<table class="table-keys"><tbody>
+<tr>
+<td>Stream Name:</td>
+<td>WRGM1</td>
+</tr>
+<tr>
+<td>Stream Description:</td>
+<td>Waregem1</td>
+</tr>
+<tr>
+<td>Content Type:</td>
+<td>audio/mpeg</td>
+</tr>
+<tr>
+<td>Bitrate:</td>
+<td class="streamstats">128</td>
+</tr>
+<tr>
+<td>Genre:</td>
+<td class="streamstats">POP</td>
+</tr>
+<tr>
+<td>Stream URL:</td>
+<td class="streamstats"><a href="www.waregem1.be">www.waregem1.be</a></td>
+</tr>
+<tr>
+<td>Currently playing:</td>
+<td class="streamstats">Doobie Brothers - Long train runnin'</td>
+</tr>
+</tbody></table>
+<h4>Playlist</h4>
+<div class="playlist-container"><table class="table-block">
+<thead><tr>
+<th>Artist</th>
+<th>Title</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>Phil Collins</td>
+<td>Another day in paradise</td>
+</tr>
+<tr>
+<td>Olivia Dean</td>
+<td>So Easy </td>
+</tr>
+<tr>
+<td>Madonna</td>
+<td>American pie</td>
+</tr>
+<tr>
+<td>Juan Luis Guerra</td>
+<td>Burbujas de amor</td>
+</tr>
+<tr>
+<td>Jona Lewie</td>
+<td>You'll always find me in the kitchen at parties</td>
+</tr>
+<tr>
+<td>Rihanna</td>
+<td>Sledgehammer</td>
+</tr>
+<tr>
+<td>Bas Serra</td>
+<td>All because of you</td>
+</tr>
+<tr>
+<td>Milk Inc</td>
+<td>Land of the living</td>
+</tr>
+<tr>
+<td>Alex Warren</td>
+<td>Fever dream</td>
+</tr>
+<tr>
+<td>Doobie Brothers</td>
+<td>Long train runnin'</td>
+</tr>
+</tbody>
+</table></div>
+</div></section></main>
+</body>
+</html>

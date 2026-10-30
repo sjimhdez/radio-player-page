@@ -1,6 +1,6 @@
-// The minute ticker and store behind useProgramSchedule and useTransmissionTime (spec 0006,
-// task 1.4). The cases mirror what src/hooks/use-program-schedule.test.tsx and
-// use-transmission-time.test.tsx pin today: alignment, one live timer, none after unmount.
+// The minute ticker and store behind useProgramSchedule and useTransmissionTime. The
+// cases mirror what src/hooks/use-program-schedule.test.ts and
+// use-transmission-time.test.ts pin: alignment, one live timer, none after unmount.
 import { describe, expect, it, vi } from 'vitest'
 import { createMinuteStore, createMinuteTicker } from 'src/core/clock/minute-ticker'
 import { createFakeClock } from 'src/test/fake-clock'

@@ -1,0 +1,286 @@
+import { useCallback, useRef, useState } from 'react'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Typography from '@mui/material/Typography'
+import Button from '@mui/material/Button'
+import Collapse from '@mui/material/Collapse'
+import { useTranslation } from 'react-i18next'
+import useConfig from 'src/hooks/use-config'
+import { getCurrentTimeInTimezone, getStationOffset } from 'src/core/clock/timezone'
+import { getAllProgramsWithSlots, type ProgramWithSlots } from 'src/core/schedule/program-schedule'
+import Chip from '@mui/material/Chip'
+import IconButton from '@mui/material/IconButton'
+import Stack from '@mui/material/Stack'
+import CloseIcon from '@mui/icons-material/Close'
+import CircleIcon from '@mui/icons-material/Circle'
+import { CardMedia } from '@mui/material'
+
+/** Day of week to i18n key (0=Sunday -> daySunday, ...) */
+const DAY_KEYS = [
+  'playerPage.daySunday',
+  'playerPage.dayMonday',
+  'playerPage.dayTuesday',
+  'playerPage.dayWednesday',
+  'playerPage.dayThursday',
+  'playerPage.dayFriday',
+  'playerPage.daySaturday',
+] as const
+
+/** Props of a program card */
+interface ProgramCardProps {
+  /** The program and all its slots of the week */
+  program: ProgramWithSlots
+  /** Set on the card of the live program, to scroll to it */
+  activeCardRef: React.RefObject<HTMLDivElement | null>
+  /** Whether the extended description shows */
+  expanded: boolean
+  /** Shows or hides the extended description */
+  onToggle: () => void
+}
+
+/** The card of one program: its image, name, slots, description and Live chip */
+function ProgramCard({ program, activeCardRef, expanded, onToggle }: ProgramCardProps) {
+  const { t } = useTranslation()
+  return (
+    <Card
+      ref={program.isLive ? activeCardRef : undefined}
+      sx={{
+        borderBottom: '1px solid',
+        borderBottomColor: 'divider',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+        {program.programLogoUrl && (
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: 'start',
+              justifyContent: 'center',
+            }}
+          >
+            <CardMedia
+              component="img"
+              src={program.programLogoUrl}
+              alt={program.programName}
+              sx={{
+                width: 128,
+                height: 128,
+                objectFit: 'cover',
+                objectPosition: 'center',
+              }}
+            />
+          </Stack>
+        )}
+        <CardContent sx={{ flex: 1 }}>
+          <Stack
+            sx={{
+              px: 1,
+              gap: 0.5,
+              alignItems: 'start',
+            }}
+          >
+            <Stack
+              sx={{
+                alignItems: 'start',
+                gap: 1,
+              }}
+            >
+              {program.isLive && (
+                <Chip
+                  label={
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 'bold',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {t('playerPage.scheduleLive')}
+                    </Typography>
+                  }
+                  color="error"
+                  size="small"
+                  variant="outlined"
+                  icon={<CircleIcon color="error" />}
+                />
+              )}
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'primary.light',
+                }}
+              >
+                {program.programName || '—'}
+              </Typography>
+            </Stack>
+            {program.programDescription && (
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
+                {program.programDescription}
+              </Typography>
+            )}
+            {program.programExtendedDescription && (
+              <Button
+                variant="text"
+                size="small"
+                onClick={onToggle}
+                aria-expanded={expanded}
+                color="inherit"
+              >
+                {expanded ? t('playerPage.showLess') : t('playerPage.showMore')}
+              </Button>
+            )}
+          </Stack>
+        </CardContent>
+      </Box>
+      <Stack
+        sx={{
+          p: 3,
+        }}
+      >
+        {program.programExtendedDescription && (
+          <Collapse in={expanded}>
+            <Typography variant="body2" component="div" sx={{ whiteSpace: 'pre-wrap', pb: 3 }}>
+              {program.programExtendedDescription}
+            </Typography>
+          </Collapse>
+        )}
+        <Stack
+          sx={{
+            gap: 1.5,
+          }}
+        >
+          <Typography variant="h5" component="h3">
+            {t('playerPage.transmissionTimes')}
+          </Typography>
+          <Stack
+            sx={{
+              gap: 0.5,
+            }}
+          >
+            {program.slots.map((slot, index) => (
+              <Typography
+                key={`${program.programId}-${index}`}
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
+                {t(DAY_KEYS[slot.dayOfWeek])} {slot.timeRange}
+              </Typography>
+            ))}
+          </Stack>
+        </Stack>
+      </Stack>
+    </Card>
+  )
+}
+
+/** Props of the all programs modal */
+interface AllProgramsModalProps {
+  /** Whether the modal is open */
+  open: boolean
+  /** Called when the modal closes */
+  onClose: () => void
+}
+
+/**
+ * The all programs modal: every program of the schedule by name, each card with its
+ * image, name and all its slots of the week, and a "Live" chip while it is on air. It
+ * looks like ScheduleModal.
+ */
+const AllProgramsModal = ({ open, onClose }: AllProgramsModalProps) => {
+  const { t } = useTranslation()
+  const config = useConfig()
+  const schedule = config.schedule
+  const programs = config.programs
+  const { dayOfWeek: currentDayOfWeek, currentTime } = getCurrentTimeInTimezone(
+    getStationOffset(config.timezone, config.timezoneOffset),
+  )
+
+  const programsWithSlots: ProgramWithSlots[] = getAllProgramsWithSlots(
+    schedule,
+    programs,
+    currentDayOfWeek,
+    currentTime,
+  )
+
+  const activeCardRef = useRef<HTMLDivElement | null>(null)
+  const [expandedProgramId, setExpandedProgramId] = useState<string | null>(null)
+
+  const handleToggleExpand = useCallback((programId: string) => {
+    setExpandedProgramId((prev) => (prev === programId ? null : programId))
+  }, [])
+
+  const scrollToActiveProgram = useCallback(() => {
+    activeCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [])
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{
+        transition: {
+          onEntered: scrollToActiveProgram,
+        },
+      }}
+    >
+      <DialogTitle sx={{ bgcolor: 'background.paper' }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+          }}
+        >
+          {t('playerPage.viewAllPrograms')}
+          <IconButton aria-label={t('playerPage.allProgramsClose')} onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Stack>
+      </DialogTitle>
+      <DialogContent dividers sx={{ p: 0 }}>
+        <Stack
+          sx={{
+            maxHeight: '70vh',
+            overflow: 'auto',
+            bgcolor: 'background.paper',
+          }}
+        >
+          <Box>
+            {programsWithSlots.length === 0 ? (
+              <Typography>{t('playerPage.allProgramsEmpty')}</Typography>
+            ) : (
+              programsWithSlots.map((program) => (
+                <Box key={program.programId}>
+                  <ProgramCard
+                    program={program}
+                    activeCardRef={activeCardRef}
+                    expanded={expandedProgramId === program.programId}
+                    onToggle={() => handleToggleExpand(program.programId)}
+                  />
+                </Box>
+              ))
+            )}
+          </Box>
+        </Stack>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export default AllProgramsModal

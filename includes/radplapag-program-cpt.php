@@ -22,14 +22,14 @@ function radplapag_register_program_post_type() {
 		'name'               => _x( 'Radio Shows', 'post type general name', 'radio-player-page' ),
 		'singular_name'      => _x( 'Radio Show', 'post type singular name', 'radio-player-page' ),
 		'menu_name'          => __( 'Radio Shows', 'radio-player-page' ),
-		'add_new'            => __( 'Add New', 'radio-player-page' ),
+		'add_new'            => __( 'Add Radio Show', 'radio-player-page' ),
 		'add_new_item'       => __( 'Add Radio Show', 'radio-player-page' ),
 		'edit_item'          => __( 'Edit Radio Show', 'radio-player-page' ),
 		'new_item'           => __( 'New Radio Show', 'radio-player-page' ),
 		'view_item'          => __( 'View Radio Show', 'radio-player-page' ),
 		'search_items'       => __( 'Search Radio Shows', 'radio-player-page' ),
-		'not_found'          => __( 'No Radio Shows found.', 'radio-player-page' ),
-		'not_found_in_trash' => __( 'No Radio Shows found in Trash.', 'radio-player-page' ),
+		'not_found'          => __( 'No radio shows found.', 'radio-player-page' ),
+		'not_found_in_trash' => __( 'No radio shows found in Trash.', 'radio-player-page' ),
 		'all_items'          => __( 'Radio Shows', 'radio-player-page' ),
 	);
 
@@ -196,9 +196,12 @@ function radplapag_get_all_programs_for_select() {
  *
  * The list of radplapag_get_all_programs_for_select() plus the program of each saved
  * slot in any other status, so the slot keeps its program. Each one has its status in
- * the label unless it is public (published and without password).
+ * the label unless it is public (published and without password). The ID of a saved
+ * slot that is not a program (deleted for good) is listed as "Radio Show #ID (Deleted)"
+ * (ADR 0077).
  *
  * @since 3.5.0
+ * @since 3.6.0 Lists the ID of a slot whose program is deleted (K106, ADR 0062).
  * @param int $station_id Post ID of radplapag_station; 0 for a new station.
  * @return array<int, array{id: int, name: string, label: string, public: bool}> Published and draft programs by title, then the other programs of the slots in the order they first appear.
  */
@@ -214,6 +217,13 @@ function radplapag_get_station_programs_for_select( $station_id ) {
 	foreach ( $ids as $id ) {
 		$post = get_post( (int) $id );
 		if ( ! $post || 'radplapag_program' !== $post->post_type ) {
+			$label = \RadioPlayerPage\WP\Program_Repository::deleted_label( (int) $id );
+			$out[] = array(
+				'id'     => (int) $id,
+				'name'   => $label,
+				'label'  => $label,
+				'public' => false,
+			);
 			continue;
 		}
 		$is_public = 'publish' === $post->post_status && '' === $post->post_password;
@@ -347,7 +357,7 @@ function radplapag_program_edit_scripts() {
 		'radplapag-program-admin',
 		$admin_url . 'js/program-admin.js',
 		array( 'jquery', 'media-editor' ),
-		'3.5.0',
+		'3.6.0',
 		true
 	);
 }

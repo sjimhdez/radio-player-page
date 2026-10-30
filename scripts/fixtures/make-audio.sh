@@ -4,7 +4,8 @@
 #   hls/                index.m3u8 + 2 s AAC segments of the tone
 #   dash/               manifest.mpd + segments of the tone
 #   intro.mp3           2 s, 880 Hz (distinguishable from the live tone)
-# Requires ffmpeg with libmp3lame and libvorbis. Output is bit-exact so a
+#   hls-id3/            HLS of packed AAC with ID3 song titles (make-id3-hls.mjs, spec 0020)
+# Requires ffmpeg with libmp3lame and libvorbis, and Node. Output is bit-exact so a
 # re-run does not dirty the tree.
 set -euo pipefail
 
@@ -26,5 +27,7 @@ mkdir -p "$OUT/hls" "$OUT/dash"
 	-f dash -seg_duration 2 -use_timeline 1 -use_template 1 \
 	-init_seg_name 'init-$RepresentationID$.m4s' -media_seg_name 'seg-$RepresentationID$-$Number%03d$.m4s' \
 	"$OUT/dash/manifest.mpd"
+
+node "$(dirname "$0")/make-id3-hls.mjs"
 
 du -sh "$OUT"

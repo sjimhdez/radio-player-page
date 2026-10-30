@@ -80,6 +80,11 @@ export function normalize( html, { site, media, mediaNoCors, ids } ) {
 				/([?&]page_id=)(\d+)/g,
 				( _, key, id ) => `${ key }${ idName( id ) }`
 			)
+			// The event anchors of the structured data (ADR 0070).
+			.replace(
+				/(#program-)(\d+)/g,
+				( _, key, id ) => `${ key }${ idName( id ) }`
+			)
 			// One tag per line, so snapshot diffs are readable.
 			.replace( /></g, '>\n<' )
 			.replace( /([^\n])$/, '$1\n' )

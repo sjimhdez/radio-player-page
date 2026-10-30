@@ -1,15 +1,20 @@
-// The audio controller (spec 0006, tasks 2.6 and 2.7): the direct stream, the events
-// of the audio element, the volume, HLS/DASH and the welcome audio, as in
-// src/hooks/use-audio-player.test.tsx, with the K63 cases (fixed in spec 0007) and
-// the K70 regression cases (task 2.9). Spec 0007 fixed C7 and K12: Play after a pause
-// reloads the live stream (ADR 0032). The concurrency suspicions of §4.5 come
-// last (task 2.10). C1 (spec 0007, ADR 0033): one retry without crossOrigin on the
-// direct sources, never with the element in the Web Audio graph. canVisualize and
-// the Web Audio graph (spec 0007, task 1.7; K82, ADR 0031) close the file.
+// The audio controller: the direct stream, the events of the audio element, the
+// volume, HLS/DASH and the welcome audio, as in src/hooks/use-audio-player.test.tsx,
+// with the cases of the welcome audio (K63) and of crossOrigin after it (K70). Play
+// after a pause reloads the live stream (K12, ADR 0032). The direct sources get one
+// retry without crossOrigin, never with the element in the Web Audio graph (ADR 0033).
+// Then come canVisualize and the Web Audio graph (K82, ADR 0031), the concurrency of
+// play() and pause() (K80, K81) and, last, the reconnection of the live stream
+// (ADR 0061).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createAudioController } from 'src/core/audio/audio-controller'
+import {
+  createAudioController,
+  RECONNECT_DELAYS_MS,
+  STALL_MS,
+} from 'src/core/audio/audio-controller'
 import { initialPlayerState } from 'src/core/audio/player-machine'
 import { installFakeAudio, media } from 'src/test/fake-audio'
+import { createFakeClock } from 'src/test/fake-clock'
 import { createFakeDash, createFakeHls } from 'src/test/fake-streaming'
 import { FakeAudioContext, webAudio } from 'src/test/fake-web-audio'
 
@@ -24,13 +29,13 @@ const CHROME =
 const SAFARI =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/27.0.1 Safari/605.1.15'
 
-/** The Web Audio options of a browser with a (fake) AudioContext. */
+/** The Web Audio options of a browser with a (fake) AudioContext */
 const withWebAudio = (userAgent = CHROME) => ({
   createContext: vi.fn(() => new FakeAudioContext() as unknown as AudioContext),
   userAgent,
 })
 
-/** A volume probe that ignores writes, as on iOS (ADR 0036). */
+/** A volume probe that ignores writes, as on iOS (ADR 0036) */
 const readOnlyProbe = () => {
   const probe = new Audio()
   Object.defineProperty(probe, 'volume', { get: () => 1, set: () => {} })
@@ -41,7 +46,7 @@ const IPHONE = {
   userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)',
   maxTouchPoints: 5,
 }
-/** iPadOS 13+ Safari: the desktop user agent of a Mac, with touch (K13, ADR 0036). */
+/** iPadOS 13+ Safari: the desktop user agent of a Mac, with touch (K13, ADR 0036) */
 const IPAD_DESKTOP = { userAgent: SAFARI, maxTouchPoints: 5 }
 
 const live = (streamUrl = MP3) => ({ streamUrl, introUrl: null })
@@ -55,18 +60,18 @@ beforeEach(() => {
 afterEach(() => restore())
 
 /**
- * A controller attached to a new audio element.
+ * A controller attached to a new audio element, with a fake clock, so no controller
+ * leaves a real timer behind (ADR 0061).
  */
 function setup(options: Parameters<typeof createAudioController>[0] = {}) {
-  const controller = createAudioController(options)
+  const fake = createFakeClock(0)
+  const controller = createAudioController({ clock: fake.clock, ...options })
   const audio = new Audio()
   controller.attach(audio)
-  return { controller, audio }
+  return { controller, audio, fake }
 }
 
-/**
- * Counts the listeners of audio that are still registered, by event type.
- */
+/** Counts the listeners of audio that are still registered, by event type */
 function countListeners(audio: HTMLAudioElement) {
   const active = new Map<string, Set<unknown>>()
   const add = audio.addEventListener.bind(audio)
@@ -247,8 +252,8 @@ describe('direct streams', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
   })
 
-  // docs/known-issues.md C7: Play after a pause reloads the live stream, so it plays
-  // from the live edge instead of the buffer (spec 0007, ADR 0032).
+  // Play after a pause reloads the live stream, so it plays from the live edge instead
+  // of the buffer (ADR 0032).
   it('reloads the live stream on play() after a pause (C7)', async () => {
     const { controller, audio } = setup()
     await controller.play(live())
@@ -271,12 +276,16 @@ describe('direct streams', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
   })
 
+  // An error after the live stream has played reconnects instead (ADR 0061).
   it('reloads the stream on play() after an error', async () => {
-    const { controller, audio } = setup()
+    media.failing.add(MP3)
+    const { controller } = setup()
     await controller.play(live())
-    audio.dispatchEvent(new Event('error'))
+    expect(controller.getSnapshot().status).toBe('error')
+    media.failing.delete(MP3)
     await controller.play(live())
-    expect(media.load).toHaveBeenCalledTimes(2)
+    // Two loads for the failing play() and its retry without crossOrigin (ADR 0033).
+    expect(media.load).toHaveBeenCalledTimes(3)
     expect(controller.getSnapshot().status).toBe('playing')
   })
 
@@ -304,7 +313,7 @@ describe('sources', () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
     await controller.play(live(HLS))
-    // Playing: a pause during the load would destroy it (ADR 0034 D3).
+    // Playing: a pause during the load would destroy it (ADR 0034).
     hls.instances[0].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
     await Promise.resolve()
     controller.pause()
@@ -375,7 +384,8 @@ describe('HLS', () => {
     expect(audio.crossOrigin).toBeNull()
   })
 
-  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  // Attaching hls.js is not playing: loading ends with the playing of the element
+  // (ADR 0034).
   it('keeps loading until the element plays (K11)', async () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
@@ -387,7 +397,7 @@ describe('HLS', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
   })
 
-  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  // The pause destroys the load, so hls.js does not play on MANIFEST_PARSED (ADR 0034).
   it('respects a pause pressed while HLS loads (K11)', async () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
@@ -421,7 +431,7 @@ describe('HLS', () => {
     expect(controller.getSnapshot().status).toBe('error')
   })
 
-  // A fatal error arrives after the load, which no longer clears loading (spec 0007, 2.4).
+  // A fatal error arrives after the load, which no longer clears loading (ADR 0034).
   it('clears loading on a fatal hls.js error while it loads', async () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
@@ -443,8 +453,8 @@ describe('HLS', () => {
     expect(controller.getSnapshot().status).toBe('playing')
   })
 
-  // docs/known-issues.md K83: an error of the element while start() is pending waits for
-  // its outcome, with any live source; the fatal hls.js error still sets error.
+  // An error of the element while start() is pending waits for its outcome, with any
+  // live source; the fatal hls.js error still sets error (K83).
   it('drops an error of the element while hls.js starts (K83)', async () => {
     const hls = createFakeHls()
     const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
@@ -456,8 +466,7 @@ describe('HLS', () => {
     expect(controller.getSnapshot().status).toBe('error')
   })
 
-  // docs/known-issues.md C7 and K12: the reload no longer depends on comparing
-  // audio.src with a blob: URL (spec 0007, ADR 0032).
+  // The reload does not depend on comparing audio.src with a blob: URL (K12, ADR 0032).
   it('recreates hls.js to return to the live edge (C7)', async () => {
     const hls = createFakeHls()
     const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
@@ -481,7 +490,8 @@ describe('DASH', () => {
     expect(media.play).not.toHaveBeenCalled()
   })
 
-  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  // Attaching dashjs is not playing: loading ends with the playing of the element
+  // (ADR 0034).
   it('keeps loading until the element plays with DASH (K11)', async () => {
     const dash = createFakeDash()
     const { controller, audio } = setup({ loaders: { loadDash: dash.loadDash } })
@@ -492,7 +502,7 @@ describe('DASH', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
   })
 
-  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  // The pause resets dashjs, which stops its autoplay (ADR 0034).
   it('respects a pause pressed while DASH loads (K11)', async () => {
     const dash = createFakeDash()
     const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
@@ -520,7 +530,7 @@ describe('DASH', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
   })
 
-  // docs/known-issues.md K83, as with hls.js.
+  // As with hls.js (K83).
   it('drops an error of the element while dashjs starts (K83)', async () => {
     const dash = createFakeDash()
     const { controller, audio } = setup({ loaders: { loadDash: dash.loadDash } })
@@ -532,7 +542,7 @@ describe('DASH', () => {
     expect(controller.getSnapshot().status).toBe('error')
   })
 
-  // docs/known-issues.md C7 (spec 0007, ADR 0032).
+  // As with hls.js (ADR 0032).
   it('recreates dashjs to return to the live edge after a pause (C7)', async () => {
     const dash = createFakeDash()
     const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
@@ -611,14 +621,17 @@ describe('welcome audio (intro)', () => {
     expect(controller.getSnapshot().status).toBe('paused')
   })
 
-  it('ignores ended on the live stream', async () => {
-    const { controller, audio } = setup()
+  // The 3.5.0 player ignored ended on the live stream; now it reconnects (ADR 0061).
+  it('reconnects the live stream that follows it on ended, after the first delay (C8)', async () => {
+    const { controller, audio, fake } = setup()
     await controller.play(withIntro())
     audio.dispatchEvent(new Event('ended'))
     await vi.waitFor(() => expect(controller.getSnapshot().activeSource).toBe('live'))
     audio.dispatchEvent(new Event('ended'))
     await Promise.resolve()
     expect(media.load.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3])
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3])
   })
 
   it('ignores ended before anything is loaded', async () => {
@@ -643,7 +656,8 @@ describe('welcome audio (intro)', () => {
     })
   })
 
-  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  // The live stream that follows a failed welcome audio keeps loading until the element
+  // plays (ADR 0034).
   it('keeps loading until HLS plays when it fails (K11)', async () => {
     media.failing.add(INTRO)
     const hls = createFakeHls()
@@ -680,7 +694,7 @@ describe('welcome audio (intro)', () => {
     expect(controller.getSnapshot().introConsumed).toBe(false)
   })
 
-  // docs/known-issues.md K70, fixed in task 2.9 (ADR 0004)
+  // The MSE path takes no crossOrigin, even after the welcome audio set it (ADR 0004).
   it('clears crossOrigin on the hls.js path after the welcome audio (K70)', async () => {
     const hls = createFakeHls()
     const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
@@ -763,9 +777,7 @@ describe('streams without CORS (C1)', () => {
     expect(controller.getSnapshot().status).toBe('error')
   })
 
-  /**
-   * Records each status and loading the controller publishes, without repeats.
-   */
+  /** Records each status and loading the controller publishes, without repeats */
   const recordPublished = (controller: ReturnType<typeof setup>['controller']) => {
     const published: Array<{ status: string; loading: boolean }> = []
     controller.subscribe(() => {
@@ -792,7 +804,7 @@ describe('streams without CORS (C1)', () => {
     media.release()
     await playing
 
-    // The Dashboard opens its alert on status 'error' with loading false.
+    // The PlayerPage opens its alert on status 'error' with loading false.
     expect(published).toEqual([
       { status: 'idle', loading: true },
       { status: 'idle', loading: false },
@@ -854,7 +866,7 @@ describe('currently (docs/known-issues.md)', () => {
     expect(controller.getSnapshot().introLocked).toBe(false)
     media.failing.clear()
     await controller.play(withIntro())
-    // The live stream fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    // The live stream fails twice: with crossOrigin and on its retry (ADR 0033).
     expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3, MP3])
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
@@ -927,7 +939,7 @@ describe('currently (docs/known-issues.md)', () => {
     // The error of the element comes before the rejection of its play().
     audio.dispatchEvent(new Event('error'))
     await playing
-    // The welcome audio fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    // The welcome audio fails twice: with crossOrigin and on its retry (ADR 0033).
     expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, INTRO, MP3])
     expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
   })
@@ -996,8 +1008,8 @@ describe('volume', () => {
     expect(volumeProbe).toHaveBeenCalledTimes(1)
   })
 
-  // K108: iOS 18 reads the write back at once and undoes it later, so the probe
-  // alone says it can be changed (ADR 0056).
+  // iOS 18 reads the write back at once and undoes it later, so the probe alone says it
+  // can be changed (K108, ADR 0056).
   for (const [device, platform] of [
     ['an iPhone', IPHONE],
     ['an iPad with the desktop site', IPAD_DESKTOP],
@@ -1039,11 +1051,11 @@ describe('volume', () => {
   })
 })
 
-// Concurrency suspicions of the 0002 triage (spec 0006 §4.5, D7), as in the
-// 'concurrency (spec 0006, 2.2)' cases of src/hooks/use-audio-player.test.tsx.
+// The concurrency of play() and pause(), as in the 'concurrency' cases of
+// src/hooks/use-audio-player.test.tsx.
 describe('concurrency (spec 0006, 2.10)', () => {
-  // docs/known-issues.md K80: a second play() while hls.js loads gets the pending
-  // play(), so only one Hls is created, as with a single call.
+  // A second play() while hls.js loads gets the pending play(), so only one Hls is
+  // created, as with a single call (K80).
   it('keeps a single hls.js alive after a second play() while it loads (K80)', async () => {
     const hls = createFakeHls()
     let resolveLoader!: () => void
@@ -1095,13 +1107,13 @@ describe('concurrency (spec 0006, 2.10)', () => {
     await controller.play(live(HLS))
     controller.pause()
     await controller.play(live(HLS))
-    // Play after a pause reloads the live stream (C7), so the second play() was not
+    // Play after a pause reloads the live stream (ADR 0032), so the second play() was not
     // deduplicated.
     expect(hls.instances).toHaveLength(2)
   })
 
-  // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
-  // when pause() interrupts it; the pause cancels the load (spec 0007, ADR 0034 D3).
+  // A browser rejects the pending play() with AbortError when pause() interrupts it;
+  // the pause cancels the load (K81, ADR 0034).
   it('stays paused, without an error, when a pause interrupts the loading MP3 (K81)', async () => {
     media.hold = true
     const { controller } = setup()
@@ -1115,8 +1127,8 @@ describe('concurrency (spec 0006, 2.10)', () => {
     expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
   })
 
-  // Risk 5 of spec 0007: the pause releases the pending play() (K80), so the next
-  // one loads again, and the cancelled load creates no hls.js of its own.
+  // The pause releases the pending play() (K80), so the next one loads again, and the
+  // cancelled load creates no hls.js of its own.
   it('reloads on play() after a pause that cancelled the load', async () => {
     const hls = createFakeHls()
     const releases: (() => void)[] = []
@@ -1268,5 +1280,649 @@ describe('visualization (K82, ADR 0031)', () => {
     void controller.play(live(OGG))
 
     expect(controller.getSnapshot()).toMatchObject({ loading: true, canVisualize: false })
+  })
+})
+
+describe('reconnection (C8, ADR 0061)', () => {
+  /** A controller whose live MP3 has played */
+  async function playing(options: Parameters<typeof createAudioController>[0] = {}) {
+    const context = setup(options)
+    await context.controller.play(live())
+    expect(context.controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+    return context
+  }
+
+  it('reconnects after an error of the live stream, without publishing it', async () => {
+    const { controller, audio, fake } = await playing()
+    const published: string[] = []
+    controller.subscribe(() => published.push(controller.getSnapshot().status))
+
+    audio.dispatchEvent(new Event('error'))
+    // What WebKitGTK fires after the error of a cut.
+    audio.dispatchEvent(new Event('pause'))
+    audio.dispatchEvent(new Event('ended'))
+
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'playing',
+      loading: true,
+      canVisualize: false,
+    })
+    fake.advance(RECONNECT_DELAYS_MS[0] - 1)
+    expect(media.load).toHaveBeenCalledTimes(1)
+    fake.advance(1)
+    expect(media.load).toHaveBeenCalledTimes(2)
+    expect(audio.src).toBe(MP3)
+    expect(audio.crossOrigin).toBe('anonymous')
+    await vi.waitFor(() => expect(controller.getSnapshot().loading).toBe(false))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', activeSource: 'live' })
+    expect(published).not.toContain('error')
+    expect(published).not.toContain('paused')
+  })
+
+  it('publishes reconnecting while it reconnects, until the live stream plays again (K129)', async () => {
+    const { controller, audio, fake } = await playing()
+    expect(controller.getSnapshot().reconnecting).toBe(false)
+
+    audio.dispatchEvent(new Event('error'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', reconnecting: true })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    await vi.waitFor(() => expect(controller.getSnapshot().loading).toBe(false))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', reconnecting: false })
+  })
+
+  it('clears reconnecting on pause() during the wait (K129)', async () => {
+    const { controller, audio } = await playing()
+    audio.dispatchEvent(new Event('error'))
+    controller.pause()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', reconnecting: false })
+  })
+
+  it('reconnects on ended of the live stream', async () => {
+    const { controller, audio, fake } = await playing()
+    audio.dispatchEvent(new Event('ended'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load).toHaveBeenCalledTimes(2)
+  })
+
+  // The browser pauses an element that reaches its end before it fires ended.
+  it('does not publish the pause before ended, and reconnects', async () => {
+    const { controller, audio, fake } = await playing()
+    Object.defineProperty(audio, 'ended', { configurable: true, value: true })
+    audio.dispatchEvent(new Event('pause'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+    audio.dispatchEvent(new Event('ended'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps an outside pause of the live stream as a pause', async () => {
+    const { controller, audio, fake } = await playing()
+    audio.dispatchEvent(new Event('pause'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
+    fake.advance(60_000)
+    expect(media.load).toHaveBeenCalledTimes(1)
+  })
+
+  // A call or unplugged headphones pause it; the server may then drop the idle
+  // connection: it must not play again on its own.
+  it('does not reconnect an error after an outside pause', async () => {
+    const { controller, audio, fake } = await playing()
+    audio.pause()
+    audio.dispatchEvent(new Event('error'))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+    fake.advance(60_000)
+    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(fake.timerCount()).toBe(0)
+  })
+
+  /** Lets a failed attempt settle and schedule the next one */
+  const settle = async () => {
+    for (let i = 0; i < 10; i++) await Promise.resolve()
+  }
+
+  /** Cuts the live stream and makes every attempt fail, as a stream that is down */
+  async function cutForGood() {
+    const context = await playing()
+    media.failing.add(MP3)
+    context.audio.dispatchEvent(new Event('error'))
+    return context
+  }
+
+  // Each failed attempt loads twice: the play() and its retry without crossOrigin
+  // (ADR 0033).
+  it('waits 1, 2, 4, 8, 15 and 30 s between attempts', async () => {
+    const { fake } = await cutForGood()
+    let loads = 1
+    for (const delay of RECONNECT_DELAYS_MS) {
+      fake.advance(delay - 1)
+      await settle()
+      expect(media.load).toHaveBeenCalledTimes(loads)
+      fake.advance(1)
+      await settle()
+      loads += 2
+      expect(media.load).toHaveBeenCalledTimes(loads)
+    }
+  })
+
+  it('sets error after the sixth failed attempt, and not before', async () => {
+    const { controller, fake } = await cutForGood()
+    const published: { status: string; loading: boolean }[] = []
+    controller.subscribe(() => {
+      const { status, loading } = controller.getSnapshot()
+      published.push({ status, loading })
+    })
+    for (const delay of RECONNECT_DELAYS_MS.slice(0, -1)) {
+      fake.advance(delay)
+      await settle()
+      expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    }
+    fake.advance(RECONNECT_DELAYS_MS[RECONNECT_DELAYS_MS.length - 1])
+    await settle()
+    // The same order as a failed play(): the alert opens once loading is off.
+    expect(published).toEqual([
+      { status: 'error', loading: true },
+      { status: 'error', loading: false },
+    ])
+    const loads = media.load.mock.calls.length
+    fake.advance(120_000)
+    expect(media.load).toHaveBeenCalledTimes(loads)
+  })
+
+  it('gives reconnect-exhausted after the sixth failed attempt (ADR 0065)', async () => {
+    const { controller, fake } = await cutForGood()
+    for (const delay of RECONNECT_DELAYS_MS) {
+      fake.advance(delay)
+      await settle()
+      if (controller.getSnapshot().status !== 'error') {
+        expect(controller.getSnapshot().errorReason).toBeNull()
+      }
+    }
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'error',
+      errorReason: { code: 'reconnect-exhausted' },
+      reconnecting: false,
+    })
+  })
+
+  it('reloads on play() after the attempts run out', async () => {
+    const { controller, fake } = await cutForGood()
+    for (const delay of RECONNECT_DELAYS_MS) {
+      fake.advance(delay)
+      await settle()
+    }
+    expect(controller.getSnapshot().status).toBe('error')
+    media.failing.delete(MP3)
+    await controller.play(live())
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  it('restarts the count after an attempt plays', async () => {
+    const { controller, audio, fake } = await cutForGood()
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    await settle()
+    media.failing.delete(MP3)
+    fake.advance(RECONNECT_DELAYS_MS[1])
+    await settle()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+    const loads = media.load.mock.calls.length
+    audio.dispatchEvent(new Event('error'))
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load).toHaveBeenCalledTimes(loads + 1)
+  })
+
+  it('counts an attempt that never plays as failed, and ignores it afterwards', async () => {
+    const { controller, audio, fake } = await playing()
+    media.hold = true
+    audio.dispatchEvent(new Event('error'))
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load).toHaveBeenCalledTimes(2)
+    fake.advance(STALL_MS - 1)
+    await settle()
+    expect(media.load).toHaveBeenCalledTimes(2)
+    fake.advance(1)
+    await settle()
+    fake.advance(RECONNECT_DELAYS_MS[1])
+    expect(media.load).toHaveBeenCalledTimes(3)
+    // The play() of the first attempt rejects late: nothing is published.
+    media.fail()
+    await settle()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+  })
+
+  // An attempt runs outside the gesture, so a phone may reject its play().
+  it('counts a play() rejected with NotAllowedError as a failed attempt', async () => {
+    const { audio, fake } = await playing()
+    media.hold = true
+    audio.dispatchEvent(new Event('error'))
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    media.fail('NotAllowedError')
+    await settle()
+    // No retry without crossOrigin: it is not a media error (ADR 0033).
+    expect(media.load).toHaveBeenCalledTimes(2)
+    fake.advance(RECONNECT_DELAYS_MS[1])
+    expect(media.load).toHaveBeenCalledTimes(3)
+  })
+
+  it('counts a CORS failure through Web Audio as a failed attempt, and visualizes again once it plays', async () => {
+    const { controller, audio, fake } = await playing({ webAudio: withWebAudio() })
+    expect(controller.getSnapshot().canVisualize).toBe(true)
+    media.corsBlocked.add(MP3)
+    audio.dispatchEvent(new Event('error'))
+    expect(controller.getSnapshot()).toMatchObject({ loading: true, canVisualize: false })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    await settle()
+    // No retry without crossOrigin: the element already goes through Web Audio (ADR 0033).
+    expect(media.load).toHaveBeenCalledTimes(2)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    media.corsBlocked.delete(MP3)
+    fake.advance(RECONNECT_DELAYS_MS[1])
+    await settle()
+    expect(media.load).toHaveBeenCalledTimes(3)
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'playing',
+      loading: false,
+      canVisualize: true,
+    })
+  })
+
+  /**
+   * Gives audio a currentTime the test moves, and plays for seconds, one second per tick
+   * of the watch.
+   */
+  function withClock(audio: HTMLAudioElement, fake: ReturnType<typeof createFakeClock>) {
+    let time = 0
+    Object.defineProperty(audio, 'currentTime', { configurable: true, get: () => time })
+    return {
+      play(seconds: number) {
+        for (let i = 0; i < seconds; i++) {
+          time += 1
+          fake.advance(1000)
+        }
+      },
+    }
+  }
+
+  it('reconnects when currentTime stops advancing for STALL_MS (Chromium, WebKit)', async () => {
+    const { controller, audio, fake } = await playing()
+    const element = withClock(audio, fake)
+    element.play(3)
+    // Chromium marks the stall as buffering; WebKit fires nothing.
+    audio.dispatchEvent(new Event('waiting'))
+    fake.advance(STALL_MS - 1)
+    expect(media.load).toHaveBeenCalledTimes(1)
+    fake.advance(1)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps watching while currentTime advances', async () => {
+    const { controller, audio, fake } = await playing()
+    withClock(audio, fake).play(120)
+    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  it('does not watch an element paused from outside', async () => {
+    const { controller, audio, fake } = await playing()
+    withClock(audio, fake)
+    audio.pause()
+    fake.advance(120_000)
+    expect(media.load).toHaveBeenCalledTimes(1)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
+  })
+
+  it('stops watching on pause()', async () => {
+    const { controller, fake } = await playing()
+    expect(fake.timerCount()).toBe(1)
+    controller.pause()
+    expect(fake.timerCount()).toBe(0)
+  })
+
+  it('watches again once a reconnection plays', async () => {
+    const { audio, fake } = await playing()
+    const element = withClock(audio, fake)
+    audio.dispatchEvent(new Event('error'))
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    element.play(3)
+    fake.advance(STALL_MS)
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load).toHaveBeenCalledTimes(3)
+  })
+
+  // A direct source keeps loading after its attempt runs out, and may still play.
+  it('watches again after an attempt that ran out plays late', async () => {
+    const { controller, audio, fake } = await playing()
+    const element = withClock(audio, fake)
+    media.hold = true
+    audio.dispatchEvent(new Event('error'))
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    fake.advance(STALL_MS)
+    await settle()
+    media.release()
+    await settle()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+    element.play(3)
+    fake.advance(STALL_MS)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+  })
+
+  // hls.js and dashjs jump to the live edge and recover on their own, so the watch
+  // ignores them: their fatal error counts instead.
+  it.each([
+    ['hls.js', HLS],
+    ['dashjs', DASH],
+  ])('does not watch %s', async (_, url) => {
+    const hls = createFakeHls()
+    const dash = createFakeDash()
+    const { controller, audio, fake } = setup({
+      loaders: { loadHls: hls.loadHls, loadDash: dash.loadDash },
+    })
+    withClock(audio, fake)
+    await controller.play(live(url))
+    audio.dispatchEvent(new Event('playing'))
+    fake.advance(120_000)
+    expect(hls.instances.length + dash.players.length).toBe(1)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  it('watches native HLS', async () => {
+    const hls = createFakeHls()
+    hls.setSupported(false)
+    const { controller, audio, fake } = setup({ loaders: { loadHls: hls.loadHls } })
+    withClock(audio, fake)
+    await controller.play(live(HLS))
+    fake.advance(STALL_MS)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+  })
+
+  /** A controller whose live stream through hls.js has played */
+  async function playingHls() {
+    const hls = createFakeHls()
+    const context = setup({ loaders: { loadHls: hls.loadHls } })
+    await context.controller.play(live(HLS))
+    // What the element fires once hls.js plays on MANIFEST_PARSED.
+    context.audio.dispatchEvent(new Event('playing'))
+    return { ...context, hls }
+  }
+
+  it('reconnects hls.js after a fatal error once it has played', async () => {
+    const { controller, fake, hls } = await playingHls()
+    hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    await vi.waitFor(() => expect(hls.instances).toHaveLength(2))
+    expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
+    expect(hls.instances[1].loadSource).toHaveBeenCalledWith(HLS)
+  })
+
+  it('reconnects dashjs after an error once it has played', async () => {
+    const dash = createFakeDash()
+    const { controller, audio, fake } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    audio.dispatchEvent(new Event('playing'))
+    dash.players[0].handlers.error({ error: { code: 17 } })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    await vi.waitFor(() => expect(dash.players).toHaveLength(2))
+    expect(dash.players[0].reset).toHaveBeenCalledTimes(1)
+  })
+
+  it('counts a fatal error of hls.js during an attempt as failed', async () => {
+    const { controller, fake, hls } = await playingHls()
+    hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    await vi.waitFor(() => expect(hls.instances).toHaveLength(2))
+    hls.instances[1].handlers.hlsError('hlsError', { fatal: true })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    fake.advance(RECONNECT_DELAYS_MS[1])
+    await vi.waitFor(() => expect(hls.instances).toHaveLength(3))
+  })
+
+  it('counts a play() of hls.js rejected during an attempt as failed', async () => {
+    const { controller, fake, hls } = await playingHls()
+    hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    await vi.waitFor(() => expect(hls.instances).toHaveLength(2))
+    media.hold = true
+    hls.instances[1].handlers.hlsManifestParsed('hlsManifestParsed', { fatal: false })
+    media.fail('NotAllowedError')
+    await vi.waitFor(() => expect(media.pending).toHaveLength(0))
+    await Promise.resolve()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    fake.advance(RECONNECT_DELAYS_MS[1])
+    await vi.waitFor(() => expect(hls.instances).toHaveLength(3))
+  })
+
+  it('keeps the error of a fatal error of hls.js before it plays', async () => {
+    const hls = createFakeHls()
+    const { controller, fake } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(live(HLS))
+    hls.instances[0].handlers.hlsError('hlsError', { fatal: true })
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+    fake.advance(120_000)
+    expect(hls.instances).toHaveLength(1)
+  })
+
+  it('cancels the reconnection on pause() during the wait', async () => {
+    const { controller, audio, fake } = await playing()
+    audio.dispatchEvent(new Event('error'))
+    controller.pause()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
+    expect(fake.timerCount()).toBe(0)
+    fake.advance(120_000)
+    expect(media.load).toHaveBeenCalledTimes(1)
+  })
+
+  it('cancels the reconnection on pause() during an attempt, and ignores its outcome', async () => {
+    const { controller, audio, fake } = await playing()
+    media.hold = true
+    audio.dispatchEvent(new Event('error'))
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load).toHaveBeenCalledTimes(2)
+    controller.pause()
+    expect(fake.timerCount()).toBe(0)
+    media.fail('AbortError')
+    await settle()
+    fake.advance(120_000)
+    expect(media.load).toHaveBeenCalledTimes(2)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'paused', loading: false })
+  })
+
+  it('cancels the reconnection on play() of another stream, which loads at once', async () => {
+    const { controller, audio, fake } = await playing()
+    audio.dispatchEvent(new Event('error'))
+    await controller.play(live(OGG))
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+    // Under STALL_MS: currentTime does not move in these tests.
+    fake.advance(STALL_MS - 1)
+    expect(media.load.mock.calls.map(([src]) => src)).toEqual([MP3, OGG])
+  })
+
+  it('does nothing on play() of the same stream while it reconnects', async () => {
+    const { controller, audio, fake } = await playing()
+    audio.dispatchEvent(new Event('error'))
+    await controller.play(live())
+    expect(media.load).toHaveBeenCalledTimes(1)
+    fake.advance(RECONNECT_DELAYS_MS[0])
+    expect(media.load).toHaveBeenCalledTimes(2)
+  })
+
+  // WebKitGTK pauses the element after the error of a cut.
+  it('loads at once on play() while it reconnects with the element paused', async () => {
+    const { controller, audio, fake } = await playing()
+    audio.dispatchEvent(new Event('error'))
+    audio.pause()
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: true })
+    await controller.play(live())
+    expect(media.load).toHaveBeenCalledTimes(2)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', loading: false })
+    // Under STALL_MS: currentTime does not move in these tests.
+    fake.advance(STALL_MS - 1)
+    expect(media.load).toHaveBeenCalledTimes(2)
+  })
+
+  it('dispose() stops watching and cancels the reconnection', async () => {
+    const first = await playing()
+    expect(first.fake.timerCount()).toBe(1)
+    first.controller.dispose()
+    expect(first.fake.timerCount()).toBe(0)
+
+    const second = await playing()
+    second.audio.dispatchEvent(new Event('error'))
+    second.controller.dispose()
+    expect(second.fake.timerCount()).toBe(0)
+  })
+
+  it('does not reconnect a live stream that never played', async () => {
+    media.failing.add(MP3)
+    const { controller, fake } = setup()
+    await controller.play(live())
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+    const loads = media.load.mock.calls.length
+    fake.advance(120_000)
+    expect(media.load).toHaveBeenCalledTimes(loads)
+  })
+
+  it('does not reconnect after the user paused it', async () => {
+    const { controller, audio, fake } = await playing()
+    controller.pause()
+    audio.dispatchEvent(new Event('error'))
+    expect(controller.getSnapshot().status).toBe('error')
+    fake.advance(120_000)
+    expect(media.load).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not reconnect the welcome audio, nor the live stream that fails after it', async () => {
+    const { controller, audio, fake } = setup()
+    await controller.play(withIntro())
+    expect(controller.getSnapshot()).toMatchObject({ activeSource: 'intro', status: 'playing' })
+    media.failing.add(MP3)
+    audio.dispatchEvent(new Event('ended'))
+    await vi.waitFor(() => expect(controller.getSnapshot().status).toBe('error'))
+    const loads = media.load.mock.calls.length
+    fake.advance(120_000)
+    expect(media.load).toHaveBeenCalledTimes(loads)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', loading: false })
+  })
+})
+
+describe('error reason (ADR 0065)', () => {
+  const HTTP_MP3 = 'http://radio.test/live.mp3'
+
+  /** Gives audio the MediaError code a browser would set */
+  const mediaError = (audio: HTMLAudioElement, code: number) =>
+    Object.defineProperty(audio, 'error', { configurable: true, value: { code } })
+
+  it('starts without a reason', () => {
+    expect(setup().controller.getSnapshot().errorReason).toBeNull()
+  })
+
+  it('gives not-supported when the direct stream fails after its retry without CORS', async () => {
+    media.failing.add(MP3)
+    const { controller } = setup()
+    await controller.play(live())
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'error',
+      errorReason: { code: 'not-supported' },
+    })
+  })
+
+  it('gives unreachable with a network MediaError', async () => {
+    media.failing.add(MP3)
+    const { controller, audio } = setup()
+    mediaError(audio, 2)
+    await controller.play(live())
+    expect(controller.getSnapshot().errorReason).toEqual({ code: 'unreachable' })
+  })
+
+  it('gives mixed-content for an http stream on an https page', async () => {
+    media.failing.add(HTTP_MP3)
+    const { controller } = setup({ pageProtocol: 'https:' })
+    await controller.play(live(HTTP_MP3))
+    expect(controller.getSnapshot().errorReason).toEqual({ code: 'mixed-content' })
+  })
+
+  it('gives no reason for a play() that is not allowed', async () => {
+    media.hold = true
+    const { controller } = setup()
+    const pending = controller.play(live())
+    await Promise.resolve()
+    media.fail('NotAllowedError')
+    await pending
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', errorReason: null })
+  })
+
+  it('clears the reason when Play loads again', async () => {
+    media.failing.add(MP3)
+    const { controller } = setup()
+    await controller.play(live())
+    media.failing.delete(MP3)
+    media.hold = true
+    const pending = controller.play(live())
+    expect(controller.getSnapshot()).toMatchObject({ loading: true, errorReason: null })
+    media.release()
+    await pending
+    expect(controller.getSnapshot()).toMatchObject({ status: 'playing', errorReason: null })
+  })
+
+  it('gives the reason of the live stream that fails after the welcome audio', async () => {
+    media.failing.add(INTRO)
+    media.failing.add(MP3)
+    const { controller } = setup()
+    await controller.play(withIntro())
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'error',
+      errorReason: { code: 'not-supported' },
+    })
+  })
+
+  it('gives the reason of an error of the element after the live stream started', async () => {
+    const hls = createFakeHls()
+    const { controller, audio } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(live(HLS))
+    mediaError(audio, 4)
+    audio.dispatchEvent(new Event('error'))
+    expect(controller.getSnapshot()).toMatchObject({
+      status: 'error',
+      errorReason: { code: 'not-supported' },
+    })
+  })
+
+  it.each([
+    [
+      { fatal: true, type: 'networkError', response: { code: 404 } },
+      { code: 'http', status: 404 },
+    ],
+    [{ fatal: true, type: 'networkError', response: { code: 0 } }, { code: 'unreachable' }],
+    [{ fatal: true, type: 'mediaError' }, null],
+  ])('gives the reason of the fatal hls.js error %j: %j', async (data, reason) => {
+    const hls = createFakeHls()
+    const { controller } = setup({ loaders: { loadHls: hls.loadHls } })
+    await controller.play(live(HLS))
+    hls.instances[0].handlers.hlsError('hlsError', data)
+    expect(controller.getSnapshot()).toMatchObject({ status: 'error', errorReason: reason })
+  })
+
+  it('gives the HTTP status of a dashjs error', async () => {
+    const dash = createFakeDash()
+    const { controller } = setup({ loaders: { loadDash: dash.loadDash } })
+    await controller.play(live(DASH))
+    dash.players[0].handlers.error({ error: { code: 25, data: { response: { status: 503 } } } })
+    expect(controller.getSnapshot().errorReason).toEqual({ code: 'http', status: 503 })
+  })
+
+  it('gives mixed-content for a fatal hls.js error of an http stream on an https page', async () => {
+    const hls = createFakeHls()
+    const { controller } = setup({ loaders: { loadHls: hls.loadHls }, pageProtocol: 'https:' })
+    await controller.play(live('http://radio.test/live.m3u8'))
+    hls.instances[0].handlers.hlsError('hlsError', {
+      fatal: true,
+      type: 'networkError',
+      response: { code: 0 },
+    })
+    expect(controller.getSnapshot().errorReason).toEqual({ code: 'mixed-content' })
   })
 })

@@ -16,6 +16,7 @@ defined( 'ABSPATH' ) || exit;
  *
  * @since 2.0.1
  * @since 3.3.0 Split: station-admin.js on station screen only; CSS on station + program.
+ * @since 3.6.0 Registers stream-rules.js and localizes the "Test stream" AJAX URL and nonce.
  *
  * @param string $hook_suffix Current admin page (e.g. post-new.php, post.php).
  * @return void
@@ -33,7 +34,7 @@ function radplapag_admin_scripts( $hook_suffix ) { // phpcs:ignore Generic.CodeA
 		'radplapag-admin',
 		$admin_url . 'css/admin.css',
 		array(),
-		'3.5.0'
+		'3.6.0'
 	);
 
 	if ( $is_station ) {
@@ -42,14 +43,21 @@ function radplapag_admin_scripts( $hook_suffix ) { // phpcs:ignore Generic.CodeA
 			'radplapag-schedule-rules',
 			$admin_url . 'js/schedule-rules.js',
 			array(),
-			'3.5.0',
+			'3.6.0',
+			true
+		);
+		wp_register_script(
+			'radplapag-stream-rules',
+			$admin_url . 'js/stream-rules.js',
+			array(),
+			'3.6.0',
 			true
 		);
 		wp_enqueue_script(
 			'radplapag-station-admin',
 			$admin_url . 'js/station-admin.js',
-			array( 'jquery', 'media-editor', 'radplapag-schedule-rules' ),
-			'3.5.0',
+			array( 'jquery', 'media-editor', 'radplapag-schedule-rules', 'radplapag-stream-rules' ),
+			'3.6.0',
 			true
 		);
 		$post_id = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
@@ -66,6 +74,11 @@ function radplapag_admin_scripts( $hook_suffix ) { // phpcs:ignore Generic.CodeA
 					'assignedPlayerPages' => function_exists( 'radplapag_get_player_pages_assigned_to_other_stations' )
 						? radplapag_get_player_pages_assigned_to_other_stations( $post_id )
 						: array(),
+					// "Test stream" (spec 0018, ADR 0064).
+					'probe'               => array(
+						'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+						'nonce'   => wp_create_nonce( 'radplapag_probe_stream' ),
+					),
 				)
 			)
 		);
@@ -73,7 +86,7 @@ function radplapag_admin_scripts( $hook_suffix ) { // phpcs:ignore Generic.CodeA
 			'radplapag-program-admin',
 			$admin_url . 'js/program-admin.js',
 			array( 'jquery', 'media-editor' ),
-			'3.5.0',
+			'3.6.0',
 			true
 		);
 	}
@@ -128,6 +141,29 @@ function radplapag_menu_redirect_to_stations() {
 	wp_safe_redirect( admin_url( 'edit.php?post_type=radplapag_station' ) );
 	exit;
 }
+
+/**
+ * Probes a stream URL from the server for the "Test stream" button (AJAX).
+ *
+ * Checks the radplapag_probe_stream nonce and manage_options before reading the
+ * URL; only then does it request anything, and only the URL given, its Icecast
+ * status-json.xsl and its https variant. The report never carries a body.
+ *
+ * @since 3.6.0 Delegates to RadioPlayerPage\WP\Stream_Probe (ADR 0064).
+ * @return void
+ */
+function radplapag_ajax_probe_stream() {
+	check_ajax_referer( 'radplapag_probe_stream' );
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error( null, 403 );
+	}
+	$url = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ), array( 'http', 'https' ) ) : '';
+	if ( '' === $url ) {
+		wp_send_json_error( null, 400 );
+	}
+	wp_send_json_success( RadioPlayerPage\WP\Stream_Probe::probe( $url ) );
+}
+add_action( 'wp_ajax_radplapag_probe_stream', 'radplapag_ajax_probe_stream' );
 
 $radplapag_admin_dir = plugin_dir_path( __FILE__ );
 require_once $radplapag_admin_dir . 'admin-strings.php';

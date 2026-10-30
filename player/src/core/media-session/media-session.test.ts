@@ -1,5 +1,5 @@
-// applyMediaSession, mimeTypeFor and artworkFor (spec 0006, task 3.4). The cases mirror
-// src/hooks/use-media-session.test.tsx with a fake MediaSession injected.
+// applyMediaSession, mimeTypeFor and artworkFor. The cases mirror
+// src/hooks/use-media-session.test.ts with a fake MediaSession injected.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   applyMediaSession,
@@ -67,7 +67,7 @@ describe('mimeTypeFor', () => {
     expect(mimeTypeFor(`https://site.test/${file}`)).toBe(type)
   })
 
-  // known-issues.md K14: the query and the hash are not part of the extension.
+  // The query and the hash are not part of the extension (K14).
   it.each([
     ['https://site.test/logo.jpg?ver=2', 'image/jpeg'],
     ['https://cdn.test/logo.webp#x', 'image/webp'],

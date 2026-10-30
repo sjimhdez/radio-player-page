@@ -1,0 +1,11 @@
+HTTP/1.1 200 OK
+Server: openresty/1.17.8.2
+Date: Wed, 28 Oct 2026 02:28:11 GMT
+Content-Type: application/octet-stream
+Content-Length: 40
+Last-Modified: Thu, 22 Oct 2026 13:58:56 GMT
+Connection: keep-alive
+ETag: "6ada16a0-28"
+Expires: Wed, 28 Oct 2026 02:28:10 GMT
+Cache-Control: no-cache
+Accept-Ranges: bytes

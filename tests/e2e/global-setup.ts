@@ -75,15 +75,21 @@ async function saveAdminState( baseURL: string ) {
  * of scripts/fixtures/seed.php and the e2e variants of
  * tests/e2e/fixtures/seed-e2e.php, both of which remove the previous run's
  * posts first. Saves the admin session and starts the media servers (:8901
- * with CORS, :8902 without). Returns the teardown that stops them.
+ * with CORS, :8902 without, :8903 with readable ICY and :8904 like a
+ * Shoutcast; spec 0020). Returns the teardown that stops them.
  *
  * @param config Playwright config (for the site's baseURL).
  */
 export default async function globalSetup( config: FullConfig ) {
 	// Dynamic import: Playwright compiles static imports to require(), which
 	// breaks import.meta in the ES module.
-	const { MEDIA_NOCORS_PORT, MEDIA_PORT, startMediaServers } =
-		await import( './media-server.mjs' );
+	const {
+		MEDIA_ICY_PORT,
+		MEDIA_NOCORS_PORT,
+		MEDIA_PORT,
+		MEDIA_SHOUTCAST_PORT,
+		startMediaServers,
+	} = await import( './media-server.mjs' );
 
 	// env:start:min and env:start:latest share the database. Going up, the
 	// admin asks for "Database Update Required"; going down, WP 6.6 cannot read
@@ -123,6 +129,8 @@ export default async function globalSetup( config: FullConfig ) {
 			`${ PLUGIN_DIR }/tests/e2e/fixtures/seed-e2e.php`,
 			`http://localhost:${ MEDIA_PORT }`,
 			`http://localhost:${ MEDIA_NOCORS_PORT }`,
+			`http://localhost:${ MEDIA_ICY_PORT }`,
+			`http://localhost:${ MEDIA_SHOUTCAST_PORT }`,
 			'--user=admin'
 		)
 	) as Pick< Seed, 'urls' | 'ids' >;

@@ -1,0 +1,425 @@
+import { describe, expect, it } from 'vitest'
+import type { ProgramDefinition, Schedule } from 'src/types/global'
+import {
+  findActiveProgram,
+  findIncomingProgram,
+  getAllProgramsWithSlots,
+  getProgramsForDay,
+  getProgramsForWeekOrdered,
+  isProgramActive,
+} from 'src/core/schedule/program-schedule'
+
+const SUNDAY = 0
+const MONDAY = 1
+const TUESDAY = 2
+const WEDNESDAY = 3
+const FRIDAY = 5
+const SATURDAY = 6
+
+function at(time: string): number {
+  const [hour, minute] = time.split(':').map(Number)
+  return hour * 60 + minute
+}
+
+function slot(program_id: string, start: string, end: string, is_rerun?: boolean) {
+  return { program_id, start, end, is_rerun }
+}
+
+const programs: ProgramDefinition[] = [
+  {
+    id: 'morning',
+    name: 'morning show',
+    description: 'Wake up',
+    extendedDescription: 'Long text',
+    logoUrl: 'https://example.test/morning.png',
+  },
+  { id: 'late', name: 'Late Night' },
+  { id: 'news', name: 'News', description: null, logoUrl: null },
+]
+
+// Monday: news, morning (out of order on purpose) and late crossing into Tuesday.
+const schedule: Schedule = {
+  monday: [
+    slot('news', '10:00', '11:00', true),
+    slot('morning', '06:00', '10:00'),
+    slot('late', '22:00', '02:00'),
+  ],
+  wednesday: [slot('news', '12:00', '13:00')],
+}
+
+describe('isProgramActive', () => {
+  it('is active from start (inclusive) to end (exclusive)', () => {
+    const entry = { start: '06:00', end: '10:00' }
+
+    expect(isProgramActive(entry, at('05:59'))).toBe(false)
+    expect(isProgramActive(entry, at('06:00'))).toBe(true)
+    expect(isProgramActive(entry, at('09:59'))).toBe(true)
+    expect(isProgramActive(entry, at('10:00'))).toBe(false)
+  })
+
+  it('treats a slot crossing midnight as active after its start', () => {
+    expect(isProgramActive({ start: '22:00', end: '02:00' }, at('23:30'))).toBe(true)
+    expect(isProgramActive({ start: '22:00', end: '02:00' }, at('21:59'))).toBe(false)
+  })
+
+  // A slot is an interval of the week, never active before its start (ADR 0044).
+  it('does not treat a slot crossing midnight as active early on its own day', () => {
+    expect(isProgramActive({ start: '22:00', end: '02:00' }, at('01:00'))).toBe(false)
+  })
+
+  it('treats start equal to end as a 24-hour slot', () => {
+    expect(isProgramActive({ start: '08:00', end: '08:00' }, at('08:00'))).toBe(true)
+    expect(isProgramActive({ start: '08:00', end: '08:00' }, at('08:00'), true)).toBe(false)
+    expect(isProgramActive({ start: '08:00', end: '08:00' }, at('07:59'), true)).toBe(true)
+  })
+
+  it('on the previous day only matches slots crossing midnight, before their end', () => {
+    expect(isProgramActive({ start: '22:00', end: '02:00' }, at('01:59'), true)).toBe(true)
+    expect(isProgramActive({ start: '22:00', end: '02:00' }, at('02:00'), true)).toBe(false)
+    expect(isProgramActive({ start: '06:00', end: '10:00' }, at('07:00'), true)).toBe(false)
+  })
+})
+
+describe('findActiveProgram', () => {
+  it('returns null without a schedule', () => {
+    expect(findActiveProgram(undefined, programs, MONDAY, at('07:00'))).toBeNull()
+  })
+
+  it('resolves name and logo of the active slot', () => {
+    expect(findActiveProgram(schedule, programs, MONDAY, at('07:00'))).toEqual({
+      programName: 'morning show',
+      timeRange: '06:00-10:00',
+      programLogoUrl: 'https://example.test/morning.png',
+      isRerun: false,
+    })
+  })
+
+  it('carries the rerun flag', () => {
+    expect(findActiveProgram(schedule, programs, MONDAY, at('10:30'))?.isRerun).toBe(true)
+  })
+
+  it('picks the slot that started latest when slots overlap', () => {
+    const overlapping: Schedule = {
+      friday: [slot('news', '09:00', '11:00'), slot('morning', '08:00', '10:00')],
+    }
+
+    expect(findActiveProgram(overlapping, programs, FRIDAY, at('09:30'))?.programName).toBe('News')
+  })
+
+  it('picks the first saved slot when overlapping slots start together', () => {
+    const newsFirst: Schedule = {
+      friday: [slot('news', '09:00', '11:00'), slot('morning', '09:00', '10:00')],
+    }
+    const morningFirst: Schedule = {
+      friday: [slot('morning', '09:00', '10:00'), slot('news', '09:00', '11:00')],
+    }
+
+    expect(findActiveProgram(newsFirst, programs, FRIDAY, at('09:30'))?.programName).toBe('News')
+    expect(findActiveProgram(morningFirst, programs, FRIDAY, at('09:30'))?.programName).toBe(
+      'morning show',
+    )
+  })
+
+  it('returns the previous day slot crossing midnight', () => {
+    const tuesday: Schedule = { ...schedule, tuesday: [slot('news', '08:00', '09:00')] }
+
+    expect(findActiveProgram(tuesday, programs, TUESDAY, at('01:00'))?.programName).toBe(
+      'Late Night',
+    )
+  })
+
+  it('wraps Sunday back to Saturday', () => {
+    const weekend: Schedule = {
+      saturday: [slot('late', '23:00', '01:00')],
+      sunday: [slot('news', '08:00', '09:00')],
+    }
+
+    expect(findActiveProgram(weekend, programs, SUNDAY, at('00:30'))?.programName).toBe(
+      'Late Night',
+    )
+  })
+
+  // Regression of K8.
+  it('returns the previous day slot crossing midnight when today has no slots', () => {
+    const fridayNight: Schedule = { friday: [slot('late', '22:00', '02:00')] }
+
+    expect(findActiveProgram(fridayNight, programs, SATURDAY, at('01:00'))?.programName).toBe(
+      'Late Night',
+    )
+  })
+
+  // The slots of a program that is not public or was deleted are ignored (ADR 0045).
+  it('ignores the slot of an unknown program', () => {
+    const unknown: Schedule = { monday: [slot('missing', '06:00', '10:00')] }
+
+    expect(findActiveProgram(unknown, programs, MONDAY, at('07:00'))).toBeNull()
+    expect(findActiveProgram(unknown, undefined, MONDAY, at('07:00'))).toBeNull()
+  })
+
+  // The slots of a program that is not public or was deleted are ignored (ADR 0045).
+  it('keeps on air a slot that started earlier than an unknown one', () => {
+    const overlapping: Schedule = {
+      monday: [slot('news', '09:00', '12:00'), slot('missing', '09:30', '10:00')],
+    }
+
+    expect(findActiveProgram(overlapping, programs, MONDAY, at('09:45'))?.programName).toBe('News')
+  })
+
+  it('returns null between slots', () => {
+    expect(findActiveProgram(schedule, programs, WEDNESDAY, at('11:00'))).toBeNull()
+  })
+})
+
+describe('findIncomingProgram', () => {
+  it('returns null without a schedule', () => {
+    expect(findIncomingProgram(undefined, programs, MONDAY, at('05:55'))).toBeNull()
+  })
+
+  it('returns the next slot starting within 10 minutes', () => {
+    expect(findIncomingProgram(schedule, programs, MONDAY, at('05:50'))).toEqual({
+      programName: 'morning show',
+      timeRange: '06:00-10:00',
+      minutesUntil: 10,
+      programLogoUrl: 'https://example.test/morning.png',
+      isRerun: false,
+    })
+  })
+
+  it('ignores a slot starting in 11 minutes', () => {
+    expect(findIncomingProgram(schedule, programs, MONDAY, at('05:49'))).toBeNull()
+  })
+
+  it('ignores a slot starting right now', () => {
+    expect(findIncomingProgram(schedule, programs, MONDAY, at('06:00'))).toBeNull()
+  })
+
+  it('looks at the next day across midnight, Saturday into Sunday', () => {
+    const weekend: Schedule = { sunday: [slot('news', '00:05', '01:00')] }
+
+    expect(findIncomingProgram(weekend, programs, SATURDAY, at('23:58'))?.minutesUntil).toBe(7)
+  })
+
+  // The same in "Coming up": an unknown program is skipped (ADR 0045).
+  it('does not let an unknown program hide the next one in the window', () => {
+    const upcoming: Schedule = {
+      monday: [slot('missing', '10:00', '10:05'), slot('news', '10:05', '11:00')],
+    }
+
+    expect(findIncomingProgram(upcoming, programs, MONDAY, at('09:58'))).toMatchObject({
+      programName: 'News',
+      minutesUntil: 7,
+    })
+    expect(findIncomingProgram(upcoming, undefined, MONDAY, at('09:58'))).toBeNull()
+  })
+
+  it('shows the incoming slot even with no active program', () => {
+    expect(findIncomingProgram(schedule, programs, WEDNESDAY, at('11:55'))?.programName).toBe(
+      'News',
+    )
+  })
+})
+
+describe('getProgramsForDay', () => {
+  it('returns an empty list without a schedule or slots', () => {
+    expect(getProgramsForDay(undefined, programs, MONDAY, MONDAY, at('07:00'))).toEqual([])
+    expect(getProgramsForDay(schedule, programs, FRIDAY, MONDAY, at('07:00'))).toEqual([])
+  })
+
+  it('sorts by start and resolves name, description and logo', () => {
+    const day = getProgramsForDay(schedule, programs, MONDAY, MONDAY, at('07:00'))
+
+    expect(day).toEqual([
+      {
+        programName: 'morning show',
+        programDescription: 'Wake up',
+        programLogoUrl: 'https://example.test/morning.png',
+        start: '06:00',
+        end: '10:00',
+        timeRange: '06:00-10:00',
+        isActive: true,
+        isRerun: false,
+      },
+      {
+        programName: 'News',
+        programDescription: null,
+        programLogoUrl: null,
+        start: '10:00',
+        end: '11:00',
+        timeRange: '10:00-11:00',
+        isActive: false,
+        isRerun: true,
+      },
+      {
+        programName: 'Late Night',
+        programDescription: null,
+        programLogoUrl: null,
+        start: '22:00',
+        end: '02:00',
+        timeRange: '22:00-02:00',
+        isActive: false,
+        isRerun: false,
+      },
+    ])
+  })
+
+  it('marks nothing active on a day other than today', () => {
+    const day = getProgramsForDay(schedule, programs, MONDAY, WEDNESDAY, at('07:00'))
+
+    expect(day.some((entry) => entry.isActive)).toBe(false)
+  })
+
+  // The util only; the schedule modal is covered in e2e (ADR 0044).
+  it('marks the previous day slot crossing midnight as active', () => {
+    const monday = getProgramsForDay(schedule, programs, MONDAY, TUESDAY, at('01:00'))
+
+    expect(monday.map((entry) => entry.isActive)).toEqual([false, false, true])
+  })
+
+  // The slots of a program that is not public or was deleted are ignored (ADR 0045).
+  it('leaves out the slots of unknown programs', () => {
+    const mixed: Schedule = {
+      monday: [slot('missing', '06:00', '07:00'), slot('news', '08:00', '09:00')],
+    }
+
+    expect(
+      getProgramsForDay(mixed, programs, MONDAY, MONDAY, at('07:00')).map(
+        (entry) => entry.timeRange,
+      ),
+    ).toEqual(['08:00-09:00'])
+    expect(getProgramsForDay(mixed, undefined, MONDAY, MONDAY, at('07:00'))).toEqual([])
+  })
+})
+
+describe('getProgramsForWeekOrdered', () => {
+  it('returns an empty list without a schedule', () => {
+    expect(getProgramsForWeekOrdered(undefined, programs, MONDAY, at('07:00'))).toEqual([])
+  })
+
+  it('starts today, wraps around the week and skips empty days', () => {
+    const week = getProgramsForWeekOrdered(schedule, programs, TUESDAY, at('12:30'))
+
+    expect(week.map((day) => day.dayOfWeek)).toEqual([WEDNESDAY, MONDAY])
+    expect(week[0].programs[0].isActive).toBe(false)
+  })
+
+  it('marks the active slot only on today', () => {
+    const week = getProgramsForWeekOrdered(schedule, programs, WEDNESDAY, at('12:30'))
+
+    expect(week[0]).toMatchObject({
+      dayOfWeek: WEDNESDAY,
+      programs: [{ programName: 'News', isActive: true }],
+    })
+    expect(week[1].programs.some((entry) => entry.isActive)).toBe(false)
+  })
+})
+
+describe('getAllProgramsWithSlots', () => {
+  it('returns an empty list without a schedule', () => {
+    expect(getAllProgramsWithSlots(undefined, programs, MONDAY, at('07:00'))).toEqual([])
+  })
+
+  it('groups slots by program, sorted by name ignoring case', () => {
+    const list = getAllProgramsWithSlots(schedule, programs, MONDAY, at('07:00'))
+
+    expect(list.map((program) => program.programName)).toEqual([
+      'Late Night',
+      'morning show',
+      'News',
+    ])
+    expect(list[1]).toEqual({
+      programId: 'morning',
+      programName: 'morning show',
+      programDescription: 'Wake up',
+      programExtendedDescription: 'Long text',
+      programLogoUrl: 'https://example.test/morning.png',
+      slots: [{ dayOfWeek: MONDAY, timeRange: '06:00-10:00' }],
+      isLive: true,
+    })
+  })
+
+  it('lists slots by day from Sunday, in schedule order within a day', () => {
+    const weekly: Schedule = {
+      monday: [slot('news', '18:00', '19:00'), slot('news', '08:00', '09:00')],
+      sunday: [slot('news', '12:00', '13:00')],
+    }
+
+    expect(getAllProgramsWithSlots(weekly, programs, MONDAY, at('07:00'))[0].slots).toEqual([
+      { dayOfWeek: SUNDAY, timeRange: '12:00-13:00' },
+      { dayOfWeek: MONDAY, timeRange: '18:00-19:00' },
+      { dayOfWeek: MONDAY, timeRange: '08:00-09:00' },
+    ])
+  })
+
+  it('is live through the previous day slot crossing midnight', () => {
+    const list = getAllProgramsWithSlots(schedule, programs, TUESDAY, at('01:00'))
+
+    expect(list.filter((program) => program.isLive).map((program) => program.programId)).toEqual([
+      'late',
+    ])
+  })
+
+  it('is not live on another day at the same time', () => {
+    const list = getAllProgramsWithSlots(schedule, programs, WEDNESDAY, at('07:00'))
+
+    expect(list.some((program) => program.isLive)).toBe(false)
+  })
+
+  // The slots of a program that is not public or was deleted are ignored (ADR 0045).
+  it('leaves out unknown programs', () => {
+    const unknown: Schedule = {
+      monday: [slot('missing', '06:00', '10:00'), slot('news', '10:00', '11:00')],
+    }
+
+    expect(
+      getAllProgramsWithSlots(unknown, programs, MONDAY, at('07:00')).map((p) => p.programId),
+    ).toEqual(['news'])
+    expect(getAllProgramsWithSlots(unknown, undefined, MONDAY, at('07:00'))).toEqual([])
+  })
+})
+
+// Found by the audit of the schedule.
+describe('a program announcing itself in "Coming up" (K52)', () => {
+  it('does not announce a 24-hour slot as its own next program', () => {
+    const allDay: Schedule = {
+      monday: [slot('news', '00:00', '00:00')],
+      tuesday: [slot('news', '00:00', '00:00')],
+    }
+
+    expect(findActiveProgram(allDay, programs, MONDAY, at('23:55'))?.programName).toBe('News')
+    expect(findIncomingProgram(allDay, programs, MONDAY, at('23:55'))).toBeNull()
+  })
+
+  it('does not announce the second half of a program split at midnight', () => {
+    const split: Schedule = {
+      monday: [slot('news', '22:00', '00:00')],
+      tuesday: [slot('news', '00:00', '02:00')],
+    }
+
+    expect(findActiveProgram(split, programs, MONDAY, at('23:55'))?.timeRange).toBe('22:00-00:00')
+    expect(findIncomingProgram(split, programs, MONDAY, at('23:55'))).toBeNull()
+  })
+
+  it('announces another program starting when the current one ends', () => {
+    const handover: Schedule = {
+      monday: [slot('news', '22:00', '00:00')],
+      tuesday: [slot('late', '00:00', '02:00')],
+    }
+
+    expect(findIncomingProgram(handover, programs, MONDAY, at('23:55'))).toMatchObject({
+      programName: 'Late Night',
+      minutesUntil: 5,
+    })
+  })
+
+  it('announces the same program starting after a gap', () => {
+    const gap: Schedule = {
+      monday: [slot('news', '22:00', '23:55'), slot('news', '23:58', '01:00')],
+    }
+
+    expect(findActiveProgram(gap, programs, MONDAY, at('23:54'))?.timeRange).toBe('22:00-23:55')
+    expect(findIncomingProgram(gap, programs, MONDAY, at('23:54'))).toMatchObject({
+      timeRange: '23:58-01:00',
+      minutesUntil: 4,
+    })
+  })
+})

@@ -1,0 +1,7 @@
+HTTP/1.1 200 OK
+transfer-encoding: chunked
+content-type: audio/mpeg
+icy-name: Radio Bollywood Gaane Purane
+icy-br: 128
+access-control-allow-origin: *
+referrer-policy: no-referrer

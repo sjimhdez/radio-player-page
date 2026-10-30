@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+Server: cc-web/1.6.3
+Date: Wed, 28 Oct 2026 02:32:49 GMT
+Content-Type: audio/mpeg
+Transfer-Encoding: chunked
+Connection: keep-alive
+icy-notice1: <BR>This stream requires <a href="http://www.winamp.com">Winamp</a><BR>
+icy-notice2: Shoutcast DNAS/posix(linux x64) v2.6.1.777<BR>
+Accept-Ranges: none
+Access-Control-Allow-Origin: *
+Cache-Control: no-cache,no-store,must-revalidate,max-age=0
+icy-name: SUNO FM
+icy-genre: 
+icy-br: 128
+icy-sr: 44100
+icy-url: suno1024.com
+icy-pub: 1
+X-Clacks-Overhead: GNU Terry Pratchett

@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from './fixtures';
-import { ADMIN_STATE } from './seed';
+import { ADMIN_STATE, seededId } from './seed';
 import { wpCli } from './support/wp-cli';
 
 /**
@@ -266,7 +266,7 @@ test.describe( 'admin: create and save', () => {
 		).toBeEnabled();
 	} );
 
-	test( 'the hide title checkbox sits below Player Page and keeps its state after saving (H2)', async ( {
+	test( 'the hide title checkbox sits right of Welcome Audio, below its heading, and keeps its state after saving (H2)', async ( {
 		page,
 	} ) => {
 		const hideTitleRows = () =>
@@ -289,19 +289,42 @@ test.describe( 'admin: create and save', () => {
 		} );
 		await expect( checkbox ).not.toBeChecked();
 
-		// Same column as Player Page, right below it.
-		const playerPage = await page
-			.locator( '[data-field="player_page"]' )
-			.boundingBox();
-		const hideTitle = await page
-			.locator( '[data-field="hide_title"]' )
-			.boundingBox();
-		expect( playerPage ).not.toBeNull();
-		expect( hideTitle ).not.toBeNull();
-		expect( hideTitle!.x ).toBe( playerPage!.x );
-		expect( hideTitle!.y ).toBeGreaterThanOrEqual(
-			playerPage!.y + playerPage!.height
+		// Last row, to the right of Welcome Audio; its "Player Display" heading
+		// is level with Welcome Audio, and the checkbox goes below it (ADR 0067,
+		// ADR 0073).
+		const welcome = await boxOf(
+			page,
+			'.radplapag-form-row:has(.radplapag-station-audio-wrapper) > .radplapag-field-wrap'
 		);
+		const welcomeHeading = await boxOf(
+			page,
+			'.radplapag-form-row:has(.radplapag-station-audio-wrapper) > .radplapag-field-wrap > label strong'
+		);
+		const heading = await boxOf(
+			page,
+			'#radplapag_station_display_title strong'
+		);
+		const hideTitle = await boxOf( page, '[data-field="hide_title"]' );
+		expect( heading.x ).toBeGreaterThanOrEqual( welcome.x + welcome.width );
+		expect( Math.abs( heading.y - welcomeHeading.y ) ).toBeLessThanOrEqual(
+			1
+		);
+		expect( Math.abs( hideTitle.x - heading.x ) ).toBeLessThanOrEqual( 1 );
+		expect( hideTitle.y ).toBeGreaterThanOrEqual(
+			heading.y + heading.height - 1
+		);
+
+		// The heading names the group of both checkboxes (ADR 0073).
+		const group = page.getByRole( 'group', { name: 'Player Display' } );
+		await expect( group.getByRole( 'checkbox' ) ).toHaveCount( 2 );
+		await expect(
+			group.getByRole( 'checkbox', {
+				name: 'Hide station name in the player',
+			} )
+		).toBeVisible();
+		await expect(
+			group.getByRole( 'checkbox', { name: 'Show current song' } )
+		).toBeVisible();
 
 		await checkbox.check();
 		await save();
@@ -312,6 +335,58 @@ test.describe( 'admin: create and save', () => {
 		await save();
 		await expect( checkbox ).not.toBeChecked();
 		expect( hideTitleRows() ).toBe( '0' );
+	} );
+
+	test( 'the show song checkbox sits below the hide title one and keeps its state after saving (ADR 0068)', async ( {
+		page,
+		browserName,
+	} ) => {
+		const showSongRows = () =>
+			wpCli(
+				'post',
+				'meta',
+				'list',
+				stationId,
+				'--keys=radplapag_station_show_song',
+				'--format=count'
+			);
+		const save = async () => {
+			await page.locator( '#publish' ).click();
+			await page.waitForURL( /post\.php\?post=\d+&action=edit/ );
+		};
+
+		await page.goto( `/wp-admin/post.php?post=${ stationId }&action=edit` );
+		const checkbox = page.getByRole( 'checkbox', {
+			name: 'Show current song',
+		} );
+		await expect( checkbox ).not.toBeChecked();
+		await expect( checkbox ).toHaveAccessibleDescription(
+			/if your streaming server provides it/
+		);
+
+		// Below the hide title checkbox, in its column (ADR 0068).
+		const hideTitle = await boxOf( page, '[data-field="hide_title"]' );
+		const showSong = await boxOf( page, '[data-field="show_song"]' );
+		expect( Math.abs( showSong.x - hideTitle.x ) ).toBeLessThanOrEqual( 1 );
+		expect( showSong.y ).toBeGreaterThanOrEqual(
+			hideTitle.y + hideTitle.height - 1
+		);
+
+		// WebKit only tabs to checkboxes with Alt (Safari default).
+		const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+		await page.locator( '#radplapag_station_hide_title' ).focus();
+		await page.keyboard.press( tab );
+		await expect( checkbox ).toBeFocused();
+
+		await checkbox.check();
+		await save();
+		await expect( checkbox ).toBeChecked();
+		expect( meta( stationId, 'radplapag_station_show_song' ) ).toBe( '1' );
+
+		await checkbox.uncheck();
+		await save();
+		await expect( checkbox ).not.toBeChecked();
+		expect( showSongRows() ).toBe( '0' );
 	} );
 } );
 
@@ -616,7 +691,7 @@ test.describe( 'admin: validation and notices', () => {
 			const notices = await save( page );
 
 			await expect( notices ).toHaveText( [
-				'Validation failed: Streaming URL is required.',
+				'Some fields were not saved: Streaming URL is required.',
 			] );
 			expect( page.url() ).not.toContain( 'message=' );
 			await expect( page.locator( '#message' ) ).toHaveCount( 0 );
@@ -630,7 +705,7 @@ test.describe( 'admin: validation and notices', () => {
 			const notices = await save( page );
 
 			await expect( notices ).toHaveText( [
-				'Validation failed: Streaming URL is required.',
+				'Some fields were not saved: Streaming URL is required.',
 			] );
 			expect( meta( stationId, 'radplapag_station_stream_url' ) ).toBe(
 				VALIDATION_STREAM
@@ -653,7 +728,7 @@ test.describe( 'admin: validation and notices', () => {
 			const notices = await save( page );
 
 			await expect( notices ).toHaveText( [
-				`Radio Schedule validation failed: Radio show "${ VALIDATION.program }" on Monday: Time slot overlaps with "${ VALIDATION.program }".`,
+				`The Weekly Schedule was not saved: Radio show "${ VALIDATION.program }" on Monday: Time slot overlaps with "${ VALIDATION.program }".`,
 			] );
 			expect( schedule() ).toEqual( savedSchedule );
 		} );
@@ -678,7 +753,7 @@ test.describe( 'admin: validation and notices', () => {
 			const notices = await save( page );
 
 			await expect( notices ).toHaveText( [
-				'Radio Schedule validation failed: Radio show on Monday: All fields (radio show, start time, end time) are required. ' +
+				'The Weekly Schedule was not saved: Radio show on Monday: All fields (radio show, start time, end time) are required. ' +
 					`Radio show "${ VALIDATION.program }" on Monday: Time slot overlaps with "${ VALIDATION.program }".`,
 			] );
 			expect( schedule() ).toEqual( savedSchedule );
@@ -722,7 +797,7 @@ test.describe( 'admin: validation and notices', () => {
 		);
 		// The link only takes the pointer while its row is hovered.
 		await middle.hover();
-		await middle.getByText( 'Remove Time Slot' ).click();
+		await middle.getByRole( 'link', { name: 'Remove Time Slot' } ).click();
 		// Two rows left (indexes 0 and 2): the new one gets index 3.
 		const row = await addMondaySlot( page, 3 );
 		await expect( row ).toHaveCount( 1 );
@@ -777,5 +852,202 @@ test.describe( 'admin: menu', () => {
 		await expect( page ).toHaveURL( /admin\.php\?page=radplapag$/ );
 		await expect( page.locator( '#adminmenu' ) ).toBeVisible();
 		await expect( page.locator( '.wp-list-table' ) ).toHaveCount( 0 );
+	} );
+} );
+
+/**
+ * Opens the edit screen of the seeded MP3 station.
+ *
+ * @param page Admin page.
+ */
+async function openSeededStation( page: Page ) {
+	await page.goto(
+		`/wp-admin/post.php?post=${ seededId( 'station-mp3' ) }&action=edit`
+	);
+	await expect( page.locator( '#radplapag_station_details' ) ).toBeVisible();
+}
+
+/**
+ * Bounding box of an element that must be rendered.
+ *
+ * @param page     Admin page.
+ * @param selector CSS selector.
+ */
+async function boxOf( page: Page, selector: string ) {
+	const found = await page.locator( selector ).first().boundingBox();
+	expect( found, selector ).not.toBeNull();
+	return found!;
+}
+
+// Spec 0019 (ADR 0067): the details box of the station, measured with 1 px
+// of tolerance.
+test.describe( 'admin: station meta box layout', () => {
+	test.use( { storageState: ADMIN_STATE } );
+
+	test( 'leaves room between the stream field and Test Stream (K110)', async ( {
+		page,
+	} ) => {
+		await openSeededStation( page );
+
+		const field = await boxOf( page, '#radplapag_station_stream_url' );
+		const button = await boxOf( page, '.radplapag-stream-test' );
+		expect( button.y ).toBeGreaterThanOrEqual(
+			field.y + field.height + 6 - 1
+		);
+	} );
+
+	test( 'gives each field half of its row, or the whole row when two do not fit (K109)', async ( {
+		page,
+	} ) => {
+		/**
+		 * Widths of the children of each row and of the row itself.
+		 */
+		const measureRows = () =>
+			page
+				.locator( '#radplapag_station_details .radplapag-form-row' )
+				.evaluateAll( ( rows ) =>
+					rows.map( ( row ) => ( {
+						row: row.getBoundingClientRect().width,
+						children: Array.from( row.children ).map(
+							( child ) => child.getBoundingClientRect().width
+						),
+					} ) )
+				);
+
+		await openSeededStation( page );
+		const desktop = await measureRows();
+		expect( desktop.length ).toBe( 4 );
+		for ( const { row, children } of desktop ) {
+			if ( children.length === 1 ) {
+				expect( children[ 0 ] ).toBeCloseTo( row, 0 );
+				continue;
+			}
+			expect( children ).toHaveLength( 2 );
+			expect(
+				Math.abs( children[ 0 ] - children[ 1 ] )
+			).toBeLessThanOrEqual( 1 );
+			expect(
+				Math.abs( children[ 0 ] + children[ 1 ] + 24 - row )
+			).toBeLessThanOrEqual( 1 );
+		}
+
+		await page.setViewportSize( { width: 390, height: 844 } );
+		const mobile = await measureRows();
+		for ( const { row, children } of mobile ) {
+			for ( const width of children ) {
+				expect( Math.abs( width - row ) ).toBeLessThanOrEqual( 1 );
+			}
+		}
+		expect(
+			await page.evaluate(
+				() =>
+					document.documentElement.scrollWidth <=
+					document.documentElement.clientWidth
+			)
+		).toBe( true );
+	} );
+
+	test( 'describes Player Page with its help, right below the select (ADR 0073)', async ( {
+		page,
+	} ) => {
+		await openSeededStation( page );
+
+		const select = page.getByRole( 'combobox', { name: 'Player Page' } );
+		await expect( select ).toHaveAccessibleDescription(
+			'The player replaces this whole page, so an empty page works best. Each page can be used by only one radio station.'
+		);
+		const box = await boxOf( page, '#radplapag_station_player_page' );
+		const help = await boxOf(
+			page,
+			'#radplapag_station_player_page_description'
+		);
+		expect( Math.abs( help.x - box.x ) ).toBeLessThanOrEqual( 1 );
+		expect( help.y ).toBeGreaterThanOrEqual( box.y + box.height - 1 );
+	} );
+
+	test( 'puts Streaming URL first and Player Page to its right, in the DOM order too (K111)', async ( {
+		page,
+		browserName,
+	} ) => {
+		await openSeededStation( page );
+
+		const stream = await boxOf( page, '[data-field="stream_url"]' );
+		const playerPage = await boxOf( page, '[data-field="player_page"]' );
+		expect( stream.x + stream.width ).toBeLessThanOrEqual( playerPage.x );
+		expect( Math.abs( stream.y - playerPage.y ) ).toBeLessThanOrEqual( 1 );
+
+		// The result and the help stay below the field, in its column.
+		for ( const selector of [
+			'#radplapag_stream_test_result',
+			'.radplapag-stream-help',
+		] ) {
+			const below = await boxOf( page, selector );
+			expect( Math.abs( below.x - stream.x ) ).toBeLessThanOrEqual( 1 );
+			expect( below.y ).toBeGreaterThanOrEqual(
+				stream.y + stream.height - 1
+			);
+			expect( below.x + below.width ).toBeLessThanOrEqual( playerPage.x );
+		}
+
+		// WebKit only tabs to buttons and summaries with Alt (Safari default).
+		const tab = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
+		await page.locator( '#radplapag_station_stream_url' ).focus();
+		await page.keyboard.press( tab );
+		await expect( page.locator( '.radplapag-stream-test' ) ).toBeFocused();
+		await page.keyboard.press( tab );
+		await expect(
+			page.locator( '.radplapag-stream-help summary' )
+		).toBeFocused();
+		await page.keyboard.press( tab );
+		await expect(
+			page.locator( '#radplapag_station_player_page' )
+		).toBeFocused();
+	} );
+
+	test( 'puts the hide title checkbox to the right of Welcome Audio, at half the row (K112)', async ( {
+		page,
+	} ) => {
+		await openSeededStation( page );
+
+		const lastRow = page
+			.locator( '#radplapag_station_details .radplapag-form-row' )
+			.last();
+		// First after the heading of the cell it shares with the show song
+		// checkbox (ADR 0068, ADR 0073).
+		await expect(
+			lastRow.locator(
+				':scope > [role="group"] > #radplapag_station_display_title:first-child + [data-field="hide_title"]'
+			)
+		).toHaveCount( 1 );
+		const row = await lastRow.boundingBox();
+		const welcome = await lastRow
+			.locator( ':scope > .radplapag-field-wrap' )
+			.first()
+			.boundingBox();
+		// The bold text of both headings, since the label boxes differ by
+		// browser (WebKit).
+		const welcomeHeading = await boxOf(
+			page,
+			'.radplapag-form-row:has(.radplapag-station-audio-wrapper) > .radplapag-field-wrap > label strong'
+		);
+		const heading = await boxOf(
+			page,
+			'#radplapag_station_display_title strong'
+		);
+		// The cell, not the paragraph, is the flex item of the row.
+		const cell = await lastRow
+			.locator( '[data-field="hide_title"]' )
+			.locator( '..' )
+			.boundingBox();
+		expect( row ).not.toBeNull();
+		expect( welcome ).not.toBeNull();
+		expect( cell ).not.toBeNull();
+		expect( welcome!.x + welcome!.width ).toBeLessThanOrEqual( heading.x );
+		expect( Math.abs( heading.y - welcomeHeading.y ) ).toBeLessThanOrEqual(
+			1
+		);
+		expect(
+			Math.abs( cell!.width - ( row!.width - 24 ) / 2 )
+		).toBeLessThanOrEqual( 1 );
 	} );
 } );

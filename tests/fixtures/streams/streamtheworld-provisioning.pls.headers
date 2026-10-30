@@ -1,0 +1,14 @@
+HTTP/1.1 200 OK
+date: Wed, 28 Oct 2026 02:32:48 GMT
+server: Apache
+access-control-allow-origin: *
+access-control-allow-credentials: true
+cache-control: max-age=0, no-cache, must-revalidate
+pragma: no-cache
+expires: Thu, 01 Jan 1970 00:00:00 GMT
+content-type: audio/x-scpls; charset=UTF-8
+content-language: en
+x-stw-site: MTL
+transfer-encoding: chunked
+x-stw-host: lax-lb02-web01
+x-stw-site: LAX

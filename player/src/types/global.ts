@@ -1,18 +1,12 @@
-/**
- * Global window interface extensions
- * Configuration and relational data injected by the WordPress plugin
- */
+// The globals the WordPress plugin prints: the configuration and the relational data.
 
 /** Day keys for the weekly schedule */
 export type ScheduleDayKey =
   'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
 
-/**
- * Program definition (from RADPLAPAG_PROGRAMS).
- * Resolved by program_id from schedule entries.
- */
+/** A program of RADPLAPAG_PROGRAMS, which schedule slots point to by its id */
 export interface ProgramDefinition {
-  /** Unique program identifier */
+  /** Unique program id */
   id: string
   /** Program name */
   name: string
@@ -24,10 +18,7 @@ export interface ProgramDefinition {
   logoUrl?: string | null
 }
 
-/**
- * Schedule slot (relational): references program by unique ID.
- * Name and logo are resolved from RADPLAPAG_PROGRAMS by matching program_id.
- */
+/** A slot of the schedule; its program's name and logo come from RADPLAPAG_PROGRAMS */
 export interface ScheduleEntry {
   /** Unique ID of program in RADPLAPAG_PROGRAMS array */
   program_id: string
@@ -39,10 +30,7 @@ export interface ScheduleEntry {
   is_rerun?: boolean
 }
 
-/**
- * Weekly schedule (relational): day -> array of { program_id, start, end }.
- * Resolve name/logo from programs by matching program_id in the UI.
- */
+/** The weekly schedule: the slots of each day */
 export interface Schedule {
   monday?: ScheduleEntry[]
   tuesday?: ScheduleEntry[]
@@ -54,8 +42,8 @@ export interface Schedule {
 }
 
 /**
- * Plugin configuration object (RADPLAPAG_CONFIG).
- * Does not include schedule or programs; those are in RADPLAPAG_PROGRAMS and RADPLAPAG_SCHEDULE.
+ * The plugin configuration (RADPLAPAG_CONFIG), without the programs and the schedule,
+ * which come in RADPLAPAG_PROGRAMS and RADPLAPAG_SCHEDULE.
  */
 export interface PluginConfig {
   /** Audio stream URL to play (required) */
@@ -64,6 +52,8 @@ export interface PluginConfig {
   siteTitle: string
   /** Whether the player hides the station name visually (optional; ADR 0054) */
   hideTitle?: boolean
+  /** Whether the player shows the current song from the stream server (optional; ADR 0068) */
+  showSong?: boolean
   /** Background image URL (optional) */
   backgroundImage?: string | null
   /** Logo image URL (optional) */
@@ -78,19 +68,29 @@ export interface PluginConfig {
   timezoneOffset: number
   /** Site IANA time zone, or null when the site uses a manual offset (ADR 0046) */
   timezone?: string | null
+  /** The edit URL of the station for users who can manage_options, or null (ADR 0065) */
+  adminDiagnostics?: AdminDiagnostics | null
 }
 
-/**
- * Full config returned by useConfig(): config + programs + schedule (relational).
- */
+/** What the player shows administrators about a stream that fails (ADR 0065) */
+export interface AdminDiagnostics {
+  /** Edit screen of the station, with the Test stream button */
+  editUrl: string
+}
+
+/** Full config returned by useConfig(): config + programs + schedule (relational) */
 export interface ResolvedConfig extends PluginConfig {
   /** Only true when RADPLAPAG_CONFIG.hideTitle is exactly true */
   hideTitle: boolean
+  /** Only true when RADPLAPAG_CONFIG.showSong is exactly true */
+  showSong: boolean
   /** Site IANA time zone, only when Intl accepts it */
   timezone?: string
-  /** Program definitions (from RADPLAPAG_PROGRAMS). Resolve by schedule entry program_id. */
+  /** Only with an http(s) editUrl; null otherwise */
+  adminDiagnostics: AdminDiagnostics | null
+  /** The programs (from RADPLAPAG_PROGRAMS) */
   programs?: ProgramDefinition[]
-  /** Weekly schedule relational (from RADPLAPAG_SCHEDULE). */
+  /** The weekly schedule (from RADPLAPAG_SCHEDULE) */
   schedule?: Schedule
 }
 
@@ -98,9 +98,9 @@ declare global {
   interface Window {
     /** Plugin configuration (no schedule/programs) */
     RADPLAPAG_CONFIG?: PluginConfig
-    /** Program definitions: [{ id, name, logoUrl }, ...] */
+    /** The programs: [{ id, name, logoUrl }, ...] */
     RADPLAPAG_PROGRAMS?: ProgramDefinition[]
-    /** Weekly schedule relational: { day: [{ program_id (string ID), start, end }, ...] } */
+    /** The weekly schedule: { day: [{ program_id, start, end }, ...] } */
     RADPLAPAG_SCHEDULE?: Schedule
   }
 }

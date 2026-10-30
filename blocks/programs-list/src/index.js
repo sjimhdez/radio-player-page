@@ -67,7 +67,7 @@ function Edit( { attributes, setAttributes } ) {
 			? [
 					{
 						label: __(
-							'No Radio Stations configured',
+							'No published radio stations',
 							'radio-player-page'
 						),
 						value: '',
@@ -89,7 +89,7 @@ function Edit( { attributes, setAttributes } ) {
 			: sprintf(
 					/* translators: %s: Radio station title. */
 					__(
-						'Showing “%s” by its position in the list of stations. Choose a station to keep it.',
+						'Showing “%s” because of its position in the list of radio stations. Select it to keep this station if the list changes.',
 						'radio-player-page'
 					),
 					stationLabel( resolved, resolvedIndex )
@@ -108,7 +108,7 @@ function Edit( { attributes, setAttributes } ) {
 			<InspectorControls>
 				<PanelBody
 					title={ __(
-						'Radio Shows List Settings',
+						'Radio Shows List settings',
 						'radio-player-page'
 					) }
 					initialOpen={ true }
@@ -122,7 +122,7 @@ function Edit( { attributes, setAttributes } ) {
 						</Notice>
 					) }
 					<SelectControl
-						label={ __( 'Radio Station', 'radio-player-page' ) }
+						label={ __( 'Radio station', 'radio-player-page' ) }
 						value={
 							stationId > 0 && resolved ? String( stationId ) : ''
 						}
@@ -143,7 +143,7 @@ function Edit( { attributes, setAttributes } ) {
 					/>
 					<ToggleControl
 						label={ __(
-							'Show Radio Show Image',
+							'Show radio show image',
 							'radio-player-page'
 						) }
 						checked={ showImageValue }
@@ -153,7 +153,7 @@ function Edit( { attributes, setAttributes } ) {
 					/>
 					<ToggleControl
 						label={ __(
-							'Show Radio Show Description',
+							'Show radio show description',
 							'radio-player-page'
 						) }
 						checked={ showDescriptionValue }
@@ -163,7 +163,7 @@ function Edit( { attributes, setAttributes } ) {
 					/>
 					<ToggleControl
 						label={ __(
-							'Show Extended Radio Show Description',
+							'Show extended radio show description',
 							'radio-player-page'
 						) }
 						checked={ showExtendedDescriptionValue }
@@ -173,7 +173,7 @@ function Edit( { attributes, setAttributes } ) {
 					/>
 					<ToggleControl
 						label={ __(
-							'Show Radio Schedule',
+							'Show broadcast times',
 							'radio-player-page'
 						) }
 						checked={ showScheduleValue }

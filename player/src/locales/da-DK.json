@@ -1,10 +1,16 @@
 {
-  "dashboard": {
+  "playerPage": {
     "volume": "Lydstyrke",
     "connecting": "Opretter forbindelse...",
     "playStreamError": "Kan ikke afspille strømmen. Prøv igen senere.",
-    "audioVisualizer": "Lydvisualisering",
+    "diagnosticsMixedContent": "Denne side bruger HTTPS, og streamen bruger HTTP, som browsere blokerer. Brug en stream-URL med HTTPS.",
+    "diagnosticsHttp": "Streamserveren svarede med HTTP {{status}}. Tjek URL'en.",
+    "diagnosticsUnreachable": "Browseren kunne ikke hente streamen: serveren er nede eller tillader ikke andre websteder (CORS), som HLS og DASH kræver.",
+    "diagnosticsNotSupported": "Browseren kan ikke afspille denne URL: den findes måske ikke (404) eller er ikke en lydstream.",
+    "diagnosticsReconnectExhausted": "Streamen stoppede og kom ikke tilbage efter flere forsøg. Tjek, at stationen sender.",
+    "diagnosticsTestStream": "Test streamen",
     "stationLogo": "Logo for {{name}}",
+    "currentSong": "Spiller nu:",
     "playerControls": "Afspillerkontroller",
     "play": "Afspil",
     "pause": "Pause",
@@ -15,7 +21,7 @@
     "sleepOption120": "2 timer",
     "liveRadio": "Live radio",
     "timezoneClock": "Udsendelsestid",
-    "timezoneClockLabel": "Udsendelsestidszone",
+    "timezoneClockLabel": "Stationstid",
     "timezoneWarning": "Din lokale tid: {{browserTime}}, Udsendelsestid: {{transmissionTime}}, Forskel: {{difference}}",
     "timezoneDifferenceHours": "{{count}} time",
     "timezoneDifferenceHours_plural": "{{count}} timer",

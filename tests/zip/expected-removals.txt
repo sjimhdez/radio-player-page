@@ -1,0 +1,12 @@
+# Files of the reference tag the zip no longer carries (ADR 0028, ADR 0075).
+# One path per line, relative to the plugin root, with {VERSION} in the names of
+# the player assets (e.g. player/dist/radio-player-page-{VERSION}-bar-visualizer.min.js).
+# Every file the zip stops carrying goes here in the same commit. The release
+# that moves REFERENCE_TAG empties this list.
+player/dist/radio-player-page-{VERSION}-oscilloscope-visualizer.min.js
+player/dist/radio-player-page-{VERSION}-bar-visualizer.min.js
+player/dist/radio-player-page-{VERSION}-particles-visualizer.min.js
+player/dist/radio-player-page-{VERSION}-amplitude-waterfall-visualizer.min.js
+includes/data/class-radplapag-station-config.php
+includes/data/class-radplapag-program-config.php
+includes/migration/class-radplapag-migrator-settings-to-cpt.php

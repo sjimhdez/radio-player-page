@@ -76,7 +76,7 @@ describe('locale files', () => {
     '%s has exactly the plural forms of its language in upcomingInMinutes',
     (locale) => {
       const messages = flatten(locales[locale])
-      const prefix = 'dashboard.upcomingInMinutes_'
+      const prefix = 'playerPage.upcomingInMinutes_'
       const forms = Object.keys(messages)
         .filter((key) => key.startsWith(prefix))
         .map((key) => key.slice(prefix.length))
@@ -98,16 +98,16 @@ describe('locale files', () => {
   })
 
   it.each(others)('%s translates the station logo alt (C15)', (locale) => {
-    expect(flatten(locales[locale])['dashboard.stationLogo']).not.toBe(
-      reference['dashboard.stationLogo'],
+    expect(flatten(locales[locale])['playerPage.stationLogo']).not.toBe(
+      reference['playerPage.stationLogo'],
     )
   })
 
   it.each(others.filter((locale) => !locale.startsWith('en-')))(
     '%s translates the player controls region name (AX1)',
     (locale) => {
-      expect(flatten(locales[locale])['dashboard.playerControls']).not.toBe(
-        reference['dashboard.playerControls'],
+      expect(flatten(locales[locale])['playerPage.playerControls']).not.toBe(
+        reference['playerPage.playerControls'],
       )
     },
   )
@@ -142,13 +142,13 @@ describe('i18n resources', () => {
 
     await i18n.changeLanguage('eu')
 
-    expect(i18n.t('dashboard.play')).toBe('Play')
+    expect(i18n.t('playerPage.play')).toBe('Play')
 
     await i18n.changeLanguage('en-US')
   })
 })
 
-// Audit of zone 5 (spec 0002, task 4.6).
+// Found by the audit of the player.
 describe('language resolution (K68, K69)', () => {
   afterEach(async () => {
     await i18n.changeLanguage('en-US')
@@ -164,18 +164,18 @@ describe('language resolution (K68, K69)', () => {
   ])('shows %s in its base language through the %s resources (K68)', async (language, resource) => {
     await i18n.changeLanguage(language)
 
-    expect(i18n.t('dashboard.play')).toBe(flatten(locales[resource])['dashboard.play'])
+    expect(i18n.t('playerPage.play')).toBe(flatten(locales[resource])['playerPage.play'])
     expect(i18n.resolvedLanguage).toBe(resource)
   })
 
   it('still finds Spanish for es-AR through the base es resources', async () => {
     await i18n.changeLanguage('es-AR')
 
-    expect(i18n.t('dashboard.play')).toBe('Reproducir')
+    expect(i18n.t('playerPage.play')).toBe('Reproducir')
   })
 
   it('says "1 minute" with the plural forms of the language (K69)', () => {
-    expect(i18n.t('dashboard.upcomingInMinutes', { count: 1 })).toBe('(in 1 minute)')
-    expect(i18n.t('dashboard.upcomingInMinutes', { count: 5 })).toBe('(in 5 minutes)')
+    expect(i18n.t('playerPage.upcomingInMinutes', { count: 1 })).toBe('(in 1 minute)')
+    expect(i18n.t('playerPage.upcomingInMinutes', { count: 5 })).toBe('(in 5 minutes)')
   })
 })

@@ -294,11 +294,13 @@ function radplapag_e2e_station( $title, $name, $page_id, array $meta ) {
 /**
  * Seeds the e2e site.
  *
- * @param string $media        Origin of the media server with CORS.
- * @param string $media_nocors Origin of the media server without CORS.
+ * @param string $media           Origin of the media server with CORS.
+ * @param string $media_nocors    Origin of the media server without CORS.
+ * @param string $media_icy       Origin of the media server with readable ICY (spec 0020).
+ * @param string $media_shoutcast Origin of the Shoutcast-like media server (spec 0020).
  * @return void
  */
-function radplapag_e2e_seed( $media, $media_nocors ) {
+function radplapag_e2e_seed( $media, $media_nocors, $media_icy, $media_shoutcast ) {
 	global $wpdb;
 
 	radplapag_e2e_reset();
@@ -318,7 +320,7 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 	$programs   = radplapag_e2e_programs( $artwork_id );
 
 	$variants = array(
-		'mp3'          => array(
+		'mp3'            => array(
 			'title' => 'E2E MP3',
 			'meta'  => array(
 				'stream_url'    => "{$media}/tone.mp3",
@@ -329,74 +331,79 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 				'schedule'      => radplapag_e2e_schedule( $programs ),
 			),
 		),
-		'live'         => array(
+		'live'           => array(
 			'title' => 'E2E Live',
 			'meta'  => array( 'stream_url' => "{$media}/live.mp3" ),
 		),
-		'cut'          => array(
+		'cut'            => array(
 			'title' => 'E2E Cut',
 			'meta'  => array( 'stream_url' => "{$media}/cut.mp3" ),
 		),
-		'hls'          => array(
+		'hls'            => array(
 			'title' => 'E2E HLS',
 			'meta'  => array( 'stream_url' => "{$media}/hls/index.m3u8" ),
 		),
-		'dash'         => array(
+		'dash'           => array(
 			'title' => 'E2E DASH',
 			'meta'  => array( 'stream_url' => "{$media}/dash/manifest.mpd" ),
 		),
-		'ogg'          => array(
+		'ogg'            => array(
 			'title' => 'E2E OGG',
 			'meta'  => array( 'stream_url' => "{$media}/tone.ogg" ),
 		),
-		'nocors-mp3'   => array(
+		'nocors-mp3'     => array(
 			'title' => 'E2E No CORS MP3',
 			'meta'  => array( 'stream_url' => "{$media_nocors}/tone.mp3" ),
 		),
-		'nocors-hls'   => array(
+		'nocors-hls'     => array(
 			'title' => 'E2E No CORS HLS',
 			'meta'  => array( 'stream_url' => "{$media_nocors}/hls/index.m3u8" ),
 		),
-		'nocors-dash'  => array(
+		'nocors-dash'    => array(
 			'title' => 'E2E No CORS DASH',
 			'meta'  => array( 'stream_url' => "{$media_nocors}/dash/manifest.mpd" ),
 		),
-		'nocors-intro' => array(
+		'nocors-intro'   => array(
 			'title' => 'E2E No CORS Intro',
 			'meta'  => array(
 				'stream_url'     => "{$media_nocors}/live.mp3",
 				'intro_audio_id' => $nocors_id,
 			),
 		),
-		'broken-mp3'   => array(
+		'broken-mp3'     => array(
 			'title' => 'E2E Broken MP3',
 			'meta'  => array( 'stream_url' => "{$media}/missing.mp3" ),
 		),
-		'intro'        => array(
+		// ADR 0065: the HTTP status that hls.js gives, for the error reason of administrators.
+		'broken-hls'     => array(
+			'title' => 'E2E Broken HLS',
+			'meta'  => array( 'stream_url' => "{$media}/missing/index.m3u8" ),
+		),
+		'intro'          => array(
 			'title' => 'E2E Intro',
 			'meta'  => array(
 				'stream_url'     => "{$media}/live.mp3",
 				'intro_audio_id' => $intro_id,
 			),
 		),
-		'broken-intro' => array(
+		'broken-intro'   => array(
 			'title' => 'E2E Broken Intro',
 			'meta'  => array(
 				'stream_url'     => "{$media}/live.mp3",
 				'intro_audio_id' => $broken_id,
 			),
 		),
-		'minimal'      => array(
+		'minimal'        => array(
 			'title' => 'E2E Minimal <>&\'"',
 			'meta'  => array( 'stream_url' => "{$media}/tone.mp3" ),
 		),
 		// K21: the title as kses leaves it for an author without unfiltered_html.
-		'entities'     => array(
+		'entities'       => array(
 			'title'        => 'Rock & Roll',
 			'stored_title' => 'Rock &amp; Roll',
 			'meta'         => array( 'stream_url' => "{$media}/tone.mp3" ),
 		),
-		'always'       => array(
+		'always'         => array(
 			'title' => 'E2E Always On Air',
 			'meta'  => array(
 				'stream_url' => "{$media}/tone.mp3",
@@ -404,7 +411,7 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 			),
 		),
 		// ADR 0054: the name hidden from view in the player (spec 0015, H7 and H8).
-		'hidden-title' => array(
+		'hidden-title'   => array(
 			'title' => 'E2E Hidden Title',
 			'meta'  => array(
 				'stream_url' => "{$media}/tone.mp3",
@@ -413,7 +420,7 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 			),
 		),
 		// Spec 0016 (V1): neutral theme, logo and the grid, for the visual baseline.
-		'layout'       => array(
+		'layout'         => array(
 			'title' => 'E2E Layout',
 			'meta'  => array(
 				'stream_url' => "{$media}/live.mp3",
@@ -421,18 +428,58 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 				'schedule'   => radplapag_e2e_schedule( $programs ),
 			),
 		),
+		// Spec 0020 (A12, ADR 0068): the current song from each kind of server.
+		'song-icecast'   => array(
+			'title' => 'E2E Song Icecast',
+			'meta'  => array(
+				'stream_url' => "{$media}/live.mp3",
+				'show_song'  => '1',
+			),
+		),
+		'song-icy'       => array(
+			'title' => 'E2E Song ICY',
+			'meta'  => array(
+				'stream_url' => "{$media_icy}/live.mp3",
+				'show_song'  => '1',
+			),
+		),
+		'song-shoutcast' => array(
+			'title' => 'E2E Song Shoutcast',
+			'meta'  => array(
+				'stream_url' => "{$media_shoutcast}/live.mp3",
+				'show_song'  => '1',
+			),
+		),
+		'song-nocors'    => array(
+			'title' => 'E2E Song No CORS',
+			'meta'  => array(
+				'stream_url' => "{$media_nocors}/live.mp3",
+				'show_song'  => '1',
+			),
+		),
+		'song-hls'       => array(
+			'title' => 'E2E Song HLS',
+			'meta'  => array(
+				'stream_url' => "{$media}/hls-id3/index.m3u8",
+				'show_song'  => '1',
+			),
+		),
+		'song-off'       => array(
+			'title' => 'E2E Song Off',
+			'meta'  => array( 'stream_url' => "{$media_icy}/live.mp3" ),
+		),
 		// Pages the plugin must not intercept: their station is valid.
-		'draft'        => array(
+		'draft'          => array(
 			'title'  => 'E2E Draft Page',
 			'meta'   => array( 'stream_url' => "{$media}/tone.mp3" ),
 			'status' => 'draft',
 		),
-		'password'     => array(
+		'password'       => array(
 			'title'    => 'E2E Password Page',
 			'meta'     => array( 'stream_url' => "{$media}/tone.mp3" ),
 			'password' => 'e2e',
 		),
-		'not-a-page'   => array(
+		'not-a-page'     => array(
 			'title'     => 'E2E Not A Page',
 			'meta'      => array( 'stream_url' => "{$media}/tone.mp3" ),
 			'post_type' => 'post',
@@ -514,4 +561,4 @@ function radplapag_e2e_seed( $media, $media_nocors ) {
 	WP_CLI::line( wp_json_encode( radplapag_e2e_record(), JSON_UNESCAPED_SLASHES ) );
 }
 
-radplapag_e2e_seed( $args[0], $args[1] );
+radplapag_e2e_seed( $args[0], $args[1], $args[2], $args[3] );

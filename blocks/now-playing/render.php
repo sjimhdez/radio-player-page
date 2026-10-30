@@ -45,7 +45,7 @@ defined( 'ABSPATH' ) || exit;
 
 		echo '<div ' . wp_kses_post( get_block_wrapper_attributes( array( 'class' => 'is-empty' ) ) ) . '>' .
 			'<div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;">' .
-			'<p><em>' . esc_html__( 'Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.', 'radio-player-page' ) . '</em></p>' .
+			'<p><em>' . esc_html__( 'On Air: nothing to show — this radio station has no radio show on air right now. On the site, this block stays empty until one starts.', 'radio-player-page' ) . '</em></p>' .
 			'</div>' .
 			'</div>';
 		return;
@@ -76,7 +76,7 @@ defined( 'ABSPATH' ) || exit;
 								'medium',
 								false,
 								array(
-									'alt'   => esc_attr( '' !== $current['name'] ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
+									'alt'   => esc_attr( '' !== $current['name'] ? $current['name'] : __( 'Radio show image', 'radio-player-page' ) ),
 									'style' => 'max-width: 100%; height: auto;',
 								)
 							);
@@ -89,7 +89,7 @@ defined( 'ABSPATH' ) || exit;
 							'medium',
 							false,
 							array(
-								'alt'   => esc_attr( '' !== $current['name'] ? $current['name'] : __( 'Radio Show image', 'radio-player-page' ) ),
+								'alt'   => esc_attr( '' !== $current['name'] ? $current['name'] : __( 'Radio show image', 'radio-player-page' ) ),
 								'style' => 'max-width: 100%; height: auto;',
 							)
 						);
@@ -103,7 +103,7 @@ defined( 'ABSPATH' ) || exit;
 		</article>
 		<?php if ( null !== $upcoming ) : ?>
 			<article class="wp-block-group" data-program-id="<?php echo esc_attr( $upcoming['id'] ); ?>" style="padding-top: 1em; font-size: 90%;">
-				<h<?php echo (int) $heading_level; ?> class="wp-block-title" style="font-size: 1.5rem;"><?php esc_html_e( 'Coming up', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $upcoming['name'] ); ?></strong><?php if ( ! empty( $upcoming['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?></h<?php echo (int) $heading_level; ?>>
+				<h<?php echo (int) $heading_level; ?> class="wp-block-title" style="font-size: 1.5rem;"><?php esc_html_e( 'Up Next', 'radio-player-page' ); ?>: <strong><?php echo esc_html( $upcoming['name'] ); ?></strong><?php if ( ! empty( $upcoming['is_rerun'] ) ) : ?> <?php esc_html_e( '(Rerun)', 'radio-player-page' ); ?><?php endif; ?></h<?php echo (int) $heading_level; ?>>
 				<p class="wp-block-paragraph" style="font-size: 90%;">
 					<?php echo esc_html( $upcoming['time_range'] ); ?>
 				</p>

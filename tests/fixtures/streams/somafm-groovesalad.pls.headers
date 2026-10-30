@@ -1,0 +1,18 @@
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 28 Oct 2026 02:27:55 GMT
+Content-Type: audio/x-scpls
+Transfer-Encoding: chunked
+Connection: keep-alive
+X-Content-Type-Options: nosniff
+Access-Control-Allow-Headers: *
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Feature-Policy: camera 'none'; magnetometer 'none'; gyroscope 'none';microphone 'none'; speaker 'self'
+X-Frame-Options: SAMEORIGIN
+Referrer-Policy: no-referrer-when-downgrade, strict-origin-when-cross-origin
+Expires: Wed, 28 Oct 2026 02:28:15 GMT
+Cache-Control: max-age=20
+X-Farm: wepro2
+X-Proxy-Cache: MISS
+Access-Control-Allow-Origin: *
+X-SomaVersion: 20261026

@@ -34,14 +34,15 @@ final class Station {
 	 * is decoded only from a non-empty string that gives an array, and is
 	 * returned as decoded; theme and visualizer off the whitelist fall back
 	 * to the default; the stream URL is kept only if it is a string; hide_title
-	 * is the meta cast with (bool) (ADR 0054).
+	 * and show_song are the meta cast with (bool) (ADR 0054, 0068).
 	 *
 	 * @since 3.5.0
+	 * @since 3.6.0 Adds show_song (ADR 0068).
 	 *
 	 * @param int                  $id    Station post ID.
 	 * @param string               $title Station post title.
 	 * @param array<string, mixed> $meta  Single meta values by meta key (radplapag_station_*).
-	 * @return array{id: int, stream_url: string, player_page: int, station_title: string, hide_title: bool, background_id: int, logo_id: int, intro_audio_id: int, theme_color: string, visualizer: string, schedule: array<mixed>}
+	 * @return array{id: int, stream_url: string, player_page: int, station_title: string, hide_title: bool, show_song: bool, background_id: int, logo_id: int, intro_audio_id: int, theme_color: string, visualizer: string, schedule: array<mixed>}
 	 */
 	public static function row( int $id, string $title, array $meta ): array {
 		$schedule_json = $meta['radplapag_station_schedule'] ?? '';
@@ -61,6 +62,7 @@ final class Station {
 			'player_page'    => self::to_int( $meta, 'radplapag_station_player_page' ),
 			'station_title'  => $title,
 			'hide_title'     => (bool) ( $meta['radplapag_station_hide_title'] ?? false ),
+			'show_song'      => (bool) ( $meta['radplapag_station_show_song'] ?? false ),
 			'background_id'  => self::to_int( $meta, 'radplapag_station_background_id' ),
 			'logo_id'        => self::to_int( $meta, 'radplapag_station_logo_id' ),
 			'intro_audio_id' => self::to_int( $meta, 'radplapag_station_intro_audio_id' ),

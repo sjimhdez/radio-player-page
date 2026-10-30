@@ -1,0 +1,16 @@
+HTTP/1.0 200 OK
+Server: Icecast 2.4.4
+Connection: Close
+Date: Wed, 28 Oct 2026 02:32:53 GMT
+Content-Type: audio/mpeg
+Cache-Control: no-cache, no-store
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+Pragma: no-cache
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, If-Modified-Since
+Access-Control-Allow-Methods: GET, OPTIONS, HEAD
+icy-br:128
+ice-audio-info: channels=2;samplerate=44100;bitrate=128
+icy-description:NULL
+icy-name:Radio24
+icy-pub:1

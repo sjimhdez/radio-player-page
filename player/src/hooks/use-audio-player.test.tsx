@@ -1,8 +1,9 @@
-// Characterization of use-audio-player (spec 0002, task 1.15). ADR 0004: direct
-// sources set crossOrigin = 'anonymous'; the MSE paths (hls.js, dashjs) do not.
+// Characterization of use-audio-player. Direct sources set crossOrigin = 'anonymous';
+// the MSE paths (hls.js, dashjs) do not (ADR 0004).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { StrictMode, useEffect } from 'react'
-import { act, render } from '@testing-library/react'
+import { act, cleanup, render } from '@testing-library/react'
+import { RECONNECT_DELAYS_MS } from 'src/core/audio/audio-controller'
 import useAudioPlayer from 'src/hooks/use-audio-player'
 import { installFakeAudio, media } from 'src/test/fake-audio'
 import { installFakeWebAudio, webAudio } from 'src/test/fake-web-audio'
@@ -19,7 +20,7 @@ const hls = vi.hoisted(() => ({
     destroy: ReturnType<typeof vi.fn>
   }>,
   supported: true,
-  /** Runs inside isSupported(): after the import, before the instance exists. */
+  /** Runs inside isSupported(): after the import, before the instance exists */
   onSupported: undefined as (() => void) | undefined,
 }))
 vi.mock('hls.js', () => {
@@ -174,7 +175,7 @@ describe('direct streams', () => {
     expect(api.current.status).toBe('playing')
   })
 
-  // docs/known-issues.md C7 (spec 0007, ADR 0032).
+  // Play after a pause reloads the live stream, back to the live edge (ADR 0032).
   it('reloads the live stream on play() after a pause (C7)', async () => {
     const { api, audio } = mount(MP3)
     await act(() => api.current.play())
@@ -202,12 +203,12 @@ describe('direct streams', () => {
     await act(() => api.current.play())
     media.failing.clear()
     await act(() => api.current.play())
-    // Two loads for the failed attempt and its retry without crossOrigin (C1, ADR 0033).
+    // Two loads for the failed attempt and its retry without crossOrigin (ADR 0033).
     expect(media.load).toHaveBeenCalledTimes(3)
     expect(api.current.status).toBe('playing')
   })
 
-  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  // A source without CORS plays after one retry without crossOrigin (ADR 0033).
   it('plays an MP3 without CORS by retrying without crossOrigin (C1)', async () => {
     media.corsBlocked.add(MP3)
     const { api, audio } = mount(MP3)
@@ -218,8 +219,8 @@ describe('direct streams', () => {
   })
 })
 
-// spec 0007, task 1.7 (K82, ADR 0031): the hook injects window.AudioContext and
-// navigator.userAgent; the controller decides (src/core/audio/audio-controller.test.ts).
+// The hook injects window.AudioContext and navigator.userAgent; the controller decides
+// (src/core/audio/audio-controller.test.ts; K82, ADR 0031).
 describe('visualization (K82)', () => {
   let restoreWebAudio: () => void
   beforeEach(() => {
@@ -258,8 +259,8 @@ describe('visualization (K82)', () => {
     expect(api.current).toMatchObject({ status: 'playing', canVisualize: false })
   })
 
-  // Moved from use-can-visualize.test.tsx (spec 0007, task 1.8): the decision
-  // follows the source, not the user agent on mount.
+  // Moved from the removed use-can-visualize.test.tsx: the decision follows the source,
+  // not the user agent on mount.
   it.each([
     ['chrome', CHROME],
     ['edge', EDGE],
@@ -317,8 +318,8 @@ describe('HLS', () => {
     expect(audio.crossOrigin).toBeNull()
   })
 
-  // K13 (spec 0007, ADR 0036): the controller tells iOS when it is created, from
-  // navigator.userAgent and navigator.maxTouchPoints, so the first play() is right.
+  // The controller tells iOS when it is created, from navigator.userAgent and
+  // navigator.maxTouchPoints, so the first play() is right (K13, ADR 0036).
   it.each([
     ['an iPhone', IPHONE, 5],
     ['iPadOS with the desktop user agent (K13)', SAFARI, 5],
@@ -330,15 +331,16 @@ describe('HLS', () => {
     expect(audio.src).toBe(HLS)
   })
 
-  // hls.js 1.7 turned preferManagedMediaSource off by default; 3.4.2 shipped
-  // with it on (spec 0003, task 1.1).
+  // hls.js 1.7 turned preferManagedMediaSource off by default; 3.4.2 shipped with it
+  // on.
   it('creates hls.js preferring ManagedMediaSource', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
     expect(hls.instances[0].config).toEqual({ preferManagedMediaSource: true })
   })
 
-  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  // Attaching hls.js is not playing: loading ends with the playing of the element
+  // (ADR 0034).
   it('keeps loading until the element plays (K11)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
@@ -370,7 +372,7 @@ describe('HLS', () => {
     expect(api.current.status).toBe('error')
   })
 
-  // A fatal error arrives after the load, which no longer clears loading (spec 0007, 2.4).
+  // A fatal error arrives after the load, which no longer clears loading (ADR 0034).
   it('clears loading on a fatal hls.js error while it loads', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
@@ -400,7 +402,7 @@ describe('HLS', () => {
     expect(media.play).toHaveBeenCalledWith(HLS)
   })
 
-  // docs/known-issues.md C7 and K12 (spec 0007, ADR 0032).
+  // The reload does not depend on comparing audio.src with a blob: URL (K12, ADR 0032).
   it('recreates hls.js to return to the live edge (C7)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
@@ -421,7 +423,8 @@ describe('DASH', () => {
     expect(media.play).not.toHaveBeenCalled()
   })
 
-  // docs/known-issues.md K11 (spec 0007, ADR 0034)
+  // Attaching dashjs is not playing: loading ends with the playing of the element
+  // (ADR 0034).
   it('keeps loading until the element plays with DASH (K11)', async () => {
     const { api, audio } = mount(DASH)
     await act(() => api.current.play())
@@ -440,7 +443,7 @@ describe('DASH', () => {
     expect(api.current.status).toBe('error')
   })
 
-  // docs/known-issues.md C7 and K12 (spec 0007, ADR 0032).
+  // The reload does not depend on comparing audio.src with a blob: URL (K12, ADR 0032).
   it('recreates dashjs to return to the live edge (C7)', async () => {
     const { api } = mount(DASH)
     await act(() => api.current.play())
@@ -451,7 +454,7 @@ describe('DASH', () => {
   })
 })
 
-// docs/known-issues.md C2, fixed in spec 0007: the suffix of the pathname, case-insensitive.
+// The suffix of the pathname, case-insensitive (ADR 0034).
 describe('protocol detection (C2)', () => {
   it.each([
     'https://radio.test/live.m3u8?token=x',
@@ -526,15 +529,6 @@ describe('welcome audio (intro)', () => {
     expect(api.current.status).toBe('paused')
   })
 
-  it('ignores ended on the live stream', async () => {
-    const { api, audio } = mount(MP3)
-    await act(() => api.current.play())
-    await act(async () => {
-      audio.dispatchEvent(new Event('ended'))
-    })
-    expect(media.load).toHaveBeenCalledTimes(1)
-  })
-
   it('falls through to the live stream silently when it fails', async () => {
     media.failing.add(INTRO)
     const { api, audio } = mount(MP3, INTRO)
@@ -562,6 +556,33 @@ describe('welcome audio (intro)', () => {
     act(() => api.current.pause())
     await act(() => api.current.play())
     expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3])
+  })
+})
+
+// The reason of the error, for administrators (ADR 0065).
+describe('error reason', () => {
+  const pageUrl = window.location.href
+  /** Moves the page to url, with the happy-dom API that the DOM types do not declare */
+  const setPageUrl = (url: string) =>
+    (window as unknown as { happyDOM: { setURL: (url: string) => void } }).happyDOM.setURL(url)
+  afterEach(() => setPageUrl(pageUrl))
+
+  it('starts without a reason and publishes it with the error', async () => {
+    media.failing.add(MP3)
+    const { api } = mount(MP3)
+    expect(api.current.errorReason).toBeNull()
+    await act(() => api.current.play())
+    expect(api.current.status).toBe('error')
+    expect(api.current.errorReason).toEqual({ code: 'not-supported' })
+  })
+
+  it('tells mixed content with the protocol of the page', async () => {
+    const stream = 'http://radio.test/live.mp3'
+    setPageUrl('https://site.test/radio/')
+    media.failing.add(stream)
+    const { api } = mount(stream)
+    await act(() => api.current.play())
+    expect(api.current.errorReason).toEqual({ code: 'mixed-content' })
   })
 })
 
@@ -702,7 +723,7 @@ describe('cleanup', () => {
   })
 })
 
-// Audit of zone 5 (spec 0002, task 4.6): rows of docs/known-issues.md.
+// Found by the audit of the player: rows of docs/known-issues.md.
 describe('audit (spec 0002, 4.6)', () => {
   it('releases the welcome audio when the live stream fails after it (K63)', async () => {
     media.failing.add(MP3)
@@ -718,7 +739,7 @@ describe('audit (spec 0002, 4.6)', () => {
     expect(api.current.introLocked).toBe(false)
     media.failing.clear()
     await act(() => api.current.play())
-    // The live stream fails twice: with crossOrigin and on its retry (C1, ADR 0033).
+    // The live stream fails twice: with crossOrigin and on its retry (ADR 0033).
     expect(media.play.mock.calls.map(([src]) => src)).toEqual([INTRO, MP3, MP3, MP3])
     expect(api.current.status).toBe('playing')
   })
@@ -784,7 +805,7 @@ describe('audit (spec 0002, 4.6)', () => {
     expect(api.current.loading).toBe(false)
   })
 
-  // docs/known-issues.md K11, with a pause (spec 0007, ADR 0034 D3)
+  // The pause destroys the load, so hls.js does not play on MANIFEST_PARSED (ADR 0034).
   it('respects a pause pressed while HLS loads (K11)', async () => {
     const { api } = mount(HLS)
     await act(() => api.current.play())
@@ -838,7 +859,7 @@ describe('audit (spec 0002, 4.6)', () => {
   })
 })
 
-// Lifecycle (spec 0006, task 2.1): what the controller and its adapter must keep.
+// Lifecycle: what the controller and its adapter must keep.
 // main.tsx mounts the player in StrictMode, which mounts, unmounts and remounts
 // every effect in development; the visualizers rely on a stable audioRef.
 describe('lifecycle (spec 0006, 2.1)', () => {
@@ -947,12 +968,11 @@ describe('lifecycle (spec 0006, 2.1)', () => {
   })
 })
 
-// Concurrency suspicions of the 0002 triage (spec 0006 §4.5, task 2.2), against the
-// hook of today. The core answers them again in task 2.10, which fixes K80.
+// The concurrency of play() and pause() through the hook; the core covers it too
+// (src/core/audio/audio-controller.test.ts).
 describe('concurrency (spec 0006, 2.2)', () => {
-  // docs/known-issues.md K80, fixed in the audio controller (task 2.10): the second
-  // play() gets the pending one. Two play() in the same tick cannot be tested here:
-  // while an import() of a vi.mock'ed module is in flight, the next one resolves to
+  // The second play() gets the pending one (K80). Two play() in the same tick cannot
+  // be tested here: while an import() of a vi.mock'ed module is in flight, the next one resolves to
   // the real module (Vitest 5.0.5). The second play() comes in the same window
   // instead: the first one has loaded hls.js and has not created its instance yet.
   it('keeps a single hls.js alive after a second play() while it loads (K80)', async () => {
@@ -980,8 +1000,8 @@ describe('concurrency (spec 0006, 2.2)', () => {
     expect(hls.instances[0].destroy).toHaveBeenCalledTimes(1)
   })
 
-  // docs/known-issues.md K81: a browser rejects the pending play() with AbortError
-  // when pause() interrupts it; the pause cancels the load (spec 0007, ADR 0034 D3).
+  // A browser rejects the pending play() with AbortError when pause() interrupts it;
+  // the pause cancels the load (K81, ADR 0034).
   it('stays paused, without an error, when a pause interrupts the loading MP3 (K81)', async () => {
     media.hold = true
     const { api } = mount(MP3)
@@ -1002,10 +1022,10 @@ describe('concurrency (spec 0006, 2.2)', () => {
   })
 })
 
-// ADR 0030 (spec 0006, task 2.11): the render order. In Chromium a failing MP3 fires
-// 'error' (and play() rejects, also on its retry) in one task and 'pause' in a later one.
-// Since spec 0007 the 'pause' keeps the 'error' state (docs/known-issues.md K1): the alert
-// shows and stays. Here the microtasks stand for the end of the task.
+// The render order (ADR 0030). In Chromium a failing MP3 fires 'error' (and play()
+// rejects, also on its retry) in one task and 'pause' in a later one. The 'pause' keeps
+// the 'error' state (K1): the alert shows and stays. Here the microtasks stand for the
+// end of the task.
 describe('render order (spec 0006, 2.11)', () => {
   const globals = globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
   let actEnvironment: boolean | undefined
@@ -1036,7 +1056,7 @@ describe('render order (spec 0006, 2.11)', () => {
 
     audio.dispatchEvent(new Event('error'))
     media.fail()
-    // The retry without crossOrigin fails too, as with a 404 (C1, ADR 0033).
+    // The retry without crossOrigin fails too, as with a 404 (ADR 0033).
     for (let i = 0; i < 10; i++) await Promise.resolve()
     expect(media.pending).toHaveLength(1)
     audio.dispatchEvent(new Event('error'))
@@ -1050,5 +1070,95 @@ describe('render order (spec 0006, 2.11)', () => {
 
     expect(api.current).toMatchObject({ status: 'error', loading: false })
     expect(rendered).not.toContain('paused')
+  })
+})
+
+// The reconnection of the live stream (ADR 0061). The hook uses the global clock, so
+// fake timers drive it. The 3.5.0 player ignored ended on the live stream.
+describe('reconnection (C8, ADR 0061)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  /** Mounts the hook, plays the MP3 and records each render from then on */
+  async function playingWithRenders() {
+    const api = {} as { current: Api }
+    const rendered: { status: string; loading: boolean; canVisualize: boolean }[] = []
+    const view = render(
+      <Harness
+        streamUrl={MP3}
+        onResult={(result) => {
+          api.current = result
+          const { status, loading, canVisualize } = result
+          rendered.push({ status, loading, canVisualize })
+        }}
+      />,
+    )
+    const audio = view.container.querySelector('audio')!
+    await act(() => api.current.play())
+    rendered.length = 0
+    return { api, audio, rendered }
+  }
+
+  it('reconnects on ended of the live stream (C8)', async () => {
+    const { api, audio } = await playingWithRenders()
+    await act(async () => {
+      audio.dispatchEvent(new Event('ended'))
+    })
+    expect(media.load).toHaveBeenCalledTimes(1)
+    await act(() => vi.advanceTimersByTimeAsync(RECONNECT_DELAYS_MS[0]))
+    expect(media.load).toHaveBeenCalledTimes(2)
+    expect(api.current).toMatchObject({ status: 'playing', loading: false })
+  })
+
+  it('publishes the reconnection as loading, without the error (C8)', async () => {
+    const { api, audio, rendered } = await playingWithRenders()
+    await act(async () => {
+      audio.dispatchEvent(new Event('error'))
+      audio.dispatchEvent(new Event('pause'))
+      audio.dispatchEvent(new Event('ended'))
+    })
+    expect(api.current).toMatchObject({ status: 'playing', loading: true, canVisualize: false })
+    await act(() => vi.advanceTimersByTimeAsync(RECONNECT_DELAYS_MS[0]))
+    expect(api.current).toMatchObject({ status: 'playing', loading: false })
+    expect(rendered.map(({ status }) => status)).toEqual(rendered.map(() => 'playing'))
+  })
+
+  it('publishes the error once the attempts run out, and only then (C8)', async () => {
+    const { api, audio, rendered } = await playingWithRenders()
+    media.failing.add(MP3)
+    await act(async () => {
+      audio.dispatchEvent(new Event('error'))
+    })
+    for (const delay of RECONNECT_DELAYS_MS) {
+      await act(() => vi.advanceTimersByTimeAsync(delay))
+    }
+    expect(api.current).toMatchObject({ status: 'error', loading: false })
+    const firstError = rendered.findIndex(({ status }) => status === 'error')
+    // Until the last attempt fails: Pause with the loading, and no alert (ADR 0030 order).
+    expect(rendered.slice(0, firstError)).toEqual(
+      rendered.slice(0, firstError).map(() => ({
+        status: 'playing',
+        loading: true,
+        canVisualize: false,
+      })),
+    )
+    expect(rendered[rendered.length - 1]).toEqual({
+      status: 'error',
+      loading: false,
+      canVisualize: false,
+    })
+  })
+
+  it('cancels the reconnection when it unmounts', async () => {
+    const { audio } = await playingWithRenders()
+    await act(async () => {
+      audio.dispatchEvent(new Event('error'))
+    })
+    cleanup()
+    expect(vi.getTimerCount()).toBe(0)
   })
 })

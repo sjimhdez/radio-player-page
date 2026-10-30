@@ -1,6 +1,4 @@
-/**
- * The platform the player runs on, as read from navigator.
- */
+/** The platform the player runs on, as read from navigator */
 export interface Platform {
   /** navigator.userAgent */
   userAgent: string
@@ -10,12 +8,8 @@ export interface Platform {
 
 /**
  * Whether the device is iOS, for native HLS. iPadOS 13+ Safari asks for the desktop
- * site by default and reports itself as a Mac: a Mac with touch is an iPad
- * (docs/known-issues.md K13, ADR 0036).
- *
- * @param userAgent - navigator.userAgent
- * @param maxTouchPoints - navigator.maxTouchPoints
- * @returns Whether the device is an iPhone, iPad or iPod
+ * site by default and reports itself as a Mac: a Mac with touch is an iPad (K13,
+ * ADR 0036).
  */
 export function isIOSDevice(userAgent: string, maxTouchPoints: number): boolean {
   const ua = userAgent.toLowerCase()

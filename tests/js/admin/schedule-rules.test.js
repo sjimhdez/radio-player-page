@@ -31,7 +31,7 @@ const VECTORS = JSON.parse(
 function slot( programId, start, end, extra = {} ) {
 	return {
 		programId,
-		name: programId ? 'Program ' + programId : 'Select Radio Show',
+		name: programId ? 'Program ' + programId : 'Select a Radio Show',
 		start,
 		end,
 		hidden: false,
@@ -765,11 +765,11 @@ describe( 'message', () => {
 	it.each( [
 		[
 			{ code: 'invalid_program', reason: 'missing' },
-			'Please select a program.',
+			'Please select a radio show.',
 		],
 		[
 			{ code: 'invalid_program', reason: 'unknown' },
-			'Please select a valid program.',
+			'Please select a valid radio show.',
 		],
 		[
 			{ code: 'format' },
@@ -830,7 +830,7 @@ describe( 'message', () => {
 	it( 'names an untitled program in a same-day overlap', () => {
 		const error = overlapWith( 'overlap', '' );
 		expect( rules.message( error, {} ) ).toBe(
-			'This time slot overlaps with: Unnamed program (Monday, 09:00 - 11:00)'
+			'This time slot overlaps with: Unnamed Radio Show (Monday, 09:00 - 11:00)'
 		);
 		expect( rules.message( error, STRINGS ) ).toBe(
 			'Se solapa con: Sin título (Lunes, 09:00 - 11:00)'
@@ -840,7 +840,7 @@ describe( 'message', () => {
 	it( 'names an untitled program in an overlap between days (K74)', () => {
 		const error = overlapWith( 'cross_midnight_overlap', '' );
 		expect( rules.message( error, {} ) ).toBe(
-			'This time slot overlaps with: Unnamed program (Monday, 09:00 - 11:00)'
+			'This time slot overlaps with: Unnamed Radio Show (Monday, 09:00 - 11:00)'
 		);
 		expect( rules.message( error, STRINGS ) ).toBe(
 			'Se solapa con: Sin título (Lunes, 09:00 - 11:00)'

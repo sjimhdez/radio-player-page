@@ -33,7 +33,7 @@ use WP_UnitTestCase;
  * Cases:
  * - the wrapper carries its class once, on WP 6.6 and on newer WP (K6);
  * - schedule: dayOrder × showDescription × showExtendedDescription (8 snapshots);
- *   invalid index and a schedule without slots → «No radio schedule» message;
+ *   invalid index and a schedule without slots → «No weekly schedule» message;
  * - programs list: showImage × showDescription × showExtendedDescription ×
  *   showSchedule (16 snapshots); invalid index → «No radio shows» message;
  * - now playing: showLogo × «Main» (logo, link, upcoming rerun) and «Second» (no
@@ -394,11 +394,11 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An invalid station index renders the «No radio schedule» message.
+	 * An invalid station index renders the «No weekly schedule» message.
 	 */
 	public function test_schedule_invalid_index() {
 		$this->assertSame(
-			'<div class="wp-block-radplapag-schedule"><div class="wp-block-group is-empty"><p>No radio schedule for this station.</p></div></div>',
+			'<div class="wp-block-radplapag-schedule"><div class="wp-block-group is-empty"><p>No weekly schedule for this station.</p></div></div>',
 			self::render( 'schedule', array( 'stationIndex' => 99 ) )
 		);
 	}
@@ -408,7 +408,7 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	 */
 	public function test_schedule_without_slots() {
 		$this->assertSame(
-			'<div class="wp-block-radplapag-schedule"><div class="wp-block-group is-empty"><p>No radio schedule for this station.</p></div></div>',
+			'<div class="wp-block-radplapag-schedule"><div class="wp-block-group is-empty"><p>No weekly schedule for this station.</p></div></div>',
 			self::render( 'schedule', array( 'stationIndex' => 0 ) )
 		);
 	}
@@ -431,15 +431,15 @@ final class BlockRenderTest extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Currently, «On Air» and «Coming up» are translated alone and the «: » after them is
+	 * Currently, «On Air» and «Up Next» are translated alone and the «: » after them is
 	 * not part of any translatable string, so a translation cannot change it. R-org-8 of
 	 * the spec 0014 review.
 	 */
 	public function test_currently_now_playing_colon_is_outside_the_translatable_strings() {
 		$translate = static function ( $translation, $text, $domain ) {
 			$labels = array(
-				'On Air'    => 'EN ANTENA',
-				'Coming up' => 'A CONTINUACIÓN',
+				'On Air'  => 'EN ANTENA',
+				'Up Next' => 'A CONTINUACIÓN',
 			);
 			return 'radio-player-page' === $domain && isset( $labels[ $text ] ) ? $labels[ $text ] : $translation;
 		};
@@ -480,7 +480,7 @@ final class BlockRenderTest extends WP_UnitTestCase {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame(
-			'<div class="is-empty wp-block-radplapag-now-playing"><div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;"><p><em>Now Playing: nothing to show — no program is currently on air or starting soon for this station. This block will render empty on the front end.</em></p></div></div>',
+			'<div class="is-empty wp-block-radplapag-now-playing"><div class="wp-block-group" style="border: 1px dashed currentColor; opacity: 0.6; padding: 1em;"><p><em>On Air: nothing to show — this radio station has no radio show on air right now. On the site, this block stays empty until one starts.</em></p></div></div>',
 			$response->get_data()['rendered']
 		);
 	}

@@ -94,8 +94,8 @@ const baseThemeOptions: Omit<ThemeOptions, 'palette'> = {
   },
   components: {
     // "Reduce motion": nothing animates, neither the dots, the collapses, the
-    // dialogs, the tooltips nor the loading spinner. The visualizers draw on
-    // the canvas and are left as they are (frozen zone, ADR 0018)
+    // dialogs, the tooltips nor the loading spinner. The canvas is out of reach of
+    // CSS: the PlayerPage does not draw the visualizer then (K124, ADR 0072)
     MuiCssBaseline: {
       styleOverrides: {
         '@media (prefers-reduced-motion: reduce)': {
@@ -302,28 +302,14 @@ const palettes: Record<string, PaletteOptions> = {
 }
 
 /**
- * Gets a Material-UI theme with the specified color mode
- * Returns a complete theme configuration with typography, spacing, and color palette
+ * The MUI theme of a color mode (neutral, red, green, blue, yellow, purple, orange or
+ * pink), always dark on a black background; neutral if the mode is unknown.
  *
- * Available color modes:
- * - neutral (white primary, default)
- * - red
- * - green
- * - blue
- * - yellow
- * - purple
- * - orange
- * - pink
+ * Dialogs and popovers (menus) are portals in `body`, outside the player's root, so each
+ * one carries the player's language itself (K62). Tooltips render in place, inside the
+ * controls region, so that they sit in a landmark (ADR 0051).
  *
- * All themes use dark mode with black background
- *
- * Dialogs and popovers (menus) are portals in `body`, outside the player's
- * root, so each one carries the player's language itself (K62). Tooltips render
- * in place, inside the controls region, so that they sit in a landmark (AX1).
- *
- * @param colorMode - Color mode name (defaults to 'neutral' if invalid or undefined)
  * @param lang - Language the player shows, as BCP 47 (omitted: no `lang`)
- * @returns Material-UI Theme object
  */
 export const getTheme = (colorMode: string = 'neutral', lang?: string): Theme => {
   const selectedPalette = palettes[colorMode] || palettes.neutral

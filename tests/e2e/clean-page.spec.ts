@@ -31,7 +31,16 @@ function generatorMeta() {
 interface Globals {
 	RADPLAPAG_CONFIG: Record< string, unknown >;
 	RADPLAPAG_PROGRAMS: Array< { id: string; name: string } >;
-	RADPLAPAG_SCHEDULE: Record< string, Array< { program_id: string } > >;
+	RADPLAPAG_SCHEDULE: Record<
+		string,
+		Array< { program_id: string; is_rerun: boolean } >
+	>;
+}
+
+interface JsonLdNode {
+	'@type': string;
+	'@id': string;
+	[ key: string ]: unknown;
 }
 
 /**
@@ -101,6 +110,32 @@ function meta( html: string, key: string ) {
 function favicon( html: string ) {
 	const match = html.match( /<link rel="icon" href="([^"]*)" \/>/ );
 	return match ? match[ 1 ] : null;
+}
+
+/**
+ * Returns the raw JSON of the one structured data block (ADR 0070).
+ *
+ * @param html Clean page HTML.
+ */
+function rawJsonLd( html: string ) {
+	const blocks = [
+		...html.matchAll(
+			/<script type="application\/ld\+json">(.*?)<\/script>/g
+		),
+	];
+	expect( blocks ).toHaveLength( 1 );
+	return blocks[ 0 ][ 1 ];
+}
+
+/**
+ * Parses the structured data block and returns its graph.
+ *
+ * @param html Clean page HTML.
+ */
+function jsonLdGraph( html: string ): JsonLdNode[] {
+	const data = JSON.parse( rawJsonLd( html ) );
+	expect( data[ '@context' ] ).toBe( 'https://schema.org' );
+	return data[ '@graph' ];
 }
 
 /**
@@ -217,8 +252,9 @@ test.describe( 'clean page (HTTP)', () => {
 		expect( html ).toMatch(
 			/<\/head><body><div id="root"><\/div><script type="module" src="[^"]+"><\/script><\/body><\/html>$/
 		);
-		// Only the globals and the player entry; only the player stylesheet.
-		expect( html.match( /<script/g ) ).toHaveLength( 2 );
+		// The structured data, the globals and the player entry; only the
+		// player stylesheet.
+		expect( html.match( /<script/g ) ).toHaveLength( 3 );
 		expect( html.match( /<link/g ) ).toHaveLength( 1 );
 		// Only the plugin's own generator, not wp_generator() (ADR 0053).
 		expect( html.match( /name="generator"/g ) ).toHaveLength( 1 );
@@ -399,6 +435,202 @@ test.describe( 'clean page (HTTP)', () => {
 		}
 	} );
 
+	test( 'prints the structured data between the Twitter tags and the globals (ADR 0070)', async ( {
+		request,
+	} ) => {
+		const html = await getHtml( request, readSeed().urls.mp3 );
+
+		expect( html ).toContain(
+			'<meta name="twitter:description" content="Listen to E2E MP3 live"><script type="application/ld+json">'
+		);
+		expect( html ).toMatch(
+			/<script type="application\/ld\+json">[^<]*<\/script><script>window\.RADPLAPAG_CONFIG = /
+		);
+	} );
+
+	test( 'describes the station and one event per program and rerun (ADR 0070)', async ( {
+		request,
+	} ) => {
+		const url = readSeed().urls.mp3;
+		const html = await getHtml( request, url );
+		const {
+			RADPLAPAG_CONFIG: config,
+			RADPLAPAG_PROGRAMS: programs,
+			RADPLAPAG_SCHEDULE: schedule,
+		} = readGlobals( html );
+		const [ station, ...events ] = jsonLdGraph( html );
+
+		expect( station ).toMatchObject( {
+			'@type': 'RadioStation',
+			'@id': `${ url }#station`,
+			name: 'E2E MP3',
+			url,
+			logo: config.logoImage,
+			image: config.logoImage,
+		} );
+
+		// In the order of RADPLAPAG_PROGRAMS, the live event before the rerun.
+		const slots = Object.values( schedule ).flat();
+		const expected = programs.flatMap( ( program ) =>
+			[ false, true ]
+				.filter( ( isRerun ) =>
+					slots.some(
+						( slot ) =>
+							slot.program_id === program.id &&
+							slot.is_rerun === isRerun
+					)
+				)
+				.map(
+					( isRerun ) =>
+						`${ url }#program-${ program.id }${
+							isRerun ? '-rerun' : ''
+						}`
+				)
+		);
+		expect( events.map( ( event ) => event[ '@id' ] ) ).toEqual( expected );
+		expect( station.event ).toEqual(
+			expected.map( ( id ) => ( { '@id': id } ) )
+		);
+		for ( const event of events ) {
+			expect( event[ '@type' ] ).toBe( 'BroadcastEvent' );
+			expect( event.organizer ).toEqual( { '@id': `${ url }#station` } );
+		}
+
+		const byName = ( name: string ) =>
+			events.find( ( event ) => event.name === name );
+		// Program B is only seeded as a rerun.
+		expect( byName( 'E2E Program B' ) ).toMatchObject( {
+			'@id': `${ url }#program-${ seededId( 'program-B' ) }-rerun`,
+			isLiveBroadcast: false,
+		} );
+		// Program C crosses midnight on Monday.
+		expect( byName( 'E2E Program C' ) ).toMatchObject( {
+			isLiveBroadcast: true,
+			eventSchedule: [
+				{
+					'@type': 'Schedule',
+					byDay: 'https://schema.org/Monday',
+					startTime: '22:00:00',
+					endTime: '02:00:00',
+					duration: 'PT4H',
+					repeatFrequency: 'P1W',
+					scheduleTimezone: 'Asia/Kolkata',
+				},
+			],
+		} );
+	} );
+
+	test( 'prints only the station, escaped, without a schedule (ADR 0070)', async ( {
+		request,
+	} ) => {
+		const url = readSeed().urls.minimal;
+		const html = await getHtml( request, url );
+		const graph = jsonLdGraph( html );
+
+		expect( graph ).toEqual( [
+			{
+				'@type': 'RadioStation',
+				'@id': `${ url }#station`,
+				name: `E2E Minimal <>&'"`,
+				url,
+			},
+		] );
+		// JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT.
+		expect( rawJsonLd( html ) ).toContain(
+			'"name":"E2E Minimal \\u003C\\u003E\\u0026\\u0027\\u0022"'
+		);
+	} );
+
+	test( 'prints the manual offset in each time, without scheduleTimezone (ADR 0070)', async ( {
+		request,
+	} ) => {
+		try {
+			wpCli( 'option', 'update', 'timezone_string', '' );
+			wpCli( 'option', 'update', 'gmt_offset', '-3.5' );
+			const events = jsonLdGraph(
+				await getHtml( request, readSeed().urls.mp3 )
+			).slice( 1 );
+			const programC = events.find(
+				( event ) => event.name === 'E2E Program C'
+			);
+
+			expect( programC.eventSchedule ).toEqual( [
+				expect.objectContaining( {
+					startTime: '22:00:00-03:30',
+					endTime: '02:00:00-03:30',
+				} ),
+			] );
+			for ( const event of events ) {
+				for ( const slot of event.eventSchedule ) {
+					expect( slot ).not.toHaveProperty( 'scheduleTimezone' );
+				}
+			}
+		} finally {
+			wpCli( 'option', 'update', 'timezone_string', 'Asia/Kolkata' );
+		}
+	} );
+
+	test( 'keeps a program name with </script> and & inside the block (ADR 0070)', async ( {
+		request,
+	} ) => {
+		const name = 'E2E </script><b>Rock</b> & Roll';
+		const station = seededId( 'station-minimal' );
+		const program = wpCli(
+			'post',
+			'create',
+			'--post_type=radplapag_program',
+			'--post_status=publish',
+			'--post_title=E2E Placeholder',
+			'--porcelain'
+		);
+
+		try {
+			// Straight to the table: kses would strip the tags on save.
+			wpCli(
+				'eval',
+				`global $wpdb; $wpdb->update( $wpdb->posts, array( 'post_title' => ${ JSON.stringify(
+					name
+				) } ), array( 'ID' => ${ program } ) ); clean_post_cache( ${ program } );`
+			);
+			wpCli(
+				'post',
+				'meta',
+				'update',
+				station,
+				'radplapag_station_schedule',
+				JSON.stringify( {
+					monday: [
+						{
+							program_id: program,
+							start: '06:00',
+							end: '07:00',
+							is_rerun: false,
+						},
+					],
+				} )
+			);
+
+			const html = await getHtml( request, readSeed().urls.minimal );
+
+			expect( html ).toMatch(
+				/<\/head><body><div id="root"><\/div><script type="module" src="[^"]+"><\/script><\/body><\/html>$/
+			);
+			expect( rawJsonLd( html ) ).not.toContain( '</' );
+			expect( rawJsonLd( html ) ).not.toContain( '&' );
+			const [ , event ] = jsonLdGraph( html );
+			expect( event.name ).toBe( name );
+		} finally {
+			wpCli(
+				'post',
+				'meta',
+				'delete',
+				station,
+				'radplapag_station_schedule'
+			);
+			wpCli( 'post', 'delete', program, '--force' );
+		}
+	} );
+
 	test( 'lists the programs in order of first appearance in the schedule', async ( {
 		request,
 	} ) => {
@@ -525,7 +757,7 @@ test.describe( 'clean page (HTTP)', () => {
 
 		// Asia/Kolkata: the offset of the request and the zone, so the player can follow its transitions.
 		expect( rawGlobals( html ).RADPLAPAG_CONFIG ).toContain(
-			'"timezoneOffset":5.5,"timezone":"Asia\\/Kolkata"}'
+			'"timezoneOffset":5.5,"timezone":"Asia\\/Kolkata",'
 		);
 		expect( readGlobals( html ).RADPLAPAG_CONFIG.timezoneOffset ).toBe(
 			5.5
@@ -624,11 +856,11 @@ test.describe( 'clean page without a usable manifest (HTTP)', () => {
 	for ( const [ variant, message ] of [
 		[
 			'radplapag-no-manifest',
-			'The player compilation file (manifest.json) could not be found.',
+			'This player cannot load because some of its files are missing. If you manage this site, reinstall the Radio Player Page plugin.',
 		],
 		[
 			'radplapag-no-main-entry',
-			'The main JS file was not found in the Vite manifest.',
+			'This player cannot load because some of its files are missing. If you manage this site, reinstall the Radio Player Page plugin.',
 		],
 	] ) {
 		test( `dies with ${ variant }`, async ( { request } ) => {
@@ -687,6 +919,8 @@ test.describe( 'clean page robots and direction (HTTP)', () => {
 			expect( html ).toContain( 'RADPLAPAG_CONFIG' );
 			expect( meta( html, 'robots' ) ).toBe( 'noindex, nofollow' );
 			expect( html.match( /name="robots"/g ) ).toHaveLength( 1 );
+			// So does the structured data (ADR 0070).
+			expect( rawJsonLd( html ) ).toContain( '"RadioStation"' );
 			// The generator still prints, between viewport and robots (G1).
 			expect( html ).toContain(
 				`${ VIEWPORT }${ generatorMeta() }<meta name="robots"`

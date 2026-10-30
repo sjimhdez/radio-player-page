@@ -1,0 +1,15 @@
+HTTP/1.0 200 OK
+icy-notice1:<BR>This stream requires <a href="http://www.winamp.com">Winamp</a><BR>
+icy-notice2:Shoutcast DNAS/posix(linux x64) v2.6.1.777<BR>
+Accept-Ranges:none
+Access-Control-Allow-Origin:*
+Cache-Control:no-cache,no-store,must-revalidate,max-age=0
+Connection:close
+icy-name:radio24
+icy-genre:talk
+icy-br:64
+icy-sr:22050
+icy-url:N/A
+icy-pub:1
+content-type:audio/mpeg
+X-Clacks-Overhead:GNU Terry Pratchett

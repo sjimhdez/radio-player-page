@@ -31,8 +31,8 @@ async function openAt( page: Page, day: StationDay, time: string ) {
 	await page.goto( readSeed().urls.mp3 );
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
 	await expect(
-		page.getByText( 'Broadcast Timezone', { exact: true } ).locator( '..' )
-	).toHaveText( `Broadcast Timezone${ time }+5:30` );
+		page.getByText( 'Station Time', { exact: true } ).locator( '..' )
+	).toHaveText( `Station Time${ time }+5:30` );
 }
 
 /**
@@ -45,13 +45,13 @@ function onAir( page: Page ) {
 }
 
 /**
- * The "Next" line: its label, the program name, the rerun label, the minutes
+ * The "Up Next" line: its label, the program name, the rerun label, the minutes
  * left and the time range.
  *
  * @param page Player page.
  */
 function next( page: Page ) {
-	return page.getByText( 'Next:', { exact: true } ).locator( '..' );
+	return page.getByText( 'Up Next:', { exact: true } ).locator( '..' );
 }
 
 test( 'shows the program of a normal slot (vector 2)', async ( { page } ) => {
@@ -104,7 +104,7 @@ test( 'announces the next program 10 minutes ahead (vector 3)', async ( {
 
 	await expect( onAir( page ) ).toHaveText( 'On Air:E2E Program A' );
 	await expect( next( page ) ).toHaveText(
-		'Next:E2E Program B(Rerun)(in 10 minutes) 10:00-14:00'
+		'Up Next:E2E Program B(Rerun)(in 10 minutes) 10:00-14:00'
 	);
 } );
 

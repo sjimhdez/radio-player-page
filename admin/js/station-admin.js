@@ -53,8 +53,38 @@
 			const streamUrlInputEl = form.querySelector(
 				'#radplapag_station_stream_url'
 			);
+			const testButton = streamUrlWrap.querySelector(
+				'.radplapag-stream-test'
+			);
+			if ( streamUrlInputEl && testButton ) {
+				testButton.addEventListener( 'click', function () {
+					// aria-disabled while a test runs (K130).
+					if (
+						testButton.getAttribute( 'aria-disabled' ) === 'true'
+					) {
+						return;
+					}
+					const val = streamUrlInputEl.value.trim();
+					const problem = streamUrlError( val );
+					if ( problem ) {
+						showFieldError( streamUrlWrap, problem );
+						return;
+					}
+					runStreamTest(
+						val,
+						streamUrlWrap.getAttribute( 'data-site-scheme' ),
+						testButton,
+						streamUrlInputEl
+					);
+				} );
+			}
 			if ( streamUrlInputEl ) {
 				streamUrlInputEl.addEventListener( 'input', function () {
+					// A test of the previous value no longer applies.
+					streamTestRun++;
+					if ( testButton ) {
+						testButton.removeAttribute( 'aria-disabled' );
+					}
 					const val = streamUrlInputEl.value.trim();
 					updateMixedContentNotice(
 						streamUrlWrap,
@@ -71,6 +101,339 @@
 				} );
 			}
 		}
+	}
+
+	// "Test stream" (spec 0018): the server first, then the browser test the
+	// rules choose; neither plays anything.
+	const BROWSER_TIMEOUT_MS = 8000;
+	// Bumped by each test and each edit of the field: a late verdict is dropped.
+	let streamTestRun = 0;
+
+	function streamRules() {
+		return window.radplapagStreamRules;
+	}
+
+	/**
+	 * Asks radplapag_probe_stream for the server report (ADR 0064).
+	 *
+	 * @param {string} url Stream URL.
+	 * @return {Promise<?Object>} The report, or null if the request failed.
+	 */
+	function askServer( url ) {
+		const probe = l10n.probe || {};
+		const body = new window.URLSearchParams( {
+			action: 'radplapag_probe_stream',
+			_ajax_nonce: probe.nonce || '',
+			url,
+		} );
+		return window
+			.fetch( probe.ajaxUrl, {
+				method: 'POST',
+				credentials: 'same-origin',
+				body,
+			} )
+			.then( function ( response ) {
+				return response.json();
+			} )
+			.then( function ( json ) {
+				return json && json.success ? json.data : null;
+			} )
+			.catch( function () {
+				return null;
+			} );
+	}
+
+	/**
+	 * Loads the stream in a muted Audio that is never played nor attached,
+	 * waits for its metadata, an error or the timeout, and frees it (R3).
+	 *
+	 * @param {string}  url  Stream URL.
+	 * @param {boolean} cors Whether to ask with crossOrigin = 'anonymous'.
+	 * @return {Promise<string>} `'loaded'`, `'error'` or `'timeout'`.
+	 */
+	function loadAudio( url, cors ) {
+		return new Promise( function ( resolve ) {
+			const audio = new window.Audio();
+			const events = {
+				loadedmetadata: 'loaded',
+				canplay: 'loaded',
+				error: 'error',
+			};
+			let timer = null;
+			function finish( result ) {
+				window.clearTimeout( timer );
+				Object.keys( events ).forEach( function ( name ) {
+					audio.removeEventListener( name, handlers[ name ] );
+				} );
+				audio.removeAttribute( 'src' );
+				audio.load();
+				resolve( result );
+			}
+			const handlers = {};
+			Object.keys( events ).forEach( function ( name ) {
+				handlers[ name ] = function () {
+					finish( events[ name ] );
+				};
+				audio.addEventListener( name, handlers[ name ] );
+			} );
+			timer = window.setTimeout( function () {
+				finish( 'timeout' );
+			}, BROWSER_TIMEOUT_MS );
+			audio.muted = true;
+			audio.preload = 'auto';
+			if ( cors ) {
+				audio.crossOrigin = 'anonymous';
+			}
+			audio.src = url;
+		} );
+	}
+
+	/**
+	 * The Audio test: with CORS and, after an error, without it (ADR 0033).
+	 *
+	 * @param {string} url Stream URL.
+	 * @return {Promise<Object>} `{ test: 'audio', result }`: `cors`,
+	 * `no-cors`, `error` or `timeout`.
+	 */
+	function probeAudio( url ) {
+		return loadAudio( url, true )
+			.then( function ( first ) {
+				if ( first !== 'error' ) {
+					return first === 'loaded' ? 'cors' : first;
+				}
+				return loadAudio( url, false ).then( function ( second ) {
+					return second === 'loaded' ? 'no-cors' : second;
+				} );
+			} )
+			.then( function ( result ) {
+				return { test: 'audio', result };
+			} );
+	}
+
+	/**
+	 * Fetches an HLS or DASH manifest as hls.js and dashjs do (cors mode).
+	 *
+	 * @param {string} url Manifest URL.
+	 * @return {Promise<Object>} `{ test: 'manifest', status }`, or `{ test:
+	 * 'manifest', failed: true }` without CORS, a network error or the timeout.
+	 */
+	function probeManifest( url ) {
+		const controller = new window.AbortController();
+		const timer = window.setTimeout( function () {
+			controller.abort();
+		}, BROWSER_TIMEOUT_MS );
+		return window
+			.fetch( url, {
+				mode: 'cors',
+				credentials: 'omit',
+				cache: 'no-store',
+				signal: controller.signal,
+			} )
+			.then(
+				function ( response ) {
+					return { test: 'manifest', status: response.status };
+				},
+				function () {
+					return { test: 'manifest', failed: true };
+				}
+			)
+			.finally( function () {
+				window.clearTimeout( timer );
+			} );
+	}
+
+	/**
+	 * Runs the browser test the rules choose for the server report.
+	 *
+	 * @param {string}      url        Stream URL.
+	 * @param {Object|null} server     Server report, or null.
+	 * @param {string}      siteScheme Scheme of the site.
+	 * @return {Promise<?Object>} Browser result, or null if none ran.
+	 */
+	function probeBrowser( url, server, siteScheme ) {
+		const test = streamRules().browserTest( url, server, siteScheme );
+		if ( test === 'audio' ) {
+			return probeAudio( url );
+		}
+		return test === 'manifest'
+			? probeManifest( url )
+			: Promise.resolve( null );
+	}
+
+	/**
+	 * Key of a code's message in `radplapagAdmin.strings`:
+	 * `plays-no-visualizer` → `streamPlaysNoVisualizer`.
+	 *
+	 * @param {string} prefix `stream` or `streamNote`.
+	 * @param {string} code   Verdict or note code.
+	 * @return {string} String key.
+	 */
+	function streamKey( prefix, code ) {
+		return (
+			prefix +
+			code
+				.split( '-' )
+				.map( function ( part ) {
+					return part.charAt( 0 ).toUpperCase() + part.slice( 1 );
+				} )
+				.join( '' )
+		);
+	}
+
+	/**
+	 * The message of a code in `radplapagAdmin.strings`, as text.
+	 *
+	 * @param {string} prefix `stream` or `streamNote`.
+	 * @param {string} code   Verdict or note code (`plays-no-visualizer`).
+	 * @return {string} Text, or '' if there is none.
+	 */
+	function streamMessage( prefix, code ) {
+		return decodeEntities( s[ streamKey( prefix, code ) ] || '' );
+	}
+
+	/**
+	 * One URL to choose: its label (a mount's name and type), the URL as
+	 * code and "Use this URL", which fills the field and fires `input` (C13)
+	 * without saving. The server's values are always text (ADR 0066 §4).
+	 *
+	 * @param {Object}      option `{ url, name?, type? }`.
+	 * @param {number}      index  Position in the list.
+	 * @param {HTMLElement} input  Stream URL input.
+	 * @return {HTMLElement} List item.
+	 */
+	function buildFixItem( option, index, input ) {
+		const id = 'radplapag_stream_fix_' + index;
+		const use = createElement(
+			'button',
+			{
+				type: 'button',
+				class: 'button button-small',
+				'aria-describedby': id,
+			},
+			[ decodeEntities( s.streamUseUrl || '' ) ]
+		);
+		use.addEventListener( 'click', function () {
+			input.value = option.url;
+			input.dispatchEvent(
+				new window.Event( 'input', { bubbles: true } )
+			);
+			input.focus();
+		} );
+		const children = [
+			createElement( 'code', { id }, [ option.url ] ),
+			' ',
+			use,
+		];
+		let label = option.name || '';
+		if ( label && option.type ) {
+			label = decodeEntities( s.streamMountLabel || '%1$s (%2$s)' )
+				.replace( '%1$s', function () {
+					return option.name;
+				} )
+				.replace( '%2$s', function () {
+					return option.type;
+				} );
+		}
+		if ( label ) {
+			children.unshift( createElement( 'span', {}, [ label ] ), ' ' );
+		}
+		return createElement( 'li', {}, children );
+	}
+
+	/**
+	 * Paints a verdict: its message, the URLs to choose from and the notes.
+	 *
+	 * @param {HTMLElement} region  Result region (`role="status"`).
+	 * @param {Object}      verdict Verdict of `radplapagStreamRules.verdict()`.
+	 * @param {HTMLElement} input   Stream URL input.
+	 */
+	function paintVerdict( region, verdict, input ) {
+		region.textContent = '';
+		region.append(
+			createElement( 'p', {}, [
+				streamMessage( 'stream', verdict.code ).replace(
+					'%d',
+					function () {
+						return String( verdict.status );
+					}
+				),
+			] )
+		);
+		const fix = verdict.fix;
+		const options = fix
+			? fix.mounts ||
+				fix.urls.map( function ( url ) {
+					return { url };
+				} )
+			: [];
+		if ( options.length ) {
+			region.append(
+				createElement(
+					'ul',
+					{ class: 'radplapag-stream-fix' },
+					options.map( function ( option, index ) {
+						return buildFixItem( option, index, input );
+					} )
+				)
+			);
+		}
+		verdict.notes.forEach( function ( note ) {
+			const text = streamMessage( 'streamNote', note );
+			if ( text ) {
+				region.append( createElement( 'p', {}, [ text ] ) );
+			}
+		} );
+	}
+
+	/**
+	 * Tests a stream URL and shows the verdict in the result region. The
+	 * button stays aria-disabled until then, or until the field changes:
+	 * disabled would send its focus to the body (K130).
+	 *
+	 * @param {string}      url        Trimmed field value.
+	 * @param {string}      siteScheme Scheme of the site.
+	 * @param {HTMLElement} button     "Test stream" button.
+	 * @param {HTMLElement} input      Stream URL input.
+	 */
+	function runStreamTest( url, siteScheme, button, input ) {
+		const region = document.getElementById(
+			'radplapag_stream_test_result'
+		);
+		const run = ++streamTestRun;
+		button.setAttribute( 'aria-disabled', 'true' );
+		region.textContent = decodeEntities( s.streamTesting || '' );
+		askServer( url )
+			.then( function ( server ) {
+				return probeBrowser( url, server, siteScheme ).then(
+					function ( browser ) {
+						return streamRules().verdict( {
+							url,
+							siteScheme,
+							server,
+							browser,
+						} );
+					}
+				);
+			} )
+			.then( function ( verdict ) {
+				if ( run !== streamTestRun ) {
+					return;
+				}
+				button.removeAttribute( 'aria-disabled' );
+				paintVerdict( region, verdict, input );
+			} )
+			.catch( function () {
+				// A test that throws must not leave the button aria-disabled.
+				if ( run !== streamTestRun ) {
+					return;
+				}
+				button.removeAttribute( 'aria-disabled' );
+				paintVerdict(
+					region,
+					{ code: 'unreachable', fix: null, notes: [] },
+					input
+				);
+			} );
 	}
 
 	// Read when used, not on load: the rules are a separate script.
@@ -243,6 +606,29 @@
 	}
 
 	/**
+	 * The error message of a stream URL, as the submit shows it.
+	 *
+	 * @param {string} value Trimmed field value.
+	 * @return {?string} Message, or null when the URL is fine.
+	 */
+	function streamUrlError( value ) {
+		if ( ! value ) {
+			return s.streamUrlRequired || 'This field is required.';
+		}
+		const problem = streamUrlProblem( value );
+		if ( problem === 'invalid' ) {
+			return s.streamUrlInvalid || 'Please enter a valid URL.';
+		}
+		if ( problem === 'scheme' ) {
+			return (
+				s.streamUrlScheme ||
+				'Please enter a URL that starts with http:// or https://.'
+			);
+		}
+		return null;
+	}
+
+	/**
 	 * Shows the notice printed by PHP when the stream is http and the site
 	 * https, or hides it (C13). It never blocks the submit.
 	 *
@@ -327,32 +713,10 @@
 			}
 			return { valid: false, firstErrorElement: playerPageWrap };
 		}
-		if ( ! streamUrlVal ) {
+		const streamUrlMessage = streamUrlError( streamUrlVal );
+		if ( streamUrlMessage ) {
 			if ( streamUrlWrap ) {
-				showFieldError(
-					streamUrlWrap,
-					s.streamUrlRequired || 'This field is required.'
-				);
-			}
-			return { valid: false, firstErrorElement: streamUrlWrap };
-		}
-		const urlProblem = streamUrlProblem( streamUrlVal );
-		if ( urlProblem === 'invalid' ) {
-			if ( streamUrlWrap ) {
-				showFieldError(
-					streamUrlWrap,
-					s.streamUrlInvalid || 'Please enter a valid URL.'
-				);
-			}
-			return { valid: false, firstErrorElement: streamUrlWrap };
-		}
-		if ( urlProblem === 'scheme' ) {
-			if ( streamUrlWrap ) {
-				showFieldError(
-					streamUrlWrap,
-					s.streamUrlScheme ||
-						'Please enter a URL that starts with http:// or https://.'
-				);
+				showFieldError( streamUrlWrap, streamUrlMessage );
 			}
 			return { valid: false, firstErrorElement: streamUrlWrap };
 		}
@@ -450,7 +814,7 @@
 	}
 
 	function buildProgramSelect( day, index ) {
-		const selectProgramOpt = s.selectProgram || 'Select Radio Show';
+		const selectProgramOpt = s.selectProgram || 'Select a Radio Show';
 		const options = [
 			createElement( 'option', { value: '' }, [
 				decodeEntities( selectProgramOpt ),
@@ -509,7 +873,7 @@
 		}
 		notice.textContent = decodeEntities(
 			s.programNotPublished ||
-				'This program is not published; this time slot is not shown on the site.'
+				'This radio show is not published; this time slot is not shown on the site.'
 		);
 	}
 
@@ -542,6 +906,7 @@
 
 	function buildProgramRow( day, index ) {
 		const toLabel = decodeEntities( s.to || 'to' );
+		const removeLabel = decodeEntities( s.remove || 'Remove' );
 		const removeTimeSlot = decodeEntities(
 			s.removeTimeSlot || 'Remove Time Slot'
 		);
@@ -607,8 +972,9 @@
 					{
 						href: '#',
 						class: 'submitdelete radplapag-remove-program',
+						'aria-label': removeTimeSlot,
 					},
-					[ removeTimeSlot ]
+					[ removeLabel ]
 				),
 			] ),
 			createElement( 'div', {

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta charset="utf-8">
+<title>Status — Icecast Server</title>
+<link rel="stylesheet" type="text/css" href="/assets/css/style.css" media="screen, print">
+<meta name="theme-color" content="#001826">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="description" content="Icecast is free server software for streaming multimedia.">
+</head>
+<body>
+                    <!-- WARNING:
+                    DO NOT ATTEMPT TO PARSE ICECAST HTML OUTPUT!
+                    The web interface may change completely between releases.
+                    If you have a need for automatic processing of server data,
+                    please read the appropriate documentation. Latest docs:
+                    https://icecast.org/docs/icecast-latest/server-stats.html
+                    -->
+                <header><nav id="main-nav" role="primary"><a href="/" id="branding"><img src="/assets/img/icecast.png" alt="Logo"><h1>Icecast Server</h1></a><ul>
+<li><a href="/status.xsl">Status</a></li>
+<li><a href="/server_version.xsl">Version</a></li>
+<li class="right adminlink"><a href="/admin/">Administration</a></li>
+</ul></nav></header><main role="main"><h2>Status</h2>
+<section class="box"><h3 class="box_title">Mountpoint <code>/live</code>
+</h3>
+<div>
+<ul class="playlists">
+<li><a href="/live">Direct</a></li>
+<li><a href="/live.m3u">M3U</a></li>
+<li><a href="/live.xspf">XSPF</a></li>
+</ul>
+<h4>Play stream</h4>
+</div>
+<h4>Further information</h4>
+<div class="mountcont"><table class="table-keys"><tbody>
+<tr>
+<td>Listeners (current):</td>
+<td class="streamstats">0</td>
+</tr>
+<tr>
+<td>Currently playing:</td>
+<td class="streamstats"></td>
+</tr>
+</tbody></table></div></section><section class="box"><h3 class="box_title">Mountpoint <code>/nonstop</code>
+</h3>
+<div>
+<ul class="playlists">
+<li><a href="/nonstop">Direct</a></li>
+<li><a href="/nonstop.m3u">M3U</a></li>
+<li><a href="/nonstop.xspf">XSPF</a></li>
+</ul>
+<h4>Play stream</h4>
+</div>
+<h4>Further information</h4>
+<div class="mountcont">
+<table class="table-keys"><tbody>
+<tr>
+<td>Stream Name:</td>
+<td>Radio Hanzestad Etherpiraten Stream</td>
+</tr>
+<tr>
+<td>Stream Description:</td>
+<td>Radio Hanzestad Etherpiraten Platform Streaming</td>
+</tr>
+<tr>
+<td>Content Type:</td>
+<td>audio/mpeg</td>
+</tr>
+<tr>
+<td>Stream started:</td>
+<td class="streamstats">Sun, 25 Oct 2026 00:59:24 +0200</td>
+</tr>
+<tr>
+<td>Bitrate:</td>
+<td class="streamstats">192</td>
+</tr>
+<tr>
+<td>Listeners (current):</td>
+<td class="streamstats">703</td>
+</tr>
+<tr>
+<td>Listeners (peak):</td>
+<td class="streamstats">778</td>
+</tr>
+<tr>
+<td>Genre:</td>
+<td class="streamstats">Other</td>
+</tr>
+<tr>
+<td>Stream URL:</td>
+<td class="streamstats"><a href="https://radiohanzestad.nl">https://radiohanzestad.nl</a></td>
+</tr>
+<tr>
+<td>Currently playing:</td>
+<td class="streamstats">Bee Gees - You Win Again</td>
+</tr>
+</tbody></table>
+<h4>Playlist</h4>
+<div class="playlist-container"><table class="table-block">
+<thead><tr>
+<th>Album</th>
+<th width="10%">Track</th>
+<th>Creator</th>
+<th width="33%">Title</th>
+</tr></thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>Cocktail Trio - Hela Roept De Akela</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>The Kelly Family - An Angel</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>Beat Town Skifflers - - Dat was nooit gebeurt bij een goeie pot bier</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>Hugo Strasser - Chicken polka</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>De Wiko's - Neem Voor Mij Maar Een Ander</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>Anita - Oh Sonnenschein</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>De Jageto's - Leila</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>Gerard Keizer - Happy Holliday</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>The Viscounts - Drunense Duine</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td>Bee Gees - You Win Again</td>
+</tr>
+</tbody>
+</table></div>
+</div></section></main><footer><p>Support icecast development at <a href="http://icecast.org">icecast.org</a></p></footer>
+</body>
+</html>

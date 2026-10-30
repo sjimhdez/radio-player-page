@@ -1,8 +1,8 @@
-// getNowPlaying resolves the program on air for the current minute (spec 0006, task 1.5).
-// The cases mirror src/hooks/use-program-schedule.test.tsx. The resolution and timezone
-// vectors of tests/fixtures/schedule-vectors.json are not repeated here: they already run
-// against findActiveProgram, findIncomingProgram and getCurrentTimeInTimezone in
-// src/utils/schedule-vectors.test.ts, and getNowPlaying only chains them.
+// getNowPlaying resolves the program on air for the current minute. The cases mirror
+// src/hooks/use-program-schedule.test.ts. The resolution and timezone vectors of
+// tests/fixtures/schedule-vectors.json are not repeated here: they already run against
+// findActiveProgram, findIncomingProgram and getCurrentTimeInTimezone in
+// src/core/schedule/schedule-vectors.test.ts, and getNowPlaying only chains them.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getNowPlaying } from 'src/core/schedule/now-playing'
 import type { NowPlaying } from 'src/core/schedule/now-playing'

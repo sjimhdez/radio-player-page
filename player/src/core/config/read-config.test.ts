@@ -1,5 +1,5 @@
-// readConfig resolves the window.RADPLAPAG_* globals without touching window (spec 0006,
-// task 1.3). The cases mirror the characterization of src/hooks/use-config.test.tsx.
+// readConfig resolves the window.RADPLAPAG_* globals without touching window. The cases
+// mirror the characterization of src/hooks/use-config.test.ts.
 import { describe, expect, it } from 'vitest'
 import { readConfig } from 'src/core/config/read-config'
 import type { RawGlobals } from 'src/core/config/read-config'
@@ -9,12 +9,14 @@ const CONFIG: PluginConfig = {
   streamUrl: 'https://radio.test/live.mp3',
   siteTitle: 'Radio Test',
   hideTitle: true,
+  showSong: true,
   backgroundImage: 'https://site.test/bg.jpg',
   logoImage: 'https://site.test/logo.png',
   introAudioUrl: 'https://site.test/intro.mp3',
   themeColor: 'blue',
   visualizer: 'bars',
   timezoneOffset: -6,
+  adminDiagnostics: { editUrl: 'https://site.test/wp-admin/post.php?post=7&action=edit' },
 }
 const PROGRAMS: ProgramDefinition[] = [{ id: '7', name: 'Morning Show', logoUrl: null }]
 const SCHEDULE: Schedule = { monday: [{ program_id: '7', start: '08:00', end: '10:00' }] }
@@ -37,18 +39,45 @@ describe('readConfig', () => {
       streamUrl: '',
       siteTitle: '',
       hideTitle: false,
+      showSong: false,
       backgroundImage: undefined,
       logoImage: undefined,
       introAudioUrl: undefined,
       themeColor: 'neutral',
       visualizer: 'oscilloscope',
       timezoneOffset: 0,
+      adminDiagnostics: null,
       programs: undefined,
       schedule: undefined,
     })
   })
 
-  // ADR 0054: only true hides the station name
+  // The edit URL for administrators, only http(s) (ADR 0065).
+  it.each([
+    [{ editUrl: 'http://site.test/wp-admin/post.php?post=7&action=edit' }, true],
+    [{ editUrl: 'HTTPS://site.test/wp-admin/post.php?post=7&action=edit' }, true],
+    [{ editUrl: 'javascript:alert(1)' }, false],
+    [{ editUrl: '/wp-admin/post.php?post=7' }, false],
+    [{ editUrl: 7 }, false],
+    [{}, false],
+    ['https://site.test/wp-admin/', false],
+    [[], false],
+    [null, false],
+    [undefined, false],
+  ])('resolves adminDiagnostics %j (kept: %j)', (adminDiagnostics, kept) => {
+    expect(read({ ...CONFIG, adminDiagnostics }).adminDiagnostics).toEqual(
+      kept ? { editUrl: (adminDiagnostics as { editUrl: string }).editUrl } : null,
+    )
+  })
+
+  it('keeps only editUrl from adminDiagnostics', () => {
+    const adminDiagnostics = { editUrl: 'https://site.test/edit', extra: 'x' }
+    expect(read({ ...CONFIG, adminDiagnostics }).adminDiagnostics).toEqual({
+      editUrl: 'https://site.test/edit',
+    })
+  })
+
+  // Only true hides the station name (ADR 0054).
   it.each([
     [true, true],
     [false, false],
@@ -57,6 +86,17 @@ describe('readConfig', () => {
     [undefined, false],
   ])('resolves hideTitle %j to %j', (hideTitle, expected) => {
     expect(read({ ...CONFIG, hideTitle }).hideTitle).toBe(expected)
+  })
+
+  // Only true shows the current song (ADR 0068).
+  it.each([
+    [true, true],
+    [false, false],
+    ['1', false],
+    [1, false],
+    [undefined, false],
+  ])('resolves showSong %j to %j', (showSong, expected) => {
+    expect(read({ ...CONFIG, showSong }).showSong).toBe(expected)
   })
 
   it('turns empty strings and null media URLs into undefined', () => {
@@ -103,7 +143,7 @@ describe('readConfig', () => {
     },
   )
 
-  // The site zone, or null with a manual offset (C9, ADR 0046).
+  // The site zone, or null with a manual offset (ADR 0046).
   it.each(['UTC', 'Asia/Kolkata', 'America/New_York'])('accepts the timezone %s', (timezone) => {
     expect(read({ ...CONFIG, timezone }).timezone).toBe(timezone)
   })

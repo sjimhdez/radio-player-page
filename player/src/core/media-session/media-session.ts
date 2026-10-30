@@ -1,5 +1,6 @@
 import type { PlayerStatus } from 'src/types/player'
 
+/** The MIME type of the artwork by its file extension */
 const MIME_TYPES: Record<string, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
@@ -9,7 +10,7 @@ const MIME_TYPES: Record<string, string> = {
   svg: 'image/svg+xml',
 }
 
-// iOS prefers several sizes to pick the right one for each device.
+/** The artwork sizes sent: iOS prefers several, to pick the right one for each device */
 const ARTWORK_SIZES = ['96x96', '128x128', '192x192', '256x256', '384x384', '512x512']
 
 /**
@@ -21,10 +22,11 @@ export interface MediaSessionDeps {
   createMetadata: (init: MediaMetadataInit) => MediaMetadata
 }
 
+/** What the lock screen shows and the handlers it calls */
 export interface MediaSessionState {
-  /** Title shown on the lock screen, already translated. */
+  /** Title shown on the lock screen, already translated */
   title: string
-  /** Logo URL; without it no artwork is sent. */
+  /** Logo URL; without it no artwork is sent */
   logoUrl: string
   onPlay: () => void
   onPause: () => void
@@ -34,9 +36,8 @@ export interface MediaSessionState {
 /**
  * Detects the MIME type of an image from its file extension.
  *
- * The query and the hash are dropped first (known-issues.md K14).
+ * The query and the hash are dropped first (K14).
  *
- * @param url - Image URL
  * @returns The MIME type, `image/png` when the extension is unknown
  */
 export function mimeTypeFor(url: string): string {
@@ -44,12 +45,7 @@ export function mimeTypeFor(url: string): string {
   return MIME_TYPES[extension || ''] || 'image/png'
 }
 
-/**
- * Lists the logo in six sizes for the lock screen.
- *
- * @param logoUrl - Logo URL
- * @returns One artwork entry per size, all with the same URL and type
- */
+/** Lists the logo in six sizes for the lock screen, all with the same URL and type */
 export function artworkFor(logoUrl: string): MediaImage[] {
   const type = mimeTypeFor(logoUrl)
   return ARTWORK_SIZES.map((sizes) => ({ src: logoUrl, sizes, type }))
@@ -59,8 +55,6 @@ export function artworkFor(logoUrl: string): MediaImage[] {
  * Sets the Media Session metadata, the play and pause handlers and the playback state,
  * and disables seeking and track changes. Errors of the API are logged, not thrown.
  *
- * @param deps - The session and the metadata factory
- * @param state - What to show and the handlers to register
  * @returns Cleanup that clears the metadata and the play and pause handlers
  */
 export function applyMediaSession(

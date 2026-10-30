@@ -59,7 +59,7 @@ function radplapag_render_programs_list_block( $attributes, $content, $block ) {
 		$html .= '<h' . $heading_level . ' class="wp-block-title" style="font-size:1.5em;">' . esc_html( '' !== $name ? $name : '—' ) . '</h' . $heading_level . '>';
 
 		if ( $show_image && $logo_id > 0 ) {
-			$img_alt = '' !== $name ? $name : __( 'Radio Show image', 'radio-player-page' );
+			$img_alt = '' !== $name ? $name : __( 'Radio show image', 'radio-player-page' );
 			$html   .= '<figure class="wp-block-image has-small-padding-bottom" style="max-width: 15rem;">' . wp_get_attachment_image(
 				$logo_id,
 				'medium',

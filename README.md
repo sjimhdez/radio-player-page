@@ -1,6 +1,6 @@
 # Radio Player Page
 
-[![Version](https://img.shields.io/badge/version-3.5.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
+[![Version](https://img.shields.io/badge/version-3.6.0-blue.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress Plugin](https://img.shields.io/wordpress/plugin/v/radio-player-page.svg)](https://wordpress.org/plugins/radio-player-page/)
 [![WordPress](https://img.shields.io/badge/WordPress-6.6%2B-blue)](https://wordpress.org/plugins/radio-player-page/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-blue)](https://www.php.net/)
@@ -187,7 +187,7 @@ WordPress page request
   → Outputs HTML with:
       window.RADPLAPAG_CONFIG   (streamUrl, siteTitle, themeColor, visualizer,
                                   backgroundImage, logoImage, introAudioUrl, timezoneOffset, timezone,
-                                  hideTitle)
+                                  hideTitle, showSong, adminDiagnostics)
       window.RADPLAPAG_PROGRAMS (array of { id, name, description?, extendedDescription?, logoUrl? })
       window.RADPLAPAG_SCHEDULE (weekly schedule: day → [{ program_id, start, end, is_rerun? }, ...])
   → React: useConfig() → ResolvedConfig
@@ -294,7 +294,7 @@ CI runs on GitHub Actions via [.github/workflows/ci.yml](.github/workflows/ci.ym
 
 **JavaScript globals** (set by PHP before React; read in React via `useConfig()`):
 
-- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `introAudioUrl` (optional welcome audio, played once before the live stream on first play), `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC at request time; fallback), `timezone` (the site's IANA zone, or `null` with a manual UTC offset; the player follows its daylight saving time while the page is open), `hideTitle` (`true` hides the station name from view; it stays as the page heading for screen readers).
+- **`window.RADPLAPAG_CONFIG`** – `streamUrl`, `siteTitle`, `backgroundImage`, `logoImage`, `introAudioUrl` (optional welcome audio, played once before the live stream on first play), `themeColor`, `visualizer`, `timezoneOffset` (WordPress timezone, hours from UTC at request time; fallback), `timezone` (the site's IANA zone, or `null` with a manual UTC offset; the player follows its daylight saving time while the page is open), `hideTitle` (`true` hides the station name from view; it stays as the page heading for screen readers), `showSong` (`true` shows the song playing on the stream below the station name, when its server gives it), `adminDiagnostics` (`null`, or `{ editUrl }` for users who can manage options: if the stream fails, the player then shows why and links to the station screen to test it).
 - **`window.RADPLAPAG_PROGRAMS`** – Array of `{ id, name, description?, extendedDescription?, logoUrl? }`. Optional.
 - **`window.RADPLAPAG_SCHEDULE`** – Weekly schedule: `{ monday?: [{ program_id, start, end, is_rerun? }], ... }`. `program_id` is the radio show's post ID (as a string), matched against `id` in `RADPLAPAG_PROGRAMS`; times are `"HH:MM"` (24-hour); `is_rerun` marks the slot as a rerun. Optional.
 

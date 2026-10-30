@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Server: Icecast 2.4.0-kh22-Soma1.7
+Connection: Close
+Pragma: no-cache
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, private
+Vary: Origin
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Access-Control-Allow-Headers: *
+Access-Control-Expose-Headers: Icy-Br, Icy-Description, Icy-Genre, Icy-MetaInt, Icy-Name, Icy-Pub, Icy-Url
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Date: Wed, 28 Oct 2026 20:01:37 GMT
+Content-Type: text/html
+Content-Length: 155

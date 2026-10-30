@@ -1,0 +1,18 @@
+HTTP/2 200 
+cache-control: no-cache
+pragma: no-cache
+expires: Mon, 26 Jul 1997 05:00:00 GMT
+icy-br: 192
+instance-id: 4173bd2e124532c2b899394f34ee78fe
+icy-genre: Other Hits Disco Funk Soul
+icy-metaint: 0
+content-type: audio/mpeg
+icy-name: FM 80 FUNKY MUSIC
+icy-url: https://www.fm80.fr
+icy-description: Disco-Funk & Soul Radio
+icy-pub: 1
+x-loudness: -8.223332
+access-control-allow-origin: *
+access-control-allow-headers: *
+access-control-allow-methods: *
+access-control-expose-headers: *

@@ -1,10 +1,10 @@
+/** One minute, in milliseconds */
 const MINUTE_MS = 60000
 
+/** The handle of a timer of the Clock */
 export type TimerHandle = ReturnType<typeof setTimeout>
 
-/**
- * The time source and timers the ticker uses, injected so tests can drive them.
- */
+/** The time source and timers the ticker uses, injected so tests can drive them */
 export interface Clock {
   now: () => number
   setTimeout: (callback: () => void, ms: number) => TimerHandle
@@ -13,9 +13,7 @@ export interface Clock {
   clearInterval: (handle: TimerHandle) => void
 }
 
-/**
- * The global clock. Each call looks the global up, so vi.useFakeTimers() still applies.
- */
+/** The global clock; each call looks the global up, so vi.useFakeTimers() still applies */
 export const defaultClock: Clock = {
   now: () => Date.now(),
   setTimeout: (callback, ms) => setTimeout(callback, ms),
@@ -24,6 +22,7 @@ export const defaultClock: Clock = {
   clearInterval: (handle) => clearInterval(handle),
 }
 
+/** A timer that fires at the start of every minute */
 export interface MinuteTicker {
   /**
    * Calls onTick at the start of every minute until the returned stop() is called.
@@ -37,7 +36,6 @@ export interface MinuteTicker {
  * (right away on an exact minute), then every 60 seconds.
  *
  * @param clock - The time source and timers (the globals by default)
- * @returns MinuteTicker
  */
 export function createMinuteTicker(clock: Clock = defaultClock): MinuteTicker {
   return {
@@ -67,9 +65,7 @@ export function createMinuteTicker(clock: Clock = defaultClock): MinuteTicker {
   }
 }
 
-/**
- * An external store for useSyncExternalStore.
- */
+/** An external store for useSyncExternalStore */
 export interface MinuteStore<T> {
   subscribe: (listener: () => void) => () => void
   getSnapshot: () => T
@@ -84,9 +80,7 @@ export interface MinuteStore<T> {
  * minute by then (render and commit on both sides of :00, or a while without
  * subscribers), it is recomputed and the subscribers are notified.
  *
- * @param compute - Computes the value for the current time
  * @param clock - The time source and timers (the globals by default)
- * @returns MinuteStore
  */
 export function createMinuteStore<T>(
   compute: () => T,

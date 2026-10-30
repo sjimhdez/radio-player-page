@@ -27,7 +27,7 @@ async function openAt( page: Page, day: StationDay, time: string ) {
  * @param page Player page.
  */
 async function openSchedule( page: Page ) {
-	await page.getByRole( 'button', { name: 'Radio Schedule' } ).click();
+	await page.getByRole( 'button', { name: 'Weekly Schedule' } ).click();
 	const dialog = page.getByRole( 'dialog' );
 	await expect( dialog ).toBeVisible();
 	return dialog;

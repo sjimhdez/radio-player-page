@@ -242,7 +242,7 @@
 	}
 
 	// The week-interval model (ADR 0044), as Schedule\Week_Interval in PHP and
-	// utils/week-interval.ts in the player; the three pass the `model` vectors.
+	// core/schedule/week-interval.ts in the player; the three pass the `model` vectors.
 	// A minute of the week is day × 1440 + minute (Monday = 0, 0 ≤ w < 10080),
 	// and a slot is { start, duration }: end < start crosses midnight and
 	// end == start lasts 24 hours. The overlaps of checkSlot() use it.
@@ -358,7 +358,7 @@
 	function overlapMessage( other, strings ) {
 		const dayLabel = strings[ other.day ] || DAY_LABELS[ other.day ];
 		const description =
-			( other.name || strings.unnamedProgram || 'Unnamed program' ) +
+			( other.name || strings.unnamedProgram || 'Unnamed Radio Show' ) +
 			' (' +
 			dayLabel +
 			', ' +
@@ -388,8 +388,8 @@
 				return (
 					strings.pleaseSelectProgram ||
 					( error.reason === 'missing'
-						? 'Please select a program.'
-						: 'Please select a valid program.' )
+						? 'Please select a radio show.'
+						: 'Please select a valid radio show.' )
 				);
 			case 'format':
 				return (

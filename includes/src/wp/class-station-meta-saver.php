@@ -8,6 +8,7 @@
 
 namespace RadioPlayerPage\WP;
 
+use RadioPlayerPage\Schedule\Schedule_View;
 use RadioPlayerPage\Station\Field_Sanitizer;
 
 defined( 'ABSPATH' ) || exit;
@@ -26,13 +27,16 @@ final class Station_Meta_Saver {
 	 * Writes in the order of 3.4.2: the field errors transient (set, or deleted),
 	 * the URL and the player page each one if it is valid (ADR 0048), the five
 	 * other metas (a rejected attachment keeps the stored one, K37), the hide title
-	 * meta ('1' when checked; deleted when not, ADR 0054), and the schedule through
-	 * radplapag_sanitize_station_schedule().
+	 * and show song metas ('1' when checked; deleted when not, ADR 0054 and 0068),
+	 * and the schedule through Schedule_Sanitizer, with the program IDs of the saved
+	 * schedule so a slot of a deleted program is kept (K106, ADR 0062).
 	 *
 	 * @since 3.5.0
+	 * @since 3.6.0 Sanitizes the schedule with Schedule_Sanitizer and the saved program IDs.
+	 * @since 3.6.0 Saves the show song meta (ADR 0068).
 	 *
 	 * @param int                  $post_id Station post ID.
-	 * @param array<string, mixed> $input   Unslashed form fields by key (stream_url, player_page, background_id, logo_id, intro_audio_id, theme_color, visualizer, hide_title, schedule); a missing key reads as a form without that field.
+	 * @param array<string, mixed> $input   Unslashed form fields by key (stream_url, player_page, background_id, logo_id, intro_audio_id, theme_color, visualizer, hide_title, show_song, schedule); a missing key reads as a form without that field.
 	 * @return void
 	 */
 	public static function save( int $post_id, array $input ): void {
@@ -80,9 +84,18 @@ final class Station_Meta_Saver {
 		} else {
 			delete_post_meta( $post_id, 'radplapag_station_hide_title' );
 		}
+		if ( ! empty( $input['show_song'] ) ) {
+			update_post_meta( $post_id, 'radplapag_station_show_song', '1' );
+		} else {
+			delete_post_meta( $post_id, 'radplapag_station_show_song' );
+		}
 
-		$schedule  = $input['schedule'] ?? array();
-		$sanitized = radplapag_sanitize_station_schedule( is_array( $schedule ) ? $schedule : array() );
+		// The slot of a program deleted for good is kept if the station had it (K106, ADR 0062).
+		$saved_json = get_post_meta( $post_id, 'radplapag_station_schedule', true );
+		$saved      = is_string( $saved_json ) ? json_decode( $saved_json, true ) : null;
+		$kept_ids   = is_array( $saved ) ? Schedule_View::program_ids( $saved ) : array();
+		$schedule   = $input['schedule'] ?? array();
+		$sanitized  = Schedule_Sanitizer::sanitize( is_array( $schedule ) ? $schedule : array(), $kept_ids );
 		if ( is_wp_error( $sanitized ) ) {
 			set_transient( 'radplapag_station_schedule_errors_' . $post_id, $sanitized->get_error_message(), 45 );
 		} else {

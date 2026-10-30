@@ -8,7 +8,7 @@
                 "radplapag_station_background_id": "0",
                 "radplapag_station_logo_id": "0",
                 "radplapag_station_player_page": "0",
-                "radplapag_station_schedule": "{\"wednesday\":[{\"program_id\":\"{{PROGRAM:Good Show}}\",\"start\":\"09:00\",\"end\":\"10:00\",\"is_rerun\":false},{\"program_id\":\"{{PROGRAM:Program}}\",\"start\":\"10:00\",\"end\":\"10:00\",\"is_rerun\":false}]}",
+                "radplapag_station_schedule": "{\"wednesday\":[{\"program_id\":\"{{PROGRAM:Good Show}}\",\"start\":\"09:00\",\"end\":\"10:00\",\"is_rerun\":false},{\"program_id\":\"{{PROGRAM:Radio Show}}\",\"start\":\"10:00\",\"end\":\"10:00\",\"is_rerun\":false}]}",
                 "radplapag_station_stream_url": "",
                 "radplapag_station_theme_color": "blue",
                 "radplapag_station_visualizer": "oscilloscope"
@@ -41,7 +41,7 @@
             }
         },
         {
-            "title": "Program",
+            "title": "Radio Show",
             "status": "publish",
             "menu_order": 0,
             "meta": {

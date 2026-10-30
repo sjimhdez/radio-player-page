@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Tests for tests/zip/compare-lists.sh (spec 0005, task 1.3) and
-# tests/zip/asset-name.sh (spec 0014, task 3.2).
+# Tests for tests/zip/compare-lists.sh (ADR 0028, ADR 0075) and
+# tests/zip/asset-name.sh.
 # Usage: bash tests/zip/compare-lists.test.sh
 set -uo pipefail
 
@@ -24,13 +24,14 @@ ko() {
 	fi
 }
 
-# compare REFERENCE CURRENT ADDITIONS → sets CODE and OUT (stdout + stderr).
-# Each argument is the file content, one path per line.
+# compare REFERENCE CURRENT ADDITIONS [REMOVALS] → sets CODE and OUT (stdout +
+# stderr). Each argument is the file content, one path per line.
 compare() {
 	printf '%s' "$1" >"$TMP/reference.txt"
 	printf '%s' "$2" >"$TMP/current.txt"
 	printf '%s' "$3" >"$TMP/additions.txt"
-	OUT="$(bash "$COMPARE" "$TMP/reference.txt" "$TMP/current.txt" "$TMP/additions.txt" 2>&1)"
+	printf '%s' "${4:-}" >"$TMP/removals.txt"
+	OUT="$(bash "$COMPARE" "$TMP/reference.txt" "$TMP/current.txt" "$TMP/additions.txt" "$TMP/removals.txt" 2>&1)"
 	CODE=$?
 }
 
@@ -83,16 +84,39 @@ compare "$REF" $'a.php\nincludes/b.php\nincludes/src/c.php\nreadme.txt\n' \
 	$'includes/src/c.php\nincludes/src/c.php\n'
 expect_fail "fails on a duplicated addition" "includes/src/c.php"
 
+compare "$REF" $'a.php\nreadme.txt\n' "" $'includes/b.php\n'
+expect_pass "passes with the reference minus the declared removals"
+
+compare "$REF" $'a.php\nincludes/c.php\nreadme.txt\n' $'includes/c.php\n' \
+	$'# Renamed.\n\nincludes/b.php\n'
+expect_pass "passes with a declared removal and its renamed addition"
+
+compare "$REF" "$REF" "" $'includes/c.php\n'
+expect_fail "fails when a declared removal is not in the reference" "includes/c.php"
+
+compare "$REF" $'a.php\nreadme.txt\n' "" $'includes/b.php\nincludes/b.php\n'
+expect_fail "fails on a duplicated removal" "includes/b.php"
+
+compare "$REF" "$REF" "" $'includes/b.php\n'
+expect_fail "fails when a declared removal is still in the zip" "includes/b.php"
+
 compare "$REF" "$REF" ""
 if [ -z "$OUT" ]; then ok "prints nothing when the lists match"; else ko "prints nothing when the lists match" "$OUT"; fi
 
 bash "$COMPARE" "$TMP/reference.txt" >/dev/null 2>&1
 if [ $? -eq 2 ]; then ok "exits 2 on wrong usage"; else ko "exits 2 on wrong usage"; fi
 
-bash "$COMPARE" "$TMP/reference.txt" "$TMP/current.txt" "$TMP/nope.txt" >/dev/null 2>&1
+bash "$COMPARE" "$TMP/reference.txt" "$TMP/current.txt" "$TMP/additions.txt" >/dev/null 2>&1
+if [ $? -eq 2 ]; then ok "exits 2 without the removals"; else ko "exits 2 without the removals"; fi
+
+bash "$COMPARE" "$TMP/reference.txt" "$TMP/current.txt" "$TMP/additions.txt" "$TMP/removals.txt" \
+	"$TMP/removals.txt" >/dev/null 2>&1
+if [ $? -eq 2 ]; then ok "exits 2 with an extra argument"; else ko "exits 2 with an extra argument"; fi
+
+bash "$COMPARE" "$TMP/reference.txt" "$TMP/current.txt" "$TMP/nope.txt" "$TMP/removals.txt" >/dev/null 2>&1
 if [ $? -eq 2 ]; then ok "exits 2 when a file does not exist"; else ko "exits 2 when a file does not exist"; fi
 
-# Player assets carry the plugin version in their names (spec 0014, R8).
+# Player assets carry the plugin version in their names.
 PLAYER_REF=$'player/dist/manifest.json\nplayer/dist/radio-player-page-3.4.2-hls.min.js\nplayer/dist/radio-player-page-3.4.2.css\nplayer/dist/radio-player-page-3.4.2.min.js\nreadme.txt\n'
 
 compare "$PLAYER_REF" \

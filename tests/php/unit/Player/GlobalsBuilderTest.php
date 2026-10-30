@@ -27,6 +27,7 @@ final class GlobalsBuilderTest extends TestCase {
 			'id'             => 7,
 			'station_title'  => 'Radio One',
 			'hide_title'     => false,
+			'show_song'      => false,
 			'stream_url'     => 'https://example.com/stream.mp3',
 			'player_page'    => 10,
 			'background_id'  => 3,
@@ -97,7 +98,7 @@ final class GlobalsBuilderTest extends TestCase {
 	}
 
 	/**
-	 * A full station gives every key of RADPLAPAG_CONFIG, in the order of 3.4.2.
+	 * A full station gives every key of RADPLAPAG_CONFIG, in the order of 3.4.2 plus the keys added later (adminDiagnostics: ADR 0065).
 	 */
 	public function test_config_with_a_full_station() {
 		$this->assertSame(
@@ -105,16 +106,29 @@ final class GlobalsBuilderTest extends TestCase {
 				'streamUrl'       => 'https://example.com/stream.mp3',
 				'siteTitle'       => 'Radio One',
 				'hideTitle'       => false,
+				'showSong'        => false,
 				'backgroundImage' => 'https://example.com/bg.jpg',
 				'logoImage'       => 'https://example.com/logo.png',
 				'introAudioUrl'   => 'https://example.com/intro.mp3',
 				'themeColor'      => 'blue',
 				'visualizer'      => 'bars',
-				'timezoneOffset'  => 0,
-				'timezone'        => 'UTC',
+				'timezoneOffset'   => 0,
+				'timezone'         => 'UTC',
+				'adminDiagnostics' => null,
 			),
 			self::config( self::station(), self::media() )
 		);
+	}
+
+	/**
+	 * adminDiagnostics carries the edit URL when one is given, and is null otherwise (ADR 0065).
+	 */
+	public function test_admin_diagnostics() {
+		$edit_url = 'https://example.com/wp-admin/post.php?post=7&action=edit';
+		$config   = Globals_Builder::config( self::station(), array(), 'My Site', self::now( 'UTC' ), self::sanitize_key(), $edit_url );
+
+		$this->assertSame( array( 'editUrl' => $edit_url ), $config['adminDiagnostics'] );
+		$this->assertNull( self::config( self::station() )['adminDiagnostics'] );
 	}
 
 	/**
@@ -161,6 +175,19 @@ final class GlobalsBuilderTest extends TestCase {
 
 		unset( $station['hide_title'] );
 		$this->assertFalse( self::config( $station )['hideTitle'] );
+	}
+
+	/**
+	 * showSong is true only with a truthy show_song; missing, it is false (ADR 0068).
+	 */
+	public function test_show_song() {
+		$station = self::station();
+
+		$station['show_song'] = true;
+		$this->assertTrue( self::config( $station )['showSong'] );
+
+		unset( $station['show_song'] );
+		$this->assertFalse( self::config( $station )['showSong'] );
 	}
 
 	/**

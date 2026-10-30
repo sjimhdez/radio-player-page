@@ -58,8 +58,8 @@ final class Migration_Notice {
 		if ( array() !== $dropped ) {
 			$html .= '<p>' . esc_html(
 				_n(
-					'This schedule slot was dropped because it overlaps an earlier slot or is not valid. Add it again in its radio station if you need it:',
-					'These schedule slots were dropped because they overlap an earlier slot or are not valid. Add them again in their radio station if you need them:',
+					'This time slot was dropped because it overlaps an earlier time slot or is not valid. Add it again in its radio station if you need it:',
+					'These time slots were dropped because they overlap an earlier time slot or are not valid. Add them again in their radio station if you need them:',
 					count( $dropped ),
 					'radio-player-page'
 				)

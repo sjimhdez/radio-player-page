@@ -1,0 +1,19 @@
+HTTP/1.0 200 OK
+Expires: Thu, 01 Dec 2003 16:00:00 GMT
+Cache-Control: no-cache, must-revalidate
+Pragma: no-cache
+Access-Control-Allow-Header: *
+Access-Control-Allow-Methods: GET, HEAD
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Credentials: true
+Access-Control-Expose-Headers: *
+Access-Control-Max-Age: 8640000
+X-STW-lsid: ipua:886ee425d69b1a216df8e243c4494152
+Content-Type: audio/mpeg
+Connection: close
+icy-name: CADENASER
+icy-description: 
+icy-url: http://www.cadenaser.com/
+icy-genre: News/Talk
+icy-br: 128
+Server: MediaGateway 6.16.1-500.el9

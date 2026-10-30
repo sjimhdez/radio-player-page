@@ -1,4 +1,4 @@
-// Whether the volume can be changed, decided by capability (spec 0007, K13, ADR 0036).
+// Whether the volume can be changed, decided by capability (K13, ADR 0036).
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { isVolumeControllable } from 'src/core/audio/volume'
 import { installFakeAudio, media } from 'src/test/fake-audio'

@@ -1,4 +1,4 @@
-// Web Audio graph and the WebKit exception (spec 0007, task 1.5). The context is
+// Web Audio graph and the WebKit exception (ADR 0033). The context is
 // injected: the fake records contexts, nodes and connections (src/test/fake-web-audio).
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createVisualizerGraph, isWebKitBrowser } from 'src/core/audio/web-audio'

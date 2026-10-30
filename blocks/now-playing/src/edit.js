@@ -57,7 +57,7 @@ export default function Edit( { attributes, setAttributes } ) {
 			? [
 					{
 						label: __(
-							'No Radio Stations configured',
+							'No published radio stations',
 							'radio-player-page'
 						),
 						value: '',
@@ -79,7 +79,7 @@ export default function Edit( { attributes, setAttributes } ) {
 			: sprintf(
 					/* translators: %s: Radio station title. */
 					__(
-						'Showing “%s” by its position in the list of stations. Choose a station to keep it.',
+						'Showing “%s” because of its position in the list of radio stations. Select it to keep this station if the list changes.',
 						'radio-player-page'
 					),
 					stationLabel( resolved, resolvedIndex )
@@ -94,7 +94,7 @@ export default function Edit( { attributes, setAttributes } ) {
 		<>
 			<InspectorControls>
 				<PanelBody
-					title={ __( 'Now Playing Settings', 'radio-player-page' ) }
+					title={ __( 'On Air settings', 'radio-player-page' ) }
 					initialOpen={ true }
 				>
 					{ isMissing && (
@@ -106,7 +106,7 @@ export default function Edit( { attributes, setAttributes } ) {
 						</Notice>
 					) }
 					<SelectControl
-						label={ __( 'Radio Station', 'radio-player-page' ) }
+						label={ __( 'Radio station', 'radio-player-page' ) }
 						value={
 							stationId > 0 && resolved ? String( stationId ) : ''
 						}
@@ -127,7 +127,7 @@ export default function Edit( { attributes, setAttributes } ) {
 					/>
 					<ToggleControl
 						label={ __(
-							'Show Radio Show Logo',
+							'Show radio show image',
 							'radio-player-page'
 						) }
 						checked={ showLogoValue }

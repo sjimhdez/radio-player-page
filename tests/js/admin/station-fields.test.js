@@ -26,7 +26,8 @@ const FIELD_STRINGS = {
 	streamUrlScheme: '[stream_url_scheme]',
 	selectProgram: '[select_program]',
 	to: '[to]',
-	removeTimeSlot: '[remove]',
+	remove: '[remove]',
+	removeTimeSlot: '[remove_time_slot]',
 	scheduleRerun: '[rerun]',
 	programLabel: '[program_label]',
 	startTimeLabel: '[start_label]',
@@ -88,7 +89,7 @@ async function mount( overrides = {} ) {
 		},
 
 		/**
-		 * Clicks the "Remove Time Slot" link of a row.
+		 * Clicks the "Remove" link of a row.
 		 *
 		 * @param {HTMLElement} row Program row.
 		 */
@@ -131,6 +132,23 @@ describe( 'station-admin.js: required station fields', () => {
 			control: true,
 			message: '[player_page_required]',
 		} );
+	} );
+
+	it( 'keeps the Player Page help on the select through an error (ADR 0073)', async () => {
+		const screen = await mount();
+		const help = 'radplapag_station_player_page_description';
+		screen.playerPage.value = '';
+
+		screen.submit();
+		expect( screen.playerPage.getAttribute( 'aria-describedby' ) ).toBe(
+			help
+		);
+
+		screen.playerPage.value = '103';
+		screen.playerPage.dispatchEvent( new window.Event( 'change' ) );
+		expect( screen.playerPage.getAttribute( 'aria-describedby' ) ).toBe(
+			help
+		);
 	} );
 
 	it( 'rejects a page assigned to another station', async () => {
@@ -439,6 +457,11 @@ describe( 'station-admin.js: adding and removing slots', () => {
 		expect(
 			row.querySelector( '.radplapag-remove-program' ).textContent
 		).toBe( '[remove]' );
+		expect(
+			row
+				.querySelector( '.radplapag-remove-program' )
+				.getAttribute( 'aria-label' )
+		).toBe( '[remove_time_slot]' );
 		expect(
 			row.querySelector( '.radplapag-program-is-rerun' ).checked
 		).toBe( false );

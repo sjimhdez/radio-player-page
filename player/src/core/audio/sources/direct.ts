@@ -11,12 +11,12 @@ const isMediaError = (error: unknown) =>
 /**
  * Creates the source that assigns the URL to audio.src: MP3/OGG, native HLS and the
  * welcome audio. Sets crossOrigin = 'anonymous' after src, as the hook does (ADR 0004).
- * C1 (ADR 0033): if play() fails with a media error, it retries once on the same
- * element without crossOrigin; a 404 cannot be told apart, so it fails twice.
+ * If play() fails with a media error, it retries once on the same element without
+ * crossOrigin; a 404 cannot be told apart, so it fails twice (ADR 0033).
  *
  * @param options.retryWithoutCors - Whether the retry is allowed: not when the element
  *   goes through the Web Audio graph, where it would play silent
- * @returns AudioSource whose destroy() does nothing
+ * @returns A source whose destroy() does nothing
  */
 export function createDirectSource({
   retryWithoutCors = false,
@@ -40,6 +40,7 @@ export function createDirectSource({
       }
     },
     isCorsClean: () => corsClean,
+    usesMediaSource: () => false,
     destroy() {},
   }
 }

@@ -123,6 +123,7 @@ final class ConfigTest extends WP_UnitTestCase {
 				'visualizer'     => 'waterfall',
 				'schedule'       => $schedule,
 				'hide_title'     => '1',
+				'show_song'      => '1',
 			)
 		);
 
@@ -134,6 +135,7 @@ final class ConfigTest extends WP_UnitTestCase {
 					'player_page'    => $page,
 					'station_title'  => 'Station',
 					'hide_title'     => true,
+					'show_song'      => true,
 					'background_id'  => $background,
 					'logo_id'        => $logo,
 					'intro_audio_id' => $intro,
@@ -159,6 +161,7 @@ final class ConfigTest extends WP_UnitTestCase {
 				'player_page'    => 0,
 				'station_title'  => 'Bare',
 				'hide_title'     => false,
+				'show_song'      => false,
 				'background_id'  => 0,
 				'logo_id'        => 0,
 				'intro_audio_id' => 0,

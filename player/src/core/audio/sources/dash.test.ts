@@ -1,6 +1,6 @@
-// The dash source (spec 0006, task 2.4), as in src/hooks/use-audio-player.test.tsx:
-// dashjs with autoplay. K70 (fixed in task 2.9): crossOrigin is left unset (ADR 0004).
-// K67 (fixed in spec 0007): no default third-party time source, and its error 16 is ignored.
+// The dash source, as in src/hooks/use-audio-player.test.tsx: dashjs with autoplay.
+// crossOrigin is left unset (K70, ADR 0004). No default third-party time source, and
+// its error 16 is ignored (K67).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDashSource, loadDashModule } from 'src/core/audio/sources/dash'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -38,12 +38,26 @@ describe('createDashSource', () => {
     expect(cbs.onPlayRejected).not.toHaveBeenCalled()
   })
 
+  // A download error carries the HTTP status, or 0 without CORS or a server (ADR 0065).
+  it.each([
+    [{ error: { code: 25, data: { response: { status: 404 } } } }, { status: 404 }],
+    [{ error: { code: 25, data: { response: { status: 0 } } } }, { status: 0 }],
+    [{ error: { code: 17, data: null } }, {}],
+    [{ error: { code: 17 } }, {}],
+  ])('reports %j with %j (ADR 0065)', async (event, failure) => {
+    const fake = createFakeDash()
+    const cbs = callbacks()
+    await createDashSource({ loadDash: fake.loadDash }).start(new Audio(), DASH, cbs)
+    fake.players[0].handlers.error(event)
+    expect(cbs.onError).toHaveBeenCalledWith(failure)
+  })
+
   it('clears the default time sources right after initialize() (K67)', async () => {
     const fake = createFakeDash()
     await createDashSource({ loadDash: fake.loadDash }).start(new Audio(), DASH, callbacks())
     const [player] = fake.players
     expect(player.clearDefaultUTCTimingSources).toHaveBeenCalledTimes(1)
-    // initialize() restores the defaults, so clearing them before it does nothing (spike R2).
+    // initialize() restores the defaults, so clearing them before it does nothing.
     expect(player.clearDefaultUTCTimingSources.mock.invocationCallOrder[0]).toBeGreaterThan(
       player.initialize.mock.invocationCallOrder[0],
     )
@@ -75,8 +89,8 @@ describe('createDashSource', () => {
     expect(fake.players[0].reset).toHaveBeenCalledTimes(1)
   })
 
-  // docs/known-issues.md K11 with a pause (spec 0007, ADR 0034 D3): the fake keeps its
-  // handlers after reset(), so the source must ignore them.
+  // A pause during the load (K11, ADR 0034): the fake keeps its handlers after reset(),
+  // so the source must ignore them.
   it('ignores errors after destroy()', async () => {
     const fake = createFakeDash()
     const cbs = callbacks()
@@ -101,11 +115,16 @@ describe('createDashSource', () => {
     await expect(loadDashModule()).resolves.toBe(MediaPlayer)
   })
 
-  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  // MSE sources never retry without crossOrigin, so they stay clean (ADR 0033).
   it('is CORS clean', async () => {
     const fake = createFakeDash()
     const source = createDashSource({ loadDash: fake.loadDash })
     await source.start(new Audio(), DASH, callbacks())
     expect(source.isCorsClean()).toBe(true)
+  })
+
+  // The controller watches the progress of sources without MSE (ADR 0061).
+  it('uses Media Source', () => {
+    expect(createDashSource().usesMediaSource()).toBe(true)
   })
 })

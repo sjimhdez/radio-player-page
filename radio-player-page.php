@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Radio Player Page
- * Description: Create dedicated listening pages for your radio stations with integrated radio schedules and reliable playback.
- * Version: 3.5.0
+ * Description: Give each radio station its own player page with a weekly schedule. Plays Icecast, Shoutcast, HLS, and DASH streams.
+ * Version: 3.6.0
  * Author: Santiago Jiménez H.
  * Author URI: https://santiagojimenez.dev
  * Tags: radio player, radio station, radio, icecast, shoutcast
@@ -23,7 +23,7 @@ if ( ! defined( 'RADPLAPAG_PLUGIN_FILE' ) ) {
 
 // Same as the Version header; tests/js/release-version.test.js checks it (ADR 0053).
 if ( ! defined( 'RADPLAPAG_VERSION' ) ) {
-	define( 'RADPLAPAG_VERSION', '3.5.0' );
+	define( 'RADPLAPAG_VERSION', '3.6.0' );
 }
 
 /**
@@ -43,7 +43,7 @@ RadioPlayerPage\Autoloader::register();
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-stations.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-station-cpt.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-program-cpt.php';
-require_once plugin_dir_path( __FILE__ ) . 'includes/data/class-radplapag-program-config.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-radplapag-program-config.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-upgrade.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-schedule-block.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/radplapag-programs-list-block.php';
@@ -210,10 +210,13 @@ function radplapag_enqueue_now_playing_block_editor_assets() {
  * @since 3.5.0 Delegates to RadioPlayerPage\Data\Stations::for_page().
  * @since 3.5.0 Returns false when the request is not a page (K24).
  * @since 3.5.0 Adds hide_title (ADR 0054).
+ * @since 3.6.0 Adds show_song (ADR 0068).
  *
- * @return array|false Station configuration array with keys: 'stream_url', 'player_page',
- *                     'station_title', 'hide_title', 'background_id', 'logo_id', 'theme_color',
- *                     'visualizer'.
+ * @return array<mixed>|false Station configuration array with keys: 'id', 'stream_url',
+ *                            'player_page', 'station_title', 'hide_title', 'show_song',
+ *                            'background_id', 'logo_id', 'intro_audio_id', 'theme_color',
+ *                            'visualizer' and
+ *                            'schedule' (the row of radplapag_get_stations()).
  *                     Returns false if no matching station is found for the current page.
  */
 function radplapag_get_station_for_current_page() {
@@ -233,7 +236,7 @@ function radplapag_get_station_for_current_page() {
  * HTML document with all necessary scripts and styles.
  *
  * The function sets global JavaScript variables for the React app:
- * - window.RADPLAPAG_CONFIG: stream URL, site title, theme, visualizer, media URLs, timezone (no schedule).
+ * - window.RADPLAPAG_CONFIG: stream URL, site title, theme, visualizer, media URLs, timezone, admin diagnostics (no schedule).
  * - window.RADPLAPAG_PROGRAMS: array of { id, name, logoUrl } for relational resolution.
  * - window.RADPLAPAG_SCHEDULE: weekly schedule as { day: [ { program_id (string ID), start, end, is_rerun }, ... ] } (relational).
  * The React app resolves program name/logo from RADPLAPAG_PROGRAMS by matching program_id (unique string ID) to avoid duplicating data.
@@ -246,6 +249,8 @@ function radplapag_get_station_for_current_page() {
  * @since 3.5.0 Leaves the page's feed, embed and trackback to WordPress, prints the robots meta when the site discourages search engines and dir="rtl" on right-to-left sites.
  * @since 3.5.0 RADPLAPAG_SCHEDULE and RADPLAPAG_PROGRAMS leave out the slots of programs that are not public: not published, password-protected or missing (C10, ADR 0045).
  * @since 3.5.0 RADPLAPAG_PROGRAMS lists the programs of the printed slots only (K78), and an empty RADPLAPAG_SCHEDULE is {} (K17, ADR 0045).
+ * @since 3.6.0 RADPLAPAG_CONFIG.adminDiagnostics carries the edit URL of the station for users who can manage_options, and the page then sends the no-cache headers (ADR 0065).
+ * @since 3.6.0 Prints the schema.org structured data of the station and its weekly programs, built by RadioPlayerPage\Player\Structured_Data, before the globals (ADR 0070).
  *
  * @return void Exits execution after outputting HTML.
  */
@@ -281,6 +286,16 @@ function radplapag_output_clean_page() {
 	$logo_url        = $logo_id ? wp_get_attachment_image_url( $logo_id, 'full' ) : '';
 	$intro_audio_url = $intro_audio_id ? wp_get_attachment_url( $intro_audio_id ) : '';
 
+	// The edit URL of the station, for the error reason of administrators only (ADR 0065).
+	// The link is filterable: anything but a safe URL string leaves it out.
+	$edit_url = null;
+	if ( current_user_can( 'manage_options' ) && ! empty( $station['id'] ) ) {
+		$edit_link = get_edit_post_link( (int) $station['id'], 'raw' );
+		$edit_url  = is_string( $edit_link ) ? esc_url_raw( $edit_link ) : '';
+	}
+
+	// One instant for the zone of the globals and the offset of the structured data.
+	$now    = \RadioPlayerPage\WP\Clock::now();
 	$config = \RadioPlayerPage\Player\Globals_Builder::config(
 		$station,
 		array(
@@ -289,13 +304,19 @@ function radplapag_output_clean_page() {
 			'intro_audio_url' => $intro_audio_url,
 		),
 		get_bloginfo( 'name' ),
-		\RadioPlayerPage\WP\Clock::now(),
-		'sanitize_key'
+		$now,
+		'sanitize_key',
+		'' === $edit_url ? null : $edit_url
 	);
+
+	// The error reason is for administrators only: keep that page out of shared caches (ADR 0065).
+	if ( null !== $config['adminDiagnostics'] ) {
+		nocache_headers();
+	}
 
 	$manifest_path = plugin_dir_path( __FILE__ ) . 'player/dist/manifest.json';
 	if ( ! file_exists( $manifest_path ) ) {
-		wp_die( esc_html__( 'The player compilation file (manifest.json) could not be found.', 'radio-player-page' ) );
+		wp_die( esc_html__( 'This player cannot load because some of its files are missing. If you manage this site, reinstall the Radio Player Page plugin.', 'radio-player-page' ) );
 	}
 
 	$manifest   = json_decode( file_get_contents( $manifest_path ), true ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local file inside the plugin, not a remote URL.
@@ -304,7 +325,7 @@ function radplapag_output_clean_page() {
 	$main_css   = isset( $main_entry['css'][0] ) ? $main_entry['css'][0] : null;
 
 	if ( ! $main_js ) {
-		wp_die( esc_html__( 'The main JS file was not found in the Vite manifest.', 'radio-player-page' ) );
+		wp_die( esc_html__( 'This player cannot load because some of its files are missing. If you manage this site, reinstall the Radio Player Page plugin.', 'radio-player-page' ) );
 	}
 
 	$favicon_url = function_exists( 'get_site_icon_url' ) ? get_site_icon_url() : '';
@@ -372,6 +393,23 @@ function radplapag_output_clean_page() {
 	$schedule_for_player = \RadioPlayerPage\Player\Globals_Builder::printable_schedule( $schedule_raw, 'sanitize_text_field' );
 
 	$json_flags = JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+
+	// Always, also with blog_public = 0 and hideTitle, without a filter (ADR 0070).
+	$structured_data = \RadioPlayerPage\Player\Structured_Data::graph(
+		array(
+			'name'           => $display_title,
+			'url'            => get_permalink( $page_id ),
+			'logo_url'       => $logo_url,
+			'background_url' => $background_url,
+			'in_language'    => get_bloginfo( 'language' ),
+		),
+		$programs_for_player,
+		$schedule_printed,
+		$config['timezone'],
+		$now->format( 'P' )
+	);
+	echo '<script type="application/ld+json">' . wp_json_encode( $structured_data, $json_flags ) . '</script>';
+
 	echo '<script>';
 	echo 'window.RADPLAPAG_CONFIG = ' . wp_json_encode( $config, $json_flags ) . ';';
 	echo 'window.RADPLAPAG_PROGRAMS = ' . wp_json_encode( $programs_for_player, $json_flags ) . ';';

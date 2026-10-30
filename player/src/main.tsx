@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import ThemeProviderWrapper from 'src/ThemeProviderWrapper'
-import 'src/index.css'
+import ThemeProviderWrapper from 'src/app/ThemeProviderWrapper'
+import 'src/app/index.css'
 import 'src/config/i18n'
 
 // Initialize React app with Material-UI theme provider

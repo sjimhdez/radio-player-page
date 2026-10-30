@@ -439,6 +439,72 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A saved slot whose program was deleted for good is kept when the station is
+	 * saved again with it (K106 of docs/known-issues.md, ADR 0062).
+	 */
+	public function test_keeps_a_saved_slot_whose_program_is_deleted() {
+		$program = $this->factory_rpp->program( 'Morning' );
+		$slot    = array(
+			'program_id' => (string) $program,
+			'start'      => '06:00',
+			'end'        => '10:00',
+		);
+		Station_Meta_Saver::save( $this->station, array( 'schedule' => array( 'monday' => array( $slot ) ) ) );
+		$saved = $this->meta( 'schedule' );
+		wp_delete_post( $program, true );
+
+		Station_Meta_Saver::save( $this->station, array( 'schedule' => array( 'monday' => array( $slot ) ) ) );
+
+		$this->assertFalse( get_transient( 'radplapag_station_schedule_errors_' . $this->station ) );
+		$this->assertSame( $saved, $this->meta( 'schedule' ) );
+	}
+
+	/**
+	 * A program ID that does not exist and was not in the saved schedule is still
+	 * rejected, and the meta is kept.
+	 */
+	public function test_rejects_a_missing_program_that_was_not_saved() {
+		update_post_meta( $this->station, 'radplapag_station_schedule', '{}' );
+		$slot = array(
+			'program_id' => '999999',
+			'start'      => '06:00',
+			'end'        => '10:00',
+		);
+
+		Station_Meta_Saver::save( $this->station, array( 'schedule' => array( 'monday' => array( $slot ) ) ) );
+
+		$this->assertSame( 'Radio show on Monday: Please select a valid radio show.', get_transient( 'radplapag_station_schedule_errors_' . $this->station ) );
+		$this->assertSame( '{}', $this->meta( 'schedule' ) );
+	}
+
+	/**
+	 * An overlap with the slot of a deleted program names it "Radio Show #ID (Deleted)".
+	 */
+	public function test_overlap_names_a_deleted_program_by_its_label() {
+		$deleted = $this->factory_rpp->program( 'Gone' );
+		$kept    = $this->factory_rpp->program( 'Night Owl' );
+		$slot    = array(
+			'program_id' => (string) $deleted,
+			'start'      => '06:00',
+			'end'        => '10:00',
+		);
+		Station_Meta_Saver::save( $this->station, array( 'schedule' => array( 'monday' => array( $slot ) ) ) );
+		wp_delete_post( $deleted, true );
+		$overlapping = array(
+			'program_id' => (string) $kept,
+			'start'      => '08:00',
+			'end'        => '12:00',
+		);
+
+		Station_Meta_Saver::save( $this->station, array( 'schedule' => array( 'monday' => array( $slot, $overlapping ) ) ) );
+
+		$this->assertSame(
+			'Radio show "Night Owl" on Monday: Time slot overlaps with "Radio Show #' . $deleted . ' (Deleted)".',
+			get_transient( 'radplapag_station_schedule_errors_' . $this->station )
+		);
+	}
+
+	/**
 	 * A schedule that is not an array reads as empty.
 	 */
 	public function test_non_array_schedule_reads_as_empty() {
@@ -490,5 +556,47 @@ final class StationMetaSaverTest extends WP_UnitTestCase {
 		$this->assertNotContains( 'added_post_meta:radplapag_station_hide_title', $writes );
 		$this->assertSame( array(), $deleted );
 		$this->assertFalse( metadata_exists( 'post', $this->station, 'radplapag_station_hide_title' ) );
+	}
+
+	// Show song (ADR 0068).
+
+	/**
+	 * Checked, the show song meta is written as '1', after the hide title and
+	 * before the schedule.
+	 */
+	public function test_checked_show_song_is_written_as_one() {
+		$writes = $this->save_and_record_writes(
+			array(
+				'hide_title' => true,
+				'show_song'  => true,
+			)
+		);
+
+		$this->assertSame( '1', $this->meta( 'show_song' ) );
+		$hide_title = array_search( 'added_post_meta:radplapag_station_hide_title', $writes, true );
+		$this->assertSame( 'added_post_meta:radplapag_station_show_song', $writes[ $hide_title + 1 ] );
+		$this->assertSame( 'added_post_meta:radplapag_station_schedule', $writes[ $hide_title + 2 ] );
+	}
+
+	/**
+	 * Unchecked, a stored show song meta is deleted: no row is left.
+	 */
+	public function test_unchecked_show_song_deletes_the_meta() {
+		update_post_meta( $this->station, 'radplapag_station_show_song', '1' );
+
+		Station_Meta_Saver::save( $this->station, array( 'show_song' => false ) );
+
+		$this->assertFalse( metadata_exists( 'post', $this->station, 'radplapag_station_show_song' ) );
+	}
+
+	/**
+	 * A station without the meta (one of 3.4.2) saved without the checkbox gets no
+	 * show song row.
+	 */
+	public function test_save_without_the_checkbox_writes_no_show_song() {
+		$writes = $this->save_and_record_writes( array() );
+
+		$this->assertNotContains( 'added_post_meta:radplapag_station_show_song', $writes );
+		$this->assertFalse( metadata_exists( 'post', $this->station, 'radplapag_station_show_song' ) );
 	}
 }

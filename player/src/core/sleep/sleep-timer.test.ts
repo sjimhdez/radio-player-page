@@ -1,6 +1,6 @@
-// The sleep countdown behind useSleepTimer (spec 0006, task 3.6). The cases mirror what
-// src/components/dashboard/SleepMode.test.tsx and tests/e2e/sleep.spec.ts pin, K65
-// included; the countdown runs against a deadline (K66, spec 0007).
+// The sleep countdown behind useSleepTimer. The cases mirror what
+// src/components/SleepMode.test.tsx and tests/e2e/sleep.spec.ts pin, K65
+// included; the countdown runs against a deadline (K66).
 import { describe, expect, it, vi } from 'vitest'
 import { createSleepTimer } from 'src/core/sleep/sleep-timer'
 import type { Clock } from 'src/core/clock/minute-ticker'
@@ -124,7 +124,7 @@ describe('createSleepTimer', () => {
 
   it('cancels on any setPlaying(false); sleep mode is off during the welcome audio, so its handover never finds a timer (K65)', () => {
     // The welcome audio ends with pause before ended: the status goes through paused
-    // while the live stream loads, and that counts as a pause. The Dashboard disables
+    // while the live stream loads, and that counts as a pause. The PlayerPage disables
     // sleep mode while introLocked (ADR 0035), so no timer is running then.
     const { onEnd, timer } = setup()
     timer.subscribe(() => {})

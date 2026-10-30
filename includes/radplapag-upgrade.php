@@ -146,7 +146,7 @@ function radplapag_run_legacy_migration_if_needed(): void {
 	// The legacy values were saved by an administrator: kses is not re-run on them (ADR 0041).
 	kses_remove_filters();
 
-	require_once __DIR__ . '/migration/class-radplapag-migrator-settings-to-cpt.php';
+	require_once __DIR__ . '/class-radplapag-migrator-settings-to-cpt.php';
 
 	try {
 		$result = Radplapag_Migrator_Settings_To_Cpt::run( $author_id );
@@ -262,7 +262,7 @@ function radplapag_migration_admin_notices(): void {
 			add_query_arg( 'radplapag_dismiss', 'migration_conflict' ),
 			'radplapag_dismiss_migration_conflict'
 		);
-		echo '<div class="notice notice-warning"><p>' . esc_html__( 'Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.', 'radio-player-page' ) . '</p><p><a href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Dismiss This Notice', 'radio-player-page' ) . '</a></p></div>';
+		echo '<div class="notice notice-warning"><p>' . esc_html__( 'Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.', 'radio-player-page' ) . '</p><p><a href="' . esc_url( $dismiss ) . '">' . esc_html__( 'Dismiss this notice', 'radio-player-page' ) . '</a></p></div>';
 	}
 }
 

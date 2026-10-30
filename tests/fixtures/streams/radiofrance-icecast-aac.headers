@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Server: nginx
+Date: Wed, 28 Oct 2026 02:32:58 GMT
+Content-Type: audio/aac
+Transfer-Encoding: chunked
+Connection: keep-alive
+icy-br: 192
+ice-audio-info: channels=2;samplerate=48000;bitrate=192
+icy-name: fip-hifi.aac
+icy-pub: 0
+Accept-Ranges: none
+Cache-Control: max-age=0, no-cache, no-store
+Expires: Wed, 28 Oct 2026 02:32:58 GMT
+Pragma: no-cache
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: Content-Type, icy-metaint, icy-br, ice-audio-info, icy-description, icy-genre, icy-name, icy-samplerate, icy-url

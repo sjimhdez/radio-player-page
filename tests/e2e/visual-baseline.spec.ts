@@ -141,3 +141,41 @@ test.describe( 'without the station clock', () => {
 		} );
 	} );
 } );
+
+test.describe( 'each visualizer playing', () => {
+	// Spec 0022 (A11): the four visualizers drawing, for the review by eye of
+	// the polish. WebKit never visualizes (ADR 0033, K82).
+	test.skip(
+		( { browserName } ) => browserName === 'webkit',
+		'WebKit never visualizes'
+	);
+
+	for ( const visualizer of [
+		'oscilloscope',
+		'bars',
+		'particles',
+		'waterfall',
+	] as const ) {
+		test( `playing with the ${ visualizer } visualizer`, async ( {
+			page,
+		}, testInfo ) => {
+			for ( const viewport of [ VIEWPORTS[ 0 ], VIEWPORTS[ 2 ] ] ) {
+				await page.setViewportSize( viewport );
+				await page.goto(
+					readSeed().urls[ `visualizer-${ visualizer }` ]
+				);
+				await startPlayback( page );
+				await expect( page.locator( 'canvas' ) ).toBeVisible();
+				// A couple of seconds of drawing: trails, peaks and the waterfall.
+				await page.waitForTimeout( 2000 );
+				await testInfo.attach(
+					`${ visualizer }-${ viewport.width }x${ viewport.height }`,
+					{
+						body: await page.screenshot(),
+						contentType: 'image/png',
+					}
+				);
+			}
+		} );
+	}
+} );

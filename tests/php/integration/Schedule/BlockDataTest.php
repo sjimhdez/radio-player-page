@@ -480,6 +480,49 @@ final class BlockDataTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * K106 (ADR 0062): the slot of a program deleted for good, which the admin keeps,
+	 * is left out of the schedule block, the programs list and the program on air; the
+	 * published program after it is coming up within its 10 minutes.
+	 */
+	public function test_slot_of_a_deleted_program_stays_off_the_site() {
+		$deleted = $this->factory_rpp->program( 'Gone', array( 'description' => 'Hidden' ) );
+		$station = $this->factory_rpp->station( 'Station' );
+
+		Clock::run(
+			'monday',
+			'08:55',
+			function ( Clock $clock ) use ( $deleted, $station ) {
+				$this->store_schedule(
+					$station,
+					$clock->rotate_schedule(
+						array(
+							'monday' => array(
+								array(
+									'program_id' => $deleted,
+									'start'      => '08:00',
+									'end'        => '09:00',
+								),
+								array(
+									'program_id' => $this->programs['A'],
+									'start'      => '09:00',
+									'end'        => '10:00',
+								),
+							),
+						)
+					)
+				);
+				wp_delete_post( $deleted, true );
+
+				$this->assertSame( array( 'A' ), array_column( $this->day( radplapag_get_schedule_for_station( 0, 'natural' ), $clock->rotate_day( 'monday' ) )['slots'], 'program_name' ) );
+				$this->assertSame( array( 'A' ), array_column( radplapag_get_programs_list_for_station( 0 ), 'name' ) );
+				$now_playing = radplapag_get_now_playing_for_station( 0 );
+				$this->assertNull( $now_playing['current'] );
+				$this->assertSame( 'A', $now_playing['upcoming']['name'] );
+			}
+		);
+	}
+
+	/**
 	 * K88: a published program with a password is not public (ADR 0045): no data when
 	 * publication is required, no slot in the schedule block, no entry in the programs
 	 * list and not on air.

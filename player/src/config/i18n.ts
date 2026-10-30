@@ -72,31 +72,12 @@ const resources = {
 }
 
 /**
- * Internationalization (i18n) configuration
- * Configures i18next with the page language and the translation resources
+ * i18next with the page language and the translation resources above.
  *
- * Supported languages:
- * - en-US (English - United States) - Default fallback
- * - es (Spanish)
- * - es-MX (Spanish - Mexico)
- * - ru-RU (Russian - Russia)
- * - ro-RO (Romanian - Romania)
- * - nl-NL (Dutch - Netherlands)
- * - sv-SE (Swedish - Sweden)
- * - gl-ES (Galician - Spain)
- * - da-DK (Danish - Denmark)
- * - de-DE / de_DE (German - Germany)
- * - pt-BR / pt_BR (Portuguese - Brazil)
- * - it-IT / it_IT (Italian - Italy)
- * - cs (Czech)
- * - hr (Croatian)
- *
- * The language is the one of `<html lang>`, which the clean page prints from
- * the site locale (en-US if it is empty). Neither the browser language nor a
- * stored choice is read, and nothing is stored (ADR 0050)
- *
- * A regional variant without its own resources falls back to its base language
- * (`de-AT` → `de-DE`), then to en-US
+ * The language is the one of `<html lang>`, which the clean page prints from the site
+ * locale (en-US if it is empty). Neither the browser language nor a stored choice is
+ * read, and nothing is stored (ADR 0050). A regional variant without its own resources
+ * falls back to its base language (`de-AT` → `de-DE`), then to en-US.
  */
 i18n.use(initReactI18next).init({
   resources,

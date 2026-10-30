@@ -28,6 +28,7 @@ final class Factory {
 		'visualizer'     => 'radplapag_station_visualizer',
 		'schedule'       => 'radplapag_station_schedule',
 		'hide_title'     => 'radplapag_station_hide_title',
+		'show_song'      => 'radplapag_station_show_song',
 	);
 
 	const PROGRAM_META = array(

@@ -1,5 +1,5 @@
-// Protocol detection (spec 0006, task 2.3). docs/known-issues.md C2, fixed in spec 0007:
-// the suffix of the pathname, case-insensitive, as in src/hooks/use-audio-player.test.tsx.
+// Protocol detection by the suffix of the pathname, case-insensitive (ADR 0034), as in
+// src/hooks/use-audio-player.test.tsx.
 import { describe, expect, it } from 'vitest'
 import { detectProtocol } from 'src/core/audio/protocol'
 
