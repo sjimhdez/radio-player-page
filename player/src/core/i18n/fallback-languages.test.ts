@@ -1,6 +1,6 @@
-// fallbackLanguages derives i18next's fallbackLng from the resource keys (spec 0011,
-// task 2.2; ADR 0050): a regional variant without its own resource falls back to the first
-// resource of its base language, then to the default.
+// fallbackLanguages derives i18next's fallbackLng from the resource keys (ADR 0050): a
+// regional variant without its own resource falls back to the first resource of its
+// base language, then to the default.
 import { describe, expect, it } from 'vitest'
 import { fallbackLanguages } from 'src/core/i18n/fallback-languages'
 

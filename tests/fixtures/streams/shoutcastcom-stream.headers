@@ -1,0 +1,20 @@
+HTTP/1.1 200 OK
+Server: nginx/1.24.0 (Ubuntu)
+Date: Wed, 28 Oct 2026 02:32:55 GMT
+Content-Type: audio/mpeg
+Transfer-Encoding: chunked
+Connection: keep-alive
+icy-br: 128
+ice-audio-info: ice-samplerate=44100;ice-bitrate=128;ice-channels=2
+icy-br: 128
+icy-description: 100 Hip Hop and RNB FM
+icy-genre: R&B, Hip Hop, Soul, House
+icy-name: 100 Hip Hop and RNB FM
+icy-private: 0
+icy-pub: 1
+icy-url: http://www.100HipHopandRNB.FM
+Cache-Control: no-cache, no-store
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, Icy-MetaData
+Access-Control-Allow-Methods: GET, OPTIONS, SOURCE, PUT, HEAD, STATS

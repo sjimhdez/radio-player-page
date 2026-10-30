@@ -48,3 +48,4 @@ if ( ! defined( 'RADPLAPAG_TESTS_PLUGIN_DIR' ) ) {
 require __DIR__ . '/Support/Clock.php';
 require __DIR__ . '/Support/Factory.php';
 require __DIR__ . '/Support/Snapshot.php';
+require dirname( __DIR__ ) . '/unit/Support/StreamSamples.php';

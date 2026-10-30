@@ -254,7 +254,7 @@ describe( 'station-admin.js: rows and submit', () => {
 		// No programs are localized, so any program is "not valid".
 		expect(
 			row.querySelector( '.radplapag-program-error-message' ).textContent
-		).toBe( 'Please select a valid program.' );
+		).toBe( 'Please select a valid radio show.' );
 	} );
 
 	// docs/known-issues.md C3: like the server, start == end is a 24 h slot.
@@ -485,7 +485,7 @@ describe( 'station-admin.js: built-in English messages', () => {
 		[
 			'times without a program',
 			{ programId: '', start: '08:00', end: '10:00' },
-			'Please select a program.',
+			'Please select a radio show.',
 		],
 	] )( 'for %s', async ( _title, slot, message ) => {
 		const screen = await mountSlots( {}, { monday: [ slot ] } );
@@ -553,7 +553,7 @@ describe( 'station-admin.js: built-in English messages', () => {
 		}
 	);
 
-	it( 'names a program without a name "Unnamed program" on the same day', async () => {
+	it( 'names a radio show without a name "Unnamed Radio Show" on the same day', async () => {
 		const screen = await mountSlots(
 			{},
 			{
@@ -572,7 +572,7 @@ describe( 'station-admin.js: built-in English messages', () => {
 		screen.submit();
 
 		expect( rowMessage( screen.rows( 'monday' )[ 1 ] ) ).toBe(
-			'This time slot overlaps with: Unnamed program (Monday, 06:00 - 10:00)'
+			'This time slot overlaps with: Unnamed Radio Show (Monday, 06:00 - 10:00)'
 		);
 	} );
 
@@ -695,7 +695,7 @@ describe( 'station-admin.js: rows left out of the overlap checks', () => {
 
 		expect( screen.rows().map( rowMessage ) ).toEqual( [
 			null,
-			'Please select a program.',
+			'Please select a radio show.',
 		] );
 	} );
 
@@ -711,7 +711,7 @@ describe( 'station-admin.js: rows left out of the overlap checks', () => {
 		screen.submit();
 
 		expect( screen.rows().map( rowMessage ) ).toEqual( [
-			'Please select a program.',
+			'Please select a radio show.',
 			null,
 		] );
 	} );
@@ -767,7 +767,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'the crossing slot',
 			[
 				'[overlap] Morning Show (Tuesday, 01:00 - 03:00)',
-				'[overlap] Unnamed program (Monday, 22:00 - 02:00)',
+				'[overlap] Unnamed Radio Show (Monday, 22:00 - 02:00)',
 			],
 		],
 		[
@@ -775,7 +775,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'tuesday',
 			'the next-day slot',
 			[
-				'[overlap] Unnamed program (Tuesday, 01:00 - 03:00)',
+				'[overlap] Unnamed Radio Show (Tuesday, 01:00 - 03:00)',
 				'[overlap] Night Owl (Monday, 22:00 - 02:00)',
 			],
 		],
@@ -784,7 +784,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'monday',
 			'the crossing slot',
 			[
-				'[overlap] Unnamed program (Sunday, 22:00 - 02:00)',
+				'[overlap] Unnamed Radio Show (Sunday, 22:00 - 02:00)',
 				'[overlap] Morning Show (Monday, 01:00 - 03:00)',
 			],
 		],
@@ -794,7 +794,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 			'the next-day slot',
 			[
 				'[overlap] Night Owl (Sunday, 22:00 - 02:00)',
-				'[overlap] Unnamed program (Monday, 01:00 - 03:00)',
+				'[overlap] Unnamed Radio Show (Monday, 01:00 - 03:00)',
 			],
 		],
 	] )(
@@ -845,7 +845,7 @@ describe( 'station-admin.js: overlaps across days', () => {
 // program that is not public; the screen says so and the station still saves.
 describe( 'station-admin.js: programs that are not public', () => {
 	const NOTICE =
-		'This program is not published; this time slot is not shown on the site.';
+		'This radio show is not published; this time slot is not shown on the site.';
 
 	/**
 	 * Notice text a row shows, or `null`.
@@ -886,7 +886,7 @@ describe( 'station-admin.js: programs that are not public', () => {
 		expect(
 			Array.from( select.options ).map( ( o ) => [ o.value, o.text ] )
 		).toEqual( [
-			[ '', 'Select Radio Show' ],
+			[ '', 'Select a Radio Show' ],
 			[ '203', 'Draft Show (Draft)' ],
 			[ '201', 'Morning Show' ],
 			[ '202', 'Night Owl' ],
@@ -983,5 +983,33 @@ describe( 'station-admin.js: programs that are not public', () => {
 
 		expect( blocked ).toBe( false );
 		expect( rowErrorCode( row ) ).toBeNull();
+	} );
+
+	// docs/known-issues.md K106 (ADR 0062): the ID of a slot whose program was
+	// deleted for good comes as "Radio Show #ID (Deleted)", not public.
+	it( 'saves a slot whose program was deleted', async () => {
+		const deleted = {
+			id: 299,
+			name: 'Radio Show #299 (Deleted)',
+			label: 'Radio Show #299 (Deleted)',
+			public: false,
+		};
+		const screen = await mountStationScreen(
+			adminData( { programs: [ ...adminData().programs, deleted ] } )
+		);
+		screen.clearSchedule();
+		const row = screen.addSlot( 'monday', {
+			programId: '299',
+			programLabel: deleted.label,
+			start: '06:00',
+			end: '10:00',
+		} );
+		choose( row, '299' );
+
+		const { blocked } = screen.submit();
+
+		expect( blocked ).toBe( false );
+		expect( rowErrorCode( row ) ).toBeNull();
+		expect( rowNotice( row ) ).toBe( NOTICE );
 	} );
 } );

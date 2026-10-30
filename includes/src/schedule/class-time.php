@@ -43,7 +43,7 @@ final class Time {
 	/**
 	 * Checks if a slot is active at the given minute, by its start and end only.
 	 *
-	 * Mirrors isProgramActive() in player/src/utils/program-schedule.ts. The slot
+	 * Mirrors isProgramActive() in player/src/core/schedule/program-schedule.ts. The slot
 	 * is a Week_Interval on a Monday and the minute is on that Monday, or on the
 	 * Tuesday for the previous day's slot: a slot with end <= start crosses
 	 * midnight, so on its own day it is active from its start (not before its

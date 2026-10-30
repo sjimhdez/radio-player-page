@@ -90,12 +90,25 @@ describe( 'normalize', () => {
 		expect( run( '{"id":786}' ) ).toBe( '{"id":{{ID:program-A}}}\n' );
 	} );
 
+	it( 'replaces mapped IDs in the #program- anchors of the structured data', () => {
+		expect(
+			run(
+				'{"@id":"http:\\/\\/localhost:8890\\/e2e-mp3\\/#program-786"}' +
+					'{"@id":"http:\\/\\/localhost:8890\\/e2e-mp3\\/#program-786-rerun"}'
+			)
+		).toBe(
+			'{"@id":"{{SITE}}\\/e2e-mp3\\/#program-{{ID:program-A}}"}' +
+				'{"@id":"{{SITE}}\\/e2e-mp3\\/#program-{{ID:program-A}}-rerun"}\n'
+		);
+	} );
+
 	it( 'throws on an ID missing from the map', () => {
 		expect( () => run( '{"id":"999"}' ) ).toThrow( /999/ );
 		expect( () => run( '{"program_id":"786"}', { ids: {} } ) ).toThrow(
 			/786/
 		);
 		expect( () => run( '?page_id=5' ) ).toThrow( /5/ );
+		expect( () => run( '#program-42' ) ).toThrow( /42/ );
 	} );
 
 	it( 'does not normalize timezoneOffset (C9)', () => {

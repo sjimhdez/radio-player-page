@@ -42,12 +42,49 @@
 	display: none;
 }
 
+/* The Player Page help, below its select like the other descriptions (ADR 0073). */
+#radplapag_station_player_page_description {
+	display: block;
+	margin-top: 4px;
+}
+
+/* Streaming URL column: field, "Test Stream" result and help (spec 0018) */
+.radplapag-stream-column {
+	min-width: 15rem;
+}
+/* Outweighs core's `.wp-core-ui .button { margin: 0 }` (K110). */
+.radplapag-stream-column .button.radplapag-stream-test {
+	margin-top: 6px;
+}
+/* Never display: none, so screen readers keep the live region. */
+.radplapag-stream-test-result:not(:empty) {
+	margin-bottom: 15px;
+}
+.radplapag-stream-help summary {
+	cursor: pointer;
+}
+
 /* Admin: form fields in a row (reusable) */
 .radplapag-form-row {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 16px 24px;
 	margin-bottom: 15px;
+}
+/* Each field takes half of its row (12px = half the gap), or the whole row when two do not fit (K109). */
+.radplapag-form-row > * {
+	flex: 1 1 calc(50% - 12px);
+}
+/* Right below the "Player Display" heading, as the Welcome Audio description below its own (ADR 0073). */
+.radplapag-field-wrap[data-field="hide_title"] {
+	margin-top: 0;
+}
+/* The description goes right below its checkbox (ADR 0068). */
+.radplapag-field-wrap[data-field="show_song"] {
+	margin-bottom: 0;
+}
+.radplapag-field-wrap[data-field="show_song"] + .description {
+	margin-top: 4px;
 }
 
 /* Shared logo/image block (Program Image, Station Logo, Station Background) */
@@ -138,7 +175,7 @@
 	font-weight: 600;
 }
 
-/* Remove Time Slot: red on link hover */
+/* "Remove" link of a time slot: red on link hover */
 .radplapag-program-row .radplapag-remove-program {
 	transition: color 0.15s ease;
 }

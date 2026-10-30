@@ -3,9 +3,12 @@
 // fills the analyser buffers with a known value per data type.
 import { vi } from 'vitest'
 
+/** The value the fake analyser fills the waveform with: 128 is silence */
 export const TIME_DOMAIN_BYTE = 128
+/** The value the fake analyser fills the spectrum with */
 export const FREQUENCY_BYTE = 200
 
+/** An analyser whose buffers come back filled with a known value */
 export class FakeAnalyserNode {
   fftSize = 2048
   get frequencyBinCount() {
@@ -16,6 +19,7 @@ export class FakeAnalyserNode {
   getByteFrequencyData = vi.fn((array: Uint8Array) => array.fill(FREQUENCY_BYTE))
 }
 
+/** The source node of a media element */
 export class FakeMediaElementSourceNode {
   readonly mediaElement: HTMLMediaElement
   constructor(mediaElement: HTMLMediaElement) {
@@ -24,6 +28,7 @@ export class FakeMediaElementSourceNode {
   connect = vi.fn()
 }
 
+/** An AudioContext that records its nodes and connections */
 export class FakeAudioContext {
   state: AudioContextState = 'running'
   readonly destination = { kind: 'destination' }
@@ -52,14 +57,12 @@ export class FakeAudioContext {
   })
 }
 
+/** Every fake context created since the last install */
 export const webAudio = {
   contexts: [] as FakeAudioContext[],
 }
 
-/**
- * Installs FakeAudioContext as the global AudioContext. Returns a function that
- * removes it.
- */
+/** Installs FakeAudioContext as the global AudioContext; returns a function that removes it */
 export function installFakeWebAudio(): () => void {
   webAudio.contexts = []
   vi.stubGlobal('AudioContext', FakeAudioContext)

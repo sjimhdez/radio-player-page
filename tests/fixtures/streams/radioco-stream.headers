@@ -1,0 +1,16 @@
+HTTP/1.1 200 OK
+Content-Type: audio/mpeg
+Date: Wed, 28 Oct 2026 02:32:39 GMT
+icy-br:192
+ice-audio-info: channels=2;samplerate=44100;bitrate=192
+icy-br:192
+icy-name:Café del Mar Radio
+icy-pub:1
+icy-url:http://cafedelmar.com
+Server: streams-warsaw3.radio.co
+Cache-Control: no-cache, no-store
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+Connection: Close
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, Icy-MetaData
+Access-Control-Allow-Methods: GET, OPTIONS, SOURCE, PUT, HEAD, STATS

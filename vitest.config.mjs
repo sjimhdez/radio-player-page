@@ -12,6 +12,8 @@ export default defineConfig( {
 			// vectors. The DOM adapters have no threshold yet.
 			thresholds: {
 				'admin/js/schedule-rules.js': { lines: 85 },
+				// Spec 0018 (A7): the stream test rules.
+				'admin/js/stream-rules.js': { lines: 85 },
 			},
 		},
 		projects: [

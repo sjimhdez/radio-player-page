@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Date: Wed, 28 Oct 2026 02:32:41 GMT
+Server: Apache
+Upgrade: h2,h2c
+Connection: Upgrade
+Last-Modified: Fri, 28 Jan 2022 18:20:54 GMT
+ETag: "1ce12b0-5c-5d6a87ed08d80"
+Accept-Ranges: bytes
+Content-Length: 92
+Content-Type: audio/x-mpegurl

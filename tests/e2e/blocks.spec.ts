@@ -102,8 +102,8 @@ async function editorCanvas( page: Page ): Promise< Page | FrameLocator > {
 
 /** What each block previews for a station that is gone (K47). */
 const EMPTY_PREVIEW: Record< ( typeof BLOCKS )[ number ], string > = {
-	'radplapag/now-playing': 'Now Playing: nothing to show',
-	'radplapag/schedule': 'No radio schedule for this station.',
+	'radplapag/now-playing': 'On Air: nothing to show',
+	'radplapag/schedule': 'No weekly schedule for this station.',
 	'radplapag/programs-list': 'No radio shows for this station.',
 };
 
@@ -272,7 +272,7 @@ async function inspectBlock( page: Page, clientId: string ) {
 		name,
 		inspector,
 		select: inspector.getByRole( 'combobox', {
-			name: 'Radio Station',
+			name: 'Radio station',
 			exact: true,
 		} ),
 	};
@@ -360,7 +360,7 @@ test.describe( 'blocks: editor', () => {
 			block( 'radplapag/now-playing' ).locator(
 				'.wp-block-radplapag-now-playing.is-empty'
 			)
-		).toContainText( 'Now Playing: nothing to show' );
+		).toContainText( 'On Air: nothing to show' );
 	} );
 
 	// K47: a station that is gone (an unknown ID, or no ID and an index past the
@@ -562,7 +562,7 @@ test.describe( 'blocks: editor', () => {
 		const { inspector, select } = await inspectBlock( page, clientId );
 
 		await expect( inspector ).toContainText(
-			`Showing “${ first }” by its position in the list of stations. Choose a station to keep it.`
+			`Showing “${ first }” because of its position in the list of radio stations. Select it to keep this station if the list changes.`
 		);
 		await expect( inspector ).not.toContainText( MISSING_NOTICE );
 		await expect( select ).toHaveValue( '' );

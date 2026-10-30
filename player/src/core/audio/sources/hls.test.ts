@@ -1,6 +1,6 @@
-// The hls source (spec 0006, task 2.4), as in src/hooks/use-audio-player.test.tsx:
-// hls.js on non-iOS when supported, native HLS through the direct source otherwise.
-// K70 (fixed in task 2.9): the hls.js path leaves crossOrigin unset (ADR 0004).
+// The hls source, as in src/hooks/use-audio-player.test.tsx: hls.js on non-iOS when
+// supported, native HLS through the direct source otherwise. The hls.js path leaves
+// crossOrigin unset (K70, ADR 0004).
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createHlsSource, loadHlsModule } from 'src/core/audio/sources/hls'
 import { installFakeAudio, media } from 'src/test/fake-audio'
@@ -64,6 +64,20 @@ describe('createHlsSource', () => {
     expect(cbs.onError).toHaveBeenCalledTimes(1)
   })
 
+  // A network error carries the HTTP status, or 0 without CORS or a server (ADR 0065).
+  it.each([
+    [{ fatal: true, type: 'networkError', response: { code: 404 } }, { status: 404 }],
+    [{ fatal: true, type: 'networkError', response: { code: 0 } }, { status: 0 }],
+    [{ fatal: true, type: 'networkError' }, { status: 0 }],
+    [{ fatal: true, type: 'mediaError' }, {}],
+  ])('reports %j with %j (ADR 0065)', async (data, failure) => {
+    const fake = createFakeHls()
+    const cbs = callbacks()
+    await createHlsSource({ loadHls: fake.loadHls, isIOS: false }).start(new Audio(), HLS, cbs)
+    fake.instances[0].handlers.hlsError('hlsError', data)
+    expect(cbs.onError).toHaveBeenCalledWith(failure)
+  })
+
   it('clears crossOrigin on the hls.js path after a direct source (K70)', async () => {
     const fake = createFakeHls()
     const audio = new Audio()
@@ -114,8 +128,8 @@ describe('createHlsSource', () => {
     expect(fake.instances[0].destroy).toHaveBeenCalledTimes(1)
   })
 
-  // docs/known-issues.md K11 with a pause (spec 0007, ADR 0034 D3): the fake keeps its
-  // handlers after destroy(), so the source must ignore them.
+  // A pause during the load (K11, ADR 0034): the fake keeps its handlers after
+  // destroy(), so the source must ignore them.
   it('ignores MANIFEST_PARSED and errors after destroy()', async () => {
     const fake = createFakeHls()
     const cbs = callbacks()
@@ -153,7 +167,21 @@ describe('createHlsSource', () => {
     await expect(loadHlsModule()).resolves.toBe(Hls)
   })
 
-  // docs/known-issues.md C1 (spec 0007, ADR 0033).
+  // The controller watches the progress of sources without MSE (ADR 0061).
+  it('uses Media Source on the hls.js path only', async () => {
+    const fake = createFakeHls()
+    const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false })
+    await source.start(new Audio(), HLS, callbacks())
+    expect(source.usesMediaSource()).toBe(true)
+    fake.setSupported(false)
+    await source.start(new Audio(), HLS, callbacks())
+    expect(source.usesMediaSource()).toBe(false)
+    const native = createHlsSource({ loadHls: fake.loadHls, isIOS: true })
+    await native.start(new Audio(), HLS, callbacks())
+    expect(native.usesMediaSource()).toBe(false)
+  })
+
+  // MSE sources never retry without crossOrigin, so they stay clean (ADR 0033).
   it('is CORS clean on the hls.js path', async () => {
     const fake = createFakeHls()
     const source = createHlsSource({ loadHls: fake.loadHls, isIOS: false, retryWithoutCors: true })

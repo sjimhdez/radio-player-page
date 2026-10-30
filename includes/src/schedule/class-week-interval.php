@@ -19,7 +19,7 @@ defined( 'ABSPATH' ) || exit;
  * (0 ≤ w < 10080). A slot is the interval [start, start + duration) of the week,
  * wrapping at the end of Sunday: end > start lasts end - start, end < start
  * crosses midnight and end == start lasts 24 hours. Mirrors
- * player/src/utils/week-interval.ts and radplapagScheduleRules in the admin; the
+ * player/src/core/schedule/week-interval.ts and radplapagScheduleRules in the admin; the
  * three pass the `model` vectors of tests/fixtures/schedule-vectors.json.
  *
  * @since 3.5.0

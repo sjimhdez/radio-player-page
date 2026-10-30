@@ -4,32 +4,39 @@
      Attachments: 401 logo, 402 background, 403 intro (audio). -->
 <form id="post">
 <input type="hidden" id="radplapag_station_meta_nonce" name="radplapag_station_meta_nonce" value="{{NONCE}}" /><input type="hidden" name="_wp_http_referer" value="/wp-admin/post.php?post=301&#038;action=edit" />	<div class="radplapag-form-row">
-		<div>
-			<p class="radplapag-field-wrap" data-field="player_page">
-				<label for="radplapag_station_player_page"><strong>Player Page <span class="required">*</span></strong></label><br>
-				<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-field-select radplapag-player-page">
-					<option value="">Select a Page</option>
-											<option value="103" >Free Page</option>
-											<option value="101"  selected='selected'>Main Player</option>
-											<option value="102" >Other Player</option>
-														</select>
+		<div class="radplapag-stream-column">
+			<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="http">
+				<label for="radplapag_station_stream_url"><strong>Streaming URL <span class="required">*</span></strong></label><br>
+				<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="https://stream.example.test/live.mp3" class="large-text radplapag-field-input radplapag-stream-url" placeholder="https://example.com:8000/stream">
 				<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
-											</p>
-			<p class="radplapag-field-wrap" data-field="hide_title">
-				<input type="checkbox" name="radplapag_station_hide_title" id="radplapag_station_hide_title" value="1" >
-				<label for="radplapag_station_hide_title">Hide station name in the player</label>
+				<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice" hidden>This stream uses http:// and this site uses https://; browsers block it, so it will not play.</span>
+				<button type="button" class="button radplapag-stream-test" aria-describedby="radplapag_stream_test_result">Test Stream</button>
 			</p>
+			<div id="radplapag_stream_test_result" class="radplapag-stream-test-result" role="status"></div>
+			<details class="radplapag-stream-help">
+				<summary>Which URL do I use?</summary>
+				<p>Use the address of the audio stream itself, not your station&#039;s website. It often ends in a mount point or a file name, such as /stream, /live, or /radio.mp3.</p>
+				<p>Icecast: open the server&#039;s status page (for example, http://example.com:8000/) and copy your mount point&#039;s URL.</p>
+				<p>Shoutcast: version 1 servers need /; after the port (for example, http://example.com:8000/;). Version 2 servers use /stream or /;.</p>
+				<p>AzuraCast: copy a mount point URL from the Streams list on the station&#039;s Profile page. Centova Cast and other control panels: copy the stream address from the Listen or Tune in links.</p>
+				<p>Not sure? Paste the playlist link of your Listen button (.pls or .m3u) or the address of your server&#039;s page, and click Test Stream. It suggests the URL to use.</p>
+			</details>
 		</div>
-		<p class="radplapag-field-wrap" data-field="stream_url" data-site-scheme="http">
-			<label for="radplapag_station_stream_url"><strong>Streaming URL <span class="required">*</span></strong></label><br>
-			<input type="url" name="radplapag_station_stream_url" id="radplapag_station_stream_url" value="https://stream.example.test/live.mp3" class="large-text radplapag-field-input radplapag-stream-url" placeholder="https://my.station.com:8000/stream">
+		<p class="radplapag-field-wrap" data-field="player_page">
+			<label for="radplapag_station_player_page"><strong>Player Page <span class="required">*</span></strong></label><br>
+			<select name="radplapag_station_player_page" id="radplapag_station_player_page" class="radplapag-field-select radplapag-player-page" aria-describedby="radplapag_station_player_page_description">
+				<option value="">Select a Page</option>
+									<option value="103" >Free Page</option>
+									<option value="101"  selected='selected'>Main Player</option>
+									<option value="102" >Other Player</option>
+											</select>
+			<span id="radplapag_station_player_page_description" class="description">The player replaces this whole page, so an empty page works best. Each page can be used by only one radio station.</span>
 			<span class="radplapag-field-error-message" role="alert" aria-live="polite"></span>
-			<span id="radplapag_station_stream_url_notice" class="radplapag-field-notice" hidden>This stream uses http:// and this site uses https://; browsers block it, so it will not play.</span>
-		</p>
+								</p>
 	</div>
 	<div class="radplapag-form-row">
 		<p class="radplapag-field-wrap">
-			<label for="radplapag_station_theme_color"><strong>Theme Color</strong></label><br>
+			<label for="radplapag_station_theme_color"><strong>Color Scheme</strong></label><br>
 			<select name="radplapag_station_theme_color" id="radplapag_station_theme_color" class="radplapag-field-select">
 									<option value="neutral" >Neutral</option>
 									<option value="blue"  selected='selected'>Blue</option>
@@ -78,7 +85,7 @@
 	<div class="radplapag-form-row">
 		<div class="radplapag-field-wrap">
 			<label><strong>Welcome Audio (Optional)</strong></label>
-			<p class="description">MP3 played once before the live stream starts the first time a listener presses play. It cannot be paused or skipped.</p>
+			<p class="description">An MP3 that plays once before the live stream, the first time a listener presses Play. It cannot be paused or skipped.</p>
 			<div class="radplapag-station-audio-wrapper">
 				<input type="hidden" name="radplapag_station_intro_audio_id" value="403" class="radplapag-station-audio-id">
 				<div class="radplapag-station-audio-preview">
@@ -87,6 +94,18 @@
 				<button type="button" class="button radplapag-station-audio-select">Select Audio</button>
 				<button type="button" class="button radplapag-station-audio-remove" >Remove Audio</button>
 			</div>
+		</div>
+		<div class="radplapag-field-wrap" role="group" aria-labelledby="radplapag_station_display_title">
+			<label id="radplapag_station_display_title"><strong>Player Display</strong></label>
+			<p class="radplapag-field-wrap" data-field="hide_title">
+				<input type="checkbox" name="radplapag_station_hide_title" id="radplapag_station_hide_title" value="1" >
+				<label for="radplapag_station_hide_title">Hide station name in the player</label>
+			</p>
+			<p class="radplapag-field-wrap" data-field="show_song">
+				<input type="checkbox" name="radplapag_station_show_song" id="radplapag_station_show_song" value="1" aria-describedby="radplapag_station_show_song_description" >
+				<label for="radplapag_station_show_song">Show current song</label>
+			</p>
+			<p id="radplapag_station_show_song_description" class="description">Shows the song that is playing below the station name, if your streaming server provides it (Icecast, some hosting providers, or HLS streams with ID3 tags). On some servers, each song lookup counts as one more listener.</p>
 		</div>
 	</div>
 		<div id="radplapag-station-cpt-container">
@@ -97,7 +116,7 @@
 													<div class="radplapag-program-row" data-program-index="1">
 								<label class="screen-reader-text" for="radplapag-slot-monday-1-program">Radio Show</label>
 								<select name="radplapag_station_schedule[monday][1][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="radplapag-slot-monday-1-program">
-									<option value="">Select Radio Show</option>
+									<option value="">Select a Radio Show</option>
 																			<option value="203" >Draft Show (Draft)</option>
 																			<option value="201"  selected='selected'>Morning Show</option>
 																			<option value="202" >Night Owl</option>
@@ -111,14 +130,14 @@
 									<input type="checkbox" name="radplapag_station_schedule[monday][1][is_rerun]" value="1"  class="radplapag-program-is-rerun">
 									Rerun								</label>
 								<div class="radplapag-schedule-remove-cell">
-									<a href="#" class="submitdelete radplapag-remove-program">Remove Time Slot</a>
+									<a href="#" class="submitdelete radplapag-remove-program" aria-label="Remove Time Slot">Remove</a>
 								</div>
 								<div class="radplapag-program-error-message" style="display: none;"></div>
 															</div>
 													<div class="radplapag-program-row" data-program-index="0">
 								<label class="screen-reader-text" for="radplapag-slot-monday-0-program">Radio Show</label>
 								<select name="radplapag_station_schedule[monday][0][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="radplapag-slot-monday-0-program">
-									<option value="">Select Radio Show</option>
+									<option value="">Select a Radio Show</option>
 																			<option value="203" >Draft Show (Draft)</option>
 																			<option value="201" >Morning Show</option>
 																			<option value="202"  selected='selected'>Night Owl</option>
@@ -132,7 +151,7 @@
 									<input type="checkbox" name="radplapag_station_schedule[monday][0][is_rerun]" value="1"  class="radplapag-program-is-rerun">
 									Rerun								</label>
 								<div class="radplapag-schedule-remove-cell">
-									<a href="#" class="submitdelete radplapag-remove-program">Remove Time Slot</a>
+									<a href="#" class="submitdelete radplapag-remove-program" aria-label="Remove Time Slot">Remove</a>
 								</div>
 								<div class="radplapag-program-error-message" style="display: none;"></div>
 															</div>
@@ -153,7 +172,7 @@
 													<div class="radplapag-program-row" data-program-index="0">
 								<label class="screen-reader-text" for="radplapag-slot-wednesday-0-program">Radio Show</label>
 								<select name="radplapag_station_schedule[wednesday][0][program_id]" class="radplapag-program-id" style="width: 200px; margin-right: 24px;" id="radplapag-slot-wednesday-0-program">
-									<option value="">Select Radio Show</option>
+									<option value="">Select a Radio Show</option>
 																			<option value="203" >Draft Show (Draft)</option>
 																			<option value="201"  selected='selected'>Morning Show</option>
 																			<option value="202" >Night Owl</option>
@@ -167,7 +186,7 @@
 									<input type="checkbox" name="radplapag_station_schedule[wednesday][0][is_rerun]" value="1"  checked='checked' class="radplapag-program-is-rerun">
 									Rerun								</label>
 								<div class="radplapag-schedule-remove-cell">
-									<a href="#" class="submitdelete radplapag-remove-program">Remove Time Slot</a>
+									<a href="#" class="submitdelete radplapag-remove-program" aria-label="Remove Time Slot">Remove</a>
 								</div>
 								<div class="radplapag-program-error-message" style="display: none;"></div>
 															</div>

@@ -201,7 +201,36 @@ test( "does not freeze the live MP3 after Pause and Play in Safari's WebKit (K18
 	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
 } );
 
-test( 'currently stays stalled without reconnecting when the stream is cut (C8)', async ( {
+// How long a reconnection may take here: STALL_MS (8 s) to see the stall, the
+// first wait (1 s) and the load (ADR 0061).
+const RECONNECT_TIMEOUT_MS = 20000;
+
+/**
+ * Whether a request reloads the stream from its start, as the player does when
+ * it reconnects: without `Range`, or from byte 0. Chromium's own retries ask
+ * for `bytes=N-`, N > 0.
+ *
+ * @param range `Range` header of the request, or null.
+ */
+const fromStart = ( range: string | null ) =>
+	range === null || range === 'bytes=0-';
+
+/**
+ * Checks that the player plays the reloaded stream with Pause and no alert.
+ *
+ * @param page Player page.
+ */
+async function expectPlayingAgain( page: Page ) {
+	await waitForPlayback( page, 1 );
+	expect( await audioState( page ) ).toMatchObject( {
+		paused: false,
+		errorCode: null,
+	} );
+	await expect( page.getByRole( 'button', { name: 'Pause' } ) ).toBeVisible();
+	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
+}
+
+test( 'reconnects when the stream is cut and stalls (C8)', async ( {
 	page,
 	browserName,
 } ) => {
@@ -209,50 +238,48 @@ test( 'currently stays stalled without reconnecting when the stream is cut (C8)'
 		browserName === 'webkit' && GSTREAMER,
 		'WebKitGTK fails with a network error instead (C8, next test)'
 	);
+	test.setTimeout( 60000 );
 	const ranges = recordRanges( page, '/cut.mp3' );
 	await page.goto( readSeed().urls.cut );
 	await startPlayback( page );
 
+	// Chromium waits and WebKit stalls, both without an error: the player sees
+	// that the time stops and reloads the stream (ADR 0061).
 	await waitForAudioEvent( page, 'stalled' );
-	const stalled = await audioState( page );
 	const requestsAtStall = ranges.length;
-	await page.waitForTimeout( QUIET_MS );
+	await expect
+		.poll( () => ranges.slice( requestsAtStall ).some( fromStart ), {
+			timeout: RECONNECT_TIMEOUT_MS,
+		} )
+		.toBe( true );
 
-	// The player never reloads the stream. Chromium's media stack retries on
-	// its own from the byte where it stopped (`Range: bytes=N-`, N > 0), which
-	// a live stream does not honour; WebKit does not retry at all.
-	const retries = ranges.slice( requestsAtStall );
-	if ( browserName === 'webkit' ) {
-		expect( retries ).toEqual( [] );
-	}
-	for ( const range of retries ) {
-		expect( range ).toMatch( /^bytes=[1-9]\d*-$/ );
-	}
-
-	// Stuck at the end of what arrived before the cut, with no error. WebKit
-	// fires `stalled` when the data stops and plays on to the buffer's end.
-	const state = await audioState( page );
-	const bufferedEnd = state.buffered.at( -1 )?.[ 1 ] ?? 0;
-	expect( state ).toMatchObject( {
-		src: stalled.src,
-		paused: false,
-		errorCode: null,
-	} );
-	expect( bufferedEnd ).toBeGreaterThan( 1 );
-	expect( state.currentTime ).toBeGreaterThan( bufferedEnd - 0.1 );
-	await expect( page.getByRole( 'alert' ) ).toHaveCount( 0 );
-
-	// The UI: Chromium fires `waiting` and marks the Pause button busy; WebKit
-	// only fires `stalled` and keeps it idle.
-	await expect(
-		page.getByRole( 'button', { name: 'Pause' } )
-	).toHaveAttribute(
-		'aria-busy',
-		browserName === 'webkit' ? 'false' : 'true'
-	);
+	await expectPlayingAgain( page );
 } );
 
-test( 'currently stops with a network error and the play error, without reconnecting, when the stream is cut in WebKitGTK (C8)', async ( {
+test( 'says "Connecting..." in the status region while it reconnects (K129)', async ( {
+	page,
+	browserName,
+} ) => {
+	test.skip(
+		browserName === 'webkit' && GSTREAMER,
+		'WebKitGTK fails with a network error instead (C8)'
+	);
+	test.setTimeout( 60000 );
+	await page.goto( readSeed().urls.cut );
+	await startPlayback( page );
+	await expect( page.getByRole( 'status' ) ).toHaveText( '' );
+
+	// The status stays playing while it reconnects: the region says it
+	// connects, and is empty again once the stream plays (ADR 0061).
+	await waitForAudioEvent( page, 'stalled' );
+	await expect( page.getByRole( 'status' ) ).toHaveText( 'Connecting...', {
+		timeout: RECONNECT_TIMEOUT_MS,
+	} );
+	await expectPlayingAgain( page );
+	await expect( page.getByRole( 'status' ) ).toHaveText( '' );
+} );
+
+test( 'reconnects after the network error of a cut stream in WebKitGTK (C8)', async ( {
 	page,
 	browserName,
 } ) => {
@@ -260,26 +287,20 @@ test( 'currently stops with a network error and the play error, without reconnec
 		browserName !== 'webkit' || ! GSTREAMER,
 		"Chromium and Safari's WebKit stall instead (previous test)"
 	);
+	test.setTimeout( 60000 );
 	const ranges = recordRanges( page, '/cut.mp3' );
 	await page.goto( readSeed().urls.cut );
 	await startPlayback( page );
 
+	// The error, and the pause and ended after it, are not published: the
+	// player reloads the stream after the first wait (ADR 0061).
 	await waitForAudioEvent( page, 'error' );
 	const requestsAtError = ranges.length;
-	await page.waitForTimeout( QUIET_MS );
+	await expect
+		.poll( () => ranges.slice( requestsAtError ).some( fromStart ), {
+			timeout: RECONNECT_TIMEOUT_MS,
+		} )
+		.toBe( true );
 
-	// No reconnection, neither from the player nor from the media stack. The
-	// element ends (`pause` + `ended`) back at 0 and the player shows Play
-	// with "Unable to play the stream" (the `pause` keeps the error state,
-	// as in K1).
-	expect( ranges.slice( requestsAtError ) ).toEqual( [] );
-	expect( await audioState( page ) ).toMatchObject( {
-		paused: true,
-		errorCode: 2,
-		currentTime: 0,
-	} );
-	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
-	await expect( page.getByRole( 'alert' ) ).toHaveText(
-		'Unable to play the stream. Try again later.'
-	);
+	await expectPlayingAgain( page );
 } );

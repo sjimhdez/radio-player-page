@@ -1,24 +1,27 @@
 import { defaultClock } from 'src/core/clock/minute-ticker'
 import type { Clock, TimerHandle } from 'src/core/clock/minute-ticker'
 
+/** The interval of the countdown, in ms: it shows whole seconds */
 const TICK_MS = 1000
 
+/** What the sleep countdown needs */
 export interface SleepTimerOptions {
-  /** Called once when the countdown runs out (the player pauses). */
+  /** Called once when the countdown runs out (the player pauses) */
   onEnd: () => void
-  /** The timers (the globals by default). */
+  /** The timers (the globals by default) */
   clock?: Clock
 }
 
+/** The sleep countdown, a store for useSyncExternalStore */
 export interface SleepTimer {
-  /** Starts the countdown from `seconds`, restarting it and its interval if it was running. */
+  /** Starts the countdown from `seconds`, restarting it and its interval if it was running */
   start: (seconds: number) => void
-  /** Stops the countdown without calling onEnd. */
+  /** Stops the countdown without calling onEnd */
   cancel: () => void
-  /** Tells the timer whether the stream is playing; any pause cancels it (K65). */
+  /** Tells the timer whether the stream is playing; any pause cancels it (K65) */
   setPlaying: (playing: boolean) => void
   subscribe: (listener: () => void) => () => void
-  /** Seconds left, or null when no countdown is running. */
+  /** Seconds left, or null when no countdown is running */
   getSnapshot: () => number | null
 }
 
@@ -27,11 +30,8 @@ export interface SleepTimer {
  *
  * The countdown runs against a deadline: each tick of a one-second interval works out
  * the seconds left from the clock, so held back or suspended timers do not stretch it
- * (known-issues.md K66, ADR 0035). The interval only runs while the countdown is active
- * and has subscribers; the first subscriber to come back catches up with the deadline.
- *
- * @param options - onEnd and the clock
- * @returns SleepTimer
+ * (K66, ADR 0035). The interval only runs while the countdown is active and has
+ * subscribers; the first subscriber to come back catches up with the deadline.
  */
 export function createSleepTimer({ onEnd, clock = defaultClock }: SleepTimerOptions): SleepTimer {
   const listeners = new Set<() => void>()

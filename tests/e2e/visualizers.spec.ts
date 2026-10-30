@@ -6,8 +6,9 @@ import { wpCli } from './support/wp-cli';
 
 /**
  * Scenario 8 (spec 0002 §4.4): smoke test of each visualizer on the endless
- * live MP3. Frozen zone (ADR 0018): no pixels are read, only that the page
- * plays, draws on a canvas and logs no errors.
+ * live MP3. No pixels are read, only that the page plays, draws on a canvas and
+ * logs no errors: written while the drawing was a frozen zone (ADR 0018), lifted
+ * by ADR 0071; the drawing itself is tested in player/src/core/visualizers/.
  */
 
 const VISUALIZERS = [ 'oscilloscope', 'bars', 'particles', 'waterfall' ];

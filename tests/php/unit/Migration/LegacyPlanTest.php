@@ -547,7 +547,7 @@ final class LegacyPlanTest extends TestCase {
 	private static function number( array $plan, array &$post_ids, array &$names ) {
 		foreach ( $plan['programs'] as $i => $program ) {
 			$post_ids[ $program['id'] ] = $i + 1;
-			$names[ $i + 1 ]            = '' === $program['name'] ? 'Program' : $program['name'];
+			$names[ $i + 1 ]            = '' === $program['name'] ? 'Radio Show' : $program['name'];
 		}
 	}
 
@@ -641,7 +641,7 @@ final class LegacyPlanTest extends TestCase {
 
 		$programs = array();
 		foreach ( $plan['programs'] as $i => $program ) {
-			$title           = '' === $program['name'] ? 'Program' : $program['name'];
+			$title           = '' === $program['name'] ? 'Radio Show' : $program['name'];
 			$names[ $i + 1 ] = '{{PROGRAM:' . $title . '}}';
 			$programs[]      = array(
 				'title'      => $title,

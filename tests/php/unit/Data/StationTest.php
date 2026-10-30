@@ -40,6 +40,7 @@ final class StationTest extends TestCase {
 				'radplapag_station_visualizer'     => 'bars',
 				'radplapag_station_schedule'       => '{"monday":[{"program_id":"3","start":"08:00","end":"09:00"}]}',
 				'radplapag_station_hide_title'     => '1',
+				'radplapag_station_show_song'      => '1',
 			)
 		);
 
@@ -50,6 +51,7 @@ final class StationTest extends TestCase {
 				'player_page'    => 34,
 				'station_title'  => 'Radio One',
 				'hide_title'     => true,
+				'show_song'      => true,
 				'background_id'  => 5,
 				'logo_id'        => 6,
 				'intro_audio_id' => 7,
@@ -80,6 +82,7 @@ final class StationTest extends TestCase {
 				'player_page'    => 0,
 				'station_title'  => '',
 				'hide_title'     => false,
+				'show_song'      => false,
 				'background_id'  => 0,
 				'logo_id'        => 0,
 				'intro_audio_id' => 0,
@@ -115,6 +118,32 @@ final class StationTest extends TestCase {
 			'one'     => array( array( 'radplapag_station_hide_title' => '1' ), true ),
 			'empty'   => array( array( 'radplapag_station_hide_title' => '' ), false ),
 			'zero'    => array( array( 'radplapag_station_hide_title' => '0' ), false ),
+		);
+	}
+
+	/**
+	 * The show song meta is true only when it is truthy, like hide title (ADR 0068).
+	 *
+	 * @dataProvider data_show_song
+	 *
+	 * @param array<string, mixed> $meta     Raw meta.
+	 * @param bool                 $expected Expected show_song.
+	 */
+	public function test_show_song( $meta, $expected ) {
+		$this->assertSame( $expected, Station::row( 1, 'Radio', $meta )['show_song'] );
+	}
+
+	/**
+	 * Raw show song meta and the expected value.
+	 *
+	 * @return array<string, array{0: array<string, mixed>, 1: bool}>
+	 */
+	public function data_show_song() {
+		return array(
+			'missing' => array( array(), false ),
+			'one'     => array( array( 'radplapag_station_show_song' => '1' ), true ),
+			'empty'   => array( array( 'radplapag_station_show_song' => '' ), false ),
+			'zero'    => array( array( 'radplapag_station_show_song' => '0' ), false ),
 		);
 	}
 

@@ -69,6 +69,13 @@ test( 'keeps the name in the title, the social tags, the Media Session and the l
 	await expect(
 		page.getByRole( 'img', { name: new RegExp( NAME ) } )
 	).toBeVisible();
+	// And so does the structured data (ADR 0070).
+	const jsonLd = JSON.parse(
+		( await page
+			.locator( 'script[type="application/ld+json"]' )
+			.textContent() ) ?? ''
+	);
+	expect( jsonLd[ '@graph' ][ 0 ].name ).toBe( NAME );
 } );
 
 test( 'lays out the logo and the controls without the name (risk 2)', async ( {

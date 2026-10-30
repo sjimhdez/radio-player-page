@@ -88,6 +88,9 @@ final class HooksTest extends WP_UnitTestCase {
 		'redirect_post_location'         => array(
 			'radplapag_station_redirect_without_message' => array( 10, 2 ),
 		),
+		'wp_ajax_radplapag_probe_stream' => array(
+			'radplapag_ajax_probe_stream' => array( 10, 1 ),
+		),
 	);
 
 	/**

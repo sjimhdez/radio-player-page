@@ -36,7 +36,7 @@ test.describe( 'e2e seed (smoke)', () => {
 
 		const titles = page.locator( '#the-list .row-title' );
 
-		await expect( titles.filter( { hasText: /^E2E / } ) ).toHaveCount( 24 );
+		await expect( titles.filter( { hasText: /^E2E / } ) ).toHaveCount( 31 );
 		// The markup characters survive the save (wptexturize curls the quotes).
 		await expect(
 			titles.filter( { hasText: /^E2E Minimal <>&/ } )

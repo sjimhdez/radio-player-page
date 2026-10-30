@@ -1,6 +1,6 @@
-// getTransmissionTime computes the station and browser clocks for the current minute
-// (spec 0006, task 1.6). The cases mirror src/hooks/use-transmission-time.test.tsx and add
-// the midnight crossing and daylight saving time.
+// getTransmissionTime computes the station and browser clocks for the current minute.
+// The cases mirror src/hooks/use-transmission-time.test.ts and add the midnight
+// crossing and daylight saving time.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getTransmissionTime } from 'src/core/clock/transmission-time'
 
@@ -102,7 +102,7 @@ describe('getTransmissionTime', () => {
   })
 
   it('ignores differences under the 0.01 h threshold', () => {
-    // K10: the difference is in whole minutes, so 18 seconds is no difference.
+    // The difference is in whole minutes, so 18 seconds is no difference (K10).
     expect(at('UTC', '2026-10-19T14:05:30Z', 0.005)).toMatchObject({
       timeDifference: 0,
       hasDifference: false,

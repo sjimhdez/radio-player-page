@@ -1,0 +1,20 @@
+HTTP/1.0 200 OK
+Server: DAS
+Access-Control-Allow-Methods: GET, HEAD, OPTIONS
+Access-Control-Allow-Headers: Last-Event-ID, X-DAS-SessionId, X-DAS-StartFrom, Icy-MetaData
+Access-Control-Expose-Headers: Allow, Accept-Ranges, Content-Disposition, X-DAS-SessionId, X-Loudness, icy-br, icy-pub, icy-description, icy-url, icy-genre, icy-name, icy-metaint, icy-notice1, icy-notice2
+Access-Control-Max-Age: 3600
+Access-Control-Allow-Origin: *
+X-Loudness: -18.9198
+Content-Type: audio/mpeg
+Connection: close
+Cache-Control: no-cache
+Accept-Ranges: none
+icy-br: 192
+icy-pub: 
+icy-description: Funk the Planet
+icy-url: https://funkthepla.net
+icy-genre: TBD
+icy-name: Funk the Planet
+X-DAS-SessionId: V1RVSVZPSkYyRkFBVkxZQTNVU1JSUUNRRFVfZGFzLWVkZ2U2My1saXZlMzY1LWRhbDAzLmNkbnN0cmVhbS5jb206ODE4Ng..
+P3P: CP="ALL IND DSP COR ADM CONo CUR CUSo IVAo IVDo PSA PSD TAI TELo OUR SAMo CNT COM INT NAV ONL PHY PRE PUR UNI"

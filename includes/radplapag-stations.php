@@ -8,7 +8,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-require_once __DIR__ . '/data/class-radplapag-station-config.php';
+require_once __DIR__ . '/class-radplapag-station-config.php';
 
 /**
  * Retrieves all stations from the radplapag_station CPT as an indexed array.
@@ -19,10 +19,11 @@ require_once __DIR__ . '/data/class-radplapag-station-config.php';
  * @since 3.3.0
  * @since 3.5.0 Delegates to RadioPlayerPage\WP\Station_Repository::published_rows().
  * @since 3.5.0 Adds hide_title (ADR 0054).
+ * @since 3.6.0 Adds show_song (ADR 0068).
  *
- * @return array Indexed array of station configs: each with id, stream_url, player_page,
- *               station_title, hide_title, background_id, logo_id, theme_color, visualizer,
- *               schedule.
+ * @return array<int, array{id: int, stream_url: string, player_page: int, station_title: string, hide_title: bool, show_song: bool, background_id: int, logo_id: int, intro_audio_id: int, theme_color: string, visualizer: string, schedule: array<mixed>}> Station configs, each with id, stream_url,
+ *         player_page, station_title, hide_title, show_song, background_id, logo_id, intro_audio_id,
+ *         theme_color, visualizer and schedule.
  */
 function radplapag_get_stations(): array {
 	return \RadioPlayerPage\WP\Station_Repository::published_rows();

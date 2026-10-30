@@ -178,6 +178,17 @@ test.describe( 'a11y: player', () => {
 		await expectNoNewViolations( page, testInfo, 'player · hidden title' );
 	} );
 
+	// Spec 0020 (A12): the line of the current song, below the name.
+	test( 'current song', async ( { page }, testInfo ) => {
+		await page.goto( readSeed().urls[ 'song-icecast' ] );
+		await startPlayback( page );
+		await expect(
+			page.getByText( 'E2E Artist - First Song' )
+		).toBeVisible();
+
+		await expectNoNewViolations( page, testInfo, 'player · current song' );
+	} );
+
 	test( 'playing', async ( { page }, testInfo ) => {
 		await openPlayer( page );
 		await startPlayback( page );
@@ -210,7 +221,7 @@ test.describe( 'a11y: player', () => {
 
 	test( 'schedule modal', async ( { page }, testInfo ) => {
 		await openPlayer( page );
-		await page.getByRole( 'button', { name: 'Radio Schedule' } ).click();
+		await page.getByRole( 'button', { name: 'Weekly Schedule' } ).click();
 		await expect( page.getByRole( 'dialog' ) ).toBeVisible();
 
 		await expectNoNewViolations(
@@ -357,7 +368,7 @@ test.describe( 'a11y: meta boxes', () => {
 	} );
 
 	// axe does not check focus visibility (WCAG 2.4.7).
-	test( 'shows "Remove Time Slot" when it has the keyboard focus (K20)', async ( {
+	test( 'shows the Remove link of a slot when it has the keyboard focus (K20)', async ( {
 		page,
 	} ) => {
 		await page.goto(
@@ -390,7 +401,7 @@ test.describe( 'a11y: meta boxes', () => {
 			thursday.locator( '.radplapag-program-row' )
 		).toHaveCount( 1 );
 		// The pointer stays on the new row after the click, and its :hover fades
-		// "Remove Time Slot" in: axe could measure it mid-fade (WebKit). The
+		// the "Remove" link in: axe could measure it mid-fade (WebKit). The
 		// scenario is the row at rest; hover is out of axe's reach (AX5).
 		await page.mouse.move( 0, 0 );
 		await expect(
@@ -402,6 +413,36 @@ test.describe( 'a11y: meta boxes', () => {
 			testInfo,
 			'station meta boxes · added slot',
 			[ '#radplapag_station_details', '#radplapag_station_schedule' ]
+		);
+	} );
+
+	// Spec 0018 (A10): the help open and a "Test Stream" verdict with its list
+	// of mounts. The server reaches the media server with the e2e header on
+	// admin-ajax.php only (spike R5).
+	test( 'station with a stream test result', async ( { page }, testInfo ) => {
+		await page.route( '**/wp-admin/admin-ajax.php', ( route ) =>
+			route.fallback( {
+				headers: {
+					...route.request().headers(),
+					'x-radplapag-e2e-media': '1',
+				},
+			} )
+		);
+		await openStation( page );
+		await page.getByText( 'Which URL do I use?' ).click();
+		await page
+			.locator( '#radplapag_station_stream_url' )
+			.fill( 'http://localhost:8901/icecast/' );
+		await page.getByRole( 'button', { name: 'Test Stream' } ).click();
+		await expect(
+			page.locator( '#radplapag_stream_test_result li' )
+		).toHaveCount( 1, { timeout: 15_000 } );
+
+		await expectNoNewViolations(
+			page,
+			testInfo,
+			'station meta boxes · stream test',
+			[ '#radplapag_station_details' ]
 		);
 	} );
 
@@ -433,6 +474,13 @@ test.describe( 'a11y: meta boxes', () => {
 				'[data-field="stream_url"] .radplapag-field-error-message'
 			)
 		).toHaveText( 'This field is required.' );
+		// The scroll to the first error can leave a schedule row under the
+		// pointer, and its :hover fades the "Remove" link in: axe could measure
+		// it mid-fade (WebKit). The scenario is the screen at rest (AX5).
+		await page.mouse.move( 0, 0 );
+		await page.waitForFunction(
+			() => document.getAnimations().length === 0
+		);
 
 		await expectNoNewViolations(
 			page,
@@ -443,7 +491,7 @@ test.describe( 'a11y: meta boxes', () => {
 	} );
 
 	// axe does not analyse :hover (WCAG 1.4.3).
-	test( 'uses the darker red for "Remove Time Slot" on hover over a row with an error (AX5)', async ( {
+	test( 'uses the darker red for the Remove link of a slot on hover over a row with an error (AX5)', async ( {
 		page,
 	} ) => {
 		await openStation( page );

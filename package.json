@@ -1,6 +1,6 @@
 {
 	"name": "radio-player-page-dev",
-	"version": "3.5.0",
+	"version": "3.6.0",
 	"private": true,
 	"description": "Development tooling for the WordPress side of Radio Player Page. The player (player/) and each block (blocks/*) are independent projects.",
 	"license": "GPL-2.0-or-later",
@@ -11,7 +11,7 @@
 		"check": "npm run lint:php && npm run lint:phpstan && npm run test:php:unit && npm run lint:js && npm test && npm run test:hooks && npm run check:player && npm run check:blocks && npm run check:zip",
 		"check:player": "npm --prefix player run check",
 		"check:blocks": "npm --prefix blocks/schedule run check && npm --prefix blocks/programs-list run check && npm --prefix blocks/now-playing run check",
-		"check:zip": "bash tests/zip/compare-lists.test.sh && bash tests/zip/compare-with-v3.4.2.sh",
+		"check:zip": "bash tests/zip/compare-lists.test.sh && bash tests/zip/compare-with-v3.5.0.sh",
 		"lint:php": "vendor/bin/phpcs -q",
 		"lint:phpstan": "vendor/bin/phpstan analyse --no-progress --memory-limit=1G",
 		"format:php": "vendor/bin/phpcbf -q",

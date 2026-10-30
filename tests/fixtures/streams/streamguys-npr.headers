@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Server: Icecast
+Connection: Close
+Pragma: no-cache
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, private
+Vary: Origin
+Date: Wed, 28 Oct 2026 02:33:02 GMT
+Content-Type: audio/mpeg
+icy-br: 96
+ice-audio-info: bitrate=96
+icy-description: NPR Program Stream
+icy-genre: News and Talk
+icy-name: NPR Program Stream
+icy-pub: 0

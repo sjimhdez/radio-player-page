@@ -7,7 +7,8 @@ import { audioState, startPlayback, waitForPlayback } from './support/player';
  * Visualizer or static animation (spec 0007, tasks 1.4 and 1.8; K82, ADR 0031
  * and 0033). The audio controller decides from the source in progress: only the
  * live stream with CORS is visualized, never the welcome audio, and WebKit never
- * visualizes. No pixels are read (frozen zone, ADR 0018).
+ * visualizes. No pixels are read: written while the drawing was a frozen zone
+ * (ADR 0018), lifted by ADR 0071; the drawing is tested in the player core.
  */
 
 const INTRO = /\/intro(-\d+)?\.mp3$/;
@@ -18,8 +19,9 @@ const INTRO = /\/intro(-\d+)?\.mp3$/;
  * @param page Player page.
  */
 function canvasOpacity( page: Page ) {
+	// Decorative, without a role (ADR 0072)
 	return page
-		.getByRole( 'img', { name: 'Audio visualizer' } )
+		.locator( 'canvas[aria-hidden="true"]' )
 		.evaluate( ( canvas ) => getComputedStyle( canvas ).opacity );
 }
 
@@ -90,4 +92,53 @@ test( 'shows the static animation during the welcome audio (K82)', async ( {
 	await expect
 		.poll( () => staticAnimationHeight( page ) )
 		.toBeGreaterThan( 0 );
+} );
+
+test.describe( 'on a high-density screen', () => {
+	test.use( { deviceScaleFactor: 2 } );
+
+	test( 'draws the visualizer at twice its CSS size (K117)', async ( {
+		page,
+		browserName,
+	} ) => {
+		test.skip( browserName === 'webkit', 'WebKit never visualizes' );
+		await page.goto( readSeed().urls.live );
+		await startPlayback( page );
+		await expect.poll( () => canvasOpacity( page ) ).toBe( '1' );
+
+		const sizes = await page.locator( 'canvas' ).evaluate( ( canvas ) => {
+			const box = canvas.getBoundingClientRect();
+			const element = canvas as HTMLCanvasElement;
+			return {
+				css: [ Math.round( box.width ), Math.round( box.height ) ],
+				device: [ element.width, element.height ],
+			};
+		} );
+		expect( sizes.device ).toEqual( [
+			sizes.css[ 0 ] * 2,
+			sizes.css[ 1 ] * 2,
+		] );
+	} );
+} );
+
+test( 'shows the static animation under "reduce motion", also when it changes while playing (K124)', async ( {
+	page,
+	browserName,
+} ) => {
+	test.skip( browserName === 'webkit', 'WebKit never visualizes' );
+	await page.emulateMedia( { reducedMotion: 'reduce' } );
+	await page.goto( readSeed().urls.live );
+	await startPlayback( page );
+
+	expect( await canvasOpacity( page ) ).toBe( '0' );
+	await expect
+		.poll( () => staticAnimationHeight( page ) )
+		.toBeGreaterThan( 0 );
+
+	await page.emulateMedia( { reducedMotion: 'no-preference' } );
+	await expect.poll( () => canvasOpacity( page ) ).toBe( '1' );
+	await expect.poll( () => staticAnimationHeight( page ) ).toBe( 0 );
+
+	await page.emulateMedia( { reducedMotion: 'reduce' } );
+	await expect.poll( () => canvasOpacity( page ) ).toBe( '0' );
 } );

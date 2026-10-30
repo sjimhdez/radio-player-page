@@ -1,0 +1,17 @@
+HTTP/1.1 200 OK
+Content-Type: audio/mpeg
+Date: Wed, 28 Oct 2026 02:32:44 GMT
+icy-br:128
+ice-audio-info: channels=2;samplerate=44100;bitrate=128
+icy-description:Airtime Radio! Stream #1
+icy-genre:genre
+icy-name:Airtime!
+icy-pub:1
+icy-url:http://airtime.sourcefabric.org
+Server: Icecast 2.4.0-kh15
+Cache-Control: no-cache, no-store
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+Connection: Close
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, Icy-MetaData
+Access-Control-Allow-Methods: GET, OPTIONS, SOURCE, PUT, HEAD, STATS

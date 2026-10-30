@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "title": "RPP: Weekly Schedule",
   "category": "widgets",
-  "description": "Display the weekly radio schedule for a selected radio station.",
+  "description": "Display the weekly schedule of a radio station.",
   "textdomain": "radio-player-page",
   "editorScript": "file:./build/index.js",
   "attributes": {

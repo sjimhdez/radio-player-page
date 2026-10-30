@@ -8,9 +8,7 @@ interface FakeTimer {
   every: number | null
 }
 
-/**
- * A clock that only moves when the test calls advance().
- */
+/** A clock that only moves when the test calls advance() */
 export function createFakeClock(start: number) {
   let time = start
   let nextId = 1
@@ -36,7 +34,7 @@ export function createFakeClock(start: number) {
   return {
     clock,
     timerCount: () => timers.size,
-    /** Moves the time forward, firing every due timer in order. */
+    /** Moves the time forward, firing every due timer in order */
     advance(ms: number) {
       const end = time + ms
       for (;;) {

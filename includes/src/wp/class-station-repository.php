@@ -34,6 +34,7 @@ final class Station_Repository {
 		'radplapag_station_logo_id',
 		'radplapag_station_intro_audio_id',
 		'radplapag_station_hide_title',
+		'radplapag_station_show_song',
 	);
 
 	/**
@@ -42,7 +43,7 @@ final class Station_Repository {
 	 * @since 3.5.0
 	 *
 	 * @param WP_Post $post Station post (radplapag_station).
-	 * @return array{id: int, stream_url: string, player_page: int, station_title: string, hide_title: bool, background_id: int, logo_id: int, intro_audio_id: int, theme_color: string, visualizer: string, schedule: array<mixed>}
+	 * @return array{id: int, stream_url: string, player_page: int, station_title: string, hide_title: bool, show_song: bool, background_id: int, logo_id: int, intro_audio_id: int, theme_color: string, visualizer: string, schedule: array<mixed>}
 	 */
 	public static function row( WP_Post $post ): array {
 		$post_id = (int) $post->ID;
@@ -59,7 +60,7 @@ final class Station_Repository {
 	 *
 	 * @since 3.5.0
 	 *
-	 * @return array<int, array{id: int, stream_url: string, player_page: int, station_title: string, hide_title: bool, background_id: int, logo_id: int, intro_audio_id: int, theme_color: string, visualizer: string, schedule: array<mixed>}>
+	 * @return array<int, array{id: int, stream_url: string, player_page: int, station_title: string, hide_title: bool, show_song: bool, background_id: int, logo_id: int, intro_audio_id: int, theme_color: string, visualizer: string, schedule: array<mixed>}>
 	 */
 	public static function published_rows(): array {
 		$posts = get_posts(

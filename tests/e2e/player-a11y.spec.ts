@@ -83,7 +83,7 @@ test( 'names no progressbar and announces "Connecting..." in a status region (AX
 	release();
 } );
 
-for ( const name of [ 'Radio Schedule', 'Radio Shows' ] ) {
+for ( const name of [ 'Weekly Schedule', 'Radio Shows' ] ) {
 	for ( const close of [ 'Escape', 'Close' ] ) {
 		test( `gives the focus back to its button after closing the ${ name } modal with ${ close } (K57)`, async ( {
 			page,
@@ -110,21 +110,21 @@ for ( const name of [ 'Radio Schedule', 'Radio Shows' ] ) {
 	}
 }
 
-test( 'gives the focus to "Sleep mode" when the sleep timer is cancelled (K58)', async ( {
+test( 'gives the focus to "Sleep Timer" when the sleep timer is cancelled (K58)', async ( {
 	page,
 } ) => {
 	await page.goto( readSeed().urls.live );
 	await playWithKeyboard( page );
-	await page.getByRole( 'button', { name: 'Sleep mode' } ).click();
-	await page.getByRole( 'menuitem', { name: '30 mins' } ).click();
+	await page.getByRole( 'button', { name: 'Sleep Timer' } ).click();
+	await page.getByRole( 'menuitem', { name: '30 minutes' } ).click();
 
-	await page.getByRole( 'button', { name: 'Cancel sleep mode' } ).focus();
+	await page.getByRole( 'button', { name: 'Cancel sleep timer' } ).focus();
 	await page.keyboard.press( 'Enter' );
 
 	await expect(
-		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+		page.getByRole( 'button', { name: 'Cancel sleep timer' } )
 	).toHaveCount( 0 );
-	await expect.poll( () => focused( page ) ).toBe( 'BUTTON:Sleep mode' );
+	await expect.poll( () => focused( page ) ).toBe( 'BUTTON:Sleep Timer' );
 } );
 
 /**
@@ -140,7 +140,7 @@ function animationNames( page: Page ) {
 	);
 }
 
-for ( const name of [ 'Radio Schedule', 'Radio Shows' ] ) {
+for ( const name of [ 'Weekly Schedule', 'Radio Shows' ] ) {
 	test( `does not blink "On Air" in the ${ name } modal (K60)`, async ( {
 		page,
 	} ) => {
@@ -239,7 +239,7 @@ test( 'keeps the clock, title, program and controls apart at 320 × 256 and scro
 	const program = page.locator( '.MuiTypography-h4' );
 	const controls = page.getByRole( 'region', { name: 'Player controls' } );
 	await expect( title ).toBeVisible();
-	await expect( clock ).toContainText( 'Broadcast Timezone' );
+	await expect( clock ).toContainText( 'Station Time' );
 	await expect( program ).toBeVisible();
 	await expect( controls ).toBeVisible();
 
@@ -586,7 +586,7 @@ test( 'runs no animation while playing with a dialog open under "reduce motion"'
 	await page.goto( readSeed().urls.mp3 );
 
 	await playWithKeyboard( page );
-	await page.getByRole( 'button', { name: 'Radio Schedule' } ).click();
+	await page.getByRole( 'button', { name: 'Weekly Schedule' } ).click();
 	await expect( page.getByRole( 'dialog' ) ).toBeVisible();
 
 	// CSS animations and transitions alike; the visualizer draws by
@@ -607,7 +607,7 @@ test( 'runs no animation while playing with a dialog open under "reduce motion"'
 
 // Pre-release review (spec 0014, review.md §1), pinned as it is.
 for ( const [ button, name ] of [
-	[ 'Radio Schedule', 'Radio Schedule Close' ],
+	[ 'Weekly Schedule', 'Weekly Schedule Close' ],
 	[ 'Radio Shows', 'Radio Shows Close' ],
 ] ) {
 	test( `currently names the ${ button } dialog with its Close button (R-a11y-8 a)`, async ( {

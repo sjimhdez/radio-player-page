@@ -1,4 +1,4 @@
-// FakeAudioElement (idea of spike R4, spec 0001): happy-dom cannot play media, so
+// FakeAudioElement: happy-dom cannot play media, so
 // the media methods of HTMLMediaElement are replaced by fakes that record each call
 // and fire the real DOM events the hook listens to. happy-dom also fires canplay and
 // durationchange synchronously when src is assigned, which no browser does: the fake
@@ -7,17 +7,18 @@ import { vi } from 'vitest'
 
 type Deferred = { resolve: () => void; reject: (error: unknown) => void }
 
+/** The calls of the fake and the switches that make play() fail or wait */
 export const media = {
   load: vi.fn<(src: string) => void>(),
   play: vi.fn<(src: string) => void>(),
   pause: vi.fn<(src: string) => void>(),
-  /** Sources whose play() rejects with NotSupportedError. */
+  /** Sources whose play() rejects with NotSupportedError */
   failing: new Set<string>(),
-  /** Sources without CORS: play() rejects with NotSupportedError while crossOrigin is 'anonymous'. */
+  /** Sources without CORS: play() rejects with NotSupportedError while crossOrigin is 'anonymous' */
   corsBlocked: new Set<string>(),
-  /** When true, play() stays pending until release() or fail(). */
+  /** When true, play() stays pending until release() or fail() */
   hold: false,
-  /** When true, writes to volume are ignored, as on iOS (ADR 0036). */
+  /** When true, writes to volume are ignored, as on iOS (ADR 0036) */
   readOnlyVolume: false,
   /**
    * When true, a write to volume reads back at once and is undone on the next task,
@@ -25,11 +26,11 @@ export const media = {
    */
   revertingVolume: false,
   pending: [] as Deferred[],
-  /** Settles the oldest pending play() successfully. */
+  /** Settles the oldest pending play() successfully */
   release() {
     media.pending.shift()?.resolve()
   },
-  /** Settles the oldest pending play() with an error (AbortError after a pause). */
+  /** Settles the oldest pending play() with an error (AbortError after a pause) */
   fail(name = 'NotSupportedError') {
     media.pending.shift()?.reject(new DOMException('fail', name))
   },
@@ -39,9 +40,7 @@ const playing = new WeakSet<HTMLMediaElement>()
 // Volumes taken for a moment with revertingVolume, by element.
 const transientVolume = new WeakMap<HTMLMediaElement, number>()
 
-/**
- * Patches HTMLMediaElement.prototype. Returns a function that restores it.
- */
+/** Patches HTMLMediaElement.prototype; returns a function that restores it */
 export function installFakeAudio(): () => void {
   media.load.mockReset()
   media.play.mockReset()

@@ -1,0 +1,25 @@
+HTTP/1.1 200 OK
+Content-Type: application/vnd.apple.mpegurl
+Content-Length: 622
+X-USP: version=1.13.5 (30103)
+Last-Modified: Wed, 28 Oct 2026 02:33:09 GMT
+X-USP-Last-Modified: Wed, 28 Oct 2026 02:33:42 GMT
+ETag: "usp-CED4FD6D"
+X-Pkgr-Instance: 02500e2450ae5f9f7
+X-Cache-Status: EXPIRED
+Server: c3
+QoS-Deadline: 1000
+Access-Control-Max-Age: 86400
+Accept-Ranges: bytes
+Cache-Control: max-age=1
+Expires: Wed, 28 Oct 2026 02:33:17 GMT
+Date: Wed, 28 Oct 2026 02:33:16 GMT
+Connection: keep-alive
+Akamai-Mon-Iucid-Del: 496263
+report-to: {"group":"nel","max_age":2592000,"endpoints":[{"url":"https://media.bbc-reporting-api.app/report-endpoint","priority":1}],"include_subdomains":true}
+nel: {"report_to":"nel","max_age":2592000,"include_subdomains":true,"failure_fraction":0.25}
+Timing-Allow-Origin: https://www.bbc.co.uk, https://www.bbc.com, https://emp.bbc.co.uk
+Access-Control-Expose-Headers: Server,Range,Content-Length,Content-Range,Akamai-Mon-Iucid-Ing,Akamai-Mon-Iucid-Del,Akamai-Request-BC,Content-Location,Date,Location
+Access-Control-Allow-Methods: GET,HEAD,OPTIONS
+Access-Control-Allow-Headers: Origin,Range,Accept-Encoding,Referer
+Access-Control-Allow-Origin: *

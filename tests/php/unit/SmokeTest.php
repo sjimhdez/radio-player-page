@@ -20,7 +20,7 @@ final class SmokeTest extends TestCase {
 	 * @group no-wordpress
 	 */
 	public function test_program_config_class_loads_without_wordpress() {
-		require_once RADPLAPAG_TESTS_PLUGIN_DIR . '/includes/data/class-radplapag-program-config.php';
+		require_once RADPLAPAG_TESTS_PLUGIN_DIR . '/includes/class-radplapag-program-config.php';
 
 		$this->assertTrue( class_exists( 'Radplapag_Program_Config', false ) );
 		$this->assertFalse( function_exists( 'add_action' ), 'WordPress must not be loaded in the unit suite.' );

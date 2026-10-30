@@ -1113,7 +1113,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 				),
 			)
 		);
-		require_once RADPLAPAG_TESTS_PLUGIN_DIR . '/includes/migration/class-radplapag-migrator-settings-to-cpt.php';
+		require_once RADPLAPAG_TESTS_PLUGIN_DIR . '/includes/class-radplapag-migrator-settings-to-cpt.php';
 
 		$this->assertSame(
 			array(
@@ -1810,7 +1810,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 
 		$this->assertSame(
 			'<div class="notice notice-success is-dismissible"><p>Radio Player Page: 2 radio stations and their radio shows were migrated from the previous storage format to the new editor. The old settings entry was removed.</p>'
-			. '<p>These schedule slots were dropped because they overlap an earlier slot or are not valid. Add them again in their radio station if you need them:</p>'
+			. '<p>These time slots were dropped because they overlap an earlier time slot or are not valid. Add them again in their radio station if you need them:</p>'
 			. '<ul><li>One &lt;b&gt;FM&lt;/b&gt;: Tuesday 01:00–03:00, &quot;Early&quot;</li><li>Two: Sunday 7:00–25:00, &quot;Late &amp; &quot;Loud&quot;&quot;</li></ul></div>',
 			$this->notices()
 		);
@@ -1858,7 +1858,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		);
 
 		$this->assertStringContainsString(
-			'<p>This schedule slot was dropped because it overlaps an earlier slot or is not valid. Add it again in its radio station if you need it:</p><ul><li>One: Monday 07:00–09:00, &quot;Morning&quot;</li></ul>',
+			'<p>This time slot was dropped because it overlaps an earlier time slot or is not valid. Add it again in its radio station if you need it:</p><ul><li>One: Monday 07:00–09:00, &quot;Morning&quot;</li></ul>',
 			$this->notices()
 		);
 	}
@@ -1895,7 +1895,7 @@ final class UpgradeFlowTest extends WP_UnitTestCase {
 		$nonce = wp_create_nonce( 'radplapag_dismiss_migration_conflict' );
 
 		$expected = '<div class="notice notice-warning"><p>Radio Player Page: Legacy settings were found, but there are already published radio stations. Automatic migration was skipped to avoid duplicates. Remove or unpublish extra radio stations if you want to import legacy data, or dismiss this message.</p>'
-			. '<p><a href="/wp-admin/index.php?foo=bar&#038;radplapag_dismiss=migration_conflict&#038;_wpnonce=' . $nonce . '">Dismiss This Notice</a></p></div>';
+			. '<p><a href="/wp-admin/index.php?foo=bar&#038;radplapag_dismiss=migration_conflict&#038;_wpnonce=' . $nonce . '">Dismiss this notice</a></p></div>';
 
 		$this->assertSame( $expected, $this->notices() );
 		$this->assertSame( $expected, $this->notices(), 'The conflict notice is not one-shot.' );

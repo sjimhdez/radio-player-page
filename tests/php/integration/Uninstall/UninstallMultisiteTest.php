@@ -43,6 +43,7 @@ final class UninstallMultisiteTest extends WP_UnitTestCase {
 					array(
 						'stream_url' => 'https://example.com/a.mp3',
 						'hide_title' => '1',
+						'show_song'  => '1',
 					)
 				),
 				$factory->program( 'Program', array( 'description' => 'Text' ) ),

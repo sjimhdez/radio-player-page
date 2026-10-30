@@ -105,18 +105,28 @@ export function waitForAudioEvent( page: Page, name: string ) {
 	);
 }
 
-/** One of the two media origins of media-server.mjs. */
-export type MediaOrigin = 'cors' | 'nocors';
+/** One of the media origins of media-server.mjs. */
+export type MediaOrigin = 'cors' | 'nocors' | 'icy' | 'shoutcast';
 
 /**
  * Port of a media origin (dynamic import: see global-setup.ts).
  *
- * @param origin The origin with CORS headers or the one without.
+ * @param origin The origin with CORS headers, the one without, or the two of
+ *               the current song (spec 0020).
  */
-async function mediaPort( origin: MediaOrigin ): Promise< number > {
-	const { MEDIA_NOCORS_PORT, MEDIA_PORT } =
-		await import( '../media-server.mjs' );
-	return origin === 'cors' ? MEDIA_PORT : MEDIA_NOCORS_PORT;
+export async function mediaPort( origin: MediaOrigin ): Promise< number > {
+	const {
+		MEDIA_ICY_PORT,
+		MEDIA_NOCORS_PORT,
+		MEDIA_PORT,
+		MEDIA_SHOUTCAST_PORT,
+	} = await import( '../media-server.mjs' );
+	return {
+		cors: MEDIA_PORT,
+		nocors: MEDIA_NOCORS_PORT,
+		icy: MEDIA_ICY_PORT,
+		shoutcast: MEDIA_SHOUTCAST_PORT,
+	}[ origin ];
 }
 
 /**
@@ -152,7 +162,12 @@ export async function resetMediaRequests( origin: MediaOrigin = 'cors' ) {
  */
 export function buttonGaps( page: Page ) {
 	return page.evaluate( () => {
-		const names = [ 'Radio Schedule', 'Radio Shows', 'Play', 'Sleep mode' ];
+		const names = [
+			'Weekly Schedule',
+			'Radio Shows',
+			'Play',
+			'Sleep Timer',
+		];
 		const boxes = names.map( ( name ) => {
 			const button = document.querySelector(
 				`button[aria-label="${ name }"]`

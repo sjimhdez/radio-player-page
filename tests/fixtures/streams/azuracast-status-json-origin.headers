@@ -1,0 +1,23 @@
+HTTP/2 200 
+date: Wed, 28 Oct 2026 20:01:37 GMT
+content-type: application/json; charset=UTF-8
+access-control-allow-credentials: True
+access-control-allow-headers: Origin, Icy-MetaData, Range
+access-control-allow-methods: GET, OPTIONS, SOURCE, PUT, HEAD, STATS
+access-control-allow-origin: https://example.com
+access-control-expose-headers: Icy-Br, Icy-Description, Icy-Genre, Icy-MetaInt, Icy-Name, Icy-Pub, Icy-Url
+cache-control: no-store, no-cache, private
+content-disposition: attachment; filename="file.json"
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=Pi86AIVBgiYVlUB33jkvdPzfUhXNTBn4eYXhxSFZfX9XY6r26hA986fJbJMHbyIyO9YgmdN%2Fdf3sazhHk5G0PdSNzFBTw7XblcCOfWonzE4Vx78ZpJ1ZPSWUopteOvb7iXu8HgLA"}]}
+expires: Thu, 19 Nov 1981 08:52:00 GMT
+pragma: no-cache
+referrer-policy: no-referrer-when-downgrade
+server: cloudflare
+vary: Accept-Encoding
+vary: Origin
+x-content-type-options: nosniff
+x-xss-protection: 1
+cf-cache-status: DYNAMIC
+nel: {"report_to":"cf-nel","success_fraction":0.0,"max_age":604800}
+cf-ray: a51c888cbddcec97-MAD
+alt-svc: h3=":443"; ma=86400

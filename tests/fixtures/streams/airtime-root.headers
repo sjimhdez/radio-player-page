@@ -1,0 +1,10 @@
+HTTP/1.1 200 OK
+Content-Type: text/html
+Date: Wed, 28 Oct 2026 02:32:46 GMT
+Server: Icecast 2.4.0-kh15
+Cache-Control: no-cache, no-store
+Expires: Mon, 26 Jul 1997 05:00:00 GMT
+Connection: Close
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Origin, Accept, X-Requested-With, Content-Type, Icy-MetaData
+Access-Control-Allow-Methods: GET, OPTIONS, SOURCE, PUT, HEAD, STATS

@@ -434,6 +434,26 @@ final class SaveStationMetaTest extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The posted show song checkbox stores '1' (ADR 0068).
+	 */
+	public function test_posted_show_song_is_saved() {
+		$this->save( array( 'show_song' => '1' ) );
+
+		$this->assertSame( '1', $this->meta( 'show_song' ) );
+	}
+
+	/**
+	 * Without the checkbox in the form, a stored show song meta is deleted.
+	 */
+	public function test_missing_show_song_deletes_the_meta() {
+		update_post_meta( $this->station, 'radplapag_station_show_song', '1' );
+
+		$this->save();
+
+		$this->assertFalse( metadata_exists( 'post', $this->station, 'radplapag_station_show_song' ) );
+	}
+
+	/**
 	 * A welcome audio that is not MP3 (the media frame offered any audio) keeps the
 	 * previous one and says so. In the CLI the URL is always missing (class
 	 * docblock), so its message comes first. K37 of docs/known-issues.md.

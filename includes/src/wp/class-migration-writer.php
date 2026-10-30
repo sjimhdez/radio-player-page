@@ -168,7 +168,7 @@ final class Migration_Writer {
 	 * @return string
 	 */
 	private static function program_title( array $program ): string {
-		return '' !== $program['name'] ? $program['name'] : __( 'Program', 'radio-player-page' );
+		return '' !== $program['name'] ? $program['name'] : __( 'Radio Show', 'radio-player-page' );
 	}
 
 	/**

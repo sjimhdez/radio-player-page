@@ -41,7 +41,8 @@ const ENTITY_STRINGS = {
 	selectProgram: 'Pick &amp; go',
 	to: 'a &amp; b',
 	scheduleRerun: 'R & R',
-	removeTimeSlot: 'Don&rsquo;t',
+	remove: 'Don&rsquo;t',
+	removeTimeSlot: 'Undo &amp; go',
 	programLabel: 'Show &amp; tell',
 	startTimeLabel: 'From &lt; to',
 	endTimeLabel: 'Until & after',
@@ -57,10 +58,15 @@ const ENTITY_STRINGS = {
  * @param {string} text.to      Text between the two times.
  * @param {string} text.rerun   Text of the rerun label.
  * @param {string} text.remove  Text of the remove link.
+ * @param {string} text.name    Accessible name of the remove link.
  * @param {Object} text.labels  Screen reader labels: `program`, `start`, `end`.
  * @return {string} `outerHTML` of the row.
  */
-function rowHtml( day, index, { options, to, rerun, remove, labels } ) {
+function rowHtml(
+	day,
+	index,
+	{ options, to, rerun, remove, name: linkName, labels }
+) {
 	const name = ( field ) =>
 		`radplapag_station_schedule[${ day }][${ index }][${ field }]`;
 	const id = ( field ) => `radplapag-slot-${ day }-${ index }-${ field }`;
@@ -96,7 +102,7 @@ function rowHtml( day, index, { options, to, rerun, remove, labels } ) {
 			'is_rerun'
 		) }" value="1" class="radplapag-program-is-rerun"> ${ rerun }</label>` +
 		'<div class="radplapag-schedule-remove-cell">' +
-		`<a href="#" class="submitdelete radplapag-remove-program">${ remove }</a>` +
+		`<a href="#" class="submitdelete radplapag-remove-program" aria-label="${ linkName }">${ remove }</a>` +
 		'</div>' +
 		'<div class="radplapag-program-error-message" style="display: none;"></div>' +
 		'</div>'
@@ -136,13 +142,14 @@ describe( 'station-admin.js: new schedule row', () => {
 		expect( row.outerHTML ).toBe(
 			rowHtml( 'sunday', 0, {
 				options:
-					'<option value="">Select Radio Show</option>' +
+					'<option value="">Select a Radio Show</option>' +
 					'<option value="203">Draft Show (Draft)</option>' +
 					'<option value="201">Morning Show</option>' +
 					'<option value="202">Night Owl</option>',
 				to: 'to',
 				rerun: 'Rerun',
-				remove: 'Remove Time Slot',
+				remove: 'Remove',
+				name: 'Remove Time Slot',
 				labels: {
 					program: 'Radio Show',
 					start: 'Start time',
@@ -164,7 +171,7 @@ describe( 'station-admin.js: new schedule row', () => {
 	it( 'leaves only the placeholder without programs', async () => {
 		const row = await addRow( 'sunday', { programs: undefined } );
 
-		expect( optionsOf( row ) ).toEqual( [ [ '', 'Select Radio Show' ] ] );
+		expect( optionsOf( row ) ).toEqual( [ [ '', 'Select a Radio Show' ] ] );
 	} );
 
 	it( 'decodes the entities of names and translations', async () => {
@@ -188,6 +195,7 @@ describe( 'station-admin.js: new schedule row', () => {
 				to: 'a &amp; b',
 				rerun: 'R &amp; R',
 				remove: 'Don’t',
+				name: 'Undo &amp; go',
 				labels: {
 					program: 'Show &amp; tell',
 					start: 'From &lt; to',
@@ -222,11 +230,16 @@ describe( 'station-admin.js: new schedule row', () => {
 		expect(
 			row.querySelector( '.radplapag-remove-program' ).textContent
 		).toBe( 'Don’t' );
+		expect(
+			row
+				.querySelector( '.radplapag-remove-program' )
+				.getAttribute( 'aria-label' )
+		).toBe( 'Undo & go' );
 	} );
 
 	it( 'keeps the whitespace around translations', async () => {
 		const row = await addRow( 'sunday', {
-			strings: { ...MARKER_STRINGS, removeTimeSlot: '\n  Remove &amp; ' },
+			strings: { ...MARKER_STRINGS, remove: '\n  Remove &amp; ' },
 		} );
 
 		expect(

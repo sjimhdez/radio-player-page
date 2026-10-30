@@ -1,0 +1,14 @@
+HTTP/2 200 
+cache-control: max-age=86400
+x-query-token: c09649d9e87d5a631f7f08ee216fdbce
+access-control-max-age: 1728000
+date: Wed, 28 Oct 2026 02:27:59 GMT
+content-length: 344
+akamai-mon-iucid-del: 880131
+content-type: application/vnd.apple.mpegurl
+vary: Origin
+access-control-allow-credentials: true
+access-control-allow-headers: *
+access-control-allow-methods: GET
+access-control-allow-origin: *
+strict-transport-security: max-age=15768000 ; includeSubDomains

@@ -12,7 +12,7 @@ import { audioState, startPlayback } from './support/player';
 // of `test.slow()`.
 test.describe.configure( { timeout: 3 * 60 * 1000 } );
 
-// The shortest option, "30 mins": the timer pauses on its 1800th tick.
+// The shortest option, "30 minutes": the timer pauses on its 1800th tick.
 const SHORTEST_SECONDS = 30 * 60;
 
 /**
@@ -67,8 +67,8 @@ async function openPlaying( page: Page ) {
  * @param page Player page.
  */
 async function setShortestTimer( page: Page ) {
-	await page.getByRole( 'button', { name: 'Sleep mode' } ).click();
-	await page.getByRole( 'menuitem', { name: '30 mins' } ).click();
+	await page.getByRole( 'button', { name: 'Sleep Timer' } ).click();
+	await page.getByRole( 'menuitem', { name: '30 minutes' } ).click();
 	await expect( page.getByText( '30:00', { exact: true } ) ).toBeVisible();
 }
 
@@ -95,22 +95,22 @@ test( 'counts down and pauses when the shortest option runs out', async ( {
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
 	expect( ( await audioState( page ) ).paused ).toBe( true );
 	await expect(
-		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+		page.getByRole( 'button', { name: 'Cancel sleep timer' } )
 	).toHaveCount( 0 );
 } );
 
-test( 'gives the focus to Play when the countdown runs out on "Cancel sleep mode" (K58)', async ( {
+test( 'gives the focus to Play when the countdown runs out on "Cancel sleep timer" (K58)', async ( {
 	page,
 } ) => {
 	await openPlaying( page );
 	await setShortestTimer( page );
-	await page.getByRole( 'button', { name: 'Cancel sleep mode' } ).focus();
+	await page.getByRole( 'button', { name: 'Cancel sleep timer' } ).focus();
 
 	await tick( page, SHORTEST_SECONDS );
 
 	await expect( page.getByRole( 'button', { name: 'Play' } ) ).toBeVisible();
 	await expect(
-		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+		page.getByRole( 'button', { name: 'Cancel sleep timer' } )
 	).toHaveCount( 0 );
 	expect(
 		await page.evaluate(
@@ -130,14 +130,14 @@ test( 'a manual pause cancels the timer', async ( { page } ) => {
 
 	await page.getByRole( 'button', { name: 'Pause' } ).click();
 	await expect(
-		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+		page.getByRole( 'button', { name: 'Cancel sleep timer' } )
 	).toHaveCount( 0 );
 	await startPlayback( page );
 	await tick( page, SHORTEST_SECONDS );
 
 	await expectPlaying( page );
 	await expect(
-		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+		page.getByRole( 'button', { name: 'Cancel sleep timer' } )
 	).toHaveCount( 0 );
 } );
 
@@ -147,7 +147,7 @@ test( 'the cancel button stops the timer', async ( { page } ) => {
 	await tick( page, 60 );
 	await expect( page.getByText( '29:00', { exact: true } ) ).toBeVisible();
 
-	await page.getByRole( 'button', { name: 'Cancel sleep mode' } ).click();
+	await page.getByRole( 'button', { name: 'Cancel sleep timer' } ).click();
 	await expect( page.getByText( '29:00', { exact: true } ) ).toBeHidden();
 	await tick( page, SHORTEST_SECONDS );
 
@@ -170,7 +170,7 @@ test( 'disables sleep mode during the welcome audio and keeps the timer set on t
 			intro: /intro/.test( document.querySelector( 'audio' )?.src ?? '' ),
 			disabled:
 				document.querySelector< HTMLButtonElement >(
-					'button[aria-label="Sleep mode"]'
+					'button[aria-label="Sleep Timer"]'
 				)?.disabled ?? null,
 		} ) )
 	).toEqual( { intro: true, disabled: true } );
@@ -185,16 +185,16 @@ test( 'disables sleep mode during the welcome audio and keeps the timer set on t
 			audio.currentTime > 1
 		);
 	} );
-	await page.getByRole( 'button', { name: 'Sleep mode' } ).click();
-	await page.getByRole( 'menuitem', { name: '30 mins' } ).click();
+	await page.getByRole( 'button', { name: 'Sleep Timer' } ).click();
+	await page.getByRole( 'menuitem', { name: '30 minutes' } ).click();
 	await expect(
-		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+		page.getByRole( 'button', { name: 'Cancel sleep timer' } )
 	).toBeVisible();
 
 	// Real time: the timer is still set a few seconds into the live stream.
 	await page.waitForTimeout( 3000 );
 	await expect(
-		page.getByRole( 'button', { name: 'Cancel sleep mode' } )
+		page.getByRole( 'button', { name: 'Cancel sleep timer' } )
 	).toBeVisible();
 	await expectPlaying( page );
 } );

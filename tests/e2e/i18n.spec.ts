@@ -171,7 +171,7 @@ test( 'marks the English fallback with its own language (K62)', async ( {
 
 		// The dialog, the menu and the tooltip are portals in `body`, outside
 		// the player's root: each one carries the language itself.
-		await page.getByRole( 'button', { name: 'Radio Schedule' } ).click();
+		await page.getByRole( 'button', { name: 'Weekly Schedule' } ).click();
 		const dialog = page.getByRole( 'dialog' );
 		await expect( dialog ).toBeVisible();
 		expect( await langOf( dialog ) ).toBe( 'en-US' );
@@ -179,9 +179,9 @@ test( 'marks the English fallback with its own language (K62)', async ( {
 		await expect( dialog ).toBeHidden();
 
 		await startPlayback( page );
-		const sleep = page.getByRole( 'button', { name: 'Sleep mode' } );
+		const sleep = page.getByRole( 'button', { name: 'Sleep Timer' } );
 		await sleep.hover();
-		const tooltip = page.getByRole( 'tooltip', { name: 'Sleep mode' } );
+		const tooltip = page.getByRole( 'tooltip', { name: 'Sleep Timer' } );
 		await expect( tooltip ).toBeVisible();
 		expect( await langOf( tooltip ) ).toBe( 'en-US' );
 

@@ -128,7 +128,7 @@ final class BlockAuditTest extends WP_UnitTestCase {
 
 	/**
 	 * K49: now playing prints «On Air: » before the program name with and without a
-	 * player page, as «Coming up: » and the schedule block do.
+	 * player page, as «Up Next: » and the schedule block do.
 	 */
 	public function test_now_playing_without_player_page_keeps_the_on_air_label() {
 		$f       = $this->factory_rpp;
@@ -300,7 +300,7 @@ final class BlockAuditTest extends WP_UnitTestCase {
 
 	/**
 	 * K53 (fixed in spec 0013): the three blocks print real `<hN>` headings (day names,
-	 * program names and «On Air»/«Coming up») with the same classes, never `<header>`.
+	 * program names and «On Air»/«Up Next») with the same classes, never `<header>`.
 	 * `headingLevel` picks the level (2–6, default 2); any other value falls back to 2.
 	 */
 	public function test_blocks_print_heading_elements() {

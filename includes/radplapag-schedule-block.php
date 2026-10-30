@@ -39,7 +39,7 @@ function radplapag_parse_time_to_minutes( $time ): int {
 /**
  * Checks if a schedule slot is currently active (by start/end only).
  *
- * Mirrors the logic in player/src/utils/program-schedule.ts (isProgramActive).
+ * Mirrors the logic in player/src/core/schedule/program-schedule.ts (isProgramActive).
  * Handles slots that cross midnight (end <= start) as intervals of the week.
  *
  * @since 3.3.0

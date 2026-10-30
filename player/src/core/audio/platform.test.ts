@@ -1,5 +1,5 @@
-// iOS detection for native HLS (spec 0007, K13, ADR 0036). The cases come from the
-// characterization of the removed useIsIOS() (spec 0002, task 1.16).
+// iOS detection for native HLS (K13, ADR 0036). The cases come from the
+// characterization of the removed useIsIOS().
 import { describe, expect, it } from 'vitest'
 import { isIOSDevice } from 'src/core/audio/platform'
 

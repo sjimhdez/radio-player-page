@@ -48,8 +48,9 @@ describe( 'station-admin.js: page notices (R-a11y-1)', () => {
 		const screen = await mountWithPageNotice();
 
 		expect( screen.notice.id ).toBe( '' );
-		expect( screen.select.hasAttribute( 'aria-describedby' ) ).toBe(
-			false
+		// Only the Player Page help describes the select (ADR 0073).
+		expect( screen.select.getAttribute( 'aria-describedby' ) ).toBe(
+			'radplapag_station_player_page_description'
 		);
 	} );
 
@@ -208,7 +209,10 @@ describe( 'station meta box: minor findings (R-a11y-8 c–e)', () => {
 	it( 'currently leaves the media labels unbound and repeats the image button names (d)', async () => {
 		const screen = await mountStationScreen();
 		const labels = Array.from(
-			screen.form.querySelectorAll( '.radplapag-field-wrap > label' )
+			// The "Player Display" heading names its group instead (ADR 0073).
+			screen.form.querySelectorAll(
+				'.radplapag-field-wrap > label:not(#radplapag_station_display_title)'
+			)
 		).filter( ( label ) => ! label.hasAttribute( 'for' ) );
 
 		expect( labels.map( ( label ) => label.textContent ) ).toEqual( [
@@ -229,7 +233,7 @@ describe( 'station meta box: minor findings (R-a11y-8 c–e)', () => {
 		} );
 	} );
 
-	it( 'currently makes Remove Time Slot a link that Space does not activate (e)', async () => {
+	it( 'currently makes the Remove link of a slot a link that Space does not activate (e)', async () => {
 		const screen = await mountStationScreen();
 		screen.addSlot( 'tuesday', {
 			programId: '201',

@@ -1,7 +1,7 @@
-// Pure transition of the audio player (spec 0006, task 2.5). The K1, K11, K63 and K64
-// cases of docs/known-issues.md are fixed in spec 0007 (ADR 0034), as in
-// src/hooks/use-audio-player.test.tsx and tests/e2e/cross-origin.spec.ts.
-// canVisualize (spec 0007, task 1.7): false on each attempt, set by the playing event.
+// Pure transition of the audio player, with the K1, K11, K63 and K64 cases fixed
+// (ADR 0034), as in src/hooks/use-audio-player.test.tsx and
+// tests/e2e/cross-origin.spec.ts. canVisualize is false on each attempt and set by the
+// playing event (ADR 0031).
 import { describe, expect, it } from 'vitest'
 import {
   initialPlayerState,
@@ -13,7 +13,7 @@ import {
 const run = (events: PlayerEvent[], from: PlayerState = initialPlayerState) =>
   events.reduce(transition, from)
 
-// The live stream playing: since K11, playing comes from the element (spec 0007, ADR 0034).
+// The live stream playing: playing comes from the element (K11, ADR 0034).
 const liveState = run([
   { type: 'load-start' },
   { type: 'live-started' },
@@ -38,6 +38,8 @@ describe('initialPlayerState', () => {
       volume: 1,
       volumeControllable: true,
       canVisualize: false,
+      reconnecting: false,
+      errorReason: null,
     })
   })
 })
@@ -78,8 +80,8 @@ describe('transition', () => {
     expect(transition(liveState, { type: 'stream-error' }).status).toBe('error')
   })
 
-  // Since K11 the load does not clear loading on success; a fatal error of hls.js or
-  // dashjs arrives afterwards (spec 0007, task 2.4).
+  // The load does not clear loading on success; a fatal error of hls.js or dashjs
+  // arrives afterwards (K11).
   it('clears loading on stream-error', () => {
     const state = run([{ type: 'load-start' }, { type: 'live-started' }, { type: 'stream-error' }])
     expect(state).toMatchObject({ status: 'error', loading: false })
@@ -229,5 +231,113 @@ describe('transition', () => {
       liveState,
     )
     expect(state).toMatchObject({ status: 'paused', loading: false })
+  })
+})
+
+// A reconnection keeps the status playing and shows the loading with its own flag, so
+// that the status region says it connects (K129, ADR 0061).
+describe('reconnecting', () => {
+  it('sets reconnecting and loading and clears canVisualize with reconnect-start', () => {
+    const state = run([{ type: 'reconnect-start' }], { ...liveState, canVisualize: true })
+    expect(state).toMatchObject({
+      status: 'playing',
+      loading: true,
+      canVisualize: false,
+      reconnecting: true,
+      errorReason: null,
+    })
+  })
+
+  it.each([
+    [{ type: 'playing', visualizable: true }],
+    [{ type: 'user-paused' }],
+    [{ type: 'load-start' }],
+    [{ type: 'play-failed', reason: { code: 'reconnect-exhausted' } }],
+    [{ type: 'stream-error' }],
+    [{ type: 'error' }],
+  ] as [PlayerEvent][])('clears reconnecting with %o', (event) => {
+    const state = run([{ type: 'reconnect-start' }, event], liveState)
+    expect(state.reconnecting).toBe(false)
+  })
+
+  it('keeps reconnecting on waiting and canplay', () => {
+    const state = run(
+      [{ type: 'reconnect-start' }, { type: 'waiting' }, { type: 'canplay' }],
+      liveState,
+    )
+    expect(state).toMatchObject({ reconnecting: true, loading: true })
+  })
+})
+
+// The reason of the error, for administrators (ADR 0065).
+describe('errorReason', () => {
+  const notFound = { code: 'http', status: 404 } as const
+
+  it.each(['play-failed', 'stream-error', 'error'] as const)(
+    'is set by %s with a reason',
+    (type) => {
+      const state = run([{ type: 'load-start' }, { type, reason: notFound }])
+      expect(state.status).toBe('error')
+      expect(state.errorReason).toEqual(notFound)
+    },
+  )
+
+  it.each(['play-failed', 'stream-error', 'error'] as const)(
+    'is null after %s without a reason',
+    (type) => {
+      const state = run([
+        { type: 'play-failed', reason: notFound },
+        { type: 'load-start' },
+        { type },
+      ])
+      expect(state.errorReason).toBeNull()
+    },
+  )
+
+  it('is cleared by load-start', () => {
+    expect(
+      run([{ type: 'play-failed', reason: notFound }, { type: 'load-start' }]).errorReason,
+    ).toBeNull()
+  })
+
+  it('is cleared by playing', () => {
+    const state = run([
+      { type: 'error', reason: notFound },
+      { type: 'playing', visualizable: false },
+    ])
+    expect(state.errorReason).toBeNull()
+  })
+
+  it('is kept by a pause and by load-end (K1)', () => {
+    const state = run([
+      { type: 'play-failed', reason: notFound },
+      { type: 'load-end' },
+      { type: 'pause' },
+      { type: 'user-paused' },
+    ])
+    expect(state.errorReason).toEqual(notFound)
+  })
+
+  it.each([[{ code: 'http', status: 500 }], [{ code: 'unreachable' }]] as const)(
+    'replaces the reason with a different one: %j',
+    (reason) => {
+      const state = run([
+        { type: 'play-failed', reason: notFound },
+        { type: 'play-failed', reason },
+      ])
+      expect(state.errorReason).toEqual(reason)
+    },
+  )
+
+  it('keeps the reference of an equal reason without a status', () => {
+    const state = run([{ type: 'play-failed', reason: { code: 'unreachable' } }])
+    expect(transition(state, { type: 'error', reason: { code: 'unreachable' } })).toBe(state)
+  })
+
+  it('returns the same reference for an equal reason', () => {
+    const state = run([{ type: 'play-failed', reason: notFound }])
+    expect(transition(state, { type: 'play-failed', reason: { code: 'http', status: 404 } })).toBe(
+      state,
+    )
   })
 })

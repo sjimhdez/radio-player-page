@@ -24,8 +24,8 @@ export default defineConfig(
     },
   },
   {
-    // Player core boundary (ADR 0029, spec 0006 A2): plain TypeScript, with the
-    // browser and the UI injected as parameters.
+    // Player core boundary (ADR 0029): plain TypeScript, with the browser and the UI
+    // injected as parameters.
     files: ['src/core/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [

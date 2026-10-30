@@ -25,9 +25,9 @@ export default defineConfig({
       output: {
         entryFileNames: `${prefix}.min.js`,
         chunkFileNames: (chunkInfo) => {
-          // Usar el nombre del chunk si está disponible, de lo contrario usar hash
+          // Named after the chunk, without a hash: the version in the name busts caches.
           const chunkName = chunkInfo.name || 'chunk'
-          // Limpiar el nombre para que sea válido como nombre de archivo
+          // Only letters, digits and hyphens, so the name is a valid file name.
           const cleanName = chunkName.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase()
           return `${prefix}-${cleanName}.min.js`
         },
